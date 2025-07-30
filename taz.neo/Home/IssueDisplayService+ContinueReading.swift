@@ -14,8 +14,8 @@ extension IssueDisplayService {
   func handleContinueReading(with sectionVC: SectionVC) {
     resumeReadHandled = false
     let lastPos = LastReadBusiness.getLast(for: issue)
-    guard let id = lastPos.lastArticleServerId,
-          let lastArticle = issue.allArticles.first(where: { $0.serverId == id }),
+    guard let idx = lastPos.lastArticleIndex,
+          let lastArticle = issue.allArticles.valueAt(idx),
           let scrollProgress = lastPos.scrollProgress else { return }
     if reopenAutomaticSetting == true {
       sectionVC.reopenArticleDocName = lastArticle.html?.name

@@ -38,19 +38,17 @@ public class LastReadBusiness: NSObject, DoesLog {
     }
   }
   
-  static func persist(lastArticle: Article, page: Int?, scrollProgress: Float?, in issue: Issue) {
-    guard let serverId = lastArticle.serverId else { return }
+  static func persist(lastArticle: Article?, page: Int?, scrollProgress: Float?, in issue: Issue) {
     var positions = sharedInstance.lastReadPositions
-    
     
     let entry = LastReadEntry(
       issueKey: issue.date.issueKey,
-      lastArticleServerId: serverId,
+      lastArticleServerId: lastArticle?.serverId  ?? -1,
       lastPage: page ?? -1,
       changed: UsTime.now.toString(),
       scrollProgress: scrollProgress ?? 0.0
     )
-    Log.debug(">>> persist scrollProgress \(scrollProgress) forArtWithServerId: \(serverId)")
+    Log.debug(">>> persist Last Read: scrollProgress \(entry.scrollProgress) forArtWithServerId: \(entry.lastArticleServerId) lastPage: \(entry.lastPage)")
     positions.removeAll { $0.issueKey == issue.date.issueKey }
     positions.insert(entry, at: 0)
     
@@ -73,7 +71,10 @@ public class LastReadBusiness: NSObject, DoesLog {
     sharedInstance.lastReadPositions = positions
   }
   
-  static func getLast(for issue: Issue) -> (lastArticleServerId: Int?, page: Int?, changed: UsTime?, scrollProgress: Float?) {
+  static func getLast(for issue: Issue) -> (lastArticleIndex: Int?,
+                                            page: Int?,
+                                            changed: UsTime?,
+                                            scrollProgress: Float?) {
     let key = issue.date.issueKey
     guard let entry = sharedInstance.lastReadPositions.first(where: { $0.issueKey == key }) else {
       return (nil, nil, nil, nil)
@@ -83,7 +84,9 @@ public class LastReadBusiness: NSObject, DoesLog {
     let changed = UsTime(entry.changed)
     let progress = entry.scrollProgress
     print(">>> get scrollProgress \(progress) forArtWithServerId: \(entry.lastArticleServerId)")
-    return (entry.lastArticleServerId, page, changed, progress)
+    
+    let artIdx = issue.allArticles.firstIndex(where: { $0.serverId == entry.lastArticleServerId })
+    return (artIdx, page, changed, progress)
   }
   
   static func getAll() -> [(issueKey: String, lastArticleServerId: Int?, page: Int?, changed: UsTime, scrollProgress: Float)] {

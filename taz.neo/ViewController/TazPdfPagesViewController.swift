@@ -417,7 +417,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
-      self.openArticle(name: link, path: path)
+      self.openArticle(name: link, path: path, reopenArticleScrollPos: nil)
    
     }
   }
@@ -443,7 +443,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           .withTintColor(.white)
   }
   
-  func openArticle(name: String?, path: String?){
+  func openArticle(name: String?, path: String?, reopenArticleScrollPos: CGFloat?){
     guard let pdfModel = pdfModel as? NewPdfModel else { return }
     guard let issueInfo = pdfModel.issueInfo else { return }
     guard let name = name else { return }
@@ -467,6 +467,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                              sliderContent: articleSliderContentController)
     
     articleVC.delegate = self
+    articleVC.reopenArticleDocName = name
+    articleVC.reopenArticleScrollPos = reopenArticleScrollPos
     articleVC.gotoUrl(path: path, file: name)
     #if LMD
     articleSliderContentController.header.imageView.onTapping{[weak self] _ in
@@ -523,9 +525,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     onDisplay { [weak self]  (idx, _, _) in
-      self?.issue.lastPage = idx
+      if let issue = self?.issue {
+        LastReadBusiness.persist(lastArticle: nil,
+                                 page: idx,
+                                 scrollProgress: nil,
+                                 in: issue)
+      }
       self?.updateSlider(index: idx)
-      ArticleDB.save()
     }
     
     setupToolbar()

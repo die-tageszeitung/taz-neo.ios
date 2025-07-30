@@ -51,6 +51,27 @@ extension IssueDisplayService {
                          atArticlePercent: CGFloat? = nil,
                          atPage: Int? = nil,
                          pushDelegate: PushIssueDelegate) {
+    if isFacsimile {
+      self.pushPdfVC(issue: issue,
+                     atPage: atPage,
+                     atArticle: atArticle,
+                     atArticlePercent: atArticlePercent,
+                     pushDelegate: pushDelegate)
+    }
+    else {
+      self.pushSectionVC(issue: issue,
+                         atSection: atSection,
+                         atArticle: atArticle,
+                         atArticlePercent: atArticlePercent,
+                         pushDelegate: pushDelegate)
+    }
+  }
+  
+  private func pushPdfVC(issue:StoredIssue,
+                         atPage: Int? = nil,
+                         atArticle: Int? = nil,
+                         atArticlePercent: CGFloat? = nil,
+                         pushDelegate: PushIssueDelegate){
     // prevent multiple pushes!
     // if self.navigationController?.topViewController != self { return }
     let authenticatePDF = { [weak self] in
@@ -73,44 +94,52 @@ extension IssueDisplayService {
       Alert.message(title: "Fehler", message: msg, actions: [loginAction, cancelAction])
     }
     
-    if isFacsimile {
-      ///the positive use case
-      let pushPdf = { [weak self] in
-        guard let self = self else { return }
-        let vc = TazPdfPagesViewController(issueInfo: self)
-        pushDelegate.push(vc, issueInfo: self)
-        if issue.status == .reduced {
-          authenticatePDF()
-        }
-        else if let page = atPage{
-          vc.index = page
-        }
+    let lastPos = LastReadBusiness.getLast(for: issue)
+    
+    let atPage = atPage ?? lastPos.page
+    let atArticle = atArticle ?? lastPos.lastArticleIndex
+    var atArticlePercent = atArticlePercent
+    if atArticlePercent == nil,
+       let scroll = lastPos.scrollProgress,
+        scroll > 0.0 {
+      atArticlePercent = CGFloat(scroll)
+    }
+    
+    ///the positive use case
+    let pushPdf = { [weak self] in
+      guard let self = self else { return }
+      let vc = TazPdfPagesViewController(issueInfo: self)
+      pushDelegate.push(vc, issueInfo: self)
+      if issue.status == .reduced {
+        authenticatePDF()
       }
-      ///in case of errors
-      let handleError = {
-        Toast.show(Localized("error"))
-        Notification.send(Const.NotificationNames.articleLoaded)
+      else if let page = atPage{
+        vc.index = page
       }
       
-      if feederContext.storedFeeder.momentPdfFile(issue: issue) != nil {
-        pushPdf()
-      }
-      else if let page1pdf = issue.pages?.first?.pdf {
-        feederContext.dloader.downloadIssueData(issue: issue, files: [page1pdf]) { err in
-          if err != nil { handleError() }
-          else { pushPdf() }
-        }
-      } else {
-        handleError()
+      if let artIdx = atArticle,
+         let art = issue.allArticles.valueAt(artIdx) {
+        vc.openArticle(name: art.html?.name, path: issue.dir.path, reopenArticleScrollPos: atArticlePercent)
       }
     }
-    else {
-      self.pushSectionVC(issue: issue,
-                         atSection: atSection,
-                         atArticle: atArticle,
-                         atArticlePercent: atArticlePercent,
-                         pushDelegate: pushDelegate)
+    ///in case of errors
+    let handleError = {
+      Toast.show(Localized("error"))
+      Notification.send(Const.NotificationNames.articleLoaded)
     }
+    
+    if feederContext.storedFeeder.momentPdfFile(issue: issue) != nil {
+      pushPdf()
+    }
+    else if let page1pdf = issue.pages?.first?.pdf {
+      feederContext.dloader.downloadIssueData(issue: issue, files: [page1pdf]) { err in
+        if err != nil { handleError() }
+        else { pushPdf() }
+      }
+    } else {
+      handleError()
+    }
+    
   }
   
   /// Setup SectionVC and push it onto the VC stack
@@ -124,8 +153,8 @@ extension IssueDisplayService {
                               atArticle: atArticle)
     sectionVC.delegate = self
     
-    if atArticle == nil { handleContinueReading(with: sectionVC) }
     pushDelegate.push(sectionVC, issueInfo: self)
+    if atArticle == nil { handleContinueReading(with: sectionVC) }
   }
   
   func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
@@ -147,10 +176,12 @@ extension IssueDisplayService {
     
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
+      let lastRead = LastReadBusiness.getLast(for: issue)
+      #warning("Continue Reading.... setPage/Article here!")
       openIssue(issue: issue,
                 atSection: nil,
                 atArticle: atArticle,
-                atPage: atPage ?? issue.lastPage,
+                atPage: atPage ?? lastRead.page,
                 pushDelegate: pushDelegate)
       if feederContext.isAuthenticated,
          feederContext.gqlFeeder.isExpiredAccount == false,

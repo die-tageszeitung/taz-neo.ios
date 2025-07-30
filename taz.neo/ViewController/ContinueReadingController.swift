@@ -161,6 +161,20 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
       pin(view, to: sv)
     }
   }
+
+  init(issue:Issue?,
+       page: Int,
+       targetVc: UIViewController,
+       finishHandler: @escaping (Bool?)->()){
+    super.init(nibName: nil, bundle: nil)
+    rightPadding = 2*padding + 33.0 //for close x with a width of 28px
+    imageView.image = issue?.pages?.valueAt(page)?.facsimile?.image(dir: issue?.dir)
+    self.finishHandler = finishHandler
+    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth)
+    bottomLabel.text = "Seite \(page+1)"
+    setup()
+    setupTouches(targetVc: targetVc)
+  }
   
   init(article:Article?,
        targetVc: UIViewController,

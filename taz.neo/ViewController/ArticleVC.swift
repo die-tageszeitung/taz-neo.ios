@@ -219,9 +219,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
   
   func persistReadProgress(art: Article? = nil, webView: WebView? = nil) {
-    guard let art = art ?? self.article,
+    guard delegate != nil,
+      let art = art ?? self.article,
     let wv = webView ?? self.currentWebView as WebView? else { return }
-    debug(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
+    log(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
     LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: Float(wv.scrollProgress), in: self.issue)
   }
   
