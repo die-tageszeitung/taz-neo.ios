@@ -283,16 +283,15 @@ extension HeaderView {
     let labelsFontSize = labelsFontSize ?? subTitleFontSizeDefault
     if isWochentaz && titletype != .section0
     || isWochentaz && titletype == .article {
-//      titleLabel.font = Const.Fonts.knileSemiBoldFont(size: titleFontSize)
-//      subTitleLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
-//      pageNumberLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
+      titleLabel.font = Const.Fonts.knileSemiBoldFont(size: titleFontSize)
+      subTitleLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
+      pageNumberLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
     }
     else {
-//      titleLabel.titleFont(size: titleFontSize)
+      titleLabel.titleFont(size: titleFontSize)
+      pageNumberLabel.contentFont(size: labelsFontSize)
+      subTitleLabel.contentFont(size: labelsFontSize)
     }
-    titleLabel.titleFont(size: titleFontSize)
-    pageNumberLabel.contentFont(size: labelsFontSize)
-    subTitleLabel.contentFont(size: labelsFontSize)
   }
   
   /// set ratio between (Initial/Big Header) 0...1 (Mini Header)

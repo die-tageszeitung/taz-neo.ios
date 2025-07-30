@@ -1247,6 +1247,10 @@
 			inputPaths = (
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk Bold.ttf",
 				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Aktiv Grotesk.ttf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Knile-Regular.otf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Knile-Light.otf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Knile-SemiBold.otf",
+				"$(SRCROOT)/$(PROJECT_NAME)/Supporting Files/Fonts/Knile-Bold.otf",
 			);
 			name = "Add Optional Fonts";
 			outputFileListPaths = (
@@ -1254,6 +1258,10 @@
 			outputPaths = (
 				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk Bold.ttf",
 				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Aktiv Grotesk.ttf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Knile-Regular.otf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Knile-Light.otf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Knile-SemiBold.otf",
+				"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Knile-Bold.otf",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
