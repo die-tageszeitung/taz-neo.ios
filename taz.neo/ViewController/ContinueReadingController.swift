@@ -95,14 +95,9 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   override func viewDidLoad() {
     ///Warning: bottomSheet is not available yet!
     super.viewDidLoad()
-    topLabel.addBorder(.yellow)
-    bottomLabel.addBorder(.yellow)
-    self.view.pinWidth(Const.Size.OverlayMaxWidth, relation: .lessThanOrEqual)
-    print("pinned slider.view to max Width: \(Const.Size.OverlayMaxWidth)")
     self.view.addSubview(topLabel)
     self.view.addSubview(bottomLabel)
     self.view.addSubview(imageView)
-    self.view.addBorder(.green)
     self.view.translatesAutoresizingMaskIntoConstraints = false
     pin(imageView.top, to: view.top, dist: 0)
     pin(imageView.left, to: view.left, dist: padding)
@@ -118,7 +113,6 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     
     pin(topLabel.right, to: view.right, dist: -rightPadding )
     pin(bottomLabel.right, to: view.right, dist: -rightPadding)
-
     
     view.onTapping(closure: { [weak self] _ in self?.handleAction() })
     registerForStyleUpdates()
@@ -133,6 +127,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   }
   
   func handleAction(){
+    guard !isClosing else { return }
     let handler = finishHandler
     let answer:Bool? = declineLabel.superview == nil ? true : nil
     cleanup()
@@ -140,6 +135,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   }
   
   func handleDismiss(){
+    guard !isClosing else { return }
     let handler = finishHandler
     let answer:Bool? = declineLabel.superview == nil ? false : nil
     cleanup()

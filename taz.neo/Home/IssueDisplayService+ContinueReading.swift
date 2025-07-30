@@ -65,12 +65,12 @@ extension IssueDisplayService {
     ///Show also if user tapped on an article
     let target = sectionVC.navigationController?.viewControllers.last ?? sectionVC
     ContinueReadingController(title: "\"Weiterlesen\" weiterhin anzeigen?",
-                              text: "Sie haben \"Weiterlesen\" bisher nicht genutzt. Möchten Sie den Hinweis weiterhin anzeigen lassen?",
+                              text: "Sie verwenden \"Weiterlesen\" nicht regelmäßig. Möchten Sie den Hinweis weiterhin anzeigen lassen?",
                               confirmText: "Ja, Hinweis behalten",
                               declineText: "Nein, nicht mehr anzeigen",
                               targetVc: target) { [weak self] userChoice in
       guard let userChoice = userChoice else {
-        self?.resumeReadDismissed = 0
+        self?.resumeReadDismissed -= 2
         return
       }
       if userChoice {
