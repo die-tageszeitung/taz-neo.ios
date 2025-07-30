@@ -216,6 +216,7 @@ public struct Const {
     }
     case taz(taz_Custom)
     enum taz_Custom {
+      case popoverSheetBackground
       case textFieldBackground
       case textDisabled
       case textFieldPlaceholder
@@ -364,6 +365,8 @@ public struct Const {
           return (Const.Colors.iOSLight.tintColor, Const.Colors.iOSDark.tintColor, nil, nil)
         case .taz(.textFieldBackground):
           return (UIColor.rgb(0xF0F0F0), UIColor.rgb(0x1c1c1c), nil, nil)
+        case .taz(.popoverSheetBackground):
+          return (UIColor.white, UIColor.rgb(0x1c1c1c), nil, nil)
         case .taz(.textFieldText):
           return (UIColor.rgb(0x1F1F1F), UIColor.rgb(0xF0F0F0), nil, nil)
         case .taz(.textDisabled): fallthrough

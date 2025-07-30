@@ -93,7 +93,7 @@ extension IssueDisplayService {
       if didShow { return }
       didShow = true
       ContinueReadingController(title: "Automatisch \"Weiterlesen\"?",
-                                text: "Sie verwenden \"Weiterlesen\" regelmäßig.\nMöchten Sie künftig automatisch dort weiterlesen, wo Sie aufgehört haben?",
+                                text: "Sie verwenden \"Weiterlesen\" regelmäßig. Möchten Sie künftig automatisch dort weiterlesen, wo Sie aufgehört haben?",
                                 confirmText: "Ja, automatisch weiterlesen",
                                 declineText: "Nein, Hinweis behalten",
                                 targetVc: articleVC) { [weak self] userChoice in

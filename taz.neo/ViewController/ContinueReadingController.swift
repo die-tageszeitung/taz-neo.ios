@@ -11,10 +11,18 @@ import NorthLib
 
 class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   func applyStyles() {
-    bottomSheet?.color = Const.SetColor.taz(.textFieldBackground).color
+    bottomSheet?.color = Const.SetColor.taz(.popoverSheetBackground).color
+    if Defaults.darkMode{
+      bottomSheet?.sliderView.addBorder(Const.Colors.appIconGrey, 0.3)
+    }
+    else {
+      bottomSheet?.sliderView.shadow()
+      bottomSheet?.sliderView.layer.shadowOffset = CGSize(width: 1, height: 1)
+    }
   }
   
   var padding = 9.0
+  var rightPadding = 9.0
   
   var bottomSheet: Sheet?
   private var tapRecognizer: UITapGestureRecognizer?
@@ -66,7 +74,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   
   private lazy var confirmLabel: UILabel = {
     let lbl = UILabel()
-    lbl.boldContentFont()
+    lbl.tazPrimaryButtonStyle()
     lbl.onTapping {[weak self] _ in
       self?.finishHandler?(true)
       self?.cleanup()
@@ -76,7 +84,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   
   private lazy var declineLabel: UILabel = {
     let lbl = UILabel()
-    lbl.contentFont()
+    lbl.tazSecondaryButtonStyle()
     lbl.onTapping {[weak self] _ in
       self?.finishHandler?(false)
       self?.cleanup()
@@ -87,10 +95,15 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   override func viewDidLoad() {
     ///Warning: bottomSheet is not available yet!
     super.viewDidLoad()
+    topLabel.addBorder(.yellow)
+    bottomLabel.addBorder(.yellow)
+    self.view.pinWidth(Const.Size.OverlayMaxWidth, relation: .lessThanOrEqual)
+    print("pinned slider.view to max Width: \(Const.Size.OverlayMaxWidth)")
     self.view.addSubview(topLabel)
     self.view.addSubview(bottomLabel)
     self.view.addSubview(imageView)
-    
+    self.view.addBorder(.green)
+    self.view.translatesAutoresizingMaskIntoConstraints = false
     pin(imageView.top, to: view.top, dist: 0)
     pin(imageView.left, to: view.left, dist: padding)
     pin(imageView.bottom, to: view.bottom, dist: -padding - 10, priority: .defaultLow)
@@ -102,11 +115,11 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     
     pin(topLabel.left, to: leftAnchor, dist: padding)
     pin(bottomLabel.left, to: leftAnchor, dist: padding)
-    ///Close x has a width of 28px
-    pin(topLabel.right, to: view.right, dist: -(2*padding + 28.0) )
-    pin(bottomLabel.right, to: view.right, dist: -(2*padding + 28.0))
     
-    view.pinWidth(Const.Size.OverlayMaxWidth, priority: .required)
+    pin(topLabel.right, to: view.right, dist: -rightPadding )
+    pin(bottomLabel.right, to: view.right, dist: -rightPadding)
+
+    
     view.onTapping(closure: { [weak self] _ in self?.handleAction() })
     registerForStyleUpdates()
   }
@@ -149,43 +162,35 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   func setup(){
     let bottomView = declineLabel.superview != nil ? declineLabel : bottomLabel
     pin(bottomView.bottom, to: view.bottom, dist: -padding - 10)
-    
-    view.doLayout()
-    
-    bottomSheet?.maxOverlayWidth = Const.Size.OverlayMaxWidth
     bottomSheet?.sidePadding = Const.Size.SmallPadding
-    bottomSheet?.color = Const.SetColor.taz(.textFieldBackground).color
     bottomSheet?.handleColor = .clear
-    if Defaults.darkMode{
-      bottomSheet?.sliderView.addBorder(Const.Colors.appIconGrey, 0.3)
-    }
-    else {
-      bottomSheet?.sliderView.shadow()
-      bottomSheet?.sliderView.layer.shadowOffset = CGSize(width: 1, height: 1)
-    }
     bottomSheet?.sliderView.clipsToBounds = false
     bottomSheet?.xButton.tazX()
     bottomSheet?.onX {[weak self] in self?.handleDismiss()}
     let io = TazAppEnvironment.sharedInstance.infoOffset
     self.bottomSheet?.bottomOffset = io + Const.Dist.margin
-    
-//    log(">> bottomOffset is: \(self.bottomSheet?.bottomOffset ?? 0)")
-//    log(">> view.frame.size.height is: \(view.frame.size.height)")
-//    log(">> coverage is?: \(view.frame.size.height + 30)")
-    
+    applyStyles()
+    self.view.doLayout()
     bottomSheet?.coverage = view.frame.size.height + 30
     
-    self.view.doLayout()
     self.bottomSheet?.open()
+  }
+  
+  override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if let sv = view.superview{
+      pin(view, to: sv)
+    }
   }
   
   init(article:Article?,
        targetVc: UIViewController,
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
+    rightPadding = 2*padding + 33.0 //for close x with a width of 28px
     imageView.image = article?.firstImage
     self.finishHandler = finishHandler
-    bottomSheet = Sheet(slider: self, into: targetVc)
+    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth)
     bottomLabel.text = article?.title ?? "(kein Titel angegeben)"
     setup()
     setupTouches(targetVc: targetVc)
@@ -200,12 +205,13 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
     padding = 12.0
+    rightPadding = 12.0
     self.finishHandler = finishHandler
-    bottomSheet = Sheet(slider: self, into: targetVc)
+    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth, sidePadding: padding)
     topLabel.text = title
     bottomLabel.text = text
-    topLabel.textColor = UIColor.label.withAlphaComponent(0.85)
-    bottomLabel.textColor = UIColor.label.withAlphaComponent(0.85)
+    topLabel.textColor = UIColor.label
+    bottomLabel.textColor = UIColor.label
     
     confirmLabel.text = confirmText
     declineLabel.text = declineText
@@ -214,6 +220,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     bottomLabel.contentFont()
     setupButtons()
     setup()
+    bottomSheet?.xButton.isHidden = true
     setupTouches(targetVc: targetVc)
   }
   
@@ -287,4 +294,35 @@ extension TazAppEnvironment {
 
 extension UIView{
   var oiD:String { ObjectIdentifier(self).debugDescription }
+}
+
+extension UILabel {
+  
+  private static var btnHeight = 30.0
+  
+  func tazPrimaryButtonStyle() {
+    self.boldContentFont(size: Const.Size.SmallerFontSize)
+    self.textColor = .white
+    self.textAlignment = .center
+    self.numberOfLines = 1
+    self.layer.cornerRadius = Self.btnHeight/2 + 1.0
+    self.layer.masksToBounds = true
+    self.layer.borderColor = UIColor.white.cgColor
+    self.layer.borderWidth = 1
+    self.backgroundColor = .black
+    self.pinHeight(Self.btnHeight + 2.0)
+  }
+  
+  func tazSecondaryButtonStyle() {
+    self.contentFont(size: Const.Size.SmallerFontSize)
+    self.textColor = .black
+    self.textAlignment = .center
+    self.numberOfLines = 1
+    self.layer.cornerRadius = Self.btnHeight/2
+    self.layer.masksToBounds = true
+    self.layer.borderColor = UIColor.black.cgColor
+    self.layer.borderWidth = 1
+    self.backgroundColor = .white
+    self.pinHeight(Self.btnHeight)
+  }
 }
