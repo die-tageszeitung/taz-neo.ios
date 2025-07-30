@@ -86,7 +86,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     pin(imageView.left, to: view.left, dist: padding)
     pin(imageView.bottom, to: view.bottom, dist: -padding - 10, priority: .defaultLow)
     
-    pin(topLabel.top, to: view.top, dist: -5.0)
+    pin(topLabel.top, to: view.top)
     pin(bottomLabel.top, to: topLabel.bottom, dist: 2.0)
     
     let leftAnchor = imageView.image == nil ? view.left : imageView.right
@@ -162,22 +162,27 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     }
   }
 
-  init(issue:Issue?,
-       page: Int,
+  init(title: String,
+       text: String,
+       image: UIImage? = nil,
        targetVc: UIViewController,
+       bottomOffset: CGFloat? = nil,
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
     rightPadding = 2*padding + 33.0 //for close x with a width of 28px
-    imageView.image = issue?.pages?.valueAt(page)?.facsimile?.image(dir: issue?.dir)
+    imageView.image = image
+    imageView.contentMode = .scaleAspectFit
     self.finishHandler = finishHandler
     bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth)
-    bottomLabel.text = "Seite \(page+1)"
+    topLabel.text = title
+    bottomLabel.text = text
     setup()
     setupTouches(targetVc: targetVc)
   }
   
   init(article:Article?,
        targetVc: UIViewController,
+       bottomOffset: CGFloat? = nil,
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
     rightPadding = 2*padding + 33.0 //for close x with a width of 28px
@@ -274,13 +279,28 @@ extension TazAppEnvironment {
     guard let tabVc = self.rootViewController as? MainTabVC else { return 0 }
     
     if let contentVc = (tabVc.selectedViewController as? UINavigationController)?.topViewController as? ContentVC {
-      let tabBarFrame = contentVc.toolBar.convert(contentVc.toolBar.bounds, to: nil)
-      let screenHeight = UIScreen.main.bounds.height
-      return screenHeight - tabBarFrame.origin.y
+      return contentVc.toolBar.yOffset
     }
-    let tabBarFrame = tabVc.tabBar.convert(tabVc.tabBar.bounds, to: nil)
+    
+    if let vc = (tabVc.selectedViewController as? UINavigationController)?.topViewController as? TazPdfPagesViewController {
+      return vc.toolBar.yOffset
+    }
+    
     let screenHeight = UIScreen.main.bounds.height
+    
+    if tabVc.tabBar.isVisible == false {
+      return UIWindow.safeInsets.bottom
+    }
+    
+    let tabBarFrame = tabVc.tabBar.convert(tabVc.tabBar.bounds, to: nil)
     return screenHeight - tabBarFrame.origin.y
+  }
+}
+
+extension ContentToolbar {
+  var yOffset: CGFloat {
+    let frame = self.convert(self.bounds, to: nil)
+    return frame.size.height - frame.origin.y
   }
 }
 

@@ -74,10 +74,10 @@ public class LastReadBusiness: NSObject, DoesLog {
   static func getLast(for issue: Issue) -> (lastArticleIndex: Int?,
                                             page: Int?,
                                             changed: UsTime?,
-                                            scrollProgress: Float?) {
+                                            scrollProgress: Float?)? {
     let key = issue.date.issueKey
     guard let entry = sharedInstance.lastReadPositions.first(where: { $0.issueKey == key }) else {
-      return (nil, nil, nil, nil)
+      return nil
     }
       
     let page = entry.lastPage >= 0 ? entry.lastPage : nil
