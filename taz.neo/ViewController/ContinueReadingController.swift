@@ -32,24 +32,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   private var finishHandler: ((Bool?)->())?
   
   var isClosing = false
-  
-  /**
-   Where to add?
-   
-   ArticlePlayerUI.addAndShow()
-   guard let view
-           = (TazAppEnvironment.sharedInstance.rootViewController
-              as? UITabBarController)?.view  else { return }
-   view.addSubview(self)
-   self.isHidden = true
-   parentBottomConstraint = pin(self.bottom, to: view.bottomGuide(), dist: -64.0)
-   
-   
-   ArticlePlayer.singleton.isPlaying //Maxi/Mini
-   ArticlePlayer.singleton.topAnchor
-   
-   */
-  
+    
   private lazy var imageView: UIImageView = {
     let v = UIImageView()
     v.pinHeight(32.0, priority: .required)
@@ -237,7 +220,6 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     guard let targetView
             = (targetVc as? ContentVC)?.currentWebView ?? targetVc.view else { return }
     bottomSheet?.shadeView.removeFromSuperview()
-    removeGestures()
     self.tapTargetView = targetView
     let tapRecognizer = UITapGestureRecognizer(target: self,
                                                action: #selector(handleTapBackground))
