@@ -53,7 +53,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   private lazy var topLabel: UILabel = {
     let lbl = UILabel()
     lbl.contentFont(size: 13)
-    lbl.text = "Weiterlesen"
+    lbl.text = "Weiterlesen:"
     return lbl
   }()
   
