@@ -148,7 +148,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     self.bottomSheet?.bottomOffset = io + Const.Dist.margin
     applyStyles()
     self.view.doLayout()
-    bottomSheet?.coverage = view.frame.size.height
+    bottomSheet?.coverage = view.frame.size.height + io
     
     self.bottomSheet?.open()
   }
@@ -174,7 +174,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     bottomSheet = Sheet(slider: self,
                         into: targetVc,
                         maxWidth: Const.Size.OverlayMaxWidth,
-                        sidePadding: 12.0)
+                        sidePadding: padding)
     topLabel.text = title
     bottomLabel.text = text
     setup()
@@ -192,7 +192,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     bottomSheet = Sheet(slider: self,
                         into: targetVc,
                         maxWidth: Const.Size.OverlayMaxWidth,
-                        sidePadding: 12.0)
+                        sidePadding: padding)
     bottomLabel.text = article?.title ?? "(kein Titel angegeben)"
     setup()
     setupTouches(targetVc: targetVc)
@@ -212,7 +212,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     bottomSheet = Sheet(slider: self,
                         into: targetVc,
                         maxWidth: Const.Size.OverlayMaxWidth,
-                        sidePadding: 12.0)
+                        sidePadding: 9.0)//not Padding to match with PlayerUI == 9.0
     topLabel.text = title
     bottomLabel.text = text
     topLabel.textColor = UIColor.label

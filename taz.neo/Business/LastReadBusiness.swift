@@ -88,7 +88,7 @@ public class LastReadBusiness: NSObject, DoesLog {
     
     let artIdx = issue.allArticles.firstIndex(where: { $0.serverId == entry.lastArticleServerId })
     
-    var articleScrollPos: CGFloat? = progress > 0.01 ? CGFloat(progress) : nil
+    let articleScrollPos: CGFloat? = progress > 0.01 ? CGFloat(progress) : nil
     return (artIdx, page, changed, articleScrollPos)
   }
   

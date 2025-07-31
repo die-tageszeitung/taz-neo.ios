@@ -31,11 +31,10 @@ extension IssueDisplayService {
     resumeReadHandled = false
     guard let lastPos = LastReadBusiness.getLast(for: issue),
           let idx = lastPos.lastArticleIndex,
-          let lastArticle = issue.allArticles.valueAt(idx),
-          let scrollProgress = lastPos.articleScrollPos else { return }
+          let lastArticle = issue.allArticles.valueAt(idx) else { return }
     if reopenAutomaticSetting == true {
       sectionVC.reopenArticleDocName = lastArticle.html?.name
-      sectionVC.reopenArticleScrollPos = CGFloat(scrollProgress)
+      sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
       sectionVC.whenLoaded {
         sectionVC.showArticle(lastArticle)
         Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "OpenAutomatic")
@@ -50,7 +49,7 @@ extension IssueDisplayService {
           return
         }///prevent multiple open
         sectionVC.reopenArticleDocName = lastArticle.html?.name
-        sectionVC.reopenArticleScrollPos = CGFloat(scrollProgress)
+        sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
         self?.resumeReadHandled = true
         self?.continueReadingCtrl = ContinueReadingController(article: lastArticle, targetVc: sectionVC) {[weak self] resume in
           if resume == true {
