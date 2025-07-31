@@ -524,8 +524,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       Usage.track(Usage.event.drawer.action_tap.Page)
     }
     
-    onDisplay { [weak self]  (idx, _, _) in
-      if let issue = self?.issue {
+    onDisplay { [weak self]  (idx, _, isFromScroll) in
+      if let issue = self?.issue, idx > 0 || isFromScroll {
         LastReadBusiness.persist(lastArticle: nil,
                                  page: idx,
                                  scrollProgress: nil,

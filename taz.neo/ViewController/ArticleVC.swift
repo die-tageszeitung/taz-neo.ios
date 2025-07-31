@@ -225,12 +225,23 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     header.isWochentaz = issue.isWeekend
   }
   
-  func persistReadProgress(art: Article? = nil, webView: WebView? = nil) {
+  var articleForLastRead: Article? {
     guard delegate != nil,
-      let art = art ?? self.article,
-    let wv = webView ?? self.currentWebView as WebView? else { return }
-    debug(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
-    LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: Float(wv.scrollProgress), in: self.issue)
+          let article = self.article,
+          article is VirtualArticle == false, //Not for TOM'S'
+          adelegate?.issue.isBookmarkIssue == false else {
+      return nil
+    }
+    return article
+  }
+  
+  func persistReadProgress() {
+    guard let art = articleForLastRead,
+          let wv = self.currentWebView as WebView? else { return }
+    LastReadBusiness.persist(lastArticle: art,
+                             page: nil,
+                             scrollProgress: Float(wv.scrollProgress),
+                             in: self.issue)
   }
   
   func handleAtEndOfContent(isAtEnd: Bool){

@@ -38,6 +38,7 @@ public class LastReadBusiness: NSObject, DoesLog {
     }
   }
   
+  ///Persisting Page overwrites Article and article overwrites page
   static func persist(lastArticle: Article?, page: Int?, scrollProgress: Float?, in issue: Issue) {
     var positions = sharedInstance.lastReadPositions
     
