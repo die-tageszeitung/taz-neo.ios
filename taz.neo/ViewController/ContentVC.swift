@@ -713,45 +713,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         });
       }
       """
-    /**
-     
-     tazApi.log(`>>> Apply last ScrollPos (\(scrollPos)) for: ${docname}`);
-     window.addEventListener("load", () => {
-       const scrollHeight = document.documentElement.scrollHeight;
-       const clientHeight = document.documentElement.clientHeight;
-       tazApi.log(`>>> Scroling vars scrollHeight : ${scrollHeight} clientHeight : ${clientHeight}`);
-       const maxScrollY = scrollHeight - clientHeight + 34.0;
-       const targetScrollY = \(scrollPos) * maxScrollY;
-       tazApi.log(`>>> Scroll ${docname} to: \(scrollPos) yPos: ${targetScrollY}`);
-       window.scrollTo({
-         top: targetScrollY,
-         behavior: 'auto'
-       });
-     });
-   }
-   """
-}
-     
-     
-     
-     Debug Helper:
-     tazApi.log(`>>> Apply last ScrollPos if: ${filename} == ${docname}`);
-     tazApi.log(`>>> Scroling vars scrollHeight : ${scrollHeight} clientHeight : ${clientHeight}`);
-     tazApi.log(`>>> Apply last ScrollPos (\(scrollPos)) for: ${docname}`);
-     */
   }
-  
-  /**
-   scrollHeight - clientHeight - 34.0; => 5 px zu wenig gescrollt wenn 20%
-                            => bei 90% 30px zu weit gescrollt!
-   gespeichert: 2858 >  0.9566041945560019
-   wiederhergestellt:  to: 0.9566041827201843 yPos: 2923.3823823928833" => 70px zu viel
-   
-   llHeight : 3800 clientHeight : 778"
-   > getScrollProgress 0.06570727353859884 forOffset: 196.33333333333334, csHeight: 3800.0, bsHeight: 812.0
-   812 - 778 = 34
-   */
-  
+ 
   /// Define the closure to call when the back button is tapped
   public func onBack(closure: @escaping (ContentVC)->()) 
     { backClosure = closure }
