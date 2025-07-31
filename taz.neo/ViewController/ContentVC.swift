@@ -627,6 +627,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.openImage = function (url) {
       tazApi.call("openImage", undefined, url)
     };
+    tazApi.setBookmark = function (artName, hasBookmark, showToast) {
+      tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
+    };
     tazApi.getBookmarks = function (callback) {
         tazApi.log("Hallo bookmarks..."); 
       tazApi.call("getBookmarks", callback);
