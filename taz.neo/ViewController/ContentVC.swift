@@ -665,6 +665,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       const docname = "\(docname)";
       if (filename == docname) { 
         window.addEventListener("load", () => {
+          const hasScrolled = sessionStorage.getItem("scrolled_" + docname);
+          if (hasScrolled) { return; }
           const scrollHeight = document.documentElement.scrollHeight;
           const clientHeight = document.documentElement.clientHeight;
           const maxScrollY = scrollHeight;
@@ -674,6 +676,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             top: targetScrollY,
             behavior: 'auto'
           });
+          sessionStorage.setItem("scrolled_" + docname, "true");
         });
       }
       """
@@ -695,6 +698,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       const docname = "\(docname)";
       if (filename == docname) { 
         window.addEventListener("load", () => {
+          const hasScrolled = sessionStorage.getItem("scrolled_" + docname);
+          if (hasScrolled) { return; }
           const scrollWidth = document.documentElement.scrollWidth;
           const clientWidth = document.documentElement.clientWidth;
           const maxScroll = scrollWidth - clientWidth 
@@ -704,6 +709,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             left: targetScrollX,
             behavior: 'auto'
           });
+          sessionStorage.setItem("scrolled_" + docname, "true");
         });
       }
       """
