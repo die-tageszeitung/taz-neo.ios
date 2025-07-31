@@ -569,6 +569,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
       guard let self = self else { return }
       (self.doubleTapToZoomPdfCell.customAccessoryView as? UISwitch)?.isOn = self.doubleTapToZoomPdf
     }
+    $reopenHintSetting.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.reopenHintSettingCell.customAccessoryView as? UISwitch)?.isOn = self.reopenHintSetting
+    }
+    $reopenAutomaticSetting.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.reopenAutomaticSettingCell.customAccessoryView as? UISwitch)?.isOn = self.reopenAutomaticSetting
+    }
   }
   
   public override func viewWillAppear(_ animated: Bool) {
