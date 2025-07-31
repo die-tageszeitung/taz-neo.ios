@@ -12,12 +12,27 @@ import NorthLib
 //App-Section-Article
 extension IssueDisplayService {
   
-  func handleContinueReading(with sectionVC: SectionVC) {
+  /// Setup SectionVC and push it onto the VC stack
+  func pushSectionVC(issue:StoredIssue,
+                     atSection: Int? = nil,
+                     atArticle: Int? = nil,
+                     atArticlePercent: CGFloat? = nil,
+                     pushDelegate: PushIssueDelegate) {
+    let sectionVC = SectionVC(feederContext: feederContext,
+                              atSection: atSection,
+                              atArticle: atArticle)
+    sectionVC.delegate = self
+    
+    pushDelegate.push(sectionVC, issueInfo: self)
+    if atArticle == nil { handleContinueReading(with: sectionVC) }
+  }
+  
+  private func handleContinueReading(with sectionVC: SectionVC) {
     resumeReadHandled = false
     guard let lastPos = LastReadBusiness.getLast(for: issue),
           let idx = lastPos.lastArticleIndex,
           let lastArticle = issue.allArticles.valueAt(idx),
-          let scrollProgress = lastPos.scrollProgress else { return }
+          let scrollProgress = lastPos.articleScrollPos else { return }
     if reopenAutomaticSetting == true {
       sectionVC.reopenArticleDocName = lastArticle.html?.name
       sectionVC.reopenArticleScrollPos = CGFloat(scrollProgress)
@@ -59,17 +74,16 @@ extension IssueDisplayService {
     }
   }
   
-  private func resumeReadDidDismissed(_ sectionVC: SectionVC){
+  private func resumeReadDidDismissed(_ vc: UIViewController){
     resumeReadDismissed += 1
     resumeReadAccepted = 0
     if resumeReadDismissed < 5 { return }
     ///Show also if user tapped on an article
-    let target = sectionVC.navigationController?.viewControllers.last ?? sectionVC
     ContinueReadingController(title: "\"Weiterlesen\" weiterhin anzeigen?",
                               text: "Sie verwenden \"Weiterlesen\" nicht regelmäßig. Möchten Sie den Hinweis weiterhin anzeigen lassen?",
                               confirmText: "Ja, Hinweis behalten",
                               declineText: "Nein, nicht mehr anzeigen",
-                              targetVc: target) { [weak self] userChoice in
+                              targetVc: vc.topVc) { [weak self] userChoice in
       guard let userChoice = userChoice else {
         self?.resumeReadDismissed -= 2
         return
@@ -93,7 +107,7 @@ extension IssueDisplayService {
                                 text: "Sie verwenden \"Weiterlesen\" regelmäßig. Möchten Sie künftig automatisch dort weiterlesen, wo Sie aufgehört haben?",
                                 confirmText: "Ja, automatisch weiterlesen",
                                 declineText: "Nein, Hinweis behalten",
-                                targetVc: vc) { [weak self] userChoice in
+                                targetVc: vc.topVc) { [weak self] userChoice in
         guard let userChoice = userChoice else {
           self?.resumeReadAccepted = 0
           return
@@ -110,12 +124,37 @@ extension IssueDisplayService {
   }
 }
 
+fileprivate extension UIViewController {
+  var topVc : UIViewController { navigationController?.topViewController ?? self }
+}
+
 //PDF
 extension IssueDisplayService {
-  func pushPdfVC(issue:StoredIssue,
-                         atPage: Int? = nil,
-                         atArticle: Int? = nil,
-                         pushDelegate: PushIssueDelegate){
+  /// Opens an issue in PDF mode.
+  ///
+  /// This function performs the following steps:
+  /// 1. Downloads the issue if necessary.
+  /// 2. Opens the issue starting at the initial page.
+  /// 3. Checks authentication and issue status:
+  ///    - May present a login or subscription expiration screen and return early.
+  /// 4. Determines whether to open a specific page or article:
+  ///    - If `atPage` or `atArticle` is provided (e.g. from bookmarks, search, or push notification), or
+  ///    - If `reopenAutomaticSetting` is `true`, or
+  ///    - If `reopenHintSetting` is `true` (then shows a request sheet).
+  ///
+  /// - Note: If `atPage` or `atArticle` is provided, the "Continue Reading" setting will be ignored.
+  /// These parameters are typically set when the user taps an element that leads directly to an article or page.
+  ///
+  /// - Parameters:
+  ///   - issue: The stored issue to open.
+  ///   - atPage: An optional page number to open directly.
+  ///   - atArticle: An optional article identifier to open directly.
+  ///   - pushDelegate: A delegate used to manage push behavior when opening the issue.
+  func pushPdfVC(issue: StoredIssue,
+                 atPage: Int? = nil,
+                 atArticle: Int? = nil,
+                 pushDelegate: PushIssueDelegate) {
+    ///Download if needed
     if feederContext.storedFeeder.momentPdfFile(issue: issue) != nil {
       pushPdf(issue: issue,
               atPage: atPage,
@@ -124,67 +163,78 @@ extension IssueDisplayService {
     }
     else if let page1pdf = issue.pages?.first?.pdf {
       feederContext.dloader.downloadIssueData(issue: issue, files: [page1pdf]) {[weak self] err in
-        if err != nil {
-          self?.handleError()
-        }
-        else {
-          self?.pushPdf(issue: issue,
-                        atPage: atPage,
-                        atArticle: atArticle,
-                        pushDelegate: pushDelegate) }
+        if err != nil { self?.handleError(); return; }
+        self?.pushPdf(issue: issue,
+                      atPage: atPage,
+                      atArticle: atArticle,
+                      pushDelegate: pushDelegate)
+        Notification.send(Const.NotificationNames.articleLoaded)
       }
-    } else {
-      handleError()
-    }
+    } else { handleError() }
   }
   
-  private func handleError(){
-    Toast.show(Localized("error"))
-    Notification.send(Const.NotificationNames.articleLoaded)
+  private func handleError(msg: String = Localized("error")){ Toast.show(msg) }
+  
+  private func reOpen(vc: TazPdfPagesViewController,
+                      atPage: Int? = nil,
+                      pageAnimated: Bool = false,
+                      atArticle: Article? = nil,
+                      atArticleScrollPos: CGFloat? = nil){
+    if let page = atPage {
+      if pageAnimated {
+        vc.collectionView?.scrollto(page, animated: pageAnimated)
+      }
+      else {
+        vc.index = page
+      }
+    }
+    
+    if let art = atArticle {
+      vc.openArticle(name: art.html?.name,
+                     path: issue.dir.path,
+                     reopenArticleScrollPos: CGFloat(atArticleScrollPos ?? 0.0))
+    }
   }
   
   private func pushPdf(issue:StoredIssue,
                        atPage: Int? = nil,
                        atArticle: Int? = nil,
-                         pushDelegate: PushIssueDelegate,
-                         requestReopen:Bool = false){
-    
-    let lastPos = LastReadBusiness.getLast(for: issue)
+                       pushDelegate: PushIssueDelegate){
     
     let vc = TazPdfPagesViewController(issueInfo: self)
     pushDelegate.push(vc, issueInfo: self)
     
     if issue.status == .reduced {
       authenticate()
-      #warning("DANGER TEST DELETE...")
       return
     }
     
+    let lastPos = LastReadBusiness.getLast(for: issue)
+    var targetArticle: Article?
+    if let artIdx = atArticle ?? lastPos?.lastArticleIndex {
+      targetArticle = issue.allArticles.valueAt(artIdx)
+    }
+    let openPage: Int? = atPage ?? lastPos?.page
+    guard targetArticle != nil || openPage != nil else { return }
+    
     if reopenAutomaticSetting || atPage != nil || atArticle != nil {
-      if let page = atPage ?? lastPos?.page {
-        vc.index = page
-      }
-      
-      if let artIdx = atArticle,
-         let art = issue.allArticles.valueAt(artIdx) {
-        vc.openArticle(name: art.html?.name,
-                       path: issue.dir.path,
-                       reopenArticleScrollPos: CGFloat(lastPos?.scrollProgress ?? 0.0))
-      }
+      reOpen(vc: vc,
+             atPage: openPage,
+             atArticle: targetArticle,
+             atArticleScrollPos: lastPos?.articleScrollPos)
       return
     }
+
+    guard reopenHintSetting else { return }
     
     var img: UIImage?
     var txt: String
     var title: String
-    var article: Article?
     
-    if let artIdx = lastPos?.lastArticleIndex {
-      guard let art = issue.allArticles.valueAt(artIdx) else { return }
-      article = art
-      img = art.firstImage
+    if let targetArticle = targetArticle {
+      img = targetArticle.firstImage
       title = "Weiterlesen (Artikel):"
-      txt = art.title ?? "(kein Titel angegeben)"
+      txt = targetArticle.title ?? "(kein Titel angegeben)"
     } else if let page = lastPos?.page, page != 0 {
       img = issue.pages?.valueAt(page)?.facsimile?.image(dir: issue.dir)
       title = "Weiterlesen:"
@@ -200,18 +250,15 @@ extension IssueDisplayService {
                                 bottomOffset: vc.toolBar.yOffset,
                                 finishHandler: {[weak self] resume in
       if resume == true {
-        if let page = lastPos?.page {
-          vc.index = page
-        }
-        
-        if let art = article {
-          vc.openArticle(name: art.html?.name,
-                         path: issue.dir.path,
-                         reopenArticleScrollPos: CGFloat(lastPos?.scrollProgress ?? 0.0))
-        }
-        self?.resumeReadDidAccepted(vc.childArticleVC ?? vc)
+        self?.reOpen(vc: vc,
+                     atPage: openPage,
+                     pageAnimated: true,
+                     atArticle: targetArticle,
+                     atArticleScrollPos: lastPos?.articleScrollPos)
+        self?.resumeReadDidAccepted(vc)
+      } else {
+        self?.resumeReadDidDismissed(vc)
       }
-
     })
   }
   

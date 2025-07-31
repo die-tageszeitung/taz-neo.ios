@@ -140,6 +140,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self?.updateAudioButton()
     }
     
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.persistReadProgress()
+    }
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.persistReadProgress()
+    }
+    
     /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
     self.atEndOfContent { [weak self] isAtEnd in
       self?.handleAtEndOfContent(isAtEnd: isAtEnd)
@@ -222,7 +229,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     guard delegate != nil,
       let art = art ?? self.article,
     let wv = webView ?? self.currentWebView as WebView? else { return }
-    log(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
+    debug(">>> persistReadProgress for article: \(art.title ?? "-") at \(wv.scrollProgress)")
     LastReadBusiness.persist(lastArticle: art, page: nil, scrollProgress: Float(wv.scrollProgress), in: self.issue)
   }
   

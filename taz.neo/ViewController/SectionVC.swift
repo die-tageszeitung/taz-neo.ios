@@ -248,13 +248,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
-    
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
-      self?.articleVC?.persistReadProgress()
-    }
-    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
-      self?.articleVC?.persistReadProgress()
-    }
     header.isWochentaz = issue.isWeekend
   }
   

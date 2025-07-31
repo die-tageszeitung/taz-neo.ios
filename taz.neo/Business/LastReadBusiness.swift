@@ -74,7 +74,7 @@ public class LastReadBusiness: NSObject, DoesLog {
   static func getLast(for issue: Issue) -> (lastArticleIndex: Int?,
                                             page: Int?,
                                             changed: UsTime?,
-                                            scrollProgress: Float?)? {
+                                            articleScrollPos: CGFloat?)? {
     let key = issue.date.issueKey
     guard let entry = sharedInstance.lastReadPositions.first(where: { $0.issueKey == key }) else {
       return nil
@@ -86,7 +86,9 @@ public class LastReadBusiness: NSObject, DoesLog {
     print(">>> get scrollProgress \(progress) forArtWithServerId: \(entry.lastArticleServerId)")
     
     let artIdx = issue.allArticles.firstIndex(where: { $0.serverId == entry.lastArticleServerId })
-    return (artIdx, page, changed, progress)
+    
+    var articleScrollPos: CGFloat? = progress > 0.01 ? CGFloat(progress) : nil
+    return (artIdx, page, changed, articleScrollPos)
   }
   
   static func getAll() -> [(issueKey: String, lastArticleServerId: Int?, page: Int?, changed: UsTime, scrollProgress: Float)] {

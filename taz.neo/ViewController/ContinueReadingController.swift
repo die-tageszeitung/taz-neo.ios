@@ -82,11 +82,10 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     self.view.addSubview(bottomLabel)
     self.view.addSubview(imageView)
     self.view.translatesAutoresizingMaskIntoConstraints = false
-    pin(imageView.top, to: view.top, dist: 0)
+    pin(imageView.top, to: view.top, dist: padding)
     pin(imageView.left, to: view.left, dist: padding)
-    pin(imageView.bottom, to: view.bottom, dist: -padding - 10, priority: .defaultLow)
     
-    pin(topLabel.top, to: view.top)
+    pin(topLabel.top, to: view.top, dist: padding)
     pin(bottomLabel.top, to: topLabel.bottom, dist: 2.0)
     
     let leftAnchor = imageView.image == nil ? view.left : imageView.right
@@ -140,8 +139,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   
   func setup(){
     let bottomView = declineLabel.superview != nil ? declineLabel : bottomLabel
-    pin(bottomView.bottom, to: view.bottom, dist: -padding - 10)
-    bottomSheet?.sidePadding = Const.Size.SmallPadding
+    pin(bottomView.bottom, to: view.bottom, dist: -padding)
     bottomSheet?.handleColor = .clear
     bottomSheet?.sliderView.clipsToBounds = false
     bottomSheet?.xButton.tazX()
@@ -150,7 +148,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     self.bottomSheet?.bottomOffset = io + Const.Dist.margin
     applyStyles()
     self.view.doLayout()
-    bottomSheet?.coverage = view.frame.size.height + 30
+    bottomSheet?.coverage = view.frame.size.height
     
     self.bottomSheet?.open()
   }
@@ -173,7 +171,10 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     imageView.image = image
     imageView.contentMode = .scaleAspectFit
     self.finishHandler = finishHandler
-    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth)
+    bottomSheet = Sheet(slider: self,
+                        into: targetVc,
+                        maxWidth: Const.Size.OverlayMaxWidth,
+                        sidePadding: 12.0)
     topLabel.text = title
     bottomLabel.text = text
     setup()
@@ -188,7 +189,10 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     rightPadding = 2*padding + 33.0 //for close x with a width of 28px
     imageView.image = article?.firstImage
     self.finishHandler = finishHandler
-    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth)
+    bottomSheet = Sheet(slider: self,
+                        into: targetVc,
+                        maxWidth: Const.Size.OverlayMaxWidth,
+                        sidePadding: 12.0)
     bottomLabel.text = article?.title ?? "(kein Titel angegeben)"
     setup()
     setupTouches(targetVc: targetVc)
@@ -202,10 +206,13 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
        targetVc: UIViewController,
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
-    padding = 12.0
+    padding = 12.0 //bigger font bigger padding
     rightPadding = 12.0
     self.finishHandler = finishHandler
-    bottomSheet = Sheet(slider: self, into: targetVc, maxWidth: Const.Size.OverlayMaxWidth, sidePadding: padding)
+    bottomSheet = Sheet(slider: self,
+                        into: targetVc,
+                        maxWidth: Const.Size.OverlayMaxWidth,
+                        sidePadding: 12.0)
     topLabel.text = title
     bottomLabel.text = text
     topLabel.textColor = UIColor.label
@@ -236,8 +243,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   }
   
   func setupTouches(targetVc: UIViewController){
-    guard let targetView
-            = (targetVc as? ContentVC)?.currentWebView ?? targetVc.view else { return }
+    let targetView = targetVc.targetView
     bottomSheet?.shadeView.removeFromSuperview()
     self.tapTargetView = targetView
     let tapRecognizer = UITapGestureRecognizer(target: self,
@@ -245,6 +251,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     tapRecognizer.numberOfTapsRequired = 1
     tapRecognizer.cancelsTouchesInView = false
     tapRecognizer.delegate = self
+    
     targetView.addGestureRecognizer(tapRecognizer)
     self.tapRecognizer = tapRecognizer
     
@@ -258,6 +265,21 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   @objc private func handleTapBackground() {
     Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
     handleDismiss()
+  }
+}
+
+
+fileprivate extension UIViewController {
+  var targetView: UIView {
+    if let cvc = self as? ContentVC {
+      return cvc.currentWebView ?? cvc.view 
+    }
+    if let pcvc = self as? PageCollectionVC,
+       let currentView = pcvc.collectionView?.optionalView(at: pcvc.index ?? 0) {
+      /// pcvc.currentView returns nil if index is not set yet
+      return currentView.mainView ?? currentView.waitingView ?? pcvc.view
+    }
+    return self.view
   }
 }
 
@@ -277,20 +299,18 @@ extension TazAppEnvironment {
       return distanceFromBottom
     }
     guard let tabVc = self.rootViewController as? MainTabVC else { return 0 }
-    
-    if let contentVc = (tabVc.selectedViewController as? UINavigationController)?.topViewController as? ContentVC {
-      return contentVc.toolBar.yOffset
-    }
-    
-    if let vc = (tabVc.selectedViewController as? UINavigationController)?.topViewController as? TazPdfPagesViewController {
-      return vc.toolBar.yOffset
-    }
-    
     let screenHeight = UIScreen.main.bounds.height
     
-    if tabVc.tabBar.isVisible == false {
-      return UIWindow.safeInsets.bottom
+    if let topVc = (tabVc.selectedViewController as? UINavigationController)?.topViewController {
+      if let contentVc = topVc as? ContentVC {
+        return screenHeight - contentVc.toolBar.frame.origin.y
+      }
+      if let cpdfVc = topVc as? TazPdfPagesViewController {
+        return screenHeight - cpdfVc.toolBar.frame.origin.y
+      }
     }
+    
+    if tabVc.tabBar.isVisible == false { return UIWindow.safeInsets.bottom }
     
     let tabBarFrame = tabVc.tabBar.convert(tabVc.tabBar.bounds, to: nil)
     return screenHeight - tabBarFrame.origin.y

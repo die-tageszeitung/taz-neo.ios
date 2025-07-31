@@ -66,22 +66,6 @@ extension IssueDisplayService {
     }
   }
   
-  
-  /// Setup SectionVC and push it onto the VC stack
-  private func pushSectionVC(issue:StoredIssue,
-                             atSection: Int? = nil,
-                             atArticle: Int? = nil,
-                             atArticlePercent: CGFloat? = nil,
-                             pushDelegate: PushIssueDelegate) {
-    let sectionVC = SectionVC(feederContext: feederContext,
-                              atSection: atSection,
-                              atArticle: atArticle)
-    sectionVC.delegate = self
-    
-    pushDelegate.push(sectionVC, issueInfo: self)
-    if atArticle == nil { handleContinueReading(with: sectionVC) }
-  }
-  
   func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
     let issue = self.sissue
     
