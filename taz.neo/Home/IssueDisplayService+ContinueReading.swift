@@ -37,7 +37,7 @@ extension IssueDisplayService {
       sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
       sectionVC.whenLoaded {[weak self] in
         guard self?.resumeReadHandled == false else { return }
-        self?.resumeReadHandled = false
+        self?.resumeReadHandled = true
         sectionVC.showArticle(lastArticle)
         Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
         Notification.send(Const.NotificationNames.articleLoaded)
