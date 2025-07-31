@@ -21,6 +21,7 @@ class BookmarksCell: NewContentTableVcCell {
   override func updateStyles(){
     super.updateStyles()
     self.contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
+    dottedLine.setNeedsDisplay()
   }
   
   override func setup() {

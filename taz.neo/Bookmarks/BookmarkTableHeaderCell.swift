@@ -40,6 +40,7 @@ class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegate{
     contentView.backgroundColor = Const.SetColor.ios(.systemBackground).color
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color
+    dottedLine.setNeedsDisplay()
   }
   var textLeftImageConstraint: NSLayoutConstraint?
   func setup(){
