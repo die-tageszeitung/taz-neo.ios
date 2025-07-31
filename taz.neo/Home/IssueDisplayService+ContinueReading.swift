@@ -35,9 +35,11 @@ extension IssueDisplayService {
     if reopenAutomaticSetting == true {
       sectionVC.reopenArticleDocName = lastArticle.html?.name
       sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
-      sectionVC.whenLoaded {
+      sectionVC.whenLoaded {[weak self] in
+        guard self?.resumeReadHandled == false else { return }
+        self?.resumeReadHandled = false
         sectionVC.showArticle(lastArticle)
-        Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "OpenAutomatic")
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
         Notification.send(Const.NotificationNames.articleLoaded)
       }
     }
@@ -54,12 +56,12 @@ extension IssueDisplayService {
         self?.continueReadingCtrl = ContinueReadingController(article: lastArticle, targetVc: sectionVC) {[weak self] resume in
           if resume == true {
             sectionVC.showArticle(lastArticle)
-            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Open")
+            Usage.track(Usage.event.dialog.OpenLastRead, name: "Open")
             Notification.send(Const.NotificationNames.articleLoaded)
             self?.resumeReadDidAccepted(sectionVC.articleVC ?? sectionVC)
           }
           else {
-            Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
+            Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
             onMainAfter(1.0) {[weak self] in
               self?.resumeReadDidDismissed(sectionVC)
             }
@@ -69,7 +71,7 @@ extension IssueDisplayService {
       }
     }
     else {//both false
-      Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Disabled")
+      Usage.track(Usage.event.dialog.OpenLastRead, name: "Disabled")
     }
   }
   
@@ -85,14 +87,17 @@ extension IssueDisplayService {
                               targetVc: vc.topVc) { [weak self] userChoice in
       guard let userChoice = userChoice else {
         self?.resumeReadDismissed -= 2
+        Usage.track(Usage.event.dialog.OpenLastReadDisable, name: "Dismissed")
         return
       }
       if userChoice {
         self?.resumeReadDismissed = -20
+        Usage.track(Usage.event.dialog.OpenLastReadDisable, name: "Stay Enabled")
       }
       else {
         self?.resumeReadDismissed = 0
         self?.reopenHintSetting = false
+        Usage.track(Usage.event.dialog.OpenLastReadDisable, name: "Disable")
       }
     }
   }
@@ -109,14 +114,17 @@ extension IssueDisplayService {
                                 targetVc: vc.topVc) { [weak self] userChoice in
         guard let userChoice = userChoice else {
           self?.resumeReadAccepted = 0
+          Usage.track(Usage.event.dialog.OpenLastReadAutomatic, name: "Dismissed")
           return
         }
         if userChoice {
           self?.resumeReadAccepted = 0
           self?.reopenAutomaticSetting = true
+          Usage.track(Usage.event.dialog.OpenLastReadAutomatic, name: "Enabled")
         }
         else {
           self?.resumeReadAccepted = -20
+          Usage.track(Usage.event.dialog.OpenLastReadAutomatic, name: "Keep Notification")
         }
       }
     }
@@ -221,6 +229,9 @@ extension IssueDisplayService {
              atPage: openPage,
              atArticle: targetArticle,
              atArticleScrollPos: lastPos?.articleScrollPos)
+      if reopenAutomaticSetting {
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
+      }
       return
     }
 
@@ -255,8 +266,10 @@ extension IssueDisplayService {
                      atArticle: targetArticle,
                      atArticleScrollPos: lastPos?.articleScrollPos)
         self?.resumeReadDidAccepted(vc)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "Open")
       } else {
         self?.resumeReadDidDismissed(vc)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
       }
     })
   }

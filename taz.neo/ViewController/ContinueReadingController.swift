@@ -263,7 +263,6 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   }
   
   @objc private func handleTapBackground() {
-    Usage.track(Usage.event.dialog.OpenLastArticleAgain, name: "Cancel")
     handleDismiss()
   }
 }

@@ -446,7 +446,9 @@ extension Usage {
            ConnectionError = "Connection Error",
            FatalError = "Fatal Error",
            IssueDownloadError = "Issue Download Error",
-           OpenLastArticleAgain = "Open last article again"
+           OpenLastRead = "Open last read",
+           OpenLastReadAutomatic = "Open last read: Automatic",
+           OpenLastReadDisable = "Open last read: Disable"
     }
     struct drawer {
       enum action_open: String, TrackingEvent {
