@@ -39,11 +39,9 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   var multiColumnMode: Bool {
     get {
       if UIDevice.isPortrait {
-        print("return: \(multiColumnModePortrait) for: multiColumnModePortrait")
         return multiColumnModePortrait
       }
       else {
-        print("return: \(multiColumnModeLandscape) for: multiColumnModeLandscape")
         return multiColumnModeLandscape
       }
     }
@@ -260,11 +258,9 @@ class TextSettingsView: UIView {
   var multiColumnMode: Bool {
     get {
       if UIDevice.isPortrait {
-        print("return: \(multiColumnModePortrait) for: multiColumnModePortrait")
         return multiColumnModePortrait
       }
       else {
-        print("return: \(multiColumnModeLandscape) for: multiColumnModeLandscape")
         return multiColumnModeLandscape
       }
     }
