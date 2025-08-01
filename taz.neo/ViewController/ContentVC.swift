@@ -631,7 +631,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
     };
     tazApi.getBookmarks = function (callback) {
-        tazApi.log("Hallo bookmarks..."); 
       tazApi.call("getBookmarks", callback);
     };
     tazApi.shareArticle = function (artName) {

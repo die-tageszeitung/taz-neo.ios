@@ -4,8 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>de.taz.taz.neo.refresh</string>
-		<string>de.taz.taz.neo.processing</string>
+		<string>de.taz.lmd.neo.refresh</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>de_DE</string>

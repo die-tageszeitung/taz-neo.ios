@@ -83,7 +83,7 @@ extension BackgroundDownloadService {
   }
   
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
-    let request = BGProcessingTaskRequest(identifier: "de.taz.taz.neo.refresh")
+    let request = BGProcessingTaskRequest(identifier: App.backgroundTaskRefreshId)
     request.requiresNetworkConnectivity = true
     request.requiresExternalPower = false
     let nextCheck = earliestBeginDate

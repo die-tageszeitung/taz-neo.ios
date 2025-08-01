@@ -391,7 +391,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
-//    showCoachmarkIfNeeded()
+    showCoachmarkIfNeeded()
   }
   
   public override func viewDidDisappear(_ animated: Bool) {

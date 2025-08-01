@@ -458,10 +458,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "Speichernutzung",
                   detailText: storageDetails,
                   tapHandler: {[weak self] in
-    #warning("DEBUG CODE")
     self?.log("StorageDetails tapped")
-//    BackgroundSession.logWaiting()
-    BackgroundSession.cleanupUserDefaults()
   })
   
   lazy var deleteDatabaseCell: XSettingsCell
@@ -472,14 +469,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
-
-  lazy var resetBGSessionsCell: XSettingsCell
-  = XSettingsCell(text: "Reset Background Download Sessions",
-                  isDestructive: true,
-                  tapHandler: {[weak self] in
-//    BackgroundSession.cleanupAllSessions()
-    
-  } )
   
   lazy var sendFailureRequestCell: XSettingsCell
   = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",
@@ -939,10 +928,6 @@ extension SettingsVC {
       cells.insert(smartBackFromArticleCell, at: 0)
       ///reopen only work in app view, noit available in LMd
     }
-    
-    #if DEBUG
-    cells.append(resetBGSessionsCell)
-    #endif
     
     if Device.isIpad {
       cells.insert(multiColumnFixedScrollingCell, at: 1)

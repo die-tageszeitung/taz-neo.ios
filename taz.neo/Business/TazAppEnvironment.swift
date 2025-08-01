@@ -314,7 +314,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     
-    BGTaskScheduler.shared.register(forTaskWithIdentifier: "de.taz.taz.neo.refresh", using: nil) { task in
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: App.backgroundTaskRefreshId, using: nil) { task in
       BackgroundDownloadService.shared.handleIssueCheckTask(task: task)
     }
   }
@@ -628,7 +628,6 @@ extension TazAppEnvironment {
           self?.playBookmarks()
         }
       case Shortcuts.playLatestIssue.type:
-        BackgroundDownloadService.shared
         if UIApplication.shared.applicationState == .active {
           playLatestIssue()
           return
@@ -813,6 +812,17 @@ extension App {
     #else
       return false
     #endif
+  }
+  
+  /// Background Refresh Task ID.
+  /// Must match entry in Info.plist under `BGTaskSchedulerPermittedIdentifiers`.
+  /// @see Info.plist
+  static var backgroundTaskRefreshId: String {
+      #if LMD
+      return "de.taz.lmd.neo.refresh"
+      #else
+      return "de.taz.taz.2.refresh"
+      #endif
   }
   
   /// Are we running the taz app?
