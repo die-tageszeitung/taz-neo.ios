@@ -150,6 +150,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
+    line.setNeedsDisplay()
   }
 
   private var onTitleClosure: ((String?)->())?
