@@ -991,14 +991,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4D1D634F2DFAD567004254B1 /* Build configuration list for PBXNativeTarget "taz unittest" */;
 			buildPhases = (
-				4D1D63452DFAD567004254B1 /* Sources */,
 				4D1D63462DFAD567004254B1 /* Frameworks */,
-				4D1D63472DFAD567004254B1 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				4D1D634E2DFAD567004254B1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4D1D634A2DFAD567004254B1 /* taz unittest */,
@@ -1686,6 +1683,32 @@
 			};
 			name = Release;
 		};
+		77EA3B212E3CA292002E46D1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "taz unittest";
+			};
+			name = Debug;
+		};
+		77EA3B222E3CA292002E46D1 /* Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "taz unittest";
+			};
+			name = Beta;
+		};
+		77EA3B232E3CA292002E46D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = "taz unittest";
+			};
+			name = Release;
+		};
 		94D7CD19273D6E49001E41D2 /* Beta */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 948E40CF274546D500D32CFE /* ConfigSettings.xcconfig */;
@@ -1753,7 +1776,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025073101;
+				CURRENT_PROJECT_VERSION = 2025080101;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -1989,7 +2012,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025073101;
+				CURRENT_PROJECT_VERSION = 2025080101;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
@@ -2016,7 +2039,7 @@
 				CODE_SIGN_ENTITLEMENTS = "taz.neo/Supporting Files/taz.neo.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2025073101;
+				CURRENT_PROJECT_VERSION = 2025080101;
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
@@ -2040,9 +2063,9 @@
 		4D1D634F2DFAD567004254B1 /* Build configuration list for PBXNativeTarget "taz unittest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4D1D63502DFAD567004254B1 /* Debug */,
-				4D1D63512DFAD567004254B1 /* Beta */,
-				4D1D63522DFAD567004254B1 /* Release */,
+				77EA3B212E3CA292002E46D1 /* Debug */,
+				77EA3B222E3CA292002E46D1 /* Beta */,
+				77EA3B232E3CA292002E46D1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
