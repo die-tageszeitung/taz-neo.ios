@@ -76,6 +76,7 @@ private let configValues = [
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesLocalPath" : nil,
+  "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
