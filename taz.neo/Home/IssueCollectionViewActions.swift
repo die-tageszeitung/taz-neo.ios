@@ -67,7 +67,13 @@ extension IssueCollectionViewActions {
     actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
                         icon: "sparkles",//arrow.counterclockwise
                         enabled: issue.isDownloading == false) {[weak self] _ in
-      self?.deleteIssue(issue: issue, at: indexPath)
+      LastReadBusiness.resetFor(issue: issue)
+      issue.lastPage = nil
+      issue.lastArticle = nil
+      issue.lastSection = nil
+      self?.collectionView.reloadItems(at: [indexPath])
+      self?.updateCarouselDownloadButton()
+      
     }
     
     if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio
