@@ -92,7 +92,18 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       Usage.track(Usage.event.dialog.IssueDatePicker)
     }
     downloadButton.onTapping { [weak self] _ in
-      if self?.downloadButton.indicator.downloadState == .done { return }
+      if self?.downloadButton.indicator.downloadState == .downloaded { return }
+      if self?.downloadButton.indicator.downloadState == .read {
+        guard let idx = self?.centerIndex,
+              let issue = self?.service.cellData(for: idx)?.issue,
+              let lastRead = LastReadBusiness.getLast(for: issue) else { return }
+        (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
+                                                        atArticle: lastRead.lastArticleIndex,
+                                                        atPage: lastRead.page,
+                                                        isReloadOpened: false)
+        return
+      }
+      
       guard let idx = self?.centerIndex,
             let data = self?.service.cellData(for: idx) else { return }
       if let issue = data.issue {

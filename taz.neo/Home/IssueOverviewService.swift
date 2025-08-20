@@ -190,7 +190,9 @@ class IssueOverviewService: NSObject, DoesLog {
     if issue.isDownloading { return .process }
     
     let needUpdate = feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
-    return needUpdate ? .notStarted : .done
+    if needUpdate { return .notStarted }
+    if LastReadBusiness.getLast(for: issue) != nil { return .read }
+    return .downloaded
   }
   
   /// Load Issue Data for DB and also loads Images if still required
