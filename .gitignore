@@ -6,3 +6,7 @@ ConfigSettings.xcconfig
 BuildConst.swift
 swiftpm
 xcuserdata
+taz.neo/Supporting Files/Fonts/Knile-Bold.otf
+taz.neo/Supporting Files/Fonts/Knile-Light.otf
+taz.neo/Supporting Files/Fonts/Knile-Regular.otf
+taz.neo/Supporting Files/Fonts/Knile-SemiBold.otf
