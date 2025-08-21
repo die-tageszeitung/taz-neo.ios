@@ -641,7 +641,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     sliderContentVc.currentPage = page
     (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
     #endif
-    slider?.showMenuImage = false
   }
   
   var lastWindowSize: CGSize?
@@ -702,6 +701,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
       (self?.sliderContentController as? PdfOverviewCollectionVC)?.activeIndex = idx
+      self?.slider?.showMenuImage = true
+      
       guard let ziv = optionalView as? ZoomedImageView,
             let pdfImg = ziv.optionalImage as? ZoomedPdfImageSpec else { return }
       ziv.menu.menu = self?.menuItems ?? []
@@ -729,7 +730,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         self?.slider?.showMenuImage = zoomedIn
       }
       self?.toolBar.show(show:true, animated: true)
-      self?.slider?.showMenuImage = false
     }
   }
 
