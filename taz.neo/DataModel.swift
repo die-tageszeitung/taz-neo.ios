@@ -934,8 +934,11 @@ public protocol Issue: ToString, AnyObject {
   var lastSection: Int? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastArticle: Int? { get set }
+  /// Last Article read scrollPos
+  var lastArticleScrollPos: CGFloat? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastPage: Int? { get set }
+  var lastReadWasPage: Bool { get set }
   /// Payload of files
   var payload: Payload { get }
   /// Directory where all issue specific data is stored

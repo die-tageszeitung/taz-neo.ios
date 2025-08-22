@@ -1938,6 +1938,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return (pr.lastArticle < 0) ? nil : Int(pr.lastArticle) }
     set(val) { pr.lastArticle = Int32((val==nil) ? -1 : val!) }
   }
+  public var lastArticleScrollPos: CGFloat? {
+    get { return (pr.lastArticleScrollPos < 0) ? nil : CGFloat(pr.lastArticleScrollPos) }
+    set(val) { pr.lastArticleScrollPos = (val == nil ? -1.0 : Float(val!))}
+  }
   public var lastSection: Int? {
     get { return (pr.lastSection < 0) ? nil : Int(pr.lastSection) }
     set(val) { pr.lastSection = Int32((val==nil) ? -1 : val!) }
@@ -1945,6 +1949,10 @@ public final class StoredIssue: Issue, StoredObject {
   public var lastPage: Int? {
     get { return (pr.lastPage < 0) ? nil : Int(pr.lastPage) }
     set(val) { pr.lastPage = Int32((val==nil) ? -1 : val!) }
+  }
+  public var lastReadWasPage: Bool {
+    get { return pr.lastReadWasPage }
+    set(val) { pr.lastReadWasPage = val }
   }
   public var isComplete: Bool {
     get { return pr.isComplete }

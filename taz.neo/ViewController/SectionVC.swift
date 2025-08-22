@@ -192,10 +192,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
-      if self.isVisibleVC { 
-        self.issue.lastSection = self.index
-        self.issue.lastArticle = nil 
-      }
+      ///Changed Behaviour! Do not save last Section anymore/do not overwrite last Article
+//      if self.isVisibleVC {
+//        self.issue.lastSection = self.index
+//        self.issue.lastArticle = nil 
+//      }
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)

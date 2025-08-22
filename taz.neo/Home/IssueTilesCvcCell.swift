@@ -105,6 +105,12 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
           if percent != 1.0 {
             self.button.indicator.downloadState = .process
           }
+          else {
+            self.button.indicator.downloadState
+            = self.data?.issue?.hasLastReadForCurrentMode == true
+            ? .read
+            : .downloaded
+          }
           self.button.indicator.percent = percent
         }
         else {

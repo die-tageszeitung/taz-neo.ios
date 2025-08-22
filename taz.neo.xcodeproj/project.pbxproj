@@ -37,7 +37,6 @@
 		7700E0CA2E0030B000AE4151 /* PublicationSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
-		7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
 		77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
 		77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
 		7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */; };
@@ -126,7 +125,6 @@
 		77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
-		77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77CAE0A92D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */; };
 		77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */; };
@@ -371,7 +369,6 @@
 		7700E0C82E0030B000AE4151 /* PublicationSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationSchedule.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
-		7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastReadBusiness.swift; sourceTree = "<group>"; };
 		77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerWrapperView.swift; sourceTree = "<group>"; };
 		7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerView.swift; sourceTree = "<group>"; };
 		7715968C25CC605D00508DE8 /* FeedbackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackViewController.swift; sourceTree = "<group>"; };
@@ -682,7 +679,6 @@
 				774C27432BA05A7C00835BB9 /* Tom.swift */,
 				4D308ED9283404D400529592 /* TazAppEnvironment.swift */,
 				77B993D92AC4706600C7D832 /* Usage.swift */,
-				7709E3152BEBA70400AC27F3 /* LastReadBusiness.swift */,
 				776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */,
 			);
 			path = Business;
@@ -1341,7 +1337,6 @@
 				AE5131A32AFBCADB002289E8 /* SearchResultIssue.swift in Sources */,
 				AE5131A42AFBCADB002289E8 /* ArticlePlayer.swift in Sources */,
 				AE5131A52AFBCADB002289E8 /* DefaultAuthenticator.swift in Sources */,
-				77C766762C29C30300198324 /* LastReadBusiness.swift in Sources */,
 				AE5131A62AFBCADB002289E8 /* FormsController.swift in Sources */,
 				775153DF2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,
 				773E74C12D55235700570E46 /* VirtualIssue.swift in Sources */,
@@ -1517,7 +1512,6 @@
 				006007E224D1D333001680B6 /* TrialSubscriptionController.swift in Sources */,
 				77ABEEC22D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				77E6BF172DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */,
-				7709E3162BEBA70400AC27F3 /* LastReadBusiness.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
 				774C27412BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,

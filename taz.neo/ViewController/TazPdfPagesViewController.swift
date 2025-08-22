@@ -385,13 +385,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     title = title.replacingOccurrences(of: "Woche ", with: "Woche\n")
     pdfModel.title = title
     
-    
-    if let count = issueInfo.issue.pages?.count,
-       let lastIndex = issueInfo.issue.lastPage,
-       lastIndex < count {
-      pdfModel.index = lastIndex
-    }
-    
     self.sections = issueInfo.issue.sections ?? []
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
@@ -526,10 +519,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     onDisplay { [weak self]  (idx, _, isFromScroll) in
       if let issue = self?.issue, idx > 0 || isFromScroll {
-        LastReadBusiness.persist(lastArticle: nil,
-                                 page: idx,
-                                 scrollProgress: nil,
-                                 in: issue)
+        issue.setLastRead(pageIndex: idx, articleIndex: nil, scrollPosition: nil)
       }
       self?.updateSlider(index: idx)
     }

@@ -196,7 +196,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         self.adelegate?.article = art
       }
       self.setHeader(artIndex: idx)
-      self.issue.lastArticle = idx
+      issue.setLastRead(pageIndex: nil, articleIndex: idx, scrollPosition: nil)
       /**Do not persist last Article here anymore,  due it overwrites the scroll Position**/
       //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
@@ -238,10 +238,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   func persistReadProgress() {
     guard let art = articleForLastRead,
           let wv = self.currentWebView as WebView? else { return }
-    LastReadBusiness.persist(lastArticle: art,
-                             page: nil,
-                             scrollProgress: Float(wv.scrollProgress),
-                             in: self.issue)
+    
+    issue.setLastRead(pageIndex: nil,
+                      articleIndex: articles.firstIndex(where: { $0.html?.name == art.html?.name }) ?? 0,
+                      scrollPosition: wv.scrollProgress)
   }
   
   func handleAtEndOfContent(isAtEnd: Bool){

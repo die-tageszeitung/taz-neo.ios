@@ -92,25 +92,20 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       Usage.track(Usage.event.dialog.IssueDatePicker)
     }
     downloadButton.onTapping { [weak self] _ in
-      if self?.downloadButton.indicator.downloadState == .downloaded { return }
-      if self?.downloadButton.indicator.downloadState == .read {
-        guard let idx = self?.centerIndex,
-              let issue = self?.service.cellData(for: idx)?.issue,
-              let lastRead = LastReadBusiness.getLast(for: issue) else { return }
+      guard let idx = self?.centerIndex,
+            let data = self?.service.cellData(for: idx) else { return }
+      
+      if self?.downloadButton.indicator.downloadState?.canOpen == true,
+         let issue = data.issue {
         (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
-                                                        atArticle: lastRead.lastArticleIndex,
-                                                        atPage: lastRead.page,
+                                                        atArticle: issue.lastArticle,
+                                                        atPage: issue.lastPage,
                                                         isReloadOpened: false)
         return
       }
-      
-      guard let idx = self?.centerIndex,
-            let data = self?.service.cellData(for: idx) else { return }
-      if let issue = data.issue {
-        self?.downloadButton.indicator.downloadState = .waiting
-        self?.service.download(issueAt: data.date.date, withAudio: false)
-        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.IssueCarousel.loading)
-      }
+      self?.downloadButton.indicator.downloadState = .waiting
+      self?.service.download(issueAt: data.date.date, withAudio: false)
+      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.IssueCarousel.loading)
     }
     return v
   }()
@@ -395,8 +390,10 @@ extension IssueCarouselCVC {
 extension IssueCarouselCVC {
   func setupReceiveDownloadIssueNotification(){
     Notification.receive("issueProgress", closure: { [weak self] notif in
+      guard let issue = notif.object as? Issue else { return }
+      
       guard let key = self?.centerIssueDateKey,
-            (notif.object as? Issue)?.date.issueKey == key else { return }
+            issue.date.issueKey == key else { return }
       if (notif.content as? String) == "deleted" {
         self?.downloadButton.indicator.downloadState = .notStarted
       }
@@ -405,6 +402,12 @@ extension IssueCarouselCVC {
         if percent > 0.05 {
           if percent != 1.0 {
             self?.downloadButton.indicator.downloadState = .process
+          }
+          else {
+            self?.downloadButton.indicator.downloadState
+            = issue.hasLastReadForCurrentMode == true
+            ? .read
+            : .downloaded
           }
           self?.downloadButton.indicator.percent = percent
         }

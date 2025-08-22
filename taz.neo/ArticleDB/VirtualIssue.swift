@@ -32,6 +32,8 @@ public class VirtualIssue: Issue {
   public var pages: [Page]? { nil }
   public var lastSection: Int? { get { nil } set {} }
   public var lastArticle: Int? { get { nil } set {} }
+  public var lastArticleScrollPos: CGFloat? { get { nil } set {} }
+  public var lastReadWasPage: Bool { get { false } set {} }
   public var lastPage: Int? { get { nil } set {} }
   public var payload: Payload { DummyPayload() }
   public var dir: Dir { feed.dir }

@@ -73,6 +73,14 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
       cell.button.onTapping { [weak self] _ in
+        if cell.button.indicator.downloadState?.canOpen == true,
+          let issue = cell.data?.issue {
+          (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
+                                                          atArticle: issue.lastArticle,
+                                                          atPage: issue.lastPage,
+                                                          isReloadOpened: false)
+          return
+        }
         if let date = cell.data?.date.date,
           self?.service.download(issueAt: date, withAudio: false) != nil {
           cell.button.indicator.downloadState = .waiting

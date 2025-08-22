@@ -191,7 +191,7 @@ class IssueOverviewService: NSObject, DoesLog {
     
     let needUpdate = feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
     if needUpdate { return .notStarted }
-    if LastReadBusiness.getLast(for: issue) != nil { return .read }
+    if issue.hasLastReadForCurrentMode { return .read }
     return .downloaded
   }
   
@@ -777,5 +777,59 @@ extension FeederContext {
     guard let sIssue = issue as? StoredIssue else { return true }
     if sIssue.isAudioComplete == false && withAudio == true { return true }
     return self.needsUpdate(issue: sIssue, toShowPdf: toShowPdf)
+  }
+}
+
+extension Issue {
+  var hasLastReadForCurrentMode: Bool {
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == false {
+      return lastArticle ?? 0 > 0
+    }
+    if lastArticle ?? 0 > 0 { return true }
+    if lastPage ?? 0 > 0 { return true }
+    return false
+  }
+  
+  /// Updates the last read position for the issue.
+  /// - Parameters:
+  ///   - pageIndex: The index of the page the user was reading.
+  ///   - articleIndex: The index of the article on that page.
+  ///   - scrollPosition: The vertical scroll offset inside the article.
+  func setLastRead(pageIndex: Int?, articleIndex: Int?, scrollPosition: CGFloat?) {
+    // Check if there was already a last read position stored
+    let hadLastRead = hasLastReadForCurrentMode
+    
+    // Update the last read state with the new values
+    if pageIndex != nil {
+      lastPage = pageIndex
+      lastReadWasPage = true
+    }
+    else {
+      lastReadWasPage = false
+    }
+    
+    if articleIndex != nil {
+      lastArticle = articleIndex
+      lastArticleScrollPos = scrollPosition
+    }
+    
+    // Notify only if this is the *first* time we store a last read position for this issue
+    if hadLastRead { return }
+    if pageIndex == nil && articleIndex == nil { return }
+    
+    guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
+    
+    let isPdf = TazAppEnvironment.sharedInstance.service?.isFacsimile ?? false
+    let image = self.feed.feeder.momentImage(issue: self,
+                                             isPdf: isPdf,
+                                             usePdfAlternative: false)
+    
+    let data = IssueCellData(key: self.key(pdf: isPdf),
+                             date: pubDate,
+                             issue: self as? StoredIssue,
+                             image: image,
+                             downloadState: .read)
+    Notification.send(Const.NotificationNames.issueUpdate,
+                      content: data)
   }
 }

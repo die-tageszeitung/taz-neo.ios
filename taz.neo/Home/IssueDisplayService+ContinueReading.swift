@@ -29,12 +29,13 @@ extension IssueDisplayService {
   
   private func handleContinueReading(with sectionVC: SectionVC) {
     resumeReadHandled = false
-    guard let lastPos = LastReadBusiness.getLast(for: issue),
-          let idx = lastPos.lastArticleIndex,
+    guard let idx = issue.lastArticle,
           let lastArticle = issue.allArticles.valueAt(idx) else { return }
     if reopenAutomaticSetting == true {
       sectionVC.reopenArticleDocName = lastArticle.html?.name
-      sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
+      if let lastPos = issue.lastArticleScrollPos {
+        sectionVC.reopenArticleScrollPos = CGFloat(lastPos)
+      }
       sectionVC.whenLoaded {[weak self] in
         guard self?.resumeReadHandled == false else { return }
         self?.resumeReadHandled = true
@@ -51,7 +52,9 @@ extension IssueDisplayService {
           return
         }///prevent multiple open
         sectionVC.reopenArticleDocName = lastArticle.html?.name
-        sectionVC.reopenArticleScrollPos = lastPos.articleScrollPos
+        if let lastPos = self?.issue.lastArticleScrollPos {
+          sectionVC.reopenArticleScrollPos = CGFloat(lastPos)
+        }
         self?.resumeReadHandled = true
         self?.continueReadingCtrl = ContinueReadingController(article: lastArticle, targetVc: sectionVC) {[weak self] resume in
           if resume == true {
@@ -216,19 +219,19 @@ extension IssueDisplayService {
       return
     }
     
-    let lastPos = LastReadBusiness.getLast(for: issue)
     var targetArticle: Article?
-    if let artIdx = atArticle ?? lastPos?.lastArticleIndex {
+    if let artIdx = atArticle ?? issue.lastArticle {
       targetArticle = issue.allArticles.valueAt(artIdx)
     }
-    let openPage: Int? = atPage ?? lastPos?.page
+    let openPage: Int? = atPage ?? issue.lastPage
+    let lastArticleScrollPos:CGFloat? = issue.lastArticleScrollPos
     guard targetArticle != nil || openPage != nil else { return }
     
     if reopenAutomaticSetting || atPage != nil || atArticle != nil {
       reOpen(vc: vc,
              atPage: openPage,
              atArticle: targetArticle,
-             atArticleScrollPos: lastPos?.articleScrollPos)
+             atArticleScrollPos: issue.lastArticleScrollPos)
       if reopenAutomaticSetting {
         Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
       }
@@ -238,20 +241,28 @@ extension IssueDisplayService {
     guard reopenHintSetting else { return }
     
     var img: UIImage?
-    var txt: String
-    var title: String
+    var txt: String?
+    var title: String?
     
     if let targetArticle = targetArticle {
       img = targetArticle.firstImage
       title = "Weiterlesen (Artikel):"
       txt = targetArticle.title ?? "(kein Titel angegeben)"
-    } else if let page = lastPos?.page, page != 0 {
+    }
+    
+    let preferPage = targetArticle == nil || issue.lastReadWasPage
+    
+    if preferPage,
+       let page = issue.lastPage,
+       page != 0 {
       img = issue.pages?.valueAt(page)?.facsimile?.image(dir: issue.dir)
       title = "Weiterlesen:"
       txt = "Seite \(page+1)"
-    } else {
-      return
+      targetArticle = nil //do no open article if page requested
     }
+    
+    guard let title = title, let txt = txt else { return }
+    
     continueReadingCtrl
     = ContinueReadingController(title: title,
                                 text: txt,
@@ -264,7 +275,7 @@ extension IssueDisplayService {
                      atPage: openPage,
                      pageAnimated: true,
                      atArticle: targetArticle,
-                     atArticleScrollPos: lastPos?.articleScrollPos)
+                     atArticleScrollPos: lastArticleScrollPos)
         self?.resumeReadDidAccepted(vc)
         Usage.track(Usage.event.dialog.OpenLastRead, name: "Open")
       } else {
