@@ -195,7 +195,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       debug("remove: \(f)")
       File(f).remove()
     }
-    LastReadBusiness.resetFor(issue: nil)
+    LastReadBusiness.shared.clearAll()
     log("App data deleted.")
   }
   

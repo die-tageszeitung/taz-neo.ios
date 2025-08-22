@@ -10,77 +10,52 @@ import Foundation
 import NorthLib
 
 
-public class LastReadBusiness: NSObject, DoesLog {
+struct LastRead: Codable {
+  var issueKey: String
+  var lastArticleServerId: Int
+  var lastPage: Int
+  var changed: String
+  var scrollProgress: Float // 0.0 ... 1.0
+}
+import Foundation
+
+/// Business-Logik für die Speicherung der letzten Lesepositionen.
+/// - Speichert bis zu `maxEntries` Positionen.
+/// - Hält die Werte lokal im Speicher und schreibt nur auf App-Lifecycle-Events in UserDefaults.
+final class LastReadBusiness {
   
-  private static let maxEntries = 5
-  private static let userDefaultsKey = "lastReadPositions"
+  static let shared = LastReadBusiness()
   
-  struct LastReadEntry: Codable {
-    var issueKey: String
-    var lastArticleServerId: Int
-    var lastPage: Int
-    var changed: String
-    var scrollProgress: Float // 0.0 ... 1.0
+  private let userDefaultsKey = "lastRead"
+  private let maxEntries = 5
+  
+  /// Lokale Kopie im Speicher
+  private var cachedLastReads: [LastRead] = []
+  
+  private init() {
+    loadFromDefaults()
   }
   
-  private static let sharedInstance = LastReadBusiness()
+  // MARK: - Öffentliche API
   
-  private var lastReadPositions: [LastReadEntry] {
-    get {
-      guard let data = UserDefaults.standard.data(forKey: Self.userDefaultsKey) else { return [] }
-      let decoded = try? JSONDecoder().decode([LastReadEntry].self, from: data)
-      return decoded ?? []
-    }
-    set {
-      if let data = try? JSONEncoder().encode(newValue) {
-        UserDefaults.standard.set(data, forKey: Self.userDefaultsKey)
-      }
-    }
+  /// Liefert alle gespeicherten Lesepositionen (neueste zuerst).
+  func getAll() -> [LastRead] {
+    return cachedLastReads
   }
   
-  ///Persisting Page overwrites Article and article overwrites page
-  static func persist(lastArticle: Article?, page: Int?, scrollProgress: Float?, in issue: Issue) {
-    var positions = sharedInstance.lastReadPositions
-    
-    let entry = LastReadEntry(
-      issueKey: issue.date.issueKey,
-      lastArticleServerId: lastArticle?.serverId  ?? -1,
-      lastPage: page ?? -1,
-      changed: UsTime.now.toString(),
-      scrollProgress: scrollProgress ?? 0.0
-    )
-    Log.debug(">>> persist Last Read: scrollProgress \(entry.scrollProgress) forArtWithServerId: \(entry.lastArticleServerId) lastPage: \(entry.lastPage)")
-    positions.removeAll { $0.issueKey == issue.date.issueKey }
-    positions.insert(entry, at: 0)
-    
-    if positions.count > Self.maxEntries {
-      positions = Array(positions.prefix(Self.maxEntries))
-    }
-    
-    sharedInstance.lastReadPositions = positions
-  }
-  
-  static func resetFor(issue: Issue?) {
-    var positions = sharedInstance.lastReadPositions
-    
-    if let key = issue?.date.issueKey {
-      positions.removeAll { $0.issueKey == key }
-    } else {
-      positions.removeAll()
-    }
-    
-    sharedInstance.lastReadPositions = positions
+  /// Liefert die zuletzt gespeicherte Position (falls vorhanden).
+  func get(for issue: Issue) -> LastRead? {
+    return cachedLastReads.first { $0.issueKey == issue.date.issueKey }
   }
   
   static func getLast(for issue: Issue) -> (lastArticleIndex: Int?,
                                             page: Int?,
                                             changed: UsTime?,
                                             articleScrollPos: CGFloat?)? {
-    let key = issue.date.issueKey
-    guard let entry = sharedInstance.lastReadPositions.first(where: { $0.issueKey == key }) else {
+    guard let entry = shared.get(for: issue) else {
       return nil
     }
-      
+    
     let page = entry.lastPage >= 0 ? entry.lastPage : nil
     let changed = UsTime(entry.changed)
     let progress = entry.scrollProgress
@@ -92,14 +67,64 @@ public class LastReadBusiness: NSObject, DoesLog {
     return (artIdx, page, changed, articleScrollPos)
   }
   
-  static func getAll() -> [(issueKey: String, lastArticleServerId: Int?, page: Int?, changed: UsTime, scrollProgress: Float)] {
-    return sharedInstance.lastReadPositions.map { entry in
-      let lastPage = entry.lastPage >= 0 ? entry.lastPage : nil
-      return (entry.issueKey, entry.lastArticleServerId, lastPage, UsTime(entry.changed), entry.scrollProgress)
+  ///Persisting Page overwrites Article and article overwrites page
+  static func persist(lastArticle: Article?, page: Int?, scrollProgress: Float?, in issue: Issue) {
+    let entry = LastRead(
+      issueKey: issue.date.issueKey,
+      lastArticleServerId: lastArticle?.serverId  ?? -1,
+      lastPage: page ?? -1,
+      changed: UsTime.now.toString(),
+      scrollProgress: scrollProgress ?? 0.0
+    )
+    shared.setLastRead(entry)
+  }
+  
+  
+  /// Speichert eine neue Leseposition.
+  /// - Wenn diese bereits existiert, wird sie nach vorne verschoben.
+  /// - Bei Überschreitung von `maxEntries` wird der älteste Eintrag verworfen.
+  private func setLastRead(_ entry: LastRead) {
+    // falls bereits enthalten → entfernen
+    cachedLastReads.removeAll { $0.issueKey == entry.issueKey }
+    
+    // neuen Eintrag nach vorne setzen
+    cachedLastReads.insert(entry, at: 0)
+    
+    // bei Bedarf beschneiden
+    if cachedLastReads.count > maxEntries {
+      cachedLastReads = Array(cachedLastReads.prefix(maxEntries))
     }
   }
   
-  func sync() {
-    // Placeholder for sync logic
+  /// Entfernt eine bestimmte Leseposition.
+  func remove(for issue: Issue) {
+    cachedLastReads.removeAll { $0.issueKey == issue.date.issueKey }
+    persistToDefaults()
+  }
+  
+  /// Entfernt alle Lesepositionen.
+  func clearAll() {
+    cachedLastReads.removeAll()
+    persistToDefaults()
+  }
+  
+  // MARK: - Persistierung
+  
+  /// Lädt die Daten einmalig aus UserDefaults.
+  private func loadFromDefaults() {
+    guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+          let decoded = try? JSONDecoder().decode([LastRead].self, from: data) else {
+      cachedLastReads = []
+      return
+    }
+    cachedLastReads = decoded
+  }
+  
+  /// Persistiert den aktuellen Stand in UserDefaults (z. B. bei App Enter Background).
+  func persistToDefaults() {
+    guard let data = try? JSONEncoder().encode(cachedLastReads) else {
+      return
+    }
+    UserDefaults.standard.set(data, forKey: userDefaultsKey)
   }
 }

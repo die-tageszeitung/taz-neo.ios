@@ -29,7 +29,7 @@ extension IssueCollectionViewActions {
     Usage.track(Usage.event.issue.delete,
                 name: issue.date.ISO8601)
     Notification.send("issueDelete", content: issue.date)
-    LastReadBusiness.resetFor(issue: issue)
+    LastReadBusiness.shared.remove(for: issue)
     issue.lastPage = nil
     issue.lastArticle = nil
     issue.lastSection = nil
@@ -43,7 +43,7 @@ extension IssueCollectionViewActions {
     issue.lastPage = nil
     issue.lastArticle = nil
     issue.lastSection = nil
-    LastReadBusiness.resetFor(issue: issue)
+    LastReadBusiness.shared.remove(for: issue)
     ///reload is not needed currently
     //self.collectionView.reloadItems(at: [indexPath])
     //self.updateCarouselDownloadButton()
@@ -65,9 +65,9 @@ extension IssueCollectionViewActions {
     }
     
     actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
-                        icon: "sparkles",//arrow.counterclockwise
+                        icon: "bookmark.slash.fill",//arrow.counterclockwise, sparkles
                         enabled: issue.isDownloading == false) {[weak self] _ in
-      LastReadBusiness.resetFor(issue: issue)
+      LastReadBusiness.shared.remove(for: issue)
       issue.lastPage = nil
       issue.lastArticle = nil
       issue.lastSection = nil
