@@ -228,6 +228,14 @@ extension IssueDisplayService {
     guard targetArticle != nil || openPage != nil else { return }
     
     if reopenAutomaticSetting || atPage != nil || atArticle != nil {
+      
+      
+      if openPage != nil,
+         issue.lastReadWasPage == true,
+         targetArticle != nil {
+        targetArticle = nil //do no open article if page was last read
+      }
+      
       reOpen(vc: vc,
              atPage: openPage,
              atArticle: targetArticle,
