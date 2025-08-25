@@ -12,12 +12,12 @@ import NorthLib
 /// Protocol to handle Open and Display an Issue
 protocol OpenIssueDelegate {
   /// open a Issue
-  func openIssue(_ issue:StoredIssue, atArticle: Int?, atPage: Int?, isReloadOpened: Bool)
+  func openIssue(_ issue:StoredIssue, atArticle: Int?, atArticleScrollPos: CGFloat?, atPage: Int?, isReloadOpened: Bool)
 }
 extension OpenIssueDelegate {
   /// open a Issue
   func openIssue(_ issue:StoredIssue, isReloadOpened: Bool = false){
-    openIssue(issue, atArticle: nil, atPage: nil, isReloadOpened: isReloadOpened)
+    openIssue(issue, atArticle: nil, atArticleScrollPos: nil, atPage: nil, isReloadOpened: isReloadOpened)
   }
 }
 
@@ -564,7 +564,8 @@ extension HomeTVC {
 }
 
 extension HomeTVC: OpenIssueDelegate {
-  func openIssue(_ issue: StoredIssue, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false) {
+  
+  func openIssue(_ issue: StoredIssue, atArticle: Int? = nil, atArticleScrollPos: CGFloat? = nil, atPage: Int? = nil, isReloadOpened: Bool = false) {
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?
@@ -582,7 +583,7 @@ extension HomeTVC: OpenIssueDelegate {
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
-    issueInfo.showIssue(pushDelegate: self, atArticle: atArticle, atPage:atPage, isReloadOpened: isReloadOpened)
+    issueInfo.showIssue(pushDelegate: self, atArticle: atArticle, atArticleScrollPos: atArticleScrollPos, atPage:atPage, isReloadOpened: isReloadOpened)
   }
 }
 

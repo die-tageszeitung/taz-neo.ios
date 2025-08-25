@@ -414,8 +414,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   /// Initialize with FeederContext
   public init(feederContext: FeederContext,
               atSection: Int? = nil,
-              atArticle: Int? = nil,
-              atArticlePercent: CGFloat? = nil) {
+              atArticle: Int? = nil) {
     initialSection = atSection
     initialArticle = atArticle
     super.init(feederContext: feederContext)

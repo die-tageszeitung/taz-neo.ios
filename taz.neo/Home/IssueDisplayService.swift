@@ -48,7 +48,7 @@ extension IssueDisplayService {
   private func openIssue(issue:StoredIssue,
                          atSection: Int? = nil,
                          atArticle: Int? = nil,
-                         atArticlePercent: CGFloat? = nil,
+                         atArticleScrollPos: CGFloat? = nil,
                          atPage: Int? = nil,
                          pushDelegate: PushIssueDelegate) {
     if isFacsimile {
@@ -61,12 +61,12 @@ extension IssueDisplayService {
       self.pushSectionVC(issue: issue,
                          atSection: atSection,
                          atArticle: atArticle,
-                         atArticlePercent: atArticlePercent,
+                         atArticleScrollPos: atArticleScrollPos,
                          pushDelegate: pushDelegate)
     }
   }
   
-  func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
+  func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atArticleScrollPos: CGFloat? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
@@ -88,6 +88,7 @@ extension IssueDisplayService {
       openIssue(issue: issue,
                 atSection: nil,
                 atArticle: atArticle,
+                atArticleScrollPos: atArticleScrollPos,
                 atPage: atPage,
                 pushDelegate: pushDelegate)
       if feederContext.isAuthenticated,

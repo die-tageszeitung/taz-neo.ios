@@ -77,6 +77,7 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
           let issue = cell.data?.issue {
           (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
                                                           atArticle: issue.lastArticle,
+                                                          atArticleScrollPos: issue.lastArticleScrollPos,
                                                           atPage: issue.lastPage,
                                                           isReloadOpened: false)
           return

@@ -16,13 +16,17 @@ extension IssueDisplayService {
   func pushSectionVC(issue:StoredIssue,
                      atSection: Int? = nil,
                      atArticle: Int? = nil,
-                     atArticlePercent: CGFloat? = nil,
+                     atArticleScrollPos: CGFloat? = nil,
                      pushDelegate: PushIssueDelegate) {
     let sectionVC = SectionVC(feederContext: feederContext,
                               atSection: atSection,
                               atArticle: atArticle)
     sectionVC.delegate = self
-    
+    if  let idx = atArticle,
+        let lastArticle = issue.allArticles.valueAt(idx) {
+      sectionVC.reopenArticleScrollPos = atArticleScrollPos
+      sectionVC.reopenArticleDocName = lastArticle.html?.name
+    }
     pushDelegate.push(sectionVC, issueInfo: self)
     if atArticle == nil { handleContinueReading(with: sectionVC) }
   }

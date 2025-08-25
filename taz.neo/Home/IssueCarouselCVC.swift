@@ -99,6 +99,7 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
          let issue = data.issue {
         (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
                                                         atArticle: issue.lastArticle,
+                                                        atArticleScrollPos: issue.lastArticleScrollPos,
                                                         atPage: issue.lastPage,
                                                         isReloadOpened: false)
         return
