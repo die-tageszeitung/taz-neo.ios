@@ -181,19 +181,21 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     setupTouches(targetVc: targetVc)
   }
   
-  init(article:Article?,
+  init(lastContent: Content?,
        targetVc: UIViewController,
        bottomOffset: CGFloat? = nil,
        finishHandler: @escaping (Bool?)->()){
     super.init(nibName: nil, bundle: nil)
     rightPadding = 2*padding + 33.0 //for close x with a width of 28px
-    imageView.image = article?.firstImage
+    if let lastArticle = lastContent as? Article {
+      imageView.image = lastArticle.firstImage
+    }
     self.finishHandler = finishHandler
     bottomSheet = Sheet(slider: self,
                         into: targetVc,
                         maxWidth: Const.Size.OverlayMaxWidth,
                         sidePadding: padding)
-    bottomLabel.text = article?.title ?? "(kein Titel angegeben)"
+    bottomLabel.text = lastContent?.title ?? "(kein Titel angegeben)"
     setup()
     setupTouches(targetVc: targetVc)
   }

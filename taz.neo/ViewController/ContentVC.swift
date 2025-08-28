@@ -988,9 +988,19 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
                        right: 0)
       }
     }
+    
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.persistReadProgress()
+    }
+    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+      self?.persistReadProgress()
+    }
+    
     displayUrls()
     registerForStyleUpdates()
   }
+  
+  func persistReadProgress() {}///overwrite in Subclass
   
   func updateSliderWidth(newParentWidth: CGFloat? = nil){
     guard contentTable != nil else { return }

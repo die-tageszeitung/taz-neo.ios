@@ -97,11 +97,8 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
       
       if self?.downloadButton.indicator.downloadState?.canOpen == true,
          let issue = data.issue {
-        (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
-                                                        atArticle: issue.lastArticle,
-                                                        atArticleScrollPos: issue.lastArticleScrollPos,
-                                                        atPage: issue.lastPage,
-                                                        isReloadOpened: false)
+        (self?.parent as? OpenIssueDelegate)?.openIssue(issue, openLast: true)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
         return
       }
       self?.downloadButton.indicator.downloadState = .waiting

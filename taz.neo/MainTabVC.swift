@@ -13,6 +13,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var feederContext: FeederContext
   var service: IssueOverviewService
   
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     TazAppEnvironment.sharedInstance.nextWindowSize = size
@@ -209,7 +213,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
-      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
+      issue.lastArticle = issue.indexOf(article: article)
+      if isFacsimile, let page = issue.pageIndexOf(article: article) { issue.lastPage = page }
+      home.openIssue(issue, openLast: true)
       home.togglePdfButton.isHidden = true
     }
   }

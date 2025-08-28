@@ -73,6 +73,7 @@ private let configValues = [
   "lastReadPositions" : nil,
   "resumeReadAccepted": "0",
   "resumeReadDismissed": "0",
+  "resumeReadSettingsChangeRequested": "0",
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesLocalPath" : nil,
@@ -198,6 +199,10 @@ extension Defaults {
   static var autoloadPdfOrFacsimile : Bool {
     Defaults.singleton.bool(for: "autoloadPdf", false)
     || Defaults.singleton.bool(for: "isFacsimile", false)
+  }
+  
+  static var reopenAutomaticSetting : Bool {
+    Defaults.singleton.bool(for: "reopenAutomaticSetting", false)
   }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)

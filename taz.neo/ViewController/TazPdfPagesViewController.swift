@@ -519,7 +519,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     onDisplay { [weak self]  (idx, _, isFromScroll) in
       if let issue = self?.issue, idx > 0 || isFromScroll {
-        issue.setLastRead(pageIndex: idx, articleIndex: nil, scrollPosition: nil)
+        issue.setLastRead(pageIndex: idx, articleIndex: nil, sectionIndex: nil, scrollPosition: nil)
       }
       self?.updateSlider(index: idx)
     }

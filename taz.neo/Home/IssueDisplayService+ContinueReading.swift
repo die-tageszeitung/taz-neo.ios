@@ -20,65 +20,81 @@ extension IssueDisplayService {
                      pushDelegate: PushIssueDelegate) {
     let sectionVC = SectionVC(feederContext: feederContext,
                               atSection: atSection,
-                              atArticle: atArticle)
+                              atArticle: atSection == nil ? atArticle : nil)
     sectionVC.delegate = self
-    if  let idx = atArticle,
-        let lastArticle = issue.allArticles.valueAt(idx) {
+    if atSection == nil,
+       let idx = atArticle,
+       let lastArticle = issue.allArticles.valueAt(idx) {
       sectionVC.reopenArticleScrollPos = atArticleScrollPos
       sectionVC.reopenArticleDocName = lastArticle.html?.name
     }
+    if atArticle == nil && atSection == nil {
+      requestContinueReading(with: sectionVC)
+    }
     pushDelegate.push(sectionVC, issueInfo: self)
-    if atArticle == nil { handleContinueReading(with: sectionVC) }
   }
   
-  private func handleContinueReading(with sectionVC: SectionVC) {
+  ///displays sheet to request continue reading if applyable
+  private func requestContinueReading(with sectionVC: SectionVC) {
+    if reopenHintSetting == false && reopenAutomaticSetting == false {
+      Usage.track(Usage.event.dialog.OpenLastRead, name: "Disabled")
+      return
+    }
+    guard reopenHintSetting == true && reopenAutomaticSetting == false else { return }
+
+    var lastSectionIndex: Int?
+    var lastSection: Section?
+    var lastArticle: Article?
+    if let idx = issue.lastSection,
+       let lastSect = issue.sections?.valueAt(idx) {
+      lastSectionIndex = idx
+      lastSection = lastSect
+    }
+    else if let idx = issue.lastArticle,
+       let lastArt = issue.allArticles.valueAt(idx) {
+      lastArticle = lastArt
+    }
+    
+    guard lastSectionIndex ?? 0 > 0 || lastArticle != nil else { return }
     resumeReadHandled = false
-    guard let idx = issue.lastArticle,
-          let lastArticle = issue.allArticles.valueAt(idx) else { return }
-    if reopenAutomaticSetting == true {
-      sectionVC.reopenArticleDocName = lastArticle.html?.name
-      if let lastPos = issue.lastArticleScrollPos {
+    
+    sectionVC.whenLoaded { [weak self] in
+      guard self?.resumeReadHandled == false else {
+        ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
+        self?.continueReadingCtrl?.handleDismiss()
+        return
+      }///prevent multiple open
+      sectionVC.reopenArticleDocName = lastArticle?.html?.name
+      if let lastPos = self?.issue.lastArticleScrollPos {
         sectionVC.reopenArticleScrollPos = CGFloat(lastPos)
       }
-      sectionVC.whenLoaded {[weak self] in
-        guard self?.resumeReadHandled == false else { return }
-        self?.resumeReadHandled = true
-        sectionVC.showArticle(lastArticle)
-        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
-        Notification.send(Const.NotificationNames.articleLoaded)
-      }
-    }
-    else if reopenHintSetting == true {
-      sectionVC.whenLoaded { [weak self] in
-        guard self?.resumeReadHandled == false else {
-          ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
-          self?.continueReadingCtrl?.handleDismiss()
-          return
-        }///prevent multiple open
-        sectionVC.reopenArticleDocName = lastArticle.html?.name
-        if let lastPos = self?.issue.lastArticleScrollPos {
-          sectionVC.reopenArticleScrollPos = CGFloat(lastPos)
-        }
-        self?.resumeReadHandled = true
-        self?.continueReadingCtrl = ContinueReadingController(article: lastArticle, targetVc: sectionVC) {[weak self] resume in
-          if resume == true {
+      self?.resumeReadHandled = true
+      self?.continueReadingCtrl = ContinueReadingController(lastContent: lastSection ?? lastArticle, targetVc: sectionVC) {[weak self] resume in
+        if resume == true {
+          if let lastArticle = lastArticle {
             sectionVC.showArticle(lastArticle)
-            Usage.track(Usage.event.dialog.OpenLastRead, name: "Open")
             Notification.send(Const.NotificationNames.articleLoaded)
-            self?.resumeReadDidAccepted(sectionVC.articleVC ?? sectionVC)
           }
-          else {
-            Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
-            onMainAfter(1.0) {[weak self] in
-              self?.resumeReadDidDismissed(sectionVC)
-            }
+          else if let idx = lastSectionIndex{
+            ///This is the way to scroll to certain index in WebCollection VC whitout artefacts,
+            ///but it still looks ugly for jumps > 4 indices
+            ///every index would be handled e.g. the sliderButton disappears and re-appears on 'anzeigen'
+            /// sectionVC.suppressLinkPressedNotification = true
+            /// sectionVC.collectionView?.scrollto(idx, animated: true)
+            /// onMainAfter(1.0) { sectionVC.suppressLinkPressedNotification = false }
+            sectionVC.index = idx
           }
-          self?.continueReadingCtrl = nil
+          Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromDialog")
+          self?.resumeReadDidAccepted(sectionVC.articleVC ?? sectionVC)
         }
+        else {
+          Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
+          onMainAfter(1.0) {[weak self] in
+            self?.resumeReadDidDismissed(sectionVC)
+          }
+        }
+        self?.continueReadingCtrl = nil
       }
-    }
-    else {//both false
-      Usage.track(Usage.event.dialog.OpenLastRead, name: "Disabled")
     }
   }
   
@@ -86,6 +102,10 @@ extension IssueDisplayService {
     resumeReadDismissed += 1
     resumeReadAccepted = 0
     if resumeReadDismissed < 5 { return }
+    
+    guard resumeReadSettingsChangeRequested < 3 else { return }
+    resumeReadSettingsChangeRequested += 1
+    
     ///Show also if user tapped on an article
     ContinueReadingController(title: "\"Weiterlesen\" weiterhin anzeigen?",
                               text: "Sie verwenden \"Weiterlesen\" nicht regelmäßig. Möchten Sie den Hinweis weiterhin anzeigen lassen?",
@@ -113,6 +133,10 @@ extension IssueDisplayService {
     resumeReadAccepted += 1
     resumeReadDismissed = 0
     if resumeReadAccepted < 3 { return }
+    
+    guard resumeReadSettingsChangeRequested < 3 else { return }
+    resumeReadSettingsChangeRequested += 1
+    
     onMainAfter(1.0) {
       ContinueReadingController(title: "Automatisch \"Weiterlesen\"?",
                                 text: "Sie verwenden \"Weiterlesen\" regelmäßig. Möchten Sie künftig automatisch dort weiterlesen, wo Sie aufgehört haben?",
@@ -191,6 +215,7 @@ extension IssueDisplayService {
   
   private func reOpen(vc: TazPdfPagesViewController,
                       atPage: Int? = nil,
+                      atSection: Int? = nil,
                       pageAnimated: Bool = false,
                       atArticle: Article? = nil,
                       atArticleScrollPos: CGFloat? = nil){
@@ -215,8 +240,8 @@ extension IssueDisplayService {
                        atArticle: Int? = nil,
                        pushDelegate: PushIssueDelegate){
     
-    let vc = TazPdfPagesViewController(issueInfo: self)
-    pushDelegate.push(vc, issueInfo: self)
+    let pdfVC = TazPdfPagesViewController(issueInfo: self)
+    pushDelegate.push(pdfVC, issueInfo: self)
     
     if issue.status == .reduced {
       authenticate()
@@ -224,53 +249,48 @@ extension IssueDisplayService {
     }
     
     var targetArticle: Article?
-    if let artIdx = atArticle ?? issue.lastArticle {
+    if let artIdx = atArticle {
       targetArticle = issue.allArticles.valueAt(artIdx)
     }
-    let openPage: Int? = atPage ?? issue.lastPage
-    let lastArticleScrollPos:CGFloat? = issue.lastArticleScrollPos
-    guard targetArticle != nil || openPage != nil else { return }
     
     if reopenAutomaticSetting || atPage != nil || atArticle != nil {
-      
-      
-      if openPage != nil,
-         issue.lastReadWasPage == true,
-         targetArticle != nil {
-        targetArticle = nil //do no open article if page was last read
-      }
-      
-      reOpen(vc: vc,
-             atPage: openPage,
+      reOpen(vc: pdfVC,
+             atPage: atPage,
              atArticle: targetArticle,
              atArticleScrollPos: issue.lastArticleScrollPos)
       if reopenAutomaticSetting {
         Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenAutomatic")
       }
+    }
+    else {
+      requestContinueReading(with: pdfVC, issue: issue)
+    }
+  }
+  
+  private func requestContinueReading(with pdfVC: TazPdfPagesViewController, issue:StoredIssue) {
+    if reopenHintSetting == false && reopenAutomaticSetting == false {
+      Usage.track(Usage.event.dialog.OpenLastRead, name: "Disabled")
       return
     }
-
-    guard reopenHintSetting else { return }
+    guard reopenHintSetting == true && reopenAutomaticSetting == false else { return }
     
     var img: UIImage?
     var txt: String?
     var title: String?
+    var targetArticle: Article?
     
-    if let targetArticle = targetArticle {
-      img = targetArticle.firstImage
-      title = "Weiterlesen (Artikel):"
-      txt = targetArticle.title ?? "(kein Titel angegeben)"
-    }
-    
-    let preferPage = targetArticle == nil || issue.lastReadWasPage
-    
-    if preferPage,
-       let page = issue.lastPage,
-       page != 0 {
+    if let idx = issue.lastArticleIndexForCurrentMode,
+       let lastArt = issue.allArticles.valueAt(idx) {
+      img = lastArt.firstImage
+      title = "Weiterlesen:"
+      txt = lastArt.title ?? "(kein Titel angegeben)"
+      targetArticle = lastArt
+    } else if let page = issue.lastPage, page != 0 {
       img = issue.pages?.valueAt(page)?.facsimile?.image(dir: issue.dir)
       title = "Weiterlesen:"
       txt = "Seite \(page+1)"
-      targetArticle = nil //do no open article if page requested
+    } else {
+      return
     }
     
     guard let title = title, let txt = txt else { return }
@@ -279,19 +299,19 @@ extension IssueDisplayService {
     = ContinueReadingController(title: title,
                                 text: txt,
                                 image: img,
-                                targetVc: vc,
-                                bottomOffset: vc.toolBar.yOffset,
+                                targetVc: pdfVC,
+                                bottomOffset: pdfVC.toolBar.yOffset,
                                 finishHandler: {[weak self] resume in
       if resume == true {
-        self?.reOpen(vc: vc,
-                     atPage: openPage,
+        self?.reOpen(vc: pdfVC,
+                     atPage: issue.lastPage,
                      pageAnimated: true,
                      atArticle: targetArticle,
-                     atArticleScrollPos: lastArticleScrollPos)
-        self?.resumeReadDidAccepted(vc)
-        Usage.track(Usage.event.dialog.OpenLastRead, name: "Open")
+                     atArticleScrollPos: issue.lastArticleScrollPos)
+        self?.resumeReadDidAccepted(pdfVC)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromDialog")
       } else {
-        self?.resumeReadDidDismissed(vc)
+        self?.resumeReadDidDismissed(pdfVC)
         Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
       }
     })

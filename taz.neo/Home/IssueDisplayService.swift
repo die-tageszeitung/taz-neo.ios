@@ -23,6 +23,9 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("resumeReadDismissed")
   public var resumeReadDismissed: Int
   
+  @Default("resumeReadSettingsChangeRequested")
+  public var resumeReadSettingsChangeRequested: Int
+  
   @Default("reopenHintSetting")
   public var reopenHintSetting: Bool
   
@@ -45,7 +48,7 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
 
 // MARK: - Open Issue Helper
 extension IssueDisplayService {
-  private func openIssue(issue:StoredIssue,
+  private func pushIssueVC(issue:StoredIssue,
                          atSection: Int? = nil,
                          atArticle: Int? = nil,
                          atArticleScrollPos: CGFloat? = nil,
@@ -66,7 +69,7 @@ extension IssueDisplayService {
     }
   }
   
-  func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atArticleScrollPos: CGFloat? = nil, atPage: Int? = nil, isReloadOpened: Bool = false){
+  func showIssue(pushDelegate: PushIssueDelegate, atArticle: Int? = nil, atArticleScrollPos: CGFloat? = nil, atSection: Int?, atPage: Int? = nil) {
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
@@ -85,8 +88,8 @@ extension IssueDisplayService {
     
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
-      openIssue(issue: issue,
-                atSection: nil,
+      pushIssueVC(issue: issue,
+                atSection: atSection,
                 atArticle: atArticle,
                 atArticleScrollPos: atArticleScrollPos,
                 atPage: atPage,
@@ -109,11 +112,13 @@ extension IssueDisplayService {
       guard let self = self else { return }
       let issue = self.sissue
       if let err = notif.error {
+        self.debug("open issue with issueStructure error: \(err) isIssueWatchable: \(issue.status.watchable)")
+        ///if offline or download error, Page 1 could be displayed; section 1 is not available => just show Page 1
         if issue.status.watchable && self.isFacsimile {
-          self.openIssue(issue: issue,
-                         atSection: issue.lastSection,
-                         atArticle: atArticle ?? issue.lastArticle,
-                         atPage: atPage ?? issue.lastPage,
+          self.pushIssueVC(issue: issue,
+                         atSection: atSection,
+                         atArticle: atArticle,
+                         atPage: atPage,
                          pushDelegate: pushDelegate) }
         return
       }
@@ -124,17 +129,19 @@ extension IssueDisplayService {
       self.downloadSection(issue: issue, section: sect0) { [weak self] err in
         guard let self = self else { return }
         guard err == nil else {
-          if issue.status.watchable && self.isFacsimile { self.openIssue(issue: issue,
-                                                                    atSection: issue.lastSection,
-                                                                    atArticle: atArticle ?? issue.lastArticle,
-                                                                    atPage: atPage ?? issue.lastPage,
-                                                                    pushDelegate: pushDelegate)  }
+          ///if offline or download error, Page 1 could be displayed; section 1 is not available => just show Page 1
+          if issue.status.watchable && self.isFacsimile {
+            self.pushIssueVC(issue: issue,
+                           atSection: atSection,
+                           atArticle: atArticle,
+                           atPage: atPage,
+                           pushDelegate: pushDelegate)  }
           return
         }
-        self.openIssue(issue: issue,
-                  atSection: issue.lastSection,
-                  atArticle: atArticle ?? issue.lastArticle,
-                  atPage: atPage ?? issue.lastPage,
+        self.pushIssueVC(issue: issue,
+                  atSection: atSection,
+                  atArticle: atArticle,
+                  atPage: atPage,
                   pushDelegate: pushDelegate)
         Notification.receiveOnce("issue", from: issue) { [weak self] notif in
           guard let self = self else { return }
@@ -158,12 +165,11 @@ extension IssueDisplayService {
     
     if issue.status.watchable
         && preventOpenDirect == false
-        && issue.sections?.isEmpty == false
-        && isReloadOpened == false {
-      self.openIssue(issue: issue,
-                atSection: issue.lastSection,
-                atArticle: atArticle ?? issue.lastArticle,
-                atPage: atPage ?? issue.lastPage,
+        && issue.sections?.isEmpty == false {
+      self.pushIssueVC(issue: issue,
+                atSection: atSection,
+                atArticle: atArticle,
+                atPage: atPage,
                 pushDelegate: pushDelegate)
     }
     self.feederContext.getCompleteIssue(issue: sissue, isPages: isFacsimile, isAutomatically: false)

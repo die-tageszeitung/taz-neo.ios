@@ -76,10 +76,8 @@ class IssueTilesCVC: UICollectionViewController, IssueCollectionViewActions {
         if cell.button.indicator.downloadState?.canOpen == true,
           let issue = cell.data?.issue {
           (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
-                                                          atArticle: issue.lastArticle,
-                                                          atArticleScrollPos: issue.lastArticleScrollPos,
-                                                          atPage: issue.lastPage,
-                                                          isReloadOpened: false)
+                                                          openLast: true)
+          Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
           return
         }
         if let date = cell.data?.date.date,

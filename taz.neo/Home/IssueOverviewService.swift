@@ -781,8 +781,17 @@ extension FeederContext {
 }
 
 extension Issue {
+  
+  var lastArticleIndexForCurrentMode: Int? {
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == true
+        && lastReadWasPage
+        && lastPage != nil { return nil }
+    return lastArticle
+  }
+    
   var hasLastReadForCurrentMode: Bool {
     if TazAppEnvironment.sharedInstance.service?.isFacsimile == false {
+      if lastSection != nil { return lastSection ?? 0 > 0 }
       return lastArticle ?? 0 > 0
     }
     if lastArticle ?? 0 > 0 { return true }
@@ -795,10 +804,11 @@ extension Issue {
   ///   - pageIndex: The index of the page the user was reading.
   ///   - articleIndex: The index of the article on that page.
   ///   - scrollPosition: The vertical scroll offset inside the article.
-  func setLastRead(pageIndex: Int?, articleIndex: Int?, scrollPosition: CGFloat?) {
+  func setLastRead(pageIndex: Int?, articleIndex: Int?, sectionIndex: Int?, scrollPosition: CGFloat?) {
     // Check if there was already a last read position stored
     let hadLastRead = hasLastReadForCurrentMode
     
+    Log.debug("SetLastRead for page:\(pageIndex ?? -1) article:\(articleIndex ?? -1) section:\(sectionIndex ?? -1)")
     // Update the last read state with the new values
     if pageIndex != nil {
       lastPage = pageIndex
@@ -811,11 +821,18 @@ extension Issue {
     if articleIndex != nil {
       lastArticle = articleIndex
       lastArticleScrollPos = scrollPosition
+      lastSection = nil
     }
     
-    // Notify only if this is the *first* time we store a last read position for this issue
-    if hadLastRead { return }
-    if pageIndex == nil && articleIndex == nil { return }
+    if sectionIndex != nil {
+      lastSection = sectionIndex
+    }
+    
+    let hasLastRead = hasLastReadForCurrentMode
+    
+    guard hadLastRead != hasLastRead else { return }
+    // Only notify if the last read state actually changed (from no last read to having one, or vice versa)
+    if pageIndex == nil && articleIndex == nil && sectionIndex == nil { return }
     
     guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
     
@@ -828,7 +845,7 @@ extension Issue {
                              date: pubDate,
                              issue: self as? StoredIssue,
                              image: image,
-                             downloadState: .read)
+                             downloadState: hasLastRead ? .read : .downloaded)
     Notification.send(Const.NotificationNames.issueUpdate,
                       content: data)
   }

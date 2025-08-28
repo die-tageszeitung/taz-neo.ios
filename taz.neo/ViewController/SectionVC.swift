@@ -15,6 +15,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  var suppressLinkPressedNotification = false
+  
   open var sectionPath:[String]? {
     guard let section = section,
           let sectFileName = section.html?.name else { return nil}
@@ -175,6 +177,19 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
+  private var firstDisplayed = false
+  
+  override func persistReadProgress() { persistReadProgress(sectIdx: nil, force: false) }
+  
+  func persistReadProgress(sectIdx: Int? = nil, force: Bool = false) {
+    guard firstDisplayed else { return }
+    guard force || self.isVisibleVC else { return }
+    guard delegate.issue.isBookmarkIssue == false else { return }
+    issue.setLastRead(pageIndex: nil,
+                      articleIndex: nil,
+                      sectionIndex: sectIdx ?? index,
+                      scrollPosition: nil)
+  }
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -192,11 +207,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
-      ///Changed Behaviour! Do not save last Section anymore/do not overwrite last Article
-//      if self.isVisibleVC {
-//        self.issue.lastSection = self.index
-//        self.issue.lastArticle = nil 
-//      }
+      persistReadProgress(sectIdx: secIndex)
+      self.firstDisplayed = true
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
@@ -217,6 +229,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           destroys the layout or raise other errors
           so this is currently the most effective solution
        **/
+      if self?.suppressLinkPressedNotification == true { return }
       if UIApplication.shared.applicationState != .active { return }
       if self?.navigationController?.topViewController != self {
         self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
@@ -378,6 +391,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    persistReadProgress()
     if let iart = initialArticle {
       doPreventCoachmark = true
       articleVC?.view.doLayout()

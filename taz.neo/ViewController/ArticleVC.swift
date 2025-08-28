@@ -140,13 +140,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self?.updateAudioButton()
     }
     
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
-      self?.persistReadProgress()
-    }
-    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
-      self?.persistReadProgress()
-    }
-    
     /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
     self.atEndOfContent { [weak self] isAtEnd in
       self?.handleAtEndOfContent(isAtEnd: isAtEnd)
@@ -196,7 +189,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         self.adelegate?.article = art
       }
       self.setHeader(artIndex: idx)
-      issue.setLastRead(pageIndex: nil, articleIndex: idx, scrollPosition: nil)
+      issue.setLastRead(pageIndex: nil, articleIndex: idx, sectionIndex: nil, scrollPosition: nil)
       /**Do not persist last Article here anymore,  due it overwrites the scroll Position**/
       //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
@@ -235,12 +228,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     return article
   }
   
-  func persistReadProgress() {
+  override func persistReadProgress() {
     guard let art = articleForLastRead,
           let wv = self.currentWebView as WebView? else { return }
     
     issue.setLastRead(pageIndex: nil,
                       articleIndex: articles.firstIndex(where: { $0.html?.name == art.html?.name }) ?? 0,
+                      sectionIndex: nil,
                       scrollPosition: wv.scrollProgress)
   }
   
@@ -394,16 +388,13 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     let suche = UIMenuItem(title: "Suche", action: #selector(search))
     UIMenuController.shared.menuItems = [suche]
     showMultiColumnOnboardingIfNeeded()
+    ///ensure article is perstisted, also on recall same article after art>sect>art
+    issue.setLastRead(pageIndex: nil, articleIndex: index, sectionIndex: nil, scrollPosition: nil)
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     UIMenuController.shared.menuItems = nil
-  }
-  
-  override public func viewWillDisappear(_ animated: Bool) {
-    persistReadProgress()
-    super.viewWillDisappear(animated)
   }
 } // ArticleVC
 
