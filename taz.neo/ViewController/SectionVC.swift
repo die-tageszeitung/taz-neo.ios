@@ -178,7 +178,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   private var firstDisplayed = false
-  
   override func persistReadProgress() { persistReadProgress(sectIdx: nil, force: false) }
   
   func persistReadProgress(sectIdx: Int? = nil, force: Bool = false) {
