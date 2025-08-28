@@ -399,6 +399,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.header.isHidden = false
       self.collectionView?.isHidden = true//??
     }
+    else {
+      toolBar.show(show: true, animated: true) 
+    }
   }
   
   override public func viewDidAppear(_ animated: Bool) {

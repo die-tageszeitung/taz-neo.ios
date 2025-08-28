@@ -388,6 +388,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
+    if hideOnScroll { toolBar.show(show: false, animated: true) }
     return true
   }
   
