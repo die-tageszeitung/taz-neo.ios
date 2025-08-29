@@ -25,9 +25,13 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   var rightPadding = 9.0
   
   var bottomSheet: Sheet?
-  private var tapRecognizer: UITapGestureRecognizer?
-  private var panRecognizer: UIPanGestureRecognizer?
+  private var tapRecognizerContent: UITapGestureRecognizer?
+  private var tapRecognizerToolbar: UITapGestureRecognizer?
+  private var tapRecognizerSliderButton: UITapGestureRecognizer?
+  private var panRecognizerContent: UIPanGestureRecognizer?
   private var tapTargetView: UIView?
+  private var tapTargetToolbar: UIView?
+  private var tapTargetSliderButton: UIView?
   
   private var finishHandler: ((Bool?)->())?
   
@@ -236,12 +240,28 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
   }
   
   func removeGestures(){
-    guard let tapRecognizer = self.tapRecognizer,
-          let panRecognizer = self.panRecognizer else { return }
-    self.tapRecognizer = nil
-    self.panRecognizer = nil
-    tapTargetView?.removeGestureRecognizer(tapRecognizer)
-    tapTargetView?.removeGestureRecognizer(panRecognizer)
+    if let tapRecognizer = tapRecognizerToolbar {
+      tapTargetToolbar?.removeGestureRecognizer(tapRecognizer)
+      tapRecognizerToolbar = nil
+    }
+    
+    if let tapRecognizer = tapRecognizerSliderButton {
+      tapTargetSliderButton?.removeGestureRecognizer(tapRecognizer)
+      tapRecognizerSliderButton = nil
+    }
+    
+    if let tapRecognizer = tapRecognizerContent {
+      tapTargetView?.removeGestureRecognizer(tapRecognizer)
+      tapRecognizerContent = nil
+    }
+    
+    if let tapRecognizer = panRecognizerContent {
+      tapTargetView?.removeGestureRecognizer(tapRecognizer)
+      tapRecognizerContent = nil
+    }
+    tapTargetToolbar = nil
+    tapTargetSliderButton = nil
+    tapTargetView = nil
   }
   
   func setupTouches(targetVc: UIViewController){
@@ -255,13 +275,59 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
     tapRecognizer.delegate = self
     
     targetView.addGestureRecognizer(tapRecognizer)
-    self.tapRecognizer = tapRecognizer
+    self.tapRecognizerContent = tapRecognizer
+    
+    if let targetVc = targetVc as? ContentVC {
+      self.tapTargetToolbar = targetVc.toolBar
+      let tapRecognizer1 = UITapGestureRecognizer(target: self,
+                                                 action: #selector(handleTapBackground))
+      tapRecognizer1.numberOfTapsRequired = 1
+      tapRecognizer1.cancelsTouchesInView = false
+      tapRecognizer1.delegate = self
+      
+      self.tapTargetToolbar?.addGestureRecognizer(tapRecognizer1)
+      self.tapRecognizerToolbar = tapRecognizer1
+      
+      
+      self.tapTargetSliderButton = targetVc.slider?.button
+      let tapRecognizer2 = UITapGestureRecognizer(target: self,
+                                                 action: #selector(handleTapBackground))
+      tapRecognizer2.numberOfTapsRequired = 1
+      tapRecognizer2.cancelsTouchesInView = false
+      tapRecognizer2.delegate = self
+      
+      self.tapTargetSliderButton?.addGestureRecognizer(tapRecognizer2)
+      self.tapRecognizerSliderButton = tapRecognizer2
+    }
+    else if let targetVc = targetVc as? TazPdfPagesViewController {
+      self.tapTargetToolbar = targetVc.toolBar
+      let tapRecognizer1 = UITapGestureRecognizer(target: self,
+                                                 action: #selector(handleTapBackground))
+      tapRecognizer1.numberOfTapsRequired = 1
+      tapRecognizer1.cancelsTouchesInView = false
+      tapRecognizer1.delegate = self
+      
+      self.tapTargetToolbar?.addGestureRecognizer(tapRecognizer1)
+      self.tapRecognizerToolbar = tapRecognizer1
+      
+      
+      self.tapTargetSliderButton = targetVc.slider?.button
+      let tapRecognizer2 = UITapGestureRecognizer(target: self,
+                                                 action: #selector(handleTapBackground))
+      tapRecognizer2.numberOfTapsRequired = 1
+      tapRecognizer2.cancelsTouchesInView = false
+      tapRecognizer2.delegate = self
+      
+      self.tapTargetSliderButton?.addGestureRecognizer(tapRecognizer2)
+      self.tapRecognizerSliderButton = tapRecognizer2
+    }
+    
     
     let panRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleTapBackground))
     panRecognizer.cancelsTouchesInView = false
     panRecognizer.delegate = self
     targetView.addGestureRecognizer(panRecognizer)
-    self.panRecognizer = panRecognizer
+    self.panRecognizerContent = panRecognizer
   }
   
   @objc private func handleTapBackground() {
