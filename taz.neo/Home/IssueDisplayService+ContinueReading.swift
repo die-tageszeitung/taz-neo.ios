@@ -99,12 +99,12 @@ extension IssueDisplayService {
   }
   
   private func resumeReadDidDismissed(_ vc: UIViewController){
+    
+    guard resumeReadSettingsChangeDiscard == false else { return }
+    
     resumeReadDismissed += 1
     resumeReadAccepted = 0
     if resumeReadDismissed < 5 { return }
-    
-    guard resumeReadSettingsChangeRequested < 3 else { return }
-    resumeReadSettingsChangeRequested += 1
     
     ///Show also if user tapped on an article
     ContinueReadingController(title: "\"Weiterlesen\" weiterhin anzeigen?",
@@ -117,6 +117,7 @@ extension IssueDisplayService {
         Usage.track(Usage.event.dialog.OpenLastReadDisable, name: "Dismissed")
         return
       }
+      self?.resumeReadSettingsChangeDiscard = true
       if userChoice {
         self?.resumeReadDismissed = -20
         Usage.track(Usage.event.dialog.OpenLastReadDisable, name: "Stay Enabled")
@@ -130,12 +131,12 @@ extension IssueDisplayService {
   }
   
   private func resumeReadDidAccepted(_ vc: UIViewController){
+    
+    guard resumeReadSettingsChangeDiscard == false else { return }
+    
     resumeReadAccepted += 1
     resumeReadDismissed = 0
     if resumeReadAccepted < 3 { return }
-    
-    guard resumeReadSettingsChangeRequested < 3 else { return }
-    resumeReadSettingsChangeRequested += 1
     
     onMainAfter(1.0) {
       ContinueReadingController(title: "Automatisch \"Weiterlesen\"?",
@@ -148,6 +149,7 @@ extension IssueDisplayService {
           Usage.track(Usage.event.dialog.OpenLastReadAutomatic, name: "Dismissed")
           return
         }
+        self?.resumeReadSettingsChangeDiscard = true
         if userChoice {
           self?.resumeReadAccepted = 0
           self?.reopenAutomaticSetting = true

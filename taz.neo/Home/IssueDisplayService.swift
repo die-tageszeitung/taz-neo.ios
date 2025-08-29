@@ -23,8 +23,8 @@ class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   @Default("resumeReadDismissed")
   public var resumeReadDismissed: Int
   
-  @Default("resumeReadSettingsChangeRequested")
-  public var resumeReadSettingsChangeRequested: Int
+  @Default("resumeReadSettingsChangeDiscard")
+  public var resumeReadSettingsChangeDiscard: Bool
   
   @Default("reopenHintSetting")
   public var reopenHintSetting: Bool

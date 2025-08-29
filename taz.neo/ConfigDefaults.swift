@@ -73,7 +73,7 @@ private let configValues = [
   "lastReadPositions" : nil,
   "resumeReadAccepted": "0",
   "resumeReadDismissed": "0",
-  "resumeReadSettingsChangeRequested": "0",
+  "resumeReadSettingsChangeDiscard": "false",
   /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
   "autoloadPublicationType" : nil,
   "updatedResourcesLocalPath" : nil,
