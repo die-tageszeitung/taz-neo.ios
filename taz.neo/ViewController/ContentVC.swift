@@ -370,7 +370,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public override func handleRightTap() -> Bool {
-    guard isMultiColumnMode else { return super.handleRightTap() }
+    guard isMultiColumnMode else {
+      let isNotAtEnd = super.handleRightTap()
+      if hideOnScroll { toolBar.show(show: !isNotAtEnd, animated: true) }
+      return isNotAtEnd
+    }
     guard let sv = self.currentWebView?.scrollView  else { return false }
     if sv.contentOffset.x + 2 + sv.frame.size.width > sv.contentSize.width { return false }
     /// scroll visible row count right usually:
@@ -388,7 +392,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
-    if hideOnScroll { toolBar.show(show: false, animated: true) }
     return true
   }
   
