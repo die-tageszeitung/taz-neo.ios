@@ -995,9 +995,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
       self?.persistReadProgress()
+      ArticleDB.save()
     }
     Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
       self?.persistReadProgress()
+      ArticleDB.save()
     }
     
     displayUrls()
