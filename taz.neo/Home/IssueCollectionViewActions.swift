@@ -65,7 +65,7 @@ extension IssueCollectionViewActions {
     }
     
     actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
-                        icon: "bookmark-stroke",
+                        icon: "bookmark-stroke-s",
                         enabled: issue.isDownloading == false) {[weak self] _ in
       issue.lastPage = nil
       issue.lastArticle = nil
