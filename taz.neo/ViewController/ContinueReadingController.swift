@@ -9,7 +9,7 @@
 import UIKit
 import NorthLib
 
-class ContinueReadingController: UIViewController, UIStyleChangeDelegate {
+class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRotateFromUnderlying {
   func applyStyles() {
     bottomSheet?.color = Const.SetColor.taz(.popoverSheetBackground).color
     if Defaults.darkMode{
