@@ -301,6 +301,10 @@ extension SearchController {
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
+    if self.articleVC.view.frame.size.width != self.view.frame.size.width {
+      self.articleVC.invalidateLayoutNeededOnViewWillAppear = true
+    }
+    
     if let idx = searchItem.allArticles?.firstIndex(where: {$0.html?.name == searchHit.article.html?.name}) {
       self.articleVC.index = idx
     }
