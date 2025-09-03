@@ -66,7 +66,7 @@ class IssueOverviewService: NSObject, DoesLog {
   
   @Default("isFacsimile")
   public var isFacsimile: Bool
-  
+    
   internal var feederContext: FeederContext
   var feed: StoredFeed
   
@@ -802,7 +802,8 @@ extension Issue {
   /// Updates the last read position for the issue.
   /// - Parameters:
   ///   - pageIndex: The index of the page the user was reading.
-  ///   - articleIndex: The index of the article on that page.
+  ///   - articleIndex: The index of the article
+  ///   - sectionIndex: The index of the section/ressort
   ///   - scrollPosition: The vertical scroll offset inside the article.
   func setLastRead(pageIndex: Int?, articleIndex: Int?, sectionIndex: Int?, scrollPosition: CGFloat?) {
     // Check if there was already a last read position stored
@@ -824,7 +825,7 @@ extension Issue {
       lastSection = nil
     }
     
-    if sectionIndex != nil {
+    if sectionIndex != nil && Defaults.reopenRessortSetting {
       lastSection = sectionIndex
     }
     

@@ -92,6 +92,7 @@ private let configValues = [
   "multiColumnFixedScrolling" : "true",
   "reopenHintSetting" : "true",
   "reopenAutomaticSetting" : "false",
+  "reopenRessortSetting" : "false",
   "newIssueSystemSetting" : "true",
   "specialArticleSystemSetting" : "true",
   //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
@@ -120,6 +121,10 @@ extension Defaults {
   
   public static var useTestServer:Bool {
     Defaults.singleton.bool(for: "useTestServer", false)
+  }
+  
+  public static var reopenRessortSetting:Bool {
+    Defaults.singleton.bool(for: "reopenRessortSetting", false)
   }
   
   ///Helper to get current server from user defaults

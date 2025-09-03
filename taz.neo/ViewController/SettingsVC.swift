@@ -54,6 +54,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("reopenAutomaticSetting")
   public var reopenAutomaticSetting: Bool
   
+  @Default("reopenRessortSetting")
+  public var reopenRessortSetting: Bool
+  
   @Default("defaultToastsDisabled")
   public var defaultToastsDisabled: Bool
   
@@ -247,7 +250,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var reopenHintSettingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Weiterlesen anzeigen",
-                  detailText: "Zeigt beim Öffnen einer Ausgabe ein Hinweisfenster zum Fortsetzen an der zuletzt gelesenen Stelle  (Artikel oder Seite).",
+                  detailText: "Zeigt beim Öffnen einer Ausgabe ein Hinweisfenster zum Fortsetzen an der zuletzt gelesenen Stelle  (Artikel, Seite oder ggf. Ressort).",
                   initialValue: reopenHintSetting,
                   onChange: {[weak self] newValue in
     self?.reopenHintSetting = newValue
@@ -264,6 +267,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     self?.reopenHintSettingCell.isEnabled = !newValue
     self?.resumeReadAccepted = 0
     self?.resumeReadDismissed = 0
+  })
+  
+  lazy var reopenRessortSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Ressort merken",
+                  detailText: "Speichert in der App-Ansicht das zuletzt angezeigte Ressort. \nAchtung: Nach 'Zurück' vom Artikel wird bei 'Weiterlesen' nicht mehr der letzte Artikel aufgerufen, sondern das zuletzt angezeigte Ressort.",
+                  initialValue: reopenRessortSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenRessortSetting = newValue
   })
   
   lazy var defaultToastsDisabledCell: XSettingsCell
@@ -679,14 +690,14 @@ extension SettingsVC: UITableViewDataSource, UITableViewDelegate {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
-    if section == 6 {
+    if section == data.sectionsCount - 1 {
       header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
     }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
-      guard section == 6 else { return }
+      guard section == data.sectionsCount - 1 else { return }
       guard let sectionData = self.data.sectionData(for: section) else { return }
       guard sectionData.collapseable else { return }
       self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
@@ -977,8 +988,8 @@ extension SettingsVC {
     
     let displayCells
     = App.isAlpha
-    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell, reopenHintSettingCell, reopenAutomaticSettingCell]
-    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, reopenHintSettingCell, reopenAutomaticSettingCell]
+    ? [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell, edgeTapToNavigateVisibleCell]
+    : [textSizeSettingsCell, darkmodeSettingsCell, edgeTapToNavigateCell]
     
     return [
       ("Konto".lowerIfTaz, false, accountSettingsCells),
@@ -991,6 +1002,8 @@ extension SettingsVC {
         articleFromPdfCell,
         doubleTapToZoomPdfCell
        ]
+      ),
+      ("Weiterlesen".lowerIfTaz, false, [reopenHintSettingCell, reopenAutomaticSettingCell, reopenRessortSettingCell]
       ),
       ("Hilfe".lowerIfTaz, false,
        [
