@@ -303,6 +303,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       \(heightContrastDarkmodeTextColor)
     
       @media print {
+        html, body { 
+            font-size: \((CGFloat(textSize)*13)/100)px; 
+        }
+    
         #content p, img { page-break-inside: avoid;}
     
         .Autor, .AutorProfil, .AutorImg {
