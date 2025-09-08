@@ -2213,19 +2213,19 @@ public final class StoredIssue: Issue, StoredObject {
     return nil
   }
   
-#warning("Not in use! May use in future and exchange in SettingsVC l. 964")
-  /**
-   Exchange after Refactor and issue independent bookmarks; persisted Bookmark issue
-   
-   */
   /// delete all issues in feed
   /// - Parameters:
   ///   - feed: feed for Issues
-  public static func deleteAllIssues(feed: StoredFeed) {
+  ///   - deleteBookmarkIssues: if true, bookmark issues will also be deleted
+  public static func deleteAllIssues(feed: StoredFeed, deleteBookmarkIssues: Bool = false) {
     let allIssues
     = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
     
     for issue in allIssues {
+      if issue.isBookmarkIssue && !deleteBookmarkIssues {
+        Log.log("not deleting \(issue.date.short) due its a bookmark issue")
+        continue
+      }
       if issue.isDownloading == true {
         Log.log("not deleting \(issue.date.short) due its currently downloading")
         continue
