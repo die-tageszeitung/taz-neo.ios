@@ -290,13 +290,12 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             log("...publication dates changed, inform UI (if not in background mode)")
             Notification.send(Const.NotificationNames.publicationDatesChanged)
-            self.notifyNetStatus(isConnected: true)
             BackgroundDownloadService
               .downloadNewIssueOnAppForeground(caller: "Feeder Context Update Status: publicationDatesChanged")
           } else {
             debug("...publication dates NOT changed")///4345 Issues
           }
-          
+          self.notifyNetStatus(isConnected: true)
           if initialCall, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
             BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "Initially download latestIssue", delay: 5.0)
           }
