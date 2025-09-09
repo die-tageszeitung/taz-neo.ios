@@ -1150,12 +1150,6 @@ extension SettingsVC {
       }
       Notification.send(Const.NotificationNames.closeOpenIssues)
       TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
-      /* Only for testing e.g. if crash after download occures
-      StoredIssue.removeOldest(feed: storedFeed,
-                               keepDownloaded: 0,
-                               keepPreviews: 0,
-                               doDelete: true,
-                               deleteOrphanFolders: true)*/
       StoredIssue.deleteAllIssues(feed: storedFeed)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
