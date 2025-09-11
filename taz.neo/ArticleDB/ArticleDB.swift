@@ -601,20 +601,6 @@ public final class StoredPayload: StoredObject, Payload {
   
   public required init(persistent: PersistentPayload) { self.pr = persistent }
   
-  public func reduceToOverview() {
-    guard let issue = self.issue else { return }
-    if issue.isDownloading {
-      return
-    }
-    let toKeep = issue.overviewFiles
-    for f in storedFiles {
-      if !toKeep.contains(where: { k in k.name == f.name }) {
-        f.pr.removeFromPayloads(self.pr)
-        if f.payloads.count == 1 { f.delete() }
-      }
-    }
-  }
-  
   func delete() {
     // Delete file entries that don't belong to another payload
     for f in storedFiles {
@@ -926,9 +912,11 @@ public final class StoredAuthor: Author, StoredObject {
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let img as PersistentImageEntry in self.images ?? []{
+    ///Do not itterate over org set while changing it; this causes errors!
+    let imagesCopy = (self.images as? Set<PersistentImageEntry>) ?? []
+    for img in imagesCopy {
       img.removeFromImageContent(self)
-      if img.imageContent?.count == 0 { img.delete() }
+      if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
       debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
@@ -946,9 +934,11 @@ extension PersistentContent: PersistentObject {
 extension PersistentSection {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let art as PersistentArticle in self.articles ?? []{
-      art.removeFromSections(self)
-      if art.sections?.count == 0 { art.delete() }
+    ///Do not itterate over org set while changing it; this causes errors!
+    let articlesCopy = (self.articles as? Set<PersistentArticle>) ?? []
+    for art in articlesCopy {
+        art.removeFromSections(self)
+      if (art.sections?.count ?? 0) == 0 { art.delete() }
     }
   }
 }
@@ -956,9 +946,13 @@ extension PersistentSection {
 extension PersistentArticle {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let author as PersistentAuthor in self.authors ?? []{
+//    debug("Try to Delete Article: \(title ?? "-") HTML Filename: \(self.html?.name ?? "-")")
+    ///array is still a copy so we can itterate directly over it
+    for author in (self.authors?.array as? [PersistentAuthor]) ?? [] {
       author.removeFromArticles(self)
-      if author.articles?.count == 0 { author.delete() }
+      if (author.articles?.count ?? 0) == 0 {
+        author.delete()
+      }
     }
   }
 }
@@ -2374,7 +2368,6 @@ public final class StoredIssue: Issue, StoredObject {
       Log.debug("Delete Issue: \(self.date.short)")
     }
     // Remove files not needed for overview
-    storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
     var hasChanges = false
     if let secs = sections {

@@ -48,7 +48,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="audioItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="content" inverseEntity="Audio"/>
         <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
-        <relationship name="images" optional="YES" toMany="YES" deletionRule="No Action" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
+        <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
     <entity name="Descriptor" representedClassName="PersistentDescriptor" syncable="YES" codeGenerationType="class">
         <attribute name="inField" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
