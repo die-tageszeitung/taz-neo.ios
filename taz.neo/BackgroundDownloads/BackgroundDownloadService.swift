@@ -94,7 +94,7 @@ extension BackgroundDownloadService {
     }
     updatePublicationtype()
     log ("Update updateLatestIssueDownloadDate...")
-    if let lastIssue = StoredIssue.lastCompleete(feed: feed,
+    if let lastIssue = StoredIssue.lastComplete(feed: feed,
                                                  isPages: autoloadPdf,
                                                  withAudio: autoloadAudio) {
       log ("... with date \(lastIssue.date.short)")

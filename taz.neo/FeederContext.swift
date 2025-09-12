@@ -230,7 +230,7 @@ open class FeederContext: DoesLog {
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
     //Alternative: defaultFeed = storedFeeder.feeds.first as? StoredFeed
     notify("feederReady")
-    cleanupOldIssues()//requires inited bookmarks
+    cleanupOldIssues(deleteOlder: true)//requires inited bookmarks
     checkAppUpdate()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
@@ -534,12 +534,13 @@ open class FeederContext: DoesLog {
     BackgroundDownloadService.shared.applicationRestarted(with: self)
   }
   
-  func cleanupOldIssues(){
+  func cleanupOldIssues(deleteOlder:Bool = false){
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,
                              keepDownloaded: persistedIssuesCount,
+                             deleteOlder: deleteOlder,
                              deleteOrphanFolders: true)
   }
 } // eof FeederContext

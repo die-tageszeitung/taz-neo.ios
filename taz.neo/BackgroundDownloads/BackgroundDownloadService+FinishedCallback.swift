@@ -144,7 +144,7 @@ fileprivate extension BackgroundDownloadService {
   }
 }
 
-fileprivate extension String {
+extension String {
   var urlByDeleetingLastPathComponent: String {
     guard let url = URL(string: self) else { return self }
     var baseUrl = url.deletingLastPathComponent().absoluteString

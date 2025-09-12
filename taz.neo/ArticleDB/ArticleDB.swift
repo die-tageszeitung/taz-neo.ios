@@ -2108,7 +2108,7 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
-  public static func lastCompleete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
+  public static func lastComplete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
       let request = fetchRequest
       var predicates: [NSPredicate] = [
           NSPredicate(format: "feed = %@", feed.pr),
@@ -2123,7 +2123,7 @@ public final class StoredIssue: Issue, StoredObject {
       return get(request: request).first
   }
   
-  public static func lastCompleete(feed: StoredFeed)
+  public static func lastComplete(feed: StoredFeed)
   -> StoredIssue? {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
@@ -2230,129 +2230,143 @@ public final class StoredIssue: Issue, StoredObject {
       issue.delete()
     }
   }
-  
-  
-  /// Remove old Issues and keep newest
-  /// uses issue.reduceToOverview instead of issue.delete
+   
+  /// Cleans up old issues while keeping recent full and preview issues.
+  ///
+  /// Removes old issues of a feed while retaining the most recent ones.
+  ///
+  /// - Workflow:
+  ///   1. Keep a configurable number of the most recent fully downloaded issues.
+  ///   2. Additionally keep a number of preview issues (reduced via `reduceToOverview`).
+  ///   3. Delete older issues completely if `deleteOlder == true`,
+  ///      otherwise reduce them to Overview only.
+  ///   4. Always keep the bookmark issue and the currently opened issue.
+  ///   5. Optionally remove orphaned issue folders from the filesystem.
+  ///
   /// - Parameters:
-  ///   - feed: feed for Issues
-  ///   - keepDownloaded: count of keep full downloaded
-  ///   - keepPreviews: count of keep previews
+  ///   - feed: The feed whose issues should be cleaned up.
+  ///   - keepDownloaded: Number of fully downloaded issues to retain.
+  ///     `0` means keep all issues (no deletion).
+  ///   - keepPreviews: Number of preview issues to retain in addition to full ones.
+  ///   - deleteOlder: Whether to fully delete preview issues beyond `keepPreviews`.
+  ///     ⚠️ WARNING: deleted issues may still be referenced in `IssueOverviewService`.
+  ///     Starting a download in that state will crash the app.
+  ///   - deleteOrphanFolders: Whether to also remove orphaned issue folders
+  ///     from the filesystem.
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 20,
-                                  doDelete: Bool = false,
-                                  deleteOrphanFolders:Bool = false) {
-    Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
-    let lastCompleeteIssues:[StoredIssue]
-    = keepDownloaded == 0
-    ? []
-    : issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
+                                  deleteOlder: Bool = false,
+                                  deleteOrphanFolders: Bool = false) {
+    // User-Setting keepDownloaded:
+    // 0 = means keep all issues
+    // otherwise user setting, at least 3
+    let completeFetchCount: Int = keepDownloaded == 0 ? -1 : max(3, keepDownloaded)
     
-    let allIssues
-    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    Log.debug("keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
     
-    let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
-    let reduceableIssues = allIssues[..<keepPreviewCount]
-    
-    let keep:Int = keepDownloaded == 0 ? 0 : 2 //Do not reduce the newest 2 Issues
-    
-    if allIssues.isEmpty {
-      Log.log("Prevent crash")
-      return;
-    }
-    var knownDirs: [String] = []
-
-    var reduceToOverviewIssueDates: [String] = []
-    var deletedIssueDates: [String] = []
-    
-    if keep <= allIssues.count {
-      for issue in allIssues[keep...] {
-        if issue.isBookmarkIssue {
-          let dir = feed.feeder.issueDir(issue: issue)
-          if dir.exists { knownDirs.append(dir.path)}
-          continue
-        }
-        if lastCompleeteIssues.contains(issue) { continue }
-        if let storedIssue = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
-           let issueDate = storedIssue.safeDate {
-            if issueDate == issue.safeDate {
-                continue
-            }
-        }
-        if doDelete {
-          deletedIssueDates.append(issue.safeDate?.short ?? "-")
-          issue.delete()
-          continue
-        }
-        if issue.reduceToOverview() {
-          Notification.send("issueProgress", content: "deleted", sender: issue)
-          reduceToOverviewIssueDates.append(issue.safeDate?.short ?? "-")
-        }
+    // all issues which should not be deleted
+    var lastCompleteIssues: [StoredIssue] = issues(feed: feed,
+                                                   count: completeFetchCount,
+                                                   onlyCompleete: true,
+                                                   sortedBy: .payloadDownloadStarted,
+                                                   ascending: false)
+    if let latestComplete = lastComplete(feed: feed),
+       !lastCompleteIssues.contains(latestComplete) {
+      lastCompleteIssues.insert(latestComplete, at: 0)
+      if lastCompleteIssues.count > max(3, keepDownloaded){
+        _ = lastCompleteIssues.popLast()
       }
     }
-
-    if reduceToOverviewIssueDates.count > 0 {
-      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.sorted().joined(separator: ", "))")
-    }
-    if deletedIssueDates.count > 0 {
-      Log.log("deleted issue dates: \(deletedIssueDates.sorted().joined(separator: ", "))")
-    }
     
-    guard deleteOrphanFolders else { return }
-    Log.log("delete orphan folders")
-    
-    guard let bookmarkIssue = Bookmarks.shared.bookmarkIssue else {
-      Log.log("bookmarks not inited skip delete folders")
+    let allIssues = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    guard !allIssues.isEmpty else {
+      Log.log("No Issues > cancel")
       return
     }
     
-    ///Prevent delete folder with bookmarked articles
-    for case let art as StoredArticle in bookmarkIssue.allArticles {
-      knownDirs.append(art.dir.path)
-    }
+    var knownDirs: [String] = []
+    var deletedIssueDates: [String] = []
+    var previewCount = 0
     
-    for issue in lastCompleeteIssues {
+    let lastCompleteDates = Set(lastCompleteIssues.compactMap { $0.safeDate?.ISO8601 })
+    
+    var bookmarkIssue: StoredIssue?
+    
+    for issue in allIssues {
       let dir = feed.feeder.issueDir(issue: issue)
-      if dir.exists { knownDirs.append(dir.path)}
-    }
-    
-    for issue in reduceableIssues {
-      ///Probably not needed anymore found error above
-      if issue.pr.feed == nil {
-        Log.log("PREVENTED CRASH")
-        if App.isAlpha {
-          Toast.show("Chrash verhindert!\nDetails im log, bitte an Entwickler senden!\n𝛼")
-        }
+      let path = dir.exists ? dir.path : nil
+      
+      // 1. do not delete bookmark issue or its folder
+      if issue.isBookmarkIssue {
+        bookmarkIssue = issue ///there is only one Bookmark Issue
+        knownDirs.appendIfPresent(path)
         continue
       }
-      let dir = feed.feeder.issueDir(issue: issue)
-      if dir.exists { knownDirs.append(dir.path)}
+      
+      // 2. do not delete a issue if keepDownloaded == 0: "Alle behalten"
+      if keepDownloaded == 0 {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+      
+      previewCount += 1
+      
+      // 3. compleete issue: do not delete
+      if let sd = issue.safeDate?.ISO8601, lastCompleteDates.contains(sd) {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+      
+      // 4. currently opened issue: do not delete; probably also in lastCompleteDates/lastCompleteIssues
+      if let opened = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
+         issue.safeDate?.ISO8601 == opened.safeDate?.ISO8601 {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+            
+      // 5. delete or reduceToOverview
+      if deleteOlder && previewCount > keepPreviews {
+        deletedIssueDates.append("\(issue.date.ISO8601) \(issue.isComplete ? "complete" :"overview")")
+        ///Notification.send("issueProgress", content: "deleted", sender: issue)...automatically send
+        issue.delete()
+      } else if issue.reduceToOverview() {
+        Notification.send("issueProgress", content: "deleted", sender: issue)
+        knownDirs.appendIfPresent(path)
+      } else {///not deleted (may active download), do not send notification to show issue as deleted
+        knownDirs.appendIfPresent(path)
+      }
     }
+    guard deleteOrphanFolders else { return }
     
+    // scan subdirs
     let allSubdirs = feed.feeder.feedDir(feed.name).scan()
-    
     var deletedFolders: [String] = []
-    var skipDeleteFolders: [String] = []
+    var skippedFolders: [String] = []
+
+    //do not delete Bookmark Articles original folders
+    for art in bookmarkIssue?.allArticles ?? [] {
+      knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
+    }
     
     for path in allSubdirs {
-      if knownDirs.contains(path) {
-        skipDeleteFolders.append(path.lastPathComponents(4))
-        continue
-      }
-      if File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
-        skipDeleteFolders.append(path.lastPathComponents(4))
+      if knownDirs.contains(path) ||
+          File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
+        skippedFolders.append(path.lastPathComponents(4))
         continue
       }
       deletedFolders.append(path.lastPathComponents(4))
       Dir(path).remove()
     }
     
-    if deletedFolders.count > 0 {
-      Log.log("deletedFolders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
+    if !deletedIssueDates.isEmpty {
+      Log.log("...deleted issues:\n  \(deletedIssueDates.sorted().joined(separator: "\n  "))")
     }
-    if skipDeleteFolders.count > 0 {
-      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.sorted().joined(separator: "\n  "))")
+    if !deletedFolders.isEmpty {
+      Log.log("...deleted folders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
+    }
+    if !skippedFolders.isEmpty {
+      Log.log("skipped folders:\n  \(skippedFolders.sorted().joined(separator: "\n  "))")
     }
   }
   
