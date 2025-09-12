@@ -852,8 +852,16 @@ extension Log {
                            net: NetAvailability? = nil) {
     Log.log("Setting up logging")
     Log.append(logger: fileLogger)
+
+    #if DEBUG
+    let isDebug = true
     Log.minLogLevel = .Debug
-    HttpSession.isDebug = false
+    #else
+    let isDebug = false
+    Log.minLogLevel = .Info
+    #endif
+//    Log.minLogLevel = isDebug ? .Debug : .Info///generates warning
+    HttpSession.isDebug = false//or isDebug
     PdfRenderService.isDebug = false
     ZoomedImageView.isDebug = false
     Log.onFatal { msg in
