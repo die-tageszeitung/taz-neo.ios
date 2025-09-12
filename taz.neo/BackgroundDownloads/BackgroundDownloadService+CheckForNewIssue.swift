@@ -298,7 +298,7 @@ fileprivate extension BackgroundDownloadService {
     guard let feed = feederContext.defaultFeed else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    return StoredIssue.lastCompleete(feed: feed,
+    return StoredIssue.lastComplete(feed: feed,
                                      isPages: autoloadPdf,
                                      withAudio: autoloadAudio)?.date
   }
