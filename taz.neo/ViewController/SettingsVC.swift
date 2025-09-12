@@ -912,13 +912,13 @@ extension SettingsVC {
     
     if autoloadNewIssues {
       cells.append(wlanCell)
-      cells.append(autoloadAudioCell)
     }
     
     #if TAZ
     cells.append(epaperLoadCell)
     #endif
     if autoloadNewIssues {
+      cells.append(autoloadAudioCell)
       cells.append(autoloadNotificationsCell)
     }
     cells.append(deleteIssuesCell)
