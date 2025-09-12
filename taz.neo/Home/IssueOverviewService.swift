@@ -171,6 +171,12 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("not downloading issue from: \(issue.date.issueKey)")
       return
     }
+    guard issue.pr.isDeleted == false else {
+      self.log("not downloading deleted issue from: \(issue.date.issueKey)")
+      Toast.show("Die Ausgabe wurde gelöscht und kann nicht heruntergeladen werden.\nStarten Sie die App neu und probieren Sie es noch einmal!", .alert)
+      return
+    }
+    
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
                                    isAutomatically: false,
