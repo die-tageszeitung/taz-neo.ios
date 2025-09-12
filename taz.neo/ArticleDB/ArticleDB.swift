@@ -2373,15 +2373,14 @@ public final class StoredIssue: Issue, StoredObject {
     // Remove files not needed for overview
     // Remove sections and cascading all data referenced by them
     var hasChanges = false
-    if let secs = sections {
-      for section in secs as! [StoredSection] {
-        section.delete()
-        hasChanges = true
-      }
+    for section in self.sections as? [StoredSection] ?? [] {
+      section.delete()
+      hasChanges = true
     }
-    let p1 = pageOneFacsimile
+    
+    let facsimileFileName = pageOneFacsimile?.fileName
     for case let p as StoredPage in pages ?? [] {
-      if p.pdf?.fileName == p1?.fileName { continue }
+      if facsimileFileName != nil && p.pdf?.fileName == facsimileFileName { continue }
       p.delete()
       hasChanges = true
     }
