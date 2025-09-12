@@ -81,6 +81,9 @@ public extension StoredObject {
   func deletePersistent() { pr.delete() }
   func delete() {
     Notification.send("issueProgress", content: "deleted", sender: self)
+    if let issue = self as? Issue {
+      Notification.send("issueDelete", content: issue.date)
+    }
     deletePersistent()
   }
   
