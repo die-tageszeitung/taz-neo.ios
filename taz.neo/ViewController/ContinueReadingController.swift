@@ -194,6 +194,9 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     if let lastArticle = lastContent as? Article {
       imageView.image = lastArticle.firstImage
     }
+    else if let lastSection = lastContent as? Section {
+      imageView.image = lastSection.firstImage
+    }
     self.finishHandler = finishHandler
     bottomSheet = Sheet(slider: self,
                         into: targetVc,

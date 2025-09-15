@@ -796,7 +796,7 @@ extension Article {
   }
 }
 
-fileprivate extension Section {
+extension Section {
   var firstImage:UIImage? {
     guard let fn = images?.first?.fileName else { return nil }
     let path = "\(self.dir.path)/\(fn)"
