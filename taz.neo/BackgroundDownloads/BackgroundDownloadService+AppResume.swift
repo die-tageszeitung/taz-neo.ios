@@ -16,7 +16,6 @@ extension BackgroundDownloadService {
     onThread { [weak self] in
       self?.backgroundSession.resume(archived: false, priority: 1.0)
     }
-    #warning("CHECK: maybe update resources and from known cache folder?")
     if tempStorage.hasActiveDownloads {
       log("BDL App entered foreground, execute pending tasks...")
       handlePendingTasks()

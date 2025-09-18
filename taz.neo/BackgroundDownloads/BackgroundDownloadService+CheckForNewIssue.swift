@@ -39,8 +39,6 @@ extension BackgroundDownloadService {
       checkForNewIssue(isPush: false, isBackground: false){ res in
         BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
         Self.shared.log("...publication dates changed, autodownload status: \(res.message)")
-#warning("TODO this is the reason why after fresh install a 'Lade Ausgabe' comes!")
-#warning("TODO download did not really start initially")
         if res == .newData {  shared.notifyHome(.loadIssue) }
       }
     }

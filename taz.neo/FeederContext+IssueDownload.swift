@@ -76,12 +76,8 @@ extension FeederContext {
                 dimensions: Usage.event.issue.downloadDim(pdf: isPages,
                                                            audio: withAudio))
     
-    func shouldStopActiveBackgroundDownloads() -> Bool {
-      ///located here (and not in BG Download Service) to hopefully not risk race condition and crash in init netAvailability
-      return netAvailability.isMobile && autoloadOnlyInWLAN
-    }
-    
-    if issue.isDownloading || BackgroundDownloadService.shared.hasActiveDownload(for: issue.date, stopActiveDownloads: shouldStopActiveBackgroundDownloads()) {
+    BackgroundDownloadService.shared.stopActiveDownload(for: issue.date)
+    if issue.isDownloading  {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
