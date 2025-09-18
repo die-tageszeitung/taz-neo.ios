@@ -481,7 +481,7 @@ class ArticlePlayerUI: UIView {
     titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: maxiPadding)
     titleLabelTopConstraint_Maxi?.isActive = false
     
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: -0.5)
     pin(rateButton.bottom, to: wrapper.bottom, dist: 6.0)
   
     titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
@@ -712,11 +712,10 @@ class ArticlePlayerUI: UIView {
         toggleSizeConstrains?.width.constant = 52///mini 30 maxi 52
         toggleSizeConstrains?.height.constant = 52///mini 30 maxi 52
 
-        authorLabelRightConstraint?.constant = -15///maxi -15 else 0
+        authorLabelRightConstraint?.constant = -33.0///maxi -15 else 0
         titleLabelRightConstraint?.constant
-        = authorLabel.text?.length ?? 0 == 0 ? -15.0 : 0
+        = authorLabel.text?.length ?? 0 == 0 ? -33.0 : 0.0
         titleLabelLeftConstraint?.constant = 0///mini+image: 32+padding else 0
-                
         self.layer.cornerRadius = 13.0
         imageView.contentMode = .scaleAspectFit
         
