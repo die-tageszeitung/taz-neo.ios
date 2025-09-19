@@ -149,13 +149,16 @@ class IssueCarouselCVC: UICollectionViewController, IssueCollectionViewActions {
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     if transitionLastCenterIndex == nil { transitionLastCenterIndex = centerIndex}
     super.viewWillTransition(to: size, with: coordinator)
-    onMain{[weak self] in
-      guard let idx = self?.transitionLastCenterIndex else { return }
-      self?.transitionLastCenterIndex = nil
-      self?.collectionView.scrollToItem(at: IndexPath(row: idx, section: 0),
-                      at: .centeredHorizontally,
-                      animated: true)
-    }
+    coordinator.animate(alongsideTransition: {_ in
+    }, completion: {[weak self] _ in
+        self?.view.setNeedsLayout()
+        self?.view.layoutIfNeeded()
+        guard let idx = self?.transitionLastCenterIndex else { return }
+        self?.transitionLastCenterIndex = nil
+        self?.collectionView.scrollToItem(at: IndexPath(row: idx, section: 0),
+                        at: .centeredHorizontally,
+                        animated: true)
+    })
   }
     
 

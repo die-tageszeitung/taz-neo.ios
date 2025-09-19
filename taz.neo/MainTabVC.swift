@@ -24,6 +24,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       content: size,
                       error: nil,
                       sender: nil)
+    coordinator.animate(alongsideTransition: {_ in
+    }, completion: {[weak self] _ in
+      self?.updateTraitOverrides()
+        self?.view.setNeedsLayout()
+        self?.view.layoutIfNeeded()
+    })
   }
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
