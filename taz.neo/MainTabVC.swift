@@ -264,8 +264,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let home = HomeTVC(service: service, feederContext: feederContext)
     home.title = "Home"
-    home.tabBarItem.image = UIImage(named: "home")
-    home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    home.tabBarItem.image = UIImage(named: "home")?.tabBarSizedIcon()
     
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
@@ -273,22 +272,20 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let bookmarksOverview = BookmarkTVC()
     let bookmarksNc = NavigationController(rootViewController: bookmarksOverview)
     bookmarksNc.title = "Leseliste"
-    bookmarksNc.tabBarItem.image = UIImage(named: "star")
-    bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    bookmarksNc.tabBarItem.image = UIImage(named: "star")?.tabBarSizedIcon()
     bookmarksNc.isNavigationBarHidden = true
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
-    search.tabBarItem.image = UIImage(named: "search-magnifier")
-    search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    search.tabBarItem.image = UIImage(named: "search-magnifier")?.tabBarSizedIcon()
     
     let searchNc = NavigationController(rootViewController: search)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
-    settings.tabBarItem.image = UIImage(named: "settings")
-    settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    settings.tabBarItem.image = UIImage(named: "settings")?.tabBarSizedIcon()
+
     self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
     self.selectedIndex = 0
   }
@@ -435,4 +432,18 @@ extension MainTabVC : UITabBarControllerDelegate {
 
 public protocol ReloadAfterAuthChanged {
   func reloadOpened()
+}
+
+fileprivate extension UIImage {
+    /// renders the image for TabBar Icon in 20x20pt
+  /// - Parameter size: target size, default is 20x20pt
+  /// using `preparingThumbnail(of:)` on iOS 15+ (performant for vectors)
+  /// before iOS 15 returns the original image
+    func tabBarSizedIcon(size: CGSize = CGSize(width: 27, height: 27)) -> UIImage {
+        if #available(iOS 15.0, *) {
+            return self.preparingThumbnail(of: size) ?? self
+        } else {
+            return self
+        }
+    }
 }
