@@ -51,6 +51,17 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     updateTraitOverrides()
   }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    /// **HACK iOS 28 Home Button iPhones e.g. iPhone SE3**
+    /// move Tabbar Position down to avoid content cut off
+    if #available(iOS 26.0, *), let superview = tabBar.superview {
+      var frame = tabBar.frame
+      frame.origin.y = superview.bounds.height - 58
+      tabBar.frame = frame
+    }
+  }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
