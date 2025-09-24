@@ -64,6 +64,11 @@ extension Date {
 
 class IssueOverviewService: NSObject, DoesLog {
   
+  @Default("askForAutoloadPdf")
+  public var askForAutoloadPdf: Bool
+  ///already asked this App Session
+  var justAskedForAutoloadPdf = false
+
   @Default("isFacsimile")
   public var isFacsimile: Bool
     
@@ -177,6 +182,27 @@ class IssueOverviewService: NSObject, DoesLog {
       return
     }
     
+//    if self.isFacsimile,
+//       self.askForAutoloadPdf,
+//       self.justAskedForAutoloadPdf == false,
+//       feederContext.needsUpdate(issue: issue, toShowPdf: false),
+//       feederContext.needsUpdate(issue: issue, toShowPdf: true),
+//    let topVc = UIViewController.top()
+//    {
+    if let topVc = UIViewController.top(),
+       let cc = (topVc as? HomeTVC)?.carouselController
+    {
+      self.justAskedForAutoloadPdf = true
+      FloatingPanelController(title: "Zeitungsansicht automatisch mitladen?",
+                                text: "Die Zeitungsansicht bietet klassisches Lesegefühl, benötigt jedoch zusätzliches Datenvolumen.\nDas automatische Mitladen kann jederzeit in den Einstellungen angepasst werden.",
+                                confirmText: "Immer mitladen",
+                                declineText: "Nicht mitladen",
+                              targetVc: cc) { [weak self] userChoice in
+        
+      }
+    }
+        
+    return
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
                                    isAutomatically: false,

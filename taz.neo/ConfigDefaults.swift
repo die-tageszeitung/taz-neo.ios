@@ -66,6 +66,7 @@ private let configValues = [
   /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
   "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "autoloadPdf" : "false",
+  "askForAutoloadPdf" : "true",
   "autoloadAudio" : "false",
   "autoloadNewIssues" : "true",
   "useTestServer" : "false",

@@ -107,7 +107,7 @@ extension IssueDisplayService {
     if resumeReadDismissed < 5 { return }
     
     ///Show also if user tapped on an article
-    ContinueReadingController(title: "\"Weiterlesen\" weiterhin anzeigen?",
+    FloatingPanelController(title: "\"Weiterlesen\" weiterhin anzeigen?",
                               text: "Sie verwenden \"Weiterlesen\" nicht regelmäßig. Möchten Sie den Hinweis weiterhin anzeigen lassen?",
                               confirmText: "Ja, Hinweis behalten",
                               declineText: "Nein, nicht mehr anzeigen",
@@ -139,7 +139,7 @@ extension IssueDisplayService {
     if resumeReadAccepted < 3 { return }
     
     onMainAfter(1.0) {
-      ContinueReadingController(title: "Automatisch \"Weiterlesen\"?",
+      FloatingPanelController(title: "Automatisch \"Weiterlesen\"?",
                                 text: "Sie verwenden \"Weiterlesen\" regelmäßig. Möchten Sie künftig automatisch dort weiterlesen, wo Sie aufgehört haben?",
                                 confirmText: "Ja, automatisch weiterlesen",
                                 declineText: "Nein, Hinweis behalten",

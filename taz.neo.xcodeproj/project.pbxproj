@@ -46,6 +46,8 @@
 		7715969525CC605D00508DE8 /* DeviceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968E25CC605D00508DE8 /* DeviceData.swift */; };
 		7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715968F25CC605D00508DE8 /* FeedbackView.swift */; };
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
+		771A3F022E7BF91B00169A33 /* FloatingPanelContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771A3F012E7BF91600169A33 /* FloatingPanelContentView.swift */; };
+		771A3F032E7BF91B00169A33 /* FloatingPanelContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771A3F012E7BF91600169A33 /* FloatingPanelContentView.swift */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A62A1C0A7C00678647 /* IssueOverviewService.swift */; };
 		773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */; };
@@ -169,6 +171,8 @@
 		77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */; };
 		77ECD87C2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */; };
 		77ECD87E2A814ED100DFBBB6 /* LocalNotifications+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */; };
+		77EFCA752E79BE2500164806 /* FloatingPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EFCA742E79BE2100164806 /* FloatingPanelController.swift */; };
+		77EFCA762E79BE2500164806 /* FloatingPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EFCA742E79BE2100164806 /* FloatingPanelController.swift */; };
 		77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -376,6 +380,7 @@
 		7715968E25CC605D00508DE8 /* DeviceData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceData.swift; sourceTree = "<group>"; };
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
+		771A3F012E7BF91600169A33 /* FloatingPanelContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanelContentView.swift; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
 		773500A62A1C0A7C00678647 /* IssueOverviewService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueOverviewService.swift; sourceTree = "<group>"; };
 		773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueCarouselCVC.swift; sourceTree = "<group>"; };
@@ -465,6 +470,7 @@
 		77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+Polling.swift"; sourceTree = "<group>"; };
 		77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PushNotification.Payload+Extension.swift"; sourceTree = "<group>"; };
 		77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LocalNotifications+Extension.swift"; sourceTree = "<group>"; };
+		77EFCA742E79BE2100164806 /* FloatingPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanelController.swift; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
 		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
@@ -506,7 +512,7 @@
 		AEAABADD24641BFA001BE414 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		AEAAEB2B23FD867C00D1187F /* GqlAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GqlAuth.swift; sourceTree = "<group>"; };
 		AEAEE0002456D9EC00F627FE /* StartupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupVC.swift; sourceTree = "<group>"; };
-		AEBAF564219ACD1900566205 /* die tageszeitung.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "die tageszeitung.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEBAF564219ACD1900566205 /* taz.alpha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = taz.alpha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEBAF56E219ACD1A00566205 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AEBAF571219ACD1A00566205 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AEBAF58D219ACFAC00566205 /* TestController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
@@ -730,6 +736,7 @@
 		AE0A4D0123F4297500C44625 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				771A3F012E7BF91600169A33 /* FloatingPanelContentView.swift */,
 				77D0DAE825E8FDD100C9CB59 /* Cells */,
 				0032A4D724C89E3100284723 /* Forms */,
 				77A214C325D2B68F00A7C41B /* AppOverlay.swift */,
@@ -782,6 +789,7 @@
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
 				773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */,
 				77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */,
+				77EFCA742E79BE2100164806 /* FloatingPanelController.swift */,
 				AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */,
 				AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */,
 				AE76F9FA245497F80043F497 /* IntroVC.swift */,
@@ -827,7 +835,7 @@
 		AEBAF565219ACD1900566205 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AEBAF564219ACD1900566205 /* die tageszeitung.app */,
+				AEBAF564219ACD1900566205 /* taz.alpha.app */,
 				AE5131F52AFBCADB002289E8 /* LMd.app */,
 				77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */,
 				4D1D63492DFAD567004254B1 /* taz unittest.xctest */,
@@ -1064,7 +1072,7 @@
 				77B993DC2AC47F6400C7D832 /* MatomoTracker */,
 			);
 			productName = taz.neo;
-			productReference = AEBAF564219ACD1900566205 /* die tageszeitung.app */;
+			productReference = AEBAF564219ACD1900566205 /* taz.alpha.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1285,6 +1293,7 @@
 				777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				AE51317D2AFBCADB002289E8 /* SubscriptionFormController.swift in Sources */,
 				779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */,
+				77EFCA752E79BE2500164806 /* FloatingPanelController.swift in Sources */,
 				77E6E9B32CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				AE51317E2AFBCADB002289E8 /* OverlayTest.swift in Sources */,
 				AE51317F2AFBCADB002289E8 /* OfflineAlert.swift in Sources */,
@@ -1410,6 +1419,7 @@
 				AE5131D52AFBCADB002289E8 /* TazTextField.swift in Sources */,
 				AE5131D62AFBCADB002289E8 /* StartupVC.swift in Sources */,
 				AE5131D72AFBCADB002289E8 /* PushNotification.Payload+Extension.swift in Sources */,
+				771A3F022E7BF91B00169A33 /* FloatingPanelContentView.swift in Sources */,
 				AE5131D82AFBCADB002289E8 /* HeaderView.swift in Sources */,
 				AE5131D92AFBCADB002289E8 /* ArticleDBVersionChanges.swift in Sources */,
 			);
@@ -1433,6 +1443,7 @@
 				77CD16C02CF8D79B00B1C3EE /* Bookmarks+InitHelper.swift in Sources */,
 				77CB2D282A814B6100021804 /* FeederContext+ResourcesUpdate.swift in Sources */,
 				AE4F51DB2438C8E800BC9548 /* ArticleDB.swift in Sources */,
+				77EFCA762E79BE2500164806 /* FloatingPanelController.swift in Sources */,
 				77ECD87E2A814ED100DFBBB6 /* LocalNotifications+Extension.swift in Sources */,
 				774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
@@ -1556,6 +1567,7 @@
 				77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
 				77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */,
 				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
+				771A3F032E7BF91B00169A33 /* FloatingPanelContentView.swift in Sources */,
 				7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */,
 				AEAEE0012456D9EC00F627FE /* StartupVC.swift in Sources */,
 				7712A0012C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
