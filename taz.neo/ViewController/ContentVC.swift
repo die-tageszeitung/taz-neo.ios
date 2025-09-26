@@ -845,7 +845,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     bookmarkButton.buttonView.name = "star"
     playButton.buttonView.name = "audio"
     homeButton.buttonView.name = "home"
-
+ 
     toolBar.addArticleButton(bookmarkButton, direction: .center)
     toolBar.addArticleButton(Toolbar.Spacer(), direction: .center)
     

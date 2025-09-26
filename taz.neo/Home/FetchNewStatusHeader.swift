@@ -165,21 +165,20 @@ class FetchNewStatusHeader: UIView {
     addSubview(activityIndicator)
     addSubview(label)
     label.font = Const.Fonts.contentFont(size: 14)
+    label.numberOfLines = 2
+    label.lineBreakMode = .byWordWrapping
+    label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    label.setContentHuggingPriority(.defaultLow, for: .horizontal)
     activityIndicator.color = .white
-    pin(activityIndicator.right, to: label.left, dist: Const.Dist.margin)
-    label.centerX(dist: -20)
-    pin(activityIndicator.centerY, to: label.centerY)
-    pin(label.top, to: self.bottom, dist: 0)
-    pin(label.bottom, to: self.bottom, dist: 0)
-
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
-      self?.animating = false
-    }
+    activityIndicator.centerX()
+    pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
     
-    activityIndicator.addBorder(.green)
-    label.addBorder(.red)
-    self.addBorder(.blue)
+    pin(label.left, to: self.left, dist: Const.Dist.margin)
+    pin(label.right, to: self.right, dist: -Const.Dist.margin)
+    pin(label.top, to: activityIndicator.bottom, dist: Const.Dist2.s5)
+    pin(label.bottom, to: self.bottom, dist: 0)
   }
+
   
   override public init(frame: CGRect) {
     super.init(frame: frame)

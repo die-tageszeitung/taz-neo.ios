@@ -48,7 +48,6 @@
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A62A1C0A7C00678647 /* IssueOverviewService.swift */; };
-		773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */; };
 		773500B02A1C0A7C00678647 /* IssueTilesCvcCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */; };
 		773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */; };
 		773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */; };
@@ -229,7 +228,6 @@
 		AE5131912AFBCADB002289E8 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D308EED283405D900529592 /* PlaceholderView.swift */; };
 		AE5131932AFBCADB002289E8 /* FeederContext+Polling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ECD8792A814C1F00DFBBB6 /* FeederContext+Polling.swift */; };
 		AE5131942AFBCADB002289E8 /* IssueCollectionViewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500B82A1C0B7E00678647 /* IssueCollectionViewActions.swift */; };
-		AE5131952AFBCADB002289E8 /* IssueCarouselCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */; };
 		AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
 		AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */; };
@@ -384,7 +382,6 @@
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
 		773500A62A1C0A7C00678647 /* IssueOverviewService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueOverviewService.swift; sourceTree = "<group>"; };
-		773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueCarouselCVC.swift; sourceTree = "<group>"; };
 		773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueTilesCvcCell.swift; sourceTree = "<group>"; };
 		773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueTilesCVC.swift; sourceTree = "<group>"; };
 		773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueDisplayService.swift; sourceTree = "<group>"; };
@@ -654,7 +651,6 @@
 				77EF78992E8537A5009B8655 /* HomeVC+UiComponents.swift */,
 				773500B82A1C0B7E00678647 /* IssueCollectionViewActions.swift */,
 				773500A62A1C0A7C00678647 /* IssueOverviewService.swift */,
-				773500A72A1C0A7C00678647 /* IssueCarouselCVC.swift */,
 				773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */,
 				773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */,
 				773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */,
@@ -1329,7 +1325,6 @@
 				777DF43B2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */,
 				AE5131932AFBCADB002289E8 /* FeederContext+Polling.swift in Sources */,
 				AE5131942AFBCADB002289E8 /* IssueCollectionViewActions.swift in Sources */,
-				AE5131952AFBCADB002289E8 /* IssueCarouselCVC.swift in Sources */,
 				AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */,
 				AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */,
 				77E6E9B62CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
@@ -1486,7 +1481,6 @@
 				4D308EEE283405D900529592 /* PlaceholderView.swift in Sources */,
 				77ECD87A2A814C1F00DFBBB6 /* FeederContext+Polling.swift in Sources */,
 				773500B92A1C0B7E00678647 /* IssueCollectionViewActions.swift in Sources */,
-				773500AF2A1C0A7C00678647 /* IssueCarouselCVC.swift in Sources */,
 				77AB6B052A02653000C42712 /* NotificationsView.swift in Sources */,
 				777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,

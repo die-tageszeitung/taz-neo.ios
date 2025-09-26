@@ -49,6 +49,8 @@ class HomeVC: UICollectionViewController {
   private var statusWrapperBottomConstraint: NSLayoutConstraint?
   private var statusWrapperWidthConstraint:NSLayoutConstraint?
   
+  private var viewModeButtonTopConstraint:NSLayoutConstraint?
+  
   /// Temporary variable to prevent the same issue from being opened multiple times due to repeated touches.
   var openingIssue: Issue?
   
@@ -120,9 +122,8 @@ class HomeVC: UICollectionViewController {
   // Mark: from UIComponents
   let topPadding = 5.0//UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 80.0 : 5.0
   
-  lazy var loginButton: UIView = createLoginButton()
+  lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
-  lazy var calendarButton: UIButton = createCalendarButton()
   lazy var datePickerOverlay = createDatePickerWrapperView()
   lazy var helpButton: UIButton = createHelpButton()
   
@@ -146,7 +147,7 @@ class HomeVC: UICollectionViewController {
   
   func onHome(){
     collectionView.scrollToItem(at: IndexPath(row: 0, section: 0),
-                                at: isHomeTiles ? .top : .centeredHorizontally,
+                                at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
                                 animated: true)
   }
   
@@ -158,42 +159,6 @@ class HomeVC: UICollectionViewController {
     datePickerOverlay.showAnimated()
   }
   
-  func showDatePicker1() {
-          // 1. Alert-Controller als Panel
-          let alert = UIAlertController(title: "Datum auswählen",
-                                        message: "\n\n\n\n\n\n\n\n", // Platz für den Picker
-                                        preferredStyle: .actionSheet)
-
-          // 2. UIDatePicker erstellen
-          let datePicker = UIDatePicker()
-          datePicker.datePickerMode = .date
-          datePicker.frame = CGRect(x: 0, y: 40, width: alert.view.bounds.width - 20, height: 200)
-
-          alert.view.addSubview(datePicker)
-
-          // 3. Aktionen
-          alert.addAction(UIAlertAction(title: "Abbrechen", style: .cancel, handler: nil))
-          alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-              let selectedDate = datePicker.date
-              print("Ausgewähltes Datum:", selectedDate)
-              // hier weiterverarbeiten (z.B. Label aktualisieren)
-          }))
-
-          // 4. Für iPad: Popover-Quelle setzen
-          if let popover = alert.popoverPresentationController {
-              popover.sourceView = calendarButton
-              popover.sourceRect = calendarButton.bounds
-          }
-
-          present(alert, animated: true, completion: nil)
-      }
-  
-  var centerIndex1: Int? {
-    guard let cv = collectionView else { return nil }
-    let center = self.view.convert(cv.center, to: cv)
-    return cv.indexPathForItem(at: center)?.row
-  }
-  
 
   var centerIndex: Int? {
     let rows = collectionView.indexPathsForVisibleItems.map(\.row).sorted()
@@ -201,7 +166,6 @@ class HomeVC: UICollectionViewController {
     return rows[(rows.count - 1) / 2]
   }
   
-  var centerIndex2: Int? { return centerIndexPath(returnFirstItemIfVisible: true)?.row }
   /// Returns the index path of the center-most visible item in the collection view.
   /// If `returnFirstItemIfVisible` is `true` and the first item (item 0) is visible,
   /// it returns IndexPath(item: 0, section: 0) instead.
@@ -275,7 +239,21 @@ class HomeVC: UICollectionViewController {
     nextHorizontalSizeClass = nil
   }
   
+  private func updateHeader(hidden: Bool) {
+    let targetConstant: CGFloat = hidden ? -40 : 0
+    guard viewModeButtonTopConstraint?.constant != targetConstant else { return
+    }
+    viewModeButtonTopConstraint?.constant = targetConstant
+    
+    UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut]) {
+      self.viewModeButton.imageView?.alpha = hidden ? 0 : 1
+      self.loginButton.imageView?.alpha = hidden ? 0 : 1
+      self.view.layoutIfNeeded()
+    }
+  }
+    
   override func viewDidLoad() {
+    collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.setCollectionViewLayout(currentLayout, animated: false)
     super.viewDidLoad()
     self.collectionView.register(IssueTilesCvcCell.self,
@@ -284,12 +262,8 @@ class HomeVC: UICollectionViewController {
     self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
 
     self.view.insertSubview(blurView, aboveSubview: collectionView)
-    pin(blurView, to: view, exclude: .bottom)
-    blurView.pinHeight(150)
-    
     self.view.addSubview(blurView)
     self.view.addSubview(statusHeader)
-    self.view.addSubview(calendarButton)
     self.view.addSubview(helpButton)
     self.view.addSubview(viewModeButton)
     self.view.addSubview(loginButton)
@@ -297,25 +271,26 @@ class HomeVC: UICollectionViewController {
     self.view.addSubview(datePickerOverlay)
 
     self.overrideUserInterfaceStyle = .dark
-  
+    pin(blurView, to: view, exclude: .bottom)
+    pin(blurView.bottom, to: viewModeButton.bottom, dist: Const.Dist2.s10)
+    pin(statusHeader.bottom, to: viewModeButton.bottom, dist: 4.0)
+    
     pin(datePickerOverlay, to: self.view)
     
-    pin(loginButton.right, to: self.view.rightGuide(), dist: -13.0)
-    pin(loginButton.top, to: self.view.topGuide())
+    pin(loginButton.right, to: self.view.rightGuide(), dist: -9.0)
+    pin(loginButton.bottom, to: viewModeButton.bottom)
     
+    viewModeButton.pinWidth(75.0)
+    loginButton.pinWidth(75.0)
     
-    pin(statusHeader.left, to: self.view.left)
-    pin(statusHeader.right, to: self.view.right)
-    topStatusButtonConstraint = pin(statusHeader.top, to: viewModeButton.bottom, dist: 5.0)
+    pin(statusHeader.left, to: viewModeButton.right)
+    pin(statusHeader.right, to: loginButton.left, priority: .defaultLow)
     
-    pin(viewModeButton.left, to: self.view.leftGuide(), dist: 13.0)
-    pin(viewModeButton.top, to: self.view.topGuide(), dist: 0)
+    pin(viewModeButton.left, to: self.view.leftGuide(), dist: 11.0)
+    viewModeButtonTopConstraint = pin(viewModeButton.top, to: self.view.topGuide(), dist: 0)
     
-    pin(helpButton.right, to: self.view.rightGuide(), dist: -13.0)
-    pin(helpButton.bottom, to: self.view.bottomGuide(), dist: 0.0)
-    
-    calendarButton.centerX()
-    pin(calendarButton.top, to: self.view.topGuide(), dist: 0)
+    pin(helpButton.right, to: self.view.rightGuide(), dist: -9.0)
+    pin(helpButton.bottom, to: self.view.bottomGuide(), dist: -Const.Dist2.m15)
     
     updateLoginButton()
     updateButtonMenu()
@@ -347,11 +322,51 @@ class HomeVC: UICollectionViewController {
     Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
       onMainAfter {[weak self] in self?.updateLoginButton() }
     }
+    Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
+      self?.collectionView.reloadData()
+    }
+    ///Handle new issues
+    Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+      self?.log("received publicationDatesChanged")
+      if self?.view.superview == nil {
+        _ = self?.service.reloadPublicationDates(refresh: nil, verticalCv: true)
+        ///Old Data, Offline, In Issue, Online => Update => Back to Home: this fixes home in wired state
+        self?.collectionView.reloadData()
+        onMainAfter {[weak self] in self?.updateDate() }
+        return
+      }
+      self?.statusHeader.currentStatus = .loadPreview
+      guard let service = self?.service,
+            let self = self else { return }
+       ///if no changes not reload
+      guard service.reloadPublicationDates(refresh: collectionView,
+                                           verticalCv: false) else { return }
+      if self.isHomeTiles == false {
+        self.updateDate()
+      }
+      self.collectionView.reloadData()
+    }
+    
+    ///Handle reachability changes: show offline status
+    Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
+      self?.statusHeader.currentStatus = .offline
+    }
+    ///Handle reachability changes: show offline status
+    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+      self?.statusHeader.currentStatus = .none
+    }
+    
     updateLoginButton()
     
     setupPullToRefresh()
     updateBottomWrapper(for: 0)
     setupReceiveDownloadIssueNotification()
+  }
+  
+  public func updateDate(){
+    guard isHomeTiles == false else { return }
+    guard let i = self.centerIndex else { return }
+    updateBottomWrapper(for: i)
   }
   
   func updateButtonMenu(){ configureMenu(for: viewModeButton) }
@@ -384,15 +399,31 @@ class HomeVC: UICollectionViewController {
     }
   }
   
+  var centerIndex2: Int? { return centerIndexPath(returnFirstItemIfVisible: true)?.row }
+  
+  private var lastContentOffset: CGFloat = 0
+  
   override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    guard let i = centerIndex, scrollLastCenterIndex != i else { return }
+    if isHomeTiles {
+      let offsetY = scrollView.contentOffset.y
+      guard offsetY > 0 else { return }
+      if offsetY > lastContentOffset {//scrolldown
+        updateHeader(hidden: true)
+      } else if offsetY < lastContentOffset {//scrollup
+        updateHeader(hidden: false)
+      }
+      lastContentOffset = offsetY
+      return
+    }
+    guard let i = centerIndex2, scrollLastCenterIndex != i else { return }
     scrollLastCenterIndex = i
     updateBottomWrapper(for: i)
   }
      
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    guard isHomeTiles == false else { return }
     bottomItemsWrapper.isUserInteractionEnabled = true
-    guard let centerIndex = centerIndex1 else { return }
+    guard let centerIndex = centerIndex else { return }
     updateBottomWrapper(for: centerIndex)
     scrollTo(centerIndex)
   }

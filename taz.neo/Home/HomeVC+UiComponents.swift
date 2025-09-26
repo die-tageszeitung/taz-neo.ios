@@ -17,6 +17,7 @@ extension HomeVC {
     button.tintColor = Const.Colors.appIconGrey
     button.accessibilityLabel = "Anmelden"
     button.layoutVertically()
+    button.pinHeight(42)
     button.onTapping { _ in
       self.feederContext.authenticate()
     }
@@ -34,6 +35,7 @@ extension HomeVC {
     // Optional: Zugriffshilfe
     button.accessibilityLabel = "Darstellungsoptionen anzeigen"
     button.layoutVertically()
+    button.pinHeight(42)
     return button
   }
   
@@ -76,6 +78,10 @@ extension HomeVC {
     let overlay = UIView()
     let wrapper = UIView()
     
+    let titleLabel = UILabel()
+    titleLabel.text = "Gehe zur Ausgabe vom"
+    titleLabel.contentFont()
+    
     let confirmButton = UIButton(type: .system)
     confirmButton.setTitle("Übernehmen", for: .normal)
     confirmButton.setTitleColor(.white, for: .normal)
@@ -106,18 +112,27 @@ extension HomeVC {
     }
     datePicker.translatesAutoresizingMaskIntoConstraints = false
         
+    wrapper.addSubview(titleLabel)
     wrapper.addSubview(confirmButton)
     wrapper.addSubview(cancelButton)
     wrapper.addSubview(datePicker)
     overlay.addSubview(wrapper)
-    wrapper.centerAxis()
+    wrapper.centerX()
+    wrapper.centerY(dist: 40.0)
     
-    pin(datePicker, to: wrapper, exclude: .top)
+    //T2B
+    pin(titleLabel.top, to: wrapper.top, dist: 8.0)
+    pin(datePicker.top, to: titleLabel.bottom, dist: 0.0)
+    pin(cancelButton.top, to: datePicker.bottom, dist: Const.Dist2.m20)
+    pin(confirmButton.top, to: datePicker.bottom, dist: Const.Dist2.m20)
+    pin(confirmButton.bottom, to: wrapper.bottom, dist: -Const.Dist2.m15)
+    
+    ///L2R
+    pin(titleLabel.left, to: wrapper.left, dist: 8.0)
+    pin(datePicker.left, to: wrapper.left)
+    pin(datePicker.right, to: wrapper.right)
     pin(confirmButton.right, to: wrapper.right, dist: -8.0)
-    pin(confirmButton.top, to: wrapper.top, dist: 8.0)
     pin(cancelButton.left, to: wrapper.left, dist: 8.0)
-    pin(cancelButton.top, to: wrapper.top, dist: 8.0)
-    pin(datePicker.top, to: confirmButton.bottom, dist: 0.0)
 
     overlay.isHidden = true
     let tapGR = UITapGestureRecognizer(target: self, action: #selector(didTapOverlay(_:)))
