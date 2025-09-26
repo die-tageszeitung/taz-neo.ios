@@ -146,17 +146,19 @@ extension Authenticator {
   public static func deleteUserData(logoutFromServer: Bool, _ properties: StoredProperty...){
     let dfl = Defaults.singleton
     let kc = Keychain.singleton
-    
+    /// TODO: there is an logic error logout? is done?
     Usage.track(Usage.event.user.Logout)
     
     if properties.count == 0 {
       kc["token"] = nil
       kc["password"] = nil
+      /// TODO: there is an logic error logout? is done?
       if logoutFromServer == false {
         kc["dataPolicyAccepted"] = nil
         dfl["id"] = nil
         kc["id"] = nil
       }
+      /// TODO: there is an logic error logout? is done?
       dfl["token"] = nil
       return
     }

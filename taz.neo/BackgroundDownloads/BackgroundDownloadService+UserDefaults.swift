@@ -10,6 +10,7 @@ import Foundation
 
 /// Data Structure to persist background download data using UserDefaults.
 struct DownloadData: Codable {
+  
   let isoDateKey: String           // z.B. "2025-05-15"
   var downloadId: String      // Eindeutige ID
   var startTime: Int64       // Unix-Timestamp
@@ -25,8 +26,17 @@ struct DownloadData: Codable {
   }
 }
 
-// MARK: - UserDefaults Erweiterung für Codable Dictionary
+extension DownloadData {
+  var date: Date? {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    formatter.timeZone = TimeZone(identifier: GqlFeeder.tz) ?? TimeZone.current
+    return formatter.date(from: self.isoDateKey)
+  }
+}
+  
 
+// MARK: - UserDefaults Erweiterung für Codable Dictionary
 private extension UserDefaults {
   private static let backgroundDownloadsKey = "BackgroundDownloadsDictionaryKey"
   
@@ -69,19 +79,47 @@ extension BackgroundDownloadService {
     UserDefaults.standard.setDownloadDict(dict)
     log("Set Download finished for issue with date: \(data.isoDateKey)")
   }
-  
-  /// Returns an array of ISO date keys for all download entries in UserDefaults.
-  /// used on application Restart to check if there are downloads finished (zip Download)
-  /// which ain't saved to database yet. to save them now on app restart
+    
+  /// Returns a chronologically sorted array of ISO date keys (`yyyy-MM-dd`)
+  /// for all completed issue downloads stored in UserDefaults,
+  ///
+  /// Used on app launch to detect any finished downloads (e.g., ZIP files)
+  /// that haven't yet been persisted to the database, so they can be saved now.
+  /// The sorting ensures older downloads are handled first.
   var downloadDateKeys: [String] {
     let dict = UserDefaults.standard.getDownloadDict()
-    return dict.values.map { $0.isoDateKey }
+    return dict.values.map { $0.isoDateKey }.sorted()
   }
   
   ///called after download finished to get the DownloadData for the given download URL, to set the download finished
   ///also called from `applicationRestarted`
   func getDownloadData(forDownloadUrl url: String) -> DownloadData? {
     UserDefaults.standard.getDownloadDict()[url]
+  }
+  
+  /// Returns the `DownloadData` associated with the given ISO date key (e.g., "2025-05-15").
+  ///
+  /// This method is used to retrieve the download data for a specific issue date, typically
+  /// to check download progress or metadata related to that date.
+  ///
+  /// - Parameter key: The ISO-formatted date string used as the lookup key.
+  /// - Returns: The `DownloadData` associated with the given date key, or `nil` if not found.
+  func getDownloadData(forDateKey key: String) -> DownloadData? {
+      let dict = UserDefaults.standard.getDownloadDict()
+      return dict.first { $0.value.isoDateKey == key }?.value
+  }
+  
+  /// Retrieves the download URL key for a given ISO-formatted date key.
+  ///
+  /// This method searches the stored background download dictionary for the first entry
+  /// where the associated `DownloadData` has a matching `isoDateKey`, and returns the
+  /// corresponding dictionary key (typically a download URL).
+  ///
+  /// - Parameter key: The ISO date key (e.g., "2025-06-27") to search for.
+  /// - Returns: The download URL string associated with the date key, or `nil` if not found.
+  func getUrl(forDateKey key: String) -> String? {
+      let dict = UserDefaults.standard.getDownloadDict()
+      return dict.first { $0.value.isoDateKey == key }?.key
   }
   
   func removeDownloadData(forDownloadUrl url: String) {

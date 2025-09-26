@@ -81,11 +81,14 @@ class FetchNewStatusHeader: UIView {
   
   private func checkStatus(){
     //let last error at least 5s
-    if let sec = lastErrorShown?.timeIntervalSince(Date()), sec < 5 {
-      onMain(after: sec + 1) {   [weak self] in
-        self?.checkStatus()
+    if let last = lastErrorShown {
+      let sec = Date().timeIntervalSince(last)
+      if sec < 5 {
+        onMain(after: 5 - sec + 1) { [weak self] in
+          self?.checkStatus()
+        }
+        return
       }
-      return
     }
         
     while !animating {
@@ -140,6 +143,11 @@ class FetchNewStatusHeader: UIView {
     get { return _currentStatus }
     set {
       if currentStatus == .stoppedLoadOvw { return }//do not overwrite this important info
+      if currentStatus == .fetchNewIssues && animating == true {
+        animating = false //stop waiting for animation, allow next change
+        nextStatus.append(newValue);
+        return
+      }
       if _currentStatus == newValue || nextStatus.last == newValue { return; }
       if animating { nextStatus.append(newValue); return; }
       if newValue == .downloadError || newValue == .autoloadErrorNoWlan { lastErrorShown = Date() }
@@ -158,15 +166,20 @@ class FetchNewStatusHeader: UIView {
     addSubview(label)
     label.font = Const.Fonts.contentFont(size: 14)
     activityIndicator.color = .white
-    activityIndicator.centerX()
-    pin(activityIndicator.top, to: self.top, dist: Const.Dist.margin)
-    
-    pin(label.left, to: self.left, dist: Const.Dist.margin)
-    pin(label.right, to: self.right, dist: -Const.Dist.margin)
-    pin(label.top, to: activityIndicator.bottom, dist: Const.Dist.margin)
+    pin(activityIndicator.right, to: label.left, dist: Const.Dist.margin)
+    label.centerX(dist: -20)
+    pin(activityIndicator.centerY, to: label.centerY)
+    pin(label.top, to: self.bottom, dist: 0)
     pin(label.bottom, to: self.bottom, dist: 0)
-  }
 
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.animating = false
+    }
+    
+    activityIndicator.addBorder(.green)
+    label.addBorder(.red)
+    self.addBorder(.blue)
+  }
   
   override public init(frame: CGRect) {
     super.init(frame: frame)

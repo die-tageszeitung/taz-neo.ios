@@ -20,20 +20,33 @@ class BackgroundDownloadService: DoesLog {
   @Default("autoloadAudio")
   var autoloadAudio: Bool
   
-  @Default("isFacsimile")
-  public var isFacsimile: Bool
-  
   @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
+  
+  @Default("useTestServer")
+  var useTestServer: Bool
   
   var tempStorage = BackgroundDownloadsTempStorage()
   
   var saveDatabase = false
   
+  var nextScheduledCheck : Date?
+  
   var informUIAfterSave = false
   
   @Default("autoloadPublicationType")
   var autoloadPublicationType: String
+  
+  @Default("remoteResourcesBaseUrl")
+  var remoteResourcesBaseUrl: String
+  
+  @Default("updatedResourcesLocalPath")
+  var updatedResourcesLocalPath: String
+  
+  @Default("autoloadNotifications")
+  var autoloadNotifications: Bool
+  
+  var updatedResourcesFiles: [FileEntry] = []
   
   /// The date of the last issue that was fully downloaded based on the user's auto-download settings.
   ///
@@ -47,9 +60,14 @@ class BackgroundDownloadService: DoesLog {
   
   var publicationSchedule: PublicationSchedule = .taz //just initial value
   
+  var preventDownloadOnce = false
+  
   var feederContext: FeederContext? {
     TazAppEnvironment.sharedInstance.feederContext
   }
+  
+  lazy var backgroundSession
+  = BackgroundSession.shared(callback: BackgroundDownloadService.dlCallback)
   
   static let shared = BackgroundDownloadService()
   
@@ -76,7 +94,7 @@ extension BackgroundDownloadService {
     }
     updatePublicationtype()
     log ("Update updateLatestIssueDownloadDate...")
-    if let lastIssue = StoredIssue.lastCompleete(feed: feed,
+    if let lastIssue = StoredIssue.lastComplete(feed: feed,
                                                  isPages: autoloadPdf,
                                                  withAudio: autoloadAudio) {
       log ("... with date \(lastIssue.date.short)")

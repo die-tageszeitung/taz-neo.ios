@@ -15,13 +15,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  var suppressLinkPressedNotification = false
+  
   open var sectionPath:[String]? {
     guard let section = section,
           let sectFileName = section.html?.name else { return nil}
     return ["issue", self.feederContext.feedName, self.issue.date.ISO8601, "section", sectFileName]
   }
   
-  private var articleVC: ArticleVC?
+  public private(set) var articleVC: ArticleVC?
   private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
@@ -45,6 +47,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   private var initialSection: Int?
   private var initialArticle: Int?
+  
+  override var reopenArticleDocName: String? {
+    set { articleVC?.reopenArticleDocName = newValue }
+    get { articleVC?.reopenArticleDocName }
+  }
+  override var reopenArticleScrollPos: CGFloat? {
+    set { articleVC?.reopenArticleScrollPos = newValue }
+    get { articleVC?.reopenArticleScrollPos }
+  }
   
   public override var delegate: IssueInfo! {
     didSet { if oldValue == nil { self.setup() } }
@@ -111,7 +122,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       if article2sectionHtml[fn] != nil {
         lastIndex = nil
         showArticle(url: to)
-      }    
+      }
       else {
         for s in self.sections {
           if fn == s.html?.name {
@@ -166,6 +177,18 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
   }
   
+  private var firstDisplayed = false
+  override func persistReadProgress() { persistReadProgress(sectIdx: nil, force: false) }
+  
+  func persistReadProgress(sectIdx: Int? = nil, force: Bool = false) {
+    guard firstDisplayed else { return }
+    guard force || self.isVisibleVC else { return }
+    guard delegate.issue.isBookmarkIssue == false else { return }
+    issue.setLastRead(pageIndex: nil,
+                      articleIndex: nil,
+                      sectionIndex: sectIdx ?? index,
+                      scrollPosition: nil)
+  }
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -183,10 +206,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
-      if self.isVisibleVC { 
-        self.issue.lastSection = self.index
-        self.issue.lastArticle = nil 
-      }
+      persistReadProgress(sectIdx: secIndex)
+      self.firstDisplayed = true
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)
@@ -207,6 +228,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           destroys the layout or raise other errors
           so this is currently the most effective solution
        **/
+      if self?.suppressLinkPressedNotification == true { return }
       if UIApplication.shared.applicationState != .active { return }
       if self?.navigationController?.topViewController != self {
         self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
@@ -239,6 +261,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
     }
+    header.isWochentaz = issue.isWeekend
   }
   
   func updateAudioButton(){
@@ -367,13 +390,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    persistReadProgress()
     if let iart = initialArticle {
       doPreventCoachmark = true
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
-      self.header.isHidden = true
-      self.collectionView?.isHidden = true
+      self.header.isHidden = false
+      self.collectionView?.isHidden = true//??
+    }
+    else {
+      toolBar.show(show: true, animated: true) 
     }
   }
   
@@ -401,7 +428,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
    
   /// Initialize with FeederContext
-  public init(feederContext: FeederContext, atSection: Int? = nil, 
+  public init(feederContext: FeederContext,
+              atSection: Int? = nil,
               atArticle: Int? = nil) {
     initialSection = atSection
     initialArticle = atArticle

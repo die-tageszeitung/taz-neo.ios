@@ -27,18 +27,24 @@ extension BackgroundDownloadService {
     
     ///** Error Handling
     if let err = err {
-      log("...Failed to Download with err: \(err)")
-      #warning("TODO: not implemented!!")
-      restartDownloadForIssue(with: downloadUrl)
+      ///since now this only happend after server switch; in case of missing downloads maybe handle later
+      ///after server switch & 
+      log("⚠️⚠️...Failed to Download for: \(downloadUrl)\n  with err: \(err)")
+      return
+    }
+    
+    if remoteResourcesBaseUrl.isEmpty == false,
+       downloadUrl.contains(remoteResourcesBaseUrl) {
+      handleResourcesDownloadFinished(for: downloadUrl)
       return
     }
     
     ///** lookup for additional Data in Defaults
     guard let downloadData = getDownloadData(forDownloadUrl: downloadUrl) else {
-      log("...No DownloadData for url: \(downloadUrl). Aborting... maybe audio Downbload or Ressources (TBD)")
+      log("...No DownloadData for url: \(downloadUrl). Audio or Resources Downbload")
       return
     }
-    
+        
     guard downloadData.isDownloaded == false else {
       log("⚠️WARNING: ...already downloaded, nothing to do")
       return
@@ -56,9 +62,12 @@ extension BackgroundDownloadService {
       log("...found issue in tempStorage: \(issue.date.short)")
       updateLatestIssueDownloadDate(ifNewer: issue.date)
       issue.setAutodownloadCompleete()
+      notify(issueDate: issue.date, finished: true)
       handlePendingTasks()
       return
     }
+    ///App Restarted by system!?
+    log("...issue NOT FOUND in tempStorage, try to fetch from database")
        
     ///** collect some environment
     guard let feederContext = feederContext,
@@ -75,10 +84,11 @@ extension BackgroundDownloadService {
         self?.log("...found issue in databse: \(issue.date.short)")
         /// If auto-downloading is true, full data is available—not just overview data.
         issue.setAutodownloadCompleete()
+        self?.notify(issueDate: issue.date, finished: true)
         self?.handlePendingTasks()
         return
       }
-      
+      self?.log("issue not found in database, restore from JSON")
       ///** No valid Entry found, load from JSON ...in a detatched Task
       Task.detached { [weak self] in
         await self?
@@ -125,6 +135,7 @@ fileprivate extension BackgroundDownloadService {
 #warning("CHECK: try")
       try tempStorage.add(issue)
       issue.setAutodownloadCompleete()
+      notify(issueDate: issue.date, finished: true)
       handlePendingTasks()
       
     } catch {
@@ -133,7 +144,7 @@ fileprivate extension BackgroundDownloadService {
   }
 }
 
-fileprivate extension String {
+extension String {
   var urlByDeleetingLastPathComponent: String {
     guard let url = URL(string: self) else { return self }
     var baseUrl = url.deletingLastPathComponent().absoluteString

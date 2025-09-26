@@ -104,7 +104,7 @@ extension HomeVC  {
 }
 
 extension HomeVC {
-  func openIssue(_ issue: StoredIssue, atArticle: Int? = nil, atPage: Int? = nil, isReloadOpened: Bool = false) {
+  func openIssue(_ issue: StoredIssue, openLast: Bool = false) {
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?
@@ -122,7 +122,11 @@ extension HomeVC {
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
-    issueInfo.showIssue(pushDelegate: self, atArticle: atArticle, atPage:atPage, isReloadOpened: isReloadOpened)
+    issueInfo.showIssue(pushDelegate: self,
+                         atArticle: openLast ? issue.lastArticleIndexForCurrentMode : nil,
+                         atArticleScrollPos: openLast ? issue.lastArticleScrollPos : nil,
+                         atSection: openLast ? issue.lastSection : nil,
+                         atPage:openLast ? issue.lastPage : nil)
   }
 }
 

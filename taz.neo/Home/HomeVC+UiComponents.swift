@@ -10,57 +10,182 @@ import NorthLib
 
 
 extension HomeVC {
-  func createLoginButton() -> UIView {
-    let login = UILabel()
-    login.accessibilityLabel = "Anmelden"
-    login.isAccessibilityElement = true
-    login.contentFont()
-    login.textColor = Const.SetColor.HomeText.dynamicColor
-    login.text = "Anmelden"
-    
-    let arrow
-    = UIImageView(image: UIImage(name: "arrow.right")?
-      .withTintColor(Const.Colors.appIconGrey,
-                     renderingMode: .alwaysTemplate))
-    arrow.tintColor = Const.SetColor.HomeText.dynamicColor
-    
-    let wrapper = UIView()
-    wrapper.addSubview(login)
-    wrapper.addSubview(arrow)
-    pin(login, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .right)
-    pin(arrow, to: wrapper, dist:Const.Size.DefaultPadding, exclude: .left)
-    pin(login.right, to: arrow.left, dist: -5.0)
-
-    wrapper.onTapping { [weak self] _ in
-       self?.feederContext.authenticate()
+  func createLoginButton() -> UIButton {
+    let button = UIButton(type: .system)
+    button.setImage(UIImage(named: "login"), for: .normal)
+    button.setTitle("Anmelden", for: .normal)
+    button.tintColor = Const.Colors.appIconGrey
+    button.accessibilityLabel = "Anmelden"
+    button.layoutVertically()
+    button.onTapping { _ in
+      self.feederContext.authenticate()
     }
-    return wrapper
+    return button
   }
   
   func createViewModeButton() -> UIButton {
-    let menuButton = UIButton(type: .system)
-
-    // Set SF Symbol as image
-    let icon = UIImage(systemName: "ellipsis")
-    menuButton.setImage(icon, for: .normal)
+    let button = UIButton(type: .system)
+    button.setImage(UIImage(named: "show"), for: .normal)
+    button.setTitle("Darstellung", for: .normal)
 
     // Optional: Tintfarbe (Standard ist systemBlue)
-    menuButton.tintColor = Const.Colors.appIconGrey
+    button.tintColor = Const.Colors.appIconGrey
 
     // Optional: Zugriffshilfe
-    menuButton.accessibilityLabel = "Ansicht umschalten"
+    button.accessibilityLabel = "Darstellungsoptionen anzeigen"
+    button.layoutVertically()
+    return button
+  }
+  
+  func createHelpButton() -> UIButton {
+    let button = UIButton(type: .system)
+    button.setImage(UIImage(named: "tooltip"), for: .normal)
+    button.setTitle("Hilfe", for: .normal)
+
+    // Optional: Tintfarbe (Standard ist systemBlue)
+    button.tintColor = Const.Colors.appIconGrey
+
+    // Optional: Zugriffshilfe
+    button.accessibilityLabel = "Hilfe anzeigen"
+    button.layoutVertically()
+    button.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+    button.pinHeight(54.0)
+    button.pinWidth(54.0)
+    button.layer.cornerRadius = 27.0
+    return button
+  }
+  
+  func createCalendarButton() -> UIButton {
+    let button = UIButton(type: .system)
+    button.setImage(UIImage(named: "calendar"), for: .normal)
+    button.setTitle("Datumsauswahl", for: .normal)
+
+    // Optional: Tintfarbe (Standard ist systemBlue)
+    button.tintColor = Const.Colors.appIconGrey
+
+    // Optional: Zugriffshilfe
+    button.accessibilityLabel = "Datumsauswahl anzeigen"
+    button.layoutVertically()
+    button.onTapping { _ in
+      self.showDatePicker()
+    }
+    return button
+  }
+  
+  func createDatePickerWrapperView() -> UIView {
+    let overlay = UIView()
+    let wrapper = UIView()
     
-    menuButton.pinSize(CGSize(width: 40, height: 40))
-    menuButton.addBorder(Const.Colors.appIconGrey, 1.5)
-    menuButton.layer.cornerRadius = 20
-    return menuButton
+    let confirmButton = UIButton(type: .system)
+    confirmButton.setTitle("Übernehmen", for: .normal)
+    confirmButton.setTitleColor(.white, for: .normal)
+    confirmButton.titleLabel?.boldContentFont()
+    confirmButton.translatesAutoresizingMaskIntoConstraints = false
+    
+    let cancelButton = UIButton(type: .system)
+    cancelButton.setTitle("Abbrechen", for: .normal)
+    cancelButton.setTitleColor(.white, for: .normal)
+    cancelButton.titleLabel?.contentFont()
+    confirmButton.translatesAutoresizingMaskIntoConstraints = false
+    
+    overlay.backgroundColor = UIColor.black.withAlphaComponent(0.84)
+//    wrapper.backgroundColor = UIColor.black
+    wrapper.backgroundColor = Const.Colors.darkSecondaryBG
+    wrapper.layer.borderWidth = 0.3
+    wrapper.layer.borderColor = Const.Colors.appIconGrey.cgColor
+    wrapper.layer.cornerRadius = 8.0
+    
+    datePicker.minimumDate = feederContext.defaultFeed.firstIssue
+    datePicker.maximumDate =  Date()
+    datePicker.datePickerMode = .date
+    
+    datePicker.tintColor = .white
+    
+    if #available(iOS 14.0, *) {
+      datePicker.preferredDatePickerStyle = .inline
+    }
+    datePicker.translatesAutoresizingMaskIntoConstraints = false
+        
+    wrapper.addSubview(confirmButton)
+    wrapper.addSubview(cancelButton)
+    wrapper.addSubview(datePicker)
+    overlay.addSubview(wrapper)
+    wrapper.centerAxis()
+    
+    pin(datePicker, to: wrapper, exclude: .top)
+    pin(confirmButton.right, to: wrapper.right, dist: -8.0)
+    pin(confirmButton.top, to: wrapper.top, dist: 8.0)
+    pin(cancelButton.left, to: wrapper.left, dist: 8.0)
+    pin(cancelButton.top, to: wrapper.top, dist: 8.0)
+    pin(datePicker.top, to: confirmButton.bottom, dist: 0.0)
+
+    overlay.isHidden = true
+    let tapGR = UITapGestureRecognizer(target: self, action: #selector(didTapOverlay(_:)))
+    tapGR.delegate = self
+    overlay.addGestureRecognizer(tapGR)
+    
+//    datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
+    confirmButton.addTarget(self, action: #selector(dateChanged(_:)), for: .touchUpInside)
+    cancelButton.addTarget(self, action: #selector(didTapOverlay(_:)), for: .touchUpInside)
+    
+    return overlay
+  }
+  
+  @objc private func didTapOverlay(_ sender: UITapGestureRecognizer) {
+      datePickerOverlay.hideAnimated()
+  }
+  
+  @objc func dateChanged(_ sender: Any) {
+    let selectedDate = datePicker.date
+    let idx = self.service.nextIndex(for: selectedDate)
+    self.scrollTo(idx, animated: true)
+    datePickerOverlay.hideAnimated()
+  }
+}
+
+extension HomeVC: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldReceive touch: UITouch) -> Bool {
+
+        // Falls der Touch in Wrapper ODER DatePicker liegt → ignorieren
+        if let view = touch.view,
+           let wrapper = datePickerOverlay.subviews.first,
+           view.isDescendant(of: wrapper) {
+            return false
+        }
+        return true
+    }
+}
+
+fileprivate extension UIButton {
+  func layoutVertically(){
+    titleLabel?.contentFont(size: 11)
+    
+    contentHorizontalAlignment = .center
+    let spacing: CGFloat = 0
+    if let imageSize = imageView?.intrinsicContentSize,
+       let titleSize = titleLabel?.intrinsicContentSize {
+      
+      titleEdgeInsets = UIEdgeInsets(
+        top: spacing,
+        left: -imageSize.width,
+        bottom: -imageSize.height,
+        right: 0
+      )
+      imageEdgeInsets = UIEdgeInsets(
+        top: -titleSize.height - spacing,
+        left: 0,
+        bottom: 0,
+        right: -titleSize.width
+      )
+    }
   }
 }
 
 class FrostGradientView: UIVisualEffectView {
 
     private let gradientLayer = CAGradientLayer()
-    var fadeHeight: CGFloat = 50 {
+    var fadeHeight: CGFloat = 20 {
         didSet {
             setNeedsLayout()
         }

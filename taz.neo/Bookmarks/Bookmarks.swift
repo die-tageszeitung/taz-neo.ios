@@ -183,7 +183,7 @@ extension Bookmarks {
   
   /// ensures storedArticle properies are set as expected
   /// * creates target dir in default issue dir format e.g. /taz/taz/YYYY-mm-dd
-  /// * link ressources to this folder
+  /// * link resources to this folder
   /// * copies serach article files to this folder
   /// * sets StoredFileEntry.subdir property to the new target dir for all article.files
   private func bookmarkableArticle(from article: Article) -> StoredArticle? {
@@ -213,7 +213,7 @@ extension Bookmarks {
       return nil
     }
     
-    ///link Ressources (js/css/author images) if needed
+    ///link Resources (js/css/author images) if needed
     if issueDir.exists == false {
       issueDir.create()
     }

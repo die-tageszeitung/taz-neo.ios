@@ -116,6 +116,7 @@ extension FeederContext {
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
   }
   
+  #warning("TODO TOCHECK BG DL AVAILABLE!")
   ///handle incomming push notification
   ///due no Background Issue download available, just add a local notification with the info; download will happen after App Foreground start
   public func handleArticlePush(pn: PushNotification,

@@ -23,7 +23,7 @@ extension BackgroundDownloadService {
 
 ///Mark: - Background Task Handling
 extension BackgroundDownloadService {
-  func handleIssueCheckTask(task: BGAppRefreshTask) {
+  func handleIssueCheckTask(task: BGTask) {
     scheduleBackgroundIssueCheck() // Schedule the next background task
     
     log("Start timed check \(lastFullyDownloadedIssueDate?.short.prepend("Latest Issue Date: ") ?? "")")
@@ -31,7 +31,7 @@ extension BackgroundDownloadService {
     let queue = OperationQueue()
     queue.maxConcurrentOperationCount = 1
     
-    task.expirationHandler = {
+    (task as? BGProcessingTask ?? task as? BGAppRefreshTask)?.expirationHandler = {
       queue.cancelAllOperations()
     }
     
@@ -60,8 +60,30 @@ extension BackgroundDownloadService {
     queue.addOperation(checkOperation)
   }
   
+  /// Executes a background issue check if `nextScheduledCheck` is in the past or within the next 30 seconds.
+  /// Returns `true` if the check was performed, otherwise `false`.
+  func executeScheduledCheckIfNeeded() -> Bool {
+    // Only proceed if the next scheduled check is in the past or within the next 30 seconds
+    guard (nextScheduledCheck?.timeIntervalSinceNow ?? 60) < 30 else {
+      return false
+    }
+    
+    guard UIApplication.shared.applicationState == .background else {
+      log("App not in background, skipping background issue check")
+      return false
+    }
+    
+    log("Starting background issue check due to net status change and schedule reached")
+    
+    Self.checkForNewIssue(isPush: false, isBackground: true) { [weak self] _ in
+      self?.log("Finished issue check triggered by schedule")
+    }
+    
+    return true
+  }
+  
   func scheduleBackgroundIssueCheck(earliestBeginDate: Date? = nil) {
-    let request = BGProcessingTaskRequest(identifier: "de.taz.taz.neo.refresh")
+    let request = BGProcessingTaskRequest(identifier: App.backgroundTaskRefreshId)
     request.requiresNetworkConnectivity = true
     request.requiresExternalPower = false
     let nextCheck = earliestBeginDate

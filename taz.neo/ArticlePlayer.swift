@@ -25,6 +25,11 @@ class ArticlePlayer: DoesLog {
     userInterface.superview != nil
   }
   
+  var ui: UIView? {
+    if isOpen == false { return nil }
+    return userInterface
+  }
+  
   var disclaimerUrlFemale: String?
   var disclaimerUrlMale: String?
   
@@ -202,9 +207,7 @@ class ArticlePlayer: DoesLog {
   
   private func showCloseOnDemoAlert(){
     Alert.message(title: "Wiedergabe beendet", message: "In Ihrer Wiedergabeliste befanden sich gekürzte Demo Artikel. Mit gültigem Abonnement können die vollständigen Inhalte wiedergegeben werden.\nBitte starten Sie die Wiedergabe erneut.")
-    self.userInterface.removeFromSuperview()
     self.close()
-    self.userInterface.isErrorState = false
   }
   
   private func handleAuthenticationSucceeded(){
@@ -619,7 +622,8 @@ class ArticlePlayer: DoesLog {
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: currentArticle, sender: self)
   }
   /// Stop the currently being played article
-  private func close() {
+  func close() {
+    userInterface.removeFromSuperview()
     nextContent = []
     lastContent = []
     aplayer.close()
@@ -629,6 +633,7 @@ class ArticlePlayer: DoesLog {
     commandCenter.playCommand.isEnabled = false
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     Usage.xtrack.audio.close()
+    userInterface.isErrorState = false
   }
   
   public func play(issue:Issue,
@@ -783,7 +788,7 @@ extension Issue {
 
 
 // MARK: - Helper
-fileprivate extension Article {
+extension Article {
   var firstImage:UIImage? {
     guard let fn = images?.first?.fileName else { return nil }
     let path = "\(self.dir.path)/\(fn)"
@@ -791,7 +796,7 @@ fileprivate extension Article {
   }
 }
 
-fileprivate extension Section {
+extension Section {
   var firstImage:UIImage? {
     guard let fn = images?.first?.fileName else { return nil }
     let path = "\(self.dir.path)/\(fn)"

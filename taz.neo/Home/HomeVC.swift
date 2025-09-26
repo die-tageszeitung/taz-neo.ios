@@ -9,6 +9,19 @@
 import UIKit
 import NorthLib
 
+/// Protocol to handle Open and Display an Issue
+protocol OpenIssueDelegate {
+  /// open a Issue
+  func openIssue(_ issue:StoredIssue, openLast: Bool)
+}
+
+extension OpenIssueDelegate {
+  /// open a Issue, shortcut with openLast == false as default
+  func openIssue(_ issue:StoredIssue, openLast: Bool = false){
+    openIssue(issue, openLast: openLast || Defaults.reopenAutomaticSetting)
+  }
+}
+
 class HomeVC: UICollectionViewController {
   /// Are we in facsimile mode
   @Default("isFacsimile")
@@ -88,12 +101,9 @@ class HomeVC: UICollectionViewController {
     v.pinHeight(28)
     
     dateLabel.onTapping {[weak self] _ in
-      guard let self = self else { return }
-      showDatePicker(sourceView: dateLabel)
-      Usage.track(Usage.event.dialog.IssueDatePicker)
+      self?.showDatePicker()
     }
     downloadButton.onTapping { [weak self] _ in
-      if self?.downloadButton.indicator.downloadState == .done { return }
       guard let idx = self?.centerIndex,
             let data = self?.service.cellData(for: idx) else { return }
       if let issue = data.issue {
@@ -108,16 +118,28 @@ class HomeVC: UICollectionViewController {
   private var dataPolicyToast: NewInfoToast?
   
   // Mark: from UIComponents
-  var pickerCtrl : DatePickerController?
-  var overlay : Overlay?
+  let topPadding = 5.0//UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 80.0 : 5.0
   
   lazy var loginButton: UIView = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
+  lazy var calendarButton: UIButton = createCalendarButton()
+  lazy var datePickerOverlay = createDatePickerWrapperView()
+  lazy var helpButton: UIButton = createHelpButton()
+  
+  let datePicker = UIDatePicker()
+  lazy var datePickerWrapper = createDatePickerWrapperView()
+  
   
   //  FrostGradientView, SoftFrostView
-  lazy var blurView: FrostGradientView = {
+  lazy var blurView: UIView = {
+    let view = UIView()
+    view.backgroundColor = UIColor.black.withAlphaComponent(0.84)
+    return view
+  }()
+  
+  lazy var blurView2: FrostGradientView = {
     let view = FrostGradientView(effect: UIBlurEffect(style: .systemMaterial))
-    view.fadeHeight = 50;
+    view.fadeHeight = 8.0;
     view.alpha = 0.97
     return view
   }()
@@ -128,13 +150,58 @@ class HomeVC: UICollectionViewController {
                                 animated: true)
   }
   
+  
+  
+  func showDatePicker() {
+    Usage.track(Usage.event.dialog.IssueDatePicker)
+    datePicker.date = service.date(at: centerIndex ?? 0)?.date ?? Date()
+    datePickerOverlay.showAnimated()
+  }
+  
+  func showDatePicker1() {
+          // 1. Alert-Controller als Panel
+          let alert = UIAlertController(title: "Datum auswählen",
+                                        message: "\n\n\n\n\n\n\n\n", // Platz für den Picker
+                                        preferredStyle: .actionSheet)
+
+          // 2. UIDatePicker erstellen
+          let datePicker = UIDatePicker()
+          datePicker.datePickerMode = .date
+          datePicker.frame = CGRect(x: 0, y: 40, width: alert.view.bounds.width - 20, height: 200)
+
+          alert.view.addSubview(datePicker)
+
+          // 3. Aktionen
+          alert.addAction(UIAlertAction(title: "Abbrechen", style: .cancel, handler: nil))
+          alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+              let selectedDate = datePicker.date
+              print("Ausgewähltes Datum:", selectedDate)
+              // hier weiterverarbeiten (z.B. Label aktualisieren)
+          }))
+
+          // 4. Für iPad: Popover-Quelle setzen
+          if let popover = alert.popoverPresentationController {
+              popover.sourceView = calendarButton
+              popover.sourceRect = calendarButton.bounds
+          }
+
+          present(alert, animated: true, completion: nil)
+      }
+  
   var centerIndex1: Int? {
     guard let cv = collectionView else { return nil }
     let center = self.view.convert(cv.center, to: cv)
     return cv.indexPathForItem(at: center)?.row
   }
   
-  var centerIndex: Int? { return centerIndexPath(returnFirstItemIfVisible: true)?.row }
+
+  var centerIndex: Int? {
+    let rows = collectionView.indexPathsForVisibleItems.map(\.row).sorted()
+    guard !rows.isEmpty else { return nil }
+    return rows[(rows.count - 1) / 2]
+  }
+  
+  var centerIndex2: Int? { return centerIndexPath(returnFirstItemIfVisible: true)?.row }
   /// Returns the index path of the center-most visible item in the collection view.
   /// If `returnFirstItemIfVisible` is `true` and the first item (item 0) is visible,
   /// it returns IndexPath(item: 0, section: 0) instead.
@@ -215,14 +282,43 @@ class HomeVC: UICollectionViewController {
                                  forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.showsHorizontalScrollIndicator = false
     self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
+
+    self.view.insertSubview(blurView, aboveSubview: collectionView)
+    pin(blurView, to: view, exclude: .bottom)
+    blurView.pinHeight(150)
     
+    self.view.addSubview(blurView)
+    self.view.addSubview(statusHeader)
+    self.view.addSubview(calendarButton)
+    self.view.addSubview(helpButton)
     self.view.addSubview(viewModeButton)
-    updateButtonMenu()
+    self.view.addSubview(loginButton)
+    self.view.addSubview(bottomItemsWrapper)
+    self.view.addSubview(datePickerOverlay)
+
     self.overrideUserInterfaceStyle = .dark
-    pin(viewModeButton.left, to: self.view.leftGuide(), dist: 15.0)
-    pin(viewModeButton.top, to: self.view.topGuide(), dist: 25.0)
+  
+    pin(datePickerOverlay, to: self.view)
+    
+    pin(loginButton.right, to: self.view.rightGuide(), dist: -13.0)
+    pin(loginButton.top, to: self.view.topGuide())
+    
+    
+    pin(statusHeader.left, to: self.view.left)
+    pin(statusHeader.right, to: self.view.right)
+    topStatusButtonConstraint = pin(statusHeader.top, to: viewModeButton.bottom, dist: 5.0)
+    
+    pin(viewModeButton.left, to: self.view.leftGuide(), dist: 13.0)
+    pin(viewModeButton.top, to: self.view.topGuide(), dist: 0)
+    
+    pin(helpButton.right, to: self.view.rightGuide(), dist: -13.0)
+    pin(helpButton.bottom, to: self.view.bottomGuide(), dist: 0.0)
+    
+    calendarButton.centerX()
+    pin(calendarButton.top, to: self.view.topGuide(), dist: 0)
     
     updateLoginButton()
+    updateButtonMenu()
     
     $isFacsimile.onChange{[weak self] _ in
       self?.log("isFacsimile: \(String(describing: self?.isFacsimile))")
@@ -240,7 +336,7 @@ class HomeVC: UICollectionViewController {
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
     }
     
-    self.view.addSubview(bottomItemsWrapper)
+
     bottomItemsWrapper.isHidden = isHomeTiles
     bottomItemsWrapper.centerX()
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
@@ -256,21 +352,11 @@ class HomeVC: UICollectionViewController {
     setupPullToRefresh()
     updateBottomWrapper(for: 0)
     setupReceiveDownloadIssueNotification()
-    
-    self.view.insertSubview(blurView, aboveSubview: collectionView)
-    pin(blurView, to: view, exclude: .bottom)
-    blurView.pinHeight(150)
   }
   
   func updateButtonMenu(){ configureMenu(for: viewModeButton) }
   
   fileprivate func setupPullToRefresh() {
-    //add status Header
-    self.view.addSubview(statusHeader)
-    pin(statusHeader.left, to: viewModeButton.right)
-    pin(statusHeader.right, to: self.view.right)
-    topStatusButtonConstraint = pin(statusHeader.bottom, to: self.view.top, dist: 0)
-       
     Notification.receive(Const.NotificationNames.checkForNewIssues,
                          from: self.service) { [weak self] notification in
       if let status = notification.content as? FetchNewStatusHeader.status {
@@ -334,16 +420,7 @@ class HomeVC: UICollectionViewController {
   }
   
   fileprivate func updateLoginButton(){
-    if self.feederContext.isAuthenticated {
-      loginButton.removeFromSuperview()
-      //      updateAccessibillityHelper()
-      return
-    }
-    let topPadding = UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 20.0 : 5.0
-    view.addSubview(loginButton)
-    pin(loginButton.right, to: view.rightGuide())
-    pin(loginButton.top, to: view.topGuide(), dist: topPadding)
-    //    updateAccessibillityHelper()
+    loginButton.isHidden = self.feederContext.isAuthenticated
   }
   
   func applyLayout(){
@@ -387,14 +464,14 @@ class HomeVC: UICollectionViewController {
       state: isHomeTiles ? .off : .on
     ) {[weak self] _ in self?.isHomeTiles.toggle()  }
     
-    let layoutGroup = UIMenu(title: "Darstellung", options: .displayInline, children: [tileAction, carouselAction])
+    let layoutGroup = UIMenu(title: "Layout", options: .displayInline, children: [tileAction, carouselAction])
     
     // Gruppe 3: Archiv
     let archiveAction = UIAction(
       title: "Gehe zu Ausgabe",
       image: UIImage(systemName: "calendar")) {[weak self] _ in
         guard let self = self else { return }
-        showDatePicker(sourceView: collectionView)
+        showDatePicker()
       }
     let archiveGroup = UIMenu(title: "Ausgaben Archiv", options: .displayInline, children: [archiveAction])
     
@@ -474,7 +551,7 @@ extension HomeVC {
                         - UIWindow.maxInset
                         - carouselLayout.maxScale*carouselLayout.itemSize.height) - 20
     //    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
-     topStatusButtonConstraint?.constant = offset
+//     topStatusButtonConstraint?.constant = offset
     statusWrapperBottomConstraint?.constant = -offset
     statusWrapperWidthConstraint?.constant = cw*carouselLayout.maxScale
     

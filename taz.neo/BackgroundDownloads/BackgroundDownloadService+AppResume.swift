@@ -7,13 +7,17 @@
 //
 
 import Foundation
+import NorthLib
 
 /// MARK: - Application Restart Handling
 extension BackgroundDownloadService {
-  
+  ///fast & lightweight...do not load from json!
   func handleEnterForeground() {
+    onThread { [weak self] in
+      self?.backgroundSession.resume(archived: false, priority: 1.0)
+    }
     if tempStorage.hasActiveDownloads {
-      log("App entered foreground, execute pending tasks...")
+      log("BDL App entered foreground, execute pending tasks...")
       handlePendingTasks()
     }
   }

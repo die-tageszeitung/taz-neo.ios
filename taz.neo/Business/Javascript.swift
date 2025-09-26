@@ -36,9 +36,9 @@ open class Javascript {
     let wv = WebView()
     
     if let file = jsFile{
-      let ressourcesUrl = file.deletingLastPathComponent()
-      wv.loadFileURL(file, allowingReadAccessTo: ressourcesUrl)
-      wv.baseDir = ressourcesUrl.path
+      let resourcesUrl = file.deletingLastPathComponent()
+      wv.loadFileURL(file, allowingReadAccessTo: resourcesUrl)
+      wv.baseDir = resourcesUrl.path
     }
     
     let scriptTag

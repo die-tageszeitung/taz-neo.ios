@@ -497,7 +497,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     listenLabel.textAlignment = .left
     
     listenIcon.image = UIImage(named: "audio")?.withRenderingMode(.alwaysOriginal)
-    listenLabel.text = "ausgabe hören"
+    listenLabel.text = "Ausgabe hören"
     topLabel.numberOfLines = 0
     
     pin(imageView.left, to: self.left, dist: Const.Size.DefaultPadding)

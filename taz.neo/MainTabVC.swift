@@ -13,6 +13,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var feederContext: FeederContext
   var service: IssueOverviewService
   
+  /// Are we in facsimile mode
+  @Default("isFacsimile")
+  public var isFacsimile: Bool
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     TazAppEnvironment.sharedInstance.nextWindowSize = size
@@ -20,6 +24,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
                       content: size,
                       error: nil,
                       sender: nil)
+    coordinator.animate(alongsideTransition: {_ in
+    }, completion: {[weak self] _ in
+      self?.updateTraitOverrides()
+        self?.view.setNeedsLayout()
+        self?.view.layoutIfNeeded()
+    })
   }
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
@@ -46,6 +56,17 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     updateTraitOverrides()
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    /// **HACK iOS 28 Home Button iPhones e.g. iPhone SE3**
+    /// move Tabbar Position down to avoid content cut off
+    if #available(iOS 26.0, *), let superview = tabBar.superview {
+      var frame = tabBar.frame
+      frame.origin.y = superview.bounds.height - 58
+      tabBar.frame = frame
+    }
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -205,13 +226,16 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
        let sectIssue = sectVc.issue as? StoredIssue,
        issue == sectIssue {
       sectVc.showArticle(article, animated: true)
-      home.viewModeButton.isHidden = true
+#warning("ToDO 1.6.0")
+//      home.togglePdfButton.isHidden = true
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
-      #warning("todo")
-//      home.openIssue(issue, atArticle: issue.indexOf(article: article), atPage: issue.pageIndexOf(article: article))
-      home.viewModeButton.isHidden = true
+      issue.lastArticle = issue.indexOf(article: article)
+      if isFacsimile, let page = issue.pageIndexOf(article: article) { issue.lastPage = page }
+      home.openIssue(issue, openLast: true)
+#warning("ToDO 1.6.0")
+//      home.togglePdfButton.isHidden = true
     }
   }
   
@@ -246,8 +270,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     guard let date = date,
         let home = ((self.selectedViewController as? UINavigationController)?
               .viewControllers.first as? HomeVC) else { return }
-    #warning("todo")
-//    home.scroll(up: true)
+#warning("ToDO 1.6.0")
+    //    home.scroll(up: true)
 //    let idx = home.carouselController.service.nextIndex(for: date)
 //    home.carouselController.scrollTo(idx, animated: true)
   }
@@ -260,8 +284,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let home = HomeVC(service: service, feederContext: feederContext)
     home.title = "Home"
-    home.tabBarItem.image = UIImage(named: "home")
-    home.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    home.tabBarItem.image = UIImage(named: "home")?.tabBarSizedIcon()
     
     let homeNc = NavigationController(rootViewController: home)
     homeNc.isNavigationBarHidden = true
@@ -269,22 +292,20 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     let bookmarksOverview = BookmarkTVC()
     let bookmarksNc = NavigationController(rootViewController: bookmarksOverview)
     bookmarksNc.title = "Leseliste"
-    bookmarksNc.tabBarItem.image = UIImage(named: "star")
-    bookmarksNc.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    bookmarksNc.tabBarItem.image = UIImage(named: "star")?.tabBarSizedIcon()
     bookmarksNc.isNavigationBarHidden = true
     
     let search = SearchController(feederContext: feederContext )
     search.title = "Suche"
-    search.tabBarItem.image = UIImage(named: "search-magnifier")
-    search.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    search.tabBarItem.image = UIImage(named: "search-magnifier")?.tabBarSizedIcon()
     
     let searchNc = NavigationController(rootViewController: search)
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
     settings.title = "Einstellungen"
-    settings.tabBarItem.image = UIImage(named: "settings")
-    settings.tabBarItem.imageInsets = UIEdgeInsets(top: 9, left: 9, bottom: 9, right: 9)
+    settings.tabBarItem.image = UIImage(named: "settings")?.tabBarSizedIcon()
+
     self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
     self.selectedIndex = 0
   }
@@ -333,6 +354,7 @@ extension MainTabVC {
         
     for case let tabNav as UINavigationController in self.viewControllers ?? [] {
       let firstVc = tabNav.viewControllers.first
+#warning("ToDO 1.6.0")
       let vcCount = tabNav.viewControllers.count
       if let home = firstVc as? HomeVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
@@ -345,9 +367,8 @@ extension MainTabVC {
           continue
         }
         ///Facsimile/PDF View or Article/Section VC wich need Update
-        ///
-        #warning("todo")
-        //        if vcCount > 1 { reloadTargets.append(home)}
+#warning("ToDO 1.6.0")//Argument type 'HomeVC' does not conform to expected type 'ReloadAfterAuthChanged'
+//        if vcCount > 1 { reloadTargets.append(home)}
       }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}
@@ -433,4 +454,18 @@ extension MainTabVC : UITabBarControllerDelegate {
 
 public protocol ReloadAfterAuthChanged {
   func reloadOpened()
+}
+
+fileprivate extension UIImage {
+    /// renders the image for TabBar Icon in 20x20pt
+  /// - Parameter size: target size, default is 20x20pt
+  /// using `preparingThumbnail(of:)` on iOS 15+ (performant for vectors)
+  /// before iOS 15 returns the original image
+    func tabBarSizedIcon(size: CGSize = CGSize(width: 27, height: 27)) -> UIImage {
+        if #available(iOS 15.0, *) {
+            return self.preparingThumbnail(of: size) ?? self
+        } else {
+            return self
+        }
+    }
 }

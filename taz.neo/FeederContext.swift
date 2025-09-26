@@ -230,7 +230,7 @@ open class FeederContext: DoesLog {
     defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
     //Alternative: defaultFeed = storedFeeder.feeds.first as? StoredFeed
     notify("feederReady")
-    cleanupOldIssues()//requires inited bookmarks
+    cleanupOldIssues(deleteOlder: true)//requires inited bookmarks
     checkAppUpdate()
     if needUpdate {
       updateFeeder(loadAllPublicationDates: loadAll)
@@ -290,13 +290,12 @@ open class FeederContext: DoesLog {
             ArticleDB.save()
             log("...publication dates changed, inform UI (if not in background mode)")
             Notification.send(Const.NotificationNames.publicationDatesChanged)
-            self.notifyNetStatus(isConnected: true)
             BackgroundDownloadService
               .downloadNewIssueOnAppForeground(caller: "Feeder Context Update Status: publicationDatesChanged")
           } else {
             debug("...publication dates NOT changed")///4345 Issues
           }
-          
+          self.notifyNetStatus(isConnected: true)
           if initialCall, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
             BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "Initially download latestIssue", delay: 5.0)
           }
@@ -339,16 +338,27 @@ open class FeederContext: DoesLog {
       log("storedFeeder not initialized yet!")
       return true
     }
-    guard let feed = storedFeeder.feeds.first else { return true}
-    guard let pubDates = storedFeeder.feeds.first?.publicationDates else { return true}
+    guard let feed = storedFeeder.feeds.first else {
+      log("No Stored Feed => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+      return true
+    }
+    guard let pubDates = storedFeeder.feeds.first?.publicationDates else {
+      log("No Publication Dates => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+      return true
+    }
     
-    let first = pubDates.last?.date.startOfDay == feed.firstIssue.startOfDay
-    let last = pubDates.first?.date.startOfDay == feed.lastIssue.startOfDay
-    let count = pubDates.count == feed.issueCnt
+    let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
+    let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
+    let count = pubDates.count >= feed.issueCnt
     
     if first && last && count {
       log("All data matching, no new issue or missing old issue")
       return false
+    }
+    
+    if pubDates.count != feed.issueCnt {
+      // TODO: Keep an eye on this — shouldn't cause issues.
+      log("⚠️ WARNING ⚠️")
     }
     
     let logString = """
@@ -365,7 +375,10 @@ open class FeederContext: DoesLog {
   
   private func netStatusChanged(isConnected:Bool){
     log("NET STATUS CHANGED isConnected: \(isConnected)")
-    if isConnected { updateFeeder()}
+    if isConnected,
+       BackgroundDownloadService.shared.executeScheduledCheckIfNeeded() == false {
+      updateFeeder()
+    }
     notifyNetStatus(isConnected: isConnected)
   }
   
@@ -521,12 +534,13 @@ open class FeederContext: DoesLog {
     BackgroundDownloadService.shared.applicationRestarted(with: self)
   }
   
-  func cleanupOldIssues(){
+  func cleanupOldIssues(deleteOlder:Bool = false){
     if self.dloader.isDownloading { return }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,
                              keepDownloaded: persistedIssuesCount,
+                             deleteOlder: deleteOlder,
                              deleteOrphanFolders: true)
   }
 } // eof FeederContext

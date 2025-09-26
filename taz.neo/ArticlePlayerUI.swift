@@ -28,7 +28,7 @@ class ArticlePlayerUI: UIView {
     let w
     = noGap
     ? viewSize.width
-    : min(375, viewSize.width - 2*miniPadding)
+    : min(Const.Size.OverlayMaxWidth, viewSize.width - 2*miniPadding)
     if widthConstraint == nil {
       widthConstraint = self.pinWidth(w)
     }
@@ -221,9 +221,7 @@ class ArticlePlayerUI: UIView {
   lazy var closeButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onPress { [weak self] _ in
-      self?.removeFromSuperview()
       self?.closeClosure?()
-      self?.isErrorState = false
     }
     btn.pinSize(CGSize(width: 38, height: 38))
     btn.hinset = 0.1//20%
@@ -467,7 +465,6 @@ class ArticlePlayerUI: UIView {
     imageAspectConstraint_Maxi?.isActive = false
     
     bgImageView.contentMode = .scaleToFill
-    pin(bgImageView, to: imageView)
     pin(blurredEffectView, to: imageView)
     blurredEffectView.alpha = 0.8
     
@@ -477,18 +474,21 @@ class ArticlePlayerUI: UIView {
     pin(rateButton.right, to: wrapper.right)
     titleLabelRightConstraint = pin(titleLabel.right, to: wrapper.right)
     authorLabelRightConstraint = pin(authorLabel.right, to: wrapper.right)
-    authorLabelBottomConstraint = pin(authorLabel.bottom, to: wrapper.bottom)
+    authorLabelBottomConstraint = pin(authorLabel.bottom, to: wrapper.bottom, priority: .defaultLow)
     
     titleLabelTopConstraint_Mini = pin(titleLabel.top, to: imageView.top, dist: -1.0)
     titleLabelTopConstraint_Mini?.isActive = false
     titleLabelTopConstraint_Maxi = pin(titleLabel.top, to: imageView.bottom, dist: maxiPadding)
     titleLabelTopConstraint_Maxi?.isActive = false
     
-    pin(authorLabel.top, to: titleLabel.bottom, dist: 2.0)
+    pin(authorLabel.top, to: titleLabel.bottom, dist: -0.5)
     pin(rateButton.bottom, to: wrapper.bottom, dist: 6.0)
   
     titleLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
     authorLabel.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+    
+    titleLabel.setContentHuggingPriority(.required, for: .vertical)
+    titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
     toggleButtonYConstraint_Mini = toggleButton.centerY()
     toggleButtonYConstraint_Mini?.isActive = false
@@ -542,9 +542,11 @@ class ArticlePlayerUI: UIView {
     
     self.backgroundColor = Const.Colors.darkSecondaryBG
     self.layer.shadowOpacity = 0.40
-    self.layer.shadowOffset = CGSize(width: 2, height: 2)
+    self.layer.shadowOffset = CGSize(width: 1, height: 1)
     self.layer.shadowRadius = 5
     self.layer.shadowColor = UIColor.black.cgColor
+    self.layer.borderWidth = 0.3
+    self.layer.borderColor = Const.Colors.appIconGrey.cgColor
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
@@ -710,11 +712,10 @@ class ArticlePlayerUI: UIView {
         toggleSizeConstrains?.width.constant = 52///mini 30 maxi 52
         toggleSizeConstrains?.height.constant = 52///mini 30 maxi 52
 
-        authorLabelRightConstraint?.constant = -15///maxi -15 else 0
+        authorLabelRightConstraint?.constant = -33.0///maxi -15 else 0
         titleLabelRightConstraint?.constant
-        = authorLabel.text?.length ?? 0 == 0 ? -15.0 : 0
+        = authorLabel.text?.length ?? 0 == 0 ? -33.0 : 0.0
         titleLabelLeftConstraint?.constant = 0///mini+image: 32+padding else 0
-                
         self.layer.cornerRadius = 13.0
         imageView.contentMode = .scaleAspectFit
         

@@ -136,6 +136,12 @@ extension FileEntry {
       && self.name == otherFileEntry.name
       && self.sha256 == otherFileEntry.sha256
     }
+  
+  func sizeMatch(_ other: FileEntry?) -> Bool {
+      guard let otherFileEntry = other as? Self else { return false }
+    return self.size > 0
+    && self.size == otherFileEntry.size
+  }
 }
 
 public extension FileEntry {
@@ -928,8 +934,11 @@ public protocol Issue: ToString, AnyObject {
   var lastSection: Int? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastArticle: Int? { get set }
+  /// Last Article read scrollPos
+  var lastArticleScrollPos: CGFloat? { get set }
   /// Last Article read (if nil, then only use lastSection)
   var lastPage: Int? { get set }
+  var lastReadWasPage: Bool { get set }
   /// Payload of files
   var payload: Payload { get }
   /// Directory where all issue specific data is stored
@@ -1262,7 +1271,7 @@ public protocol Feeder: ToString, AnyObject {
                     closure: @escaping(Result<String,Error>)->())
   
   /// Request list of resource files
-  func resources(closure: @escaping(Result<Resources,Error>)->())  
+  func resources(closure: @escaping(Result<Resources,Error>, Data?)->())  
 } // Feeder
 
 extension Feeder {

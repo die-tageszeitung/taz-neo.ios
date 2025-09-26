@@ -65,15 +65,10 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
-    do {
       log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
-      try BackgroundSession.resumeBackgroundURLSession(name: identifier,
+      BackgroundSession.resumeBackgroundURLSession(name: identifier,
                                    completionHandler: completionHandler,
                                    callback: BackgroundDownloadService.dlCallback)
-    }
-    catch {
-      log("BackgroundSession.resume failed: \(error)")
-    }
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {

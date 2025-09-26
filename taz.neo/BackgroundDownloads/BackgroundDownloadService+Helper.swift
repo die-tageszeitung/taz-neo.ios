@@ -11,6 +11,21 @@ import NorthLib
 
 /// MARK: - Helper Methods TEMP COLLECTION
 extension BackgroundDownloadService {
+  /// Checks whether there is an active download for the given issue date.
+  ///
+  /// - Parameters:
+  ///   - issueDate: The date of the issue to check for an active download.
+  ///   - stopInactiveDownloads: A Boolean value indicating whether to stop inactive downloads during the check. Defaults to `true`.
+  ///
+  /// - Returns: `true` if an active download exists for the given issue date; otherwise, `false`.
+  func stopActiveDownload(for issueDate: Date) {
+    guard let url = getUrl(forDateKey: issueDate.ISO8601) else {
+      debug("has NO Download Data for: \(issueDate.ISO8601)")
+      return
+    }
+    BackgroundSession.removeActiveDownload(for: url)
+    removeDownloadData(forDownloadUrl: url)
+  }
   
   ///send stop to server
   ///in case of missing downloadId, startDate or issueDate do nothing
@@ -35,15 +50,6 @@ extension BackgroundDownloadService {
                                                             audio: self.autoloadAudio))
       Usage.dispatch()
     }
-  }
-  
-  func restartDownloadForIssue(with zipUrl: String) {
-    ///WARNING TODO ⚠️ entweder verwerfen oder neustarten merke in defaults restarted...kommt das vor, funktioniert dies...verwerfen == userdefaults eintrag entfernen
-    ///db eintrag kann bleiben hat dann halt autodownloading== true, aber dieser Indikator ist nicht eindeutig, da ohne db speichern es auch dazu kommen kann
-    log("⚠️⚠️ TODO restart Download for: \(zipUrl)")
-    //ist es issue/audio/ressourcen
-    ///was war der Fehler
-    ///habe ich überhaupt daten (in json oder currentIssues?
   }
 }
 
@@ -74,7 +80,7 @@ public extension Issue {
   }
   
   var zipUrl: String? {
-    guard let zipName = Defaults.autoloadPdf ? zipNamePdf : zipName else { return nil }
+    guard let zipName = Defaults.autoloadPdfOrFacsimile ? zipNamePdf : zipName else { return nil }
     return baseUrl.appending("/\(zipName)")
   }
   

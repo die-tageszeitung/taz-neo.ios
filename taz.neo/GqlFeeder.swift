@@ -617,8 +617,10 @@ class GqlIssue: Issue, GQLObject {
   var lastSection: Int? { get { return nil } set {} }
   /// Not used in GqlIssue
   var lastArticle: Int? { get { return nil } set {} }
+  var lastArticleScrollPos: CGFloat? { get { return nil } set {} }
   /// Not used in GqlIssue
   var lastPage: Int?  { get { return nil } set {} }
+  var lastReadWasPage: Bool { get { false } set {} }
   var gqlPayload: GqlPayload? = nil
   var payload: Payload { return gqlPayload! }
   
@@ -817,6 +819,8 @@ class GqlFeederStatus: GQLObject {
   /// Base URL of resource files
   var resourceBaseUrl: String
   /// Base URL of global files
+  var resourceZipName: String
+  /// Base URL of global files
   var globalBaseUrl: String
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
@@ -836,6 +840,7 @@ class GqlFeederStatus: GQLObject {
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
       resourceBaseUrl
+      resourceZipName: resourceZip,
       globalBaseUrl
       feeds: feedList { \(feedFields) }
     """
@@ -846,6 +851,7 @@ class GqlFeederStatus: GQLObject {
       authentication:  \(authInfo.toString())
       resourceVersion: \(resourceVersion)
       resourceBaseUrl: \(resourceBaseUrl)
+        resourceZipName: \(resourceZipName)
       globalBaseUrl:   \(globalBaseUrl)
       Feeds:
     """
@@ -893,6 +899,14 @@ open class GqlFeeder: Feeder, DoesLog {
   public var resourceBaseUrl: String {
     guard let st = status else { return "" }
     return st.resourceBaseUrl
+  }
+  
+  /// URL of resource zip
+  public var resourceZipUrl: String? {
+    guard let st = status,
+          st.resourceBaseUrl.length > 8,
+          st.resourceZipName.length > 4 else { return nil }
+    return st.resourceBaseUrl + "/" +  st.resourceZipName
   }
   /// The Feeds this Feeder is providing
   public var feeds: [Feed] {
@@ -1121,17 +1135,27 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   /// Requests a ResourceList object from the server
-  public func resources(fromData: Data? = nil, closure: @escaping(Result<Resources,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
-      closure(.failure(fatal("Not connected"))); return
+  public func resources(fromData: Data? = nil, returnOnMain: Bool,  closure: @escaping(Result<Resources,Error>, Data?)->()) {
+    guard let gqlSession = self.gqlSession else {
+      closure(.failure(fatal("Not connected")), nil); return
     }
     let request = """
       resources: product {
         \(GqlResources.fields)
       }
     """
+    log("updateResources from \(fromData == nil ? "server" : "data")")
+//    if let jsonData = fromData, String(data: jsonData, encoding: .utf8) != nil  {
+//      log("updateResources from data")
+//      ///let jsonString = String(data: jsonData, encoding: .utf8)
+//      ///log("updateResources from data \(jsonString)")
+//    }
+//    else {
+//      log("updateResources from server")
+//    }
+    
     gqlSession.query(graphql: request, type: [String:GqlResources].self,
-                     fromData: fromData) { (res, _) in
+                     fromData: fromData, returnOnMain: returnOnMain) { (res, data) in
       var ret: Result<Resources,Error>
       switch res {
       case .success(let str): 
@@ -1140,12 +1164,12 @@ open class GqlFeeder: Feeder, DoesLog {
         ret = .success(resources)
       case .failure(let err):   ret = .failure(err)
       }
-      closure(ret)
+      closure(ret, data)
     }
   }
   
-  public func resources(closure: @escaping (Result<Resources, Error>) -> ()) {
-    resources(fromData: nil, closure: closure)
+  public func resources(closure: @escaping (Result<Resources, Error>, Data?) -> ()) {
+    resources(fromData: nil, returnOnMain:  true, closure: closure)
   }
 
   // Get GqlFeederStatus

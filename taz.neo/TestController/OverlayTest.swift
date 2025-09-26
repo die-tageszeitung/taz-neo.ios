@@ -10,9 +10,7 @@ class OverlayTest: UIViewController, CanRotate {
   let container = UIView()
   let label = UILabel()
   
-  lazy var pickerCtrl = DatePickerController(minimumDate: Date(),
-                                              maximumDate: Date().addingTimeInterval(-20000),
-                                     selectedDate: Date())
+  lazy var pickerCtrl = UIViewController()
   
   lazy var overlay = Overlay(overlay:pickerCtrl , into: self)
   
@@ -42,7 +40,7 @@ class OverlayTest: UIViewController, CanRotate {
         return self.view.getConvertedFrame(self.label) ?? .zero
       }
       self.overlay.openAnimated(fromView: self.label,
-                                toView: self.pickerCtrl.content)
+                                toView: self.pickerCtrl.view)
 //      if let center = self.view.getConvertedCenter(self.label) {
 //        self.pickerCtrl.center = center
 //        let demoView = UIView(frame: CGRect(origin: center, size: CGSize(width: 20, height: 20)))

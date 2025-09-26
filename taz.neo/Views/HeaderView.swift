@@ -16,6 +16,8 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   
   private var beginScrollOffset: CGFloat?
   
+  var isWochentaz: Bool = false
+  
   //vars
   var title: String? {
     get{ return titleLabel.text }
@@ -148,6 +150,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
+    line.setNeedsDisplay()
   }
 
   private var onTitleClosure: ((String?)->())?
@@ -275,6 +278,23 @@ extension HeaderView {
     setRatio(ratio, animated: animated)
   }
   
+  func updateFonts(titleFontSize: CGFloat? = nil,
+                           labelsFontSize: CGFloat? = nil) {
+    let titleFontSize = titleFontSize ?? titleFontSizeDefault
+    let labelsFontSize = labelsFontSize ?? subTitleFontSizeDefault
+    if isWochentaz && titletype != .section0
+    || isWochentaz && titletype == .article {
+      titleLabel.font = Const.Fonts.knileSemiBoldFont(size: titleFontSize)
+      subTitleLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
+      pageNumberLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
+    }
+    else {
+      titleLabel.titleFont(size: titleFontSize)
+      pageNumberLabel.contentFont(size: labelsFontSize)
+      subTitleLabel.contentFont(size: labelsFontSize)
+    }
+  }
+  
   /// set ratio between (Initial/Big Header) 0...1 (Mini Header)
   private func setRatio(_ ratio: CGFloat, animated: Bool){
     if ratio == lastRatio { return }
@@ -287,25 +307,12 @@ extension HeaderView {
     let titleBottomIndentConst
     = alpha*(titleBottomIndentL - titleBottomIndentS) - titleBottomSpace + titleBottomIndentS
     
-    /**
-     ARTICLE SHOULD:
-
-     titleLineDistConstraint?.constant = 4
-     titleBottomConstraint?.constant = titleBottomIndentS - 4 = -1.2 - 4 = -5.2
-     
-     
-     titleLineDistConstraint
-     */
-    
-    
     let titleFontSize
     = alpha*(titleFontSizeDefault - titleFontSizeMini) + titleFontSizeMini
     let labelsFontSize
     = alpha*(subTitleFontSizeDefault - subTitleFontSizeMini) + subTitleFontSizeMini
     let handler = { [weak self] in
-      self?.titleLabel.titleFont(size: titleFontSize)
-      self?.pageNumberLabel.contentFont(size: labelsFontSize)
-      self?.subTitleLabel.contentFont(size: labelsFontSize)
+      self?.updateFonts(titleFontSize: titleFontSize, labelsFontSize: labelsFontSize)
       self?.titleTopConstraint?.constant = titleTopIndentConst
       self?.titleBottomConstraint?.constant = titleBottomIndentConst
       self?.titleLineDistConstraint?.constant = titleBottomSpace

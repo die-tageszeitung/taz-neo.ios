@@ -17,11 +17,24 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
+  
+  @Default("autoloadPdf")
+  var autoloadPdf: Bool
+  
+  @Default("autoloadNewIssues")
+  var autoloadNewIssues: Bool {
+    ///show/hide autoloadOnlyInWLAN
+    didSet { if oldValue != autoloadNewIssues {  refreshAndReload()  }}
+  }
+  
   @Default("autoloadOnlyInWLAN2")
   var autoloadOnlyInWLAN: Bool
   
   @Default("autoloadAudio")
   var autoloadAudio: Bool
+  
+  @Default("autoloadNotifications")
+  var autoloadNotifications: Bool
   
   @Default("voiceoverControls")
   var voiceoverControls: Bool
@@ -29,8 +42,20 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
-  @Default("reopenArticleSetting")
-  public var reopenArticleSetting: Bool
+  @Default("resumeReadAccepted")
+  public var resumeReadAccepted: Int
+  
+  @Default("resumeReadDismissed")
+  public var resumeReadDismissed: Int
+  
+  @Default("reopenHintSetting")
+  public var reopenHintSetting: Bool
+  
+  @Default("reopenAutomaticSetting")
+  public var reopenAutomaticSetting: Bool
+  
+  @Default("reopenRessortSetting")
+  public var reopenRessortSetting: Bool
   
   @Default("defaultToastsDisabled")
   public var defaultToastsDisabled: Bool
@@ -59,15 +84,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   @Default("specialArticleSystemSetting")
   var specialArticleSystemSetting: Bool
-  
-  @Default("autoloadPdf")
-  var autoloadPdf: Bool
-  
-  @Default("autoloadNewIssues")
-  var autoloadNewIssues: Bool {
-    ///show/hide autoloadOnlyInWLAN
-    didSet { if oldValue != autoloadNewIssues { refreshAndReload() }}
-  }
   
   var extendedSettingsCollapsed: Bool = true
   
@@ -179,19 +195,20 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var autoloadNewIssuesCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Neue Ausgaben automatisch laden",
-                  detailText: autoloadCellDetailText,
+                  detailText: autoloadCellDetailText(autoloadNewIssues),
                   initialValue: autoloadNewIssues,
                   onChange: {[weak self] newValue in
-    self?.autoloadNewIssues = newValue
-    self?.autoloadNewIssuesCell.detailTextLabel?.text = self?.autoloadCellDetailText
+    self?.autoloadNewIssuesCell.detailTextLabel?.text
+    = self?.autoloadCellDetailText(newValue)
+    self?.autoloadNewIssues = newValue //perform reload!
     if newValue == true { self?.checkNotifications() }
   })
   
-  var autoloadCellDetailText: String? {
+  func autoloadCellDetailText(_ enabled: Bool) -> String? {
     let loginInfo = feederContext.gqlFeeder.hasValidAbo ? "": "Sie müssen mit einem gültigen Abo angemeldet sein.\n"
-    return autoloadNewIssues
+    return enabled
     ? "\(loginInfo)Lädt neue Ausgaben nur, wenn die App nicht manuell beendet wurde."
-    : nil
+    : " "
   }
   
   lazy var wlanCell: XSettingsCell
@@ -216,6 +233,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.autoloadAudio = newValue })
   
+  
+  lazy var autoloadNotificationsCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Benachrichtigung bei neuen Downloads",
+                  detailText: "Erhalte Mitteilungen auf dem Sperrbildschirm und in der Mitteilungszentrale, wenn neue Ausgaben automatisch heruntergeladen werden.",
+                  initialValue: autoloadNotifications,
+                  onChange: {[weak self] newValue in
+    self?.autoloadNotifications = newValue })
+  
   lazy var voiceoverControlsCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Voiceover Steuerung",
                   detailText: "Alternative Steuerelemente für Ausgabenauswahl bei aktiviertem Voiceover verwenden",
@@ -223,12 +248,34 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.voiceoverControls = newValue })
   
-  lazy var reopenArticleSettingCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Weiterlesen",
-                  detailText: "Letzten Artikel erneut öffnen Abfrage",
-                  initialValue: reopenArticleSetting,
+  lazy var reopenHintSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Weiterlesen anzeigen",
+                  detailText: "Zeigt beim Öffnen einer Ausgabe ein Hinweisfenster zum Fortsetzen an der zuletzt gelesenen Stelle  (Artikel, Seite oder ggf. Ressort).",
+                  initialValue: reopenHintSetting,
                   onChange: {[weak self] newValue in
-    self?.reopenArticleSetting = newValue })
+    self?.reopenHintSetting = newValue
+    self?.resumeReadAccepted = 0
+    self?.resumeReadDismissed = 0
+  })
+  
+  lazy var reopenAutomaticSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Automatisch Weiterlesen",
+                  detailText: "Springt beim Öffnen einer Ausgabe automatisch zur zuletzt gelesenen Stelle (Artikel oder Seite), ohne Nachfrage.",
+                  initialValue: reopenAutomaticSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenAutomaticSetting = newValue
+    self?.reopenHintSettingCell.isEnabled = !newValue
+    self?.resumeReadAccepted = 0
+    self?.resumeReadDismissed = 0
+  })
+  
+  lazy var reopenRessortSettingCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Ressort merken",
+                  detailText: "Speichert in der App-Ansicht das zuletzt angezeigte Ressort. \nAchtung: Nach 'Zurück' vom Artikel wird bei 'Weiterlesen' nicht mehr der letzte Artikel aufgerufen, sondern das zuletzt angezeigte Ressort.",
+                  initialValue: reopenRessortSetting,
+                  onChange: {[weak self] newValue in
+    self?.reopenRessortSetting = newValue
+  })
   
   lazy var defaultToastsDisabledCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
@@ -245,9 +292,12 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var testServerCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Testserver",
+                  detailText: "nur für @taz.de Accounts",
                   initialValue: useTestServer,
                   onChange: {[weak self] newValue in
-    self?.useTestServer = newValue })
+    self?.useTestServer = newValue
+    Toast.show("Zum Anwenden: App neu staren!")
+  })
   
   
   
@@ -419,10 +469,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "Speichernutzung",
                   detailText: storageDetails,
                   tapHandler: {[weak self] in
-    #warning("DEBUG CODE")
     self?.log("StorageDetails tapped")
-    BackgroundSession.logWaiting()
-//    BackgroundSession.cleanupUserDefaults()
   })
   
   lazy var deleteDatabaseCell: XSettingsCell
@@ -433,11 +480,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(text: "App in Auslieferungszustand zurück versetzen",
                   isDestructive: true,
                   tapHandler: {[weak self] in self?.requestResetApp()} )
-
-  lazy var resetBGSessionsCell: XSettingsCell
-  = XSettingsCell(text: "Reset Background Download Sessions",
-                  isDestructive: true,
-                  tapHandler: {[weak self] in BackgroundSession.cleanupAllSessions() } )
   
   lazy var sendFailureRequestCell: XSettingsCell
   = XSettingsCell(text: "Sende fehlerhaften Page Request für die Ausgabenübersicht",
@@ -526,6 +568,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     $doubleTapToZoomPdf.onChange{[weak self] _ in
       guard let self = self else { return }
       (self.doubleTapToZoomPdfCell.customAccessoryView as? UISwitch)?.isOn = self.doubleTapToZoomPdf
+    }
+    $reopenHintSetting.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.reopenHintSettingCell.customAccessoryView as? UISwitch)?.isOn = self.reopenHintSetting
+    }
+    $reopenAutomaticSetting.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.reopenAutomaticSettingCell.customAccessoryView as? UISwitch)?.isOn = self.reopenAutomaticSetting
     }
   }
   
@@ -640,14 +690,14 @@ extension SettingsVC: UITableViewDataSource, UITableViewDelegate {
     guard let sectionData = data.sectionData(for: section),
           let title = sectionData.title else { return nil }
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
-    if section == 6 {
+    if section == data.sectionsCount - 1 {
       header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
     }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in
       guard let self = self else { return }
       ///WARNING IN CASE OF SETTINGS CHANGE THE EXPAND EXTENDED SETTINGS DID NOT WORK!
-      guard section == 6 else { return }
+      guard section == data.sectionsCount - 1 else { return }
       guard let sectionData = self.data.sectionData(for: section) else { return }
       guard sectionData.collapseable else { return }
       self.extendedSettingsCollapsed = !self.extendedSettingsCollapsed
@@ -862,11 +912,15 @@ extension SettingsVC {
     
     if autoloadNewIssues {
       cells.append(wlanCell)
-      cells.append(autoloadAudioCell)
     }
+    
     #if TAZ
     cells.append(epaperLoadCell)
     #endif
+    if autoloadNewIssues {
+      cells.append(autoloadAudioCell)
+      cells.append(autoloadNotificationsCell)
+    }
     cells.append(deleteIssuesCell)
     return cells
   }
@@ -884,12 +938,7 @@ extension SettingsVC {
       ///in LMd this is required for page Header, otherwise current page is not displayed correctly
       cells.insert(smartBackFromArticleCell, at: 0)
       ///reopen only work in app view, noit available in LMd
-      cells.insert(reopenArticleSettingCell, at: 1)
     }
-    
-    #if DEBUG
-    cells.append(resetBGSessionsCell)
-    #endif
     
     if Device.isIpad {
       cells.insert(multiColumnFixedScrollingCell, at: 1)
@@ -910,12 +959,19 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
     }
-    
-    if DefaultAuthenticator.isTazLogin || isSpecialSettingAvailable {
+
+    if DefaultAuthenticator.isTazLogin
+    || isSpecialSettingAvailable
+    {
       cells.append(defaultToastsDisabledCell)
-      cells.append(testServerCell)
     }
     
+    if DefaultAuthenticator.isTazLogin
+        || isSpecialSettingAvailable
+        || useTestServer {
+      cells.append(testServerCell)
+    }
+
     return cells
   }
   
@@ -927,6 +983,8 @@ extension SettingsVC {
     #else
     let rechtlichesCells = [termsCell, privacyCell, revokeCell]
     #endif
+    
+    reopenHintSettingCell.isEnabled = !reopenAutomaticSetting
     
     let displayCells
     = App.isAlpha
@@ -944,6 +1002,8 @@ extension SettingsVC {
         articleFromPdfCell,
         doubleTapToZoomPdfCell
        ]
+      ),
+      ("Weiterlesen".lowerIfTaz, false, [reopenHintSettingCell, reopenAutomaticSettingCell, reopenRessortSettingCell]
       ),
       ("Hilfe".lowerIfTaz, false,
        [
@@ -1090,12 +1150,6 @@ extension SettingsVC {
       }
       Notification.send(Const.NotificationNames.closeOpenIssues)
       TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
-      /* Only for testing e.g. if crash after download occures
-      StoredIssue.removeOldest(feed: storedFeed,
-                               keepDownloaded: 0,
-                               keepPreviews: 0,
-                               doDelete: true,
-                               deleteOrphanFolders: true)*/
       StoredIssue.deleteAllIssues(feed: storedFeed)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
@@ -1209,6 +1263,24 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
+  var isEnabled: Bool = true {
+    didSet {
+      self.isUserInteractionEnabled = isEnabled
+      self.textLabel?.alpha = isEnabled ? 1.0 : 0.4
+      self.detailTextLabel?.alpha = isEnabled ? 1.0 : 0.5
+      self.customAccessoryView?.alpha = isEnabled ? 1.0 : 0.4
+      (self.customAccessoryView as? UISwitch)?.isEnabled = isEnabled
+      if isEnabled {
+        self.accessibilityLabel = "Weiterlesen anzeigen"
+        self.accessibilityValue = (self.customAccessoryView as? UISwitch)?.isOn ?? false ? "Ein" : "Aus"
+        self.accessibilityHint = "Zeigt beim Öffnen der Ausgabe ein Hinweisfenster zum Fortsetzen an."
+      } else {
+        self.accessibilityLabel = "Weiterlesen anzeigen, deaktiviert"
+        self.accessibilityValue = "Nicht verfügbar"
+        self.accessibilityHint = "Nicht änderbar, da 'Automatisch Weiterlesen' aktiviert ist."
+      }
+    }
+  }
   var longTapHandler:(()->())?
   private var toggleHandler: ((Bool)->())?
   

@@ -52,11 +52,7 @@ private let configValues = [
   "showPdfInfoToast" : "true",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
-  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "showBarsOnContentChange" : "false",
-  "autoloadPdf" : "false",
-  "autoloadAudio" : "false",
-  "autoloadNewIssues" : "true",
   "persistedIssuesCount": "20",
   // show teaser text in bookmarks list
   "smartBackFromArticle" : "false",
@@ -67,6 +63,22 @@ private let configValues = [
   "autoPlayNext" : "true",
   "playbackRate": "1.0",
   "edgeTapToNavigate" : "false",
+  /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
+  "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
+  "autoloadPdf" : "false",
+  "autoloadAudio" : "false",
+  "autoloadNewIssues" : "true",
+  "useTestServer" : "false",
+  /**===LastReadBusiness====**/
+  "lastReadPositions" : nil,
+  "resumeReadAccepted": "0",
+  "resumeReadDismissed": "0",
+  "resumeReadSettingsChangeDiscard": "false",
+  /**===AUTODOWNLOAD SETTINGS FOR ACTIVE DOWNLOADS====**/
+  "autoloadPublicationType" : nil,
+  "updatedResourcesLocalPath" : nil,
+  "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
+  /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
   "showCoachmarks" : Device.isSimulator ? "false" : "true",
@@ -78,7 +90,9 @@ private let configValues = [
   "articleLineLengthAdjustment": "0",
   "multiColumnOnboardingAnswered" : "false",
   "multiColumnFixedScrolling" : "true",
-  "reopenArticleSetting" : "true",
+  "reopenHintSetting" : "true",
+  "reopenAutomaticSetting" : "false",
+  "reopenRessortSetting" : "false",
   "newIssueSystemSetting" : "true",
   "specialArticleSystemSetting" : "true",
   //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
@@ -107,6 +121,10 @@ extension Defaults {
   
   public static var useTestServer:Bool {
     Defaults.singleton.bool(for: "useTestServer", false)
+  }
+  
+  public static var reopenRessortSetting:Bool {
+    Defaults.singleton.bool(for: "reopenRessortSetting", false)
   }
   
   ///Helper to get current server from user defaults
@@ -183,7 +201,14 @@ extension Defaults {
   }
   
   ///Helper to get autoloadPdf from user defaults for simple access in extensions
-  static var autoloadPdf : Bool { Defaults.singleton.bool(for: "autoloadPdf", false) }
+  static var autoloadPdfOrFacsimile : Bool {
+    Defaults.singleton.bool(for: "autoloadPdf", false)
+    || Defaults.singleton.bool(for: "isFacsimile", false)
+  }
+  
+  static var reopenAutomaticSetting : Bool {
+    Defaults.singleton.bool(for: "reopenAutomaticSetting", false)
+  }
   
   typealias columnSettingData = (used:Int, available: Int, setting: Int)
   

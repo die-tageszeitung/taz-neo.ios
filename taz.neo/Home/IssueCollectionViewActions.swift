@@ -29,9 +29,24 @@ extension IssueCollectionViewActions {
     Usage.track(Usage.event.issue.delete,
                 name: issue.date.ISO8601)
     Notification.send("issueDelete", content: issue.date)
+    issue.lastPage = nil
+    issue.lastArticle = nil
+    issue.lastArticleScrollPos = nil
+    issue.lastSection = nil
     issue.delete()
     self.collectionView.reloadItems(at: [indexPath])
     self.updateCarouselDownloadButton()
+  }
+  
+  func resetIssue(issue: StoredIssue,
+                   at indexPath: IndexPath) {
+    issue.lastPage = nil
+    issue.lastArticle = nil
+    issue.lastSection = nil
+    issue.lastArticleScrollPos = nil
+    ///reload is not needed currently
+    //self.collectionView.reloadItems(at: [indexPath])
+    //self.updateCarouselDownloadButton()
   }
   
   func updateCarouselDownloadButton(){
@@ -47,6 +62,16 @@ extension IssueCollectionViewActions {
                         icon: "trash",
                         enabled: issue.isDownloading == false) {[weak self] _ in
       self?.deleteIssue(issue: issue, at: indexPath)
+    }
+    
+    actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
+                        icon: "bookmark-stroke-s",
+                        enabled: issue.isDownloading == false) {[weak self] _ in
+      issue.lastPage = nil
+      issue.lastArticle = nil
+      issue.lastSection = nil
+      self?.collectionView.reloadItems(at: [indexPath])
+      self?.updateCarouselDownloadButton()
     }
     
     if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio

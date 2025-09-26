@@ -28,24 +28,21 @@ class TazAppEnvironment: NSObject, DoesLog {
       self.view.backgroundColor = .black
       let spinner = UIActivityIndicatorView()
       view.addSubview(spinner)
-      spinner.centerAxis()
+      spinner.style = .medium
       spinner.color = .white
-      spinner.startAnimating()
+      spinner.centerAxis()
+      spinner.startAnimating()//spinner startet initial auf langsamen Gerät nicht
       let lb = UILabel()
-      lb.isHidden = true
-      lb.text = "Verbinde..."
+      lb.text = "Aktualisiere Daten..."
       lb.textAlignment = .center
       view.addSubview(lb)
       lb.numberOfLines = 0
       pin(lb.left, to: view.left, dist: 10.0)
       pin(lb.right, to: view.right, dist: -10.0)
-      lb.contentFont(size: 12.0)
+      lb.contentFont(size: 13.0)
       lb.textColor = .lightGray
       pin(lb.top, to: spinner.bottom, dist: 20.0)
-      onMain(after: 2.0) {
-        lb.showAnimated()
-      }
-      onMain(after: 9.0) {
+      onMain(after: 8.0) {
         lb.text = "Ups, das dauert aber heute lang!\n\nBitte überprüfen Sie Ihre Internetverbindung oder tippen Sie bitte hier, um uns einen Fehler zu melden."
         lb.onTapping {_ in
           TazAppEnvironment.sharedInstance.showFeedbackErrorReport(screenshot: UIWindow.screenshot)
@@ -206,7 +203,6 @@ class TazAppEnvironment: NSObject, DoesLog {
     feederContext?.release(isRemove: isDelete) { [weak self] in
       guard let self else { return }
       self.feederContext = nil
-      BackgroundSession.cleanupAllSessions()
       if isDelete { self.deleteData() }
         // TODO: reinitialize feederContext when this no longer crashes
 //      self.setupFeeder(isStartup: false)
@@ -317,8 +313,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
     
-    BGTaskScheduler.shared.register(forTaskWithIdentifier: "de.taz.taz.neo.refresh", using: nil) { task in
-      BackgroundDownloadService.shared.handleIssueCheckTask(task: task as! BGAppRefreshTask)
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: App.backgroundTaskRefreshId, using: nil) { task in
+      BackgroundDownloadService.shared.handleIssueCheckTask(task: task)
     }
   }
   
@@ -346,6 +342,8 @@ class TazAppEnvironment: NSObject, DoesLog {
         specialArticleSystemSetting: \(Defaults.singleton["specialArticleSystemSetting"] ?? "-")
         autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
         autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
+        BackgroundSession.hasOpenDownloads: \(BackgroundDownloadService.shared.backgroundSession.hasOpenDownloads)
+        BackgroundDownloadService.tempStorage.hasActiveDownloads: \(BackgroundDownloadService.shared.tempStorage.hasActiveDownloads)
         ---
         voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
         smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
@@ -815,6 +813,17 @@ extension App {
     #endif
   }
   
+  /// Background Refresh Task ID.
+  /// Must match entry in Info.plist under `BGTaskSchedulerPermittedIdentifiers`.
+  /// @see Info.plist
+  static var backgroundTaskRefreshId: String {
+      #if LMD
+      return "de.taz.lmd.neo.refresh"
+      #else
+      return "de.taz.taz.2.refresh"
+      #endif
+  }
+  
   /// Are we running the taz app?
   static var shortName: String {
     #if TAZ
@@ -843,8 +852,16 @@ extension Log {
                            net: NetAvailability? = nil) {
     Log.log("Setting up logging")
     Log.append(logger: fileLogger)
+
+    #if DEBUG
+    let isDebug = true
     Log.minLogLevel = .Debug
-    HttpSession.isDebug = false
+    #else
+    let isDebug = false
+    Log.minLogLevel = .Info
+    #endif
+//    Log.minLogLevel = isDebug ? .Debug : .Info///generates warning
+    HttpSession.isDebug = false//or isDebug
     PdfRenderService.isDebug = false
     ZoomedImageView.isDebug = false
     Log.onFatal { msg in

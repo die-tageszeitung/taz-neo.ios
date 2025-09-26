@@ -60,23 +60,22 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
 } // GraphQlError
 
 /// A class to read/write from GraphQL servers
-open class GraphQlSession: HttpSession {
+public final class GraphQlSession: HttpSession {
   
   public override var isDebugLogging: Bool { false }
   
   /// The Server URL to get data from
-  public var url: String?
+  public let url: String?
   
   /// The authentication token to use
   public var authToken: String? {
-    didSet { header["X-tazAppAuthKey"] = authToken }
+      get { header["X-tazAppAuthKey"] }
+      set { header["X-tazAppAuthKey"] = newValue }
   }
   
   public init(_ url: String, authToken: String? = nil) {
     self.url = url
-//    let name = isBackground ? "de.taz.backgound.downloadSession" : "GQL:\(url)"
-    #warning("BGDL: init with:  isBackground: isBackground may required to hate BG Session Config")
-    super.init(name: "de.taz.backgound.downloadSession")
+    super.init(name: "GQL:\(url)")
     if let authToken {
       self.authToken = authToken
       header["X-tazAppAuthKey"] = authToken
@@ -135,10 +134,11 @@ open class GraphQlSession: HttpSession {
       closure(requestResult(data: data, graphql: graphql, type: type), data)
     }
     else {
+      let gqlLog = graphql.starts(with: "errorReport") ? "(HIDDEN:ERRORREPORT!)" :"\(graphql)"
       let quoted = "\(requestType) {\(graphql)}".quote()
       let str = "{ \"query\": \(quoted) }"
-      if isBackground { self.log("Sending on bg: \(requestType) {\n\(graphql)\n}") }
-      else { self.debug("Sending: \(requestType) {\n\(graphql)\n}")}
+      if isBackground { self.debug("Sending on bg: \(requestType) {\n\(gqlLog)\n}") }
+      else { self.debug("Sending: \(requestType) {\n\(gqlLog)\n}")}
       post(url, data: str.data(using: .utf8)!, returnOnMain: returnOnMain) { [weak self] res in
         guard let self = self else { return }
         if case let .success(data) = res {

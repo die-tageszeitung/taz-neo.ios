@@ -66,7 +66,7 @@ class IssueOverviewService: NSObject, DoesLog {
   
   @Default("isFacsimile")
   public var isFacsimile: Bool
-  
+    
   internal var feederContext: FeederContext
   var feed: StoredFeed
   
@@ -171,6 +171,12 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("not downloading issue from: \(issue.date.issueKey)")
       return
     }
+    guard issue.pr.isDeleted == false else {
+      self.log("not downloading deleted issue from: \(issue.date.issueKey)")
+      Toast.show("Die Ausgabe wurde gelöscht und kann nicht heruntergeladen werden.\nStarten Sie die App neu und probieren Sie es noch einmal!", .alert)
+      return
+    }
+    
     feederContext.getCompleteIssue(issue: issue,
                                    isPages: self.isFacsimile,
                                    isAutomatically: false,
@@ -190,7 +196,9 @@ class IssueOverviewService: NSObject, DoesLog {
     if issue.isDownloading { return .process }
     
     let needUpdate = feederContext.needsUpdate(issue: issue, toShowPdf: isFacsimile)
-    return needUpdate ? .notStarted : .done
+    if needUpdate { return .notStarted }
+    if issue.hasLastReadForCurrentMode { return .read }
+    return .downloaded
   }
   
   /// Load Issue Data for DB and also loads Images if still required
@@ -775,5 +783,77 @@ extension FeederContext {
     guard let sIssue = issue as? StoredIssue else { return true }
     if sIssue.isAudioComplete == false && withAudio == true { return true }
     return self.needsUpdate(issue: sIssue, toShowPdf: toShowPdf)
+  }
+}
+
+extension Issue {
+  
+  var lastArticleIndexForCurrentMode: Int? {
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == true
+        && lastReadWasPage
+        && lastPage != nil { return nil }
+    return lastArticle
+  }
+    
+  var hasLastReadForCurrentMode: Bool {
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == false {
+      if lastSection != nil { return lastSection ?? 0 > 0 }
+      return lastArticle ?? 0 > 0
+    }
+    if lastArticle ?? 0 > 0 { return true }
+    if lastPage ?? 0 > 0 { return true }
+    return false
+  }
+  
+  /// Updates the last read position for the issue.
+  /// - Parameters:
+  ///   - pageIndex: The index of the page the user was reading.
+  ///   - articleIndex: The index of the article
+  ///   - sectionIndex: The index of the section/ressort
+  ///   - scrollPosition: The vertical scroll offset inside the article.
+  func setLastRead(pageIndex: Int?, articleIndex: Int?, sectionIndex: Int?, scrollPosition: CGFloat?) {
+    // Check if there was already a last read position stored
+    let hadLastRead = hasLastReadForCurrentMode
+    
+    Log.debug("SetLastRead for page:\(pageIndex ?? -1) article:\(articleIndex ?? -1) section:\(sectionIndex ?? -1)")
+    // Update the last read state with the new values
+    if pageIndex != nil {
+      lastPage = pageIndex
+      lastReadWasPage = true
+    }
+    else {
+      lastReadWasPage = false
+    }
+    
+    if articleIndex != nil {
+      lastArticle = articleIndex
+      lastArticleScrollPos = scrollPosition
+      lastSection = nil
+    }
+    
+    if sectionIndex != nil && Defaults.reopenRessortSetting {
+      lastSection = sectionIndex
+    }
+    
+    let hasLastRead = hasLastReadForCurrentMode
+    
+    guard hadLastRead != hasLastRead else { return }
+    // Only notify if the last read state actually changed (from no last read to having one, or vice versa)
+    if pageIndex == nil && articleIndex == nil && sectionIndex == nil { return }
+    
+    guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
+    
+    let isPdf = TazAppEnvironment.sharedInstance.service?.isFacsimile ?? false
+    let image = self.feed.feeder.momentImage(issue: self,
+                                             isPdf: isPdf,
+                                             usePdfAlternative: false)
+    
+    let data = IssueCellData(key: self.key(pdf: isPdf),
+                             date: pubDate,
+                             issue: self as? StoredIssue,
+                             image: image,
+                             downloadState: hasLastRead ? .read : .downloaded)
+    Notification.send(Const.NotificationNames.issueUpdate,
+                      content: data)
   }
 }

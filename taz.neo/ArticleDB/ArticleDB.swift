@@ -81,6 +81,9 @@ public extension StoredObject {
   func deletePersistent() { pr.delete() }
   func delete() {
     Notification.send("issueProgress", content: "deleted", sender: self)
+    if let issue = self as? Issue {
+      Notification.send("issueDelete", content: issue.date)
+    }
     deletePersistent()
   }
   
@@ -601,20 +604,6 @@ public final class StoredPayload: StoredObject, Payload {
   
   public required init(persistent: PersistentPayload) { self.pr = persistent }
   
-  public func reduceToOverview() {
-    guard let issue = self.issue else { return }
-    if issue.isDownloading {
-      return
-    }
-    let toKeep = issue.overviewFiles
-    for f in storedFiles {
-      if !toKeep.contains(where: { k in k.name == f.name }) {
-        f.pr.removeFromPayloads(self.pr)
-        if f.payloads.count == 1 { f.delete() }
-      }
-    }
-  }
-  
   func delete() {
     // Delete file entries that don't belong to another payload
     for f in storedFiles {
@@ -926,9 +915,11 @@ public final class StoredAuthor: Author, StoredObject {
 extension PersistentContent: PersistentObject {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let img as PersistentImageEntry in self.images ?? []{
+    ///Do not itterate over org set while changing it; this causes errors!
+    let imagesCopy = (self.images as? Set<PersistentImageEntry>) ?? []
+    for img in imagesCopy {
       img.removeFromImageContent(self)
-      if img.imageContent?.count == 0 { img.delete() }
+      if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
       debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
@@ -946,9 +937,11 @@ extension PersistentContent: PersistentObject {
 extension PersistentSection {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let art as PersistentArticle in self.articles ?? []{
-      art.removeFromSections(self)
-      if art.sections?.count == 0 { art.delete() }
+    ///Do not itterate over org set while changing it; this causes errors!
+    let articlesCopy = (self.articles as? Set<PersistentArticle>) ?? []
+    for art in articlesCopy {
+        art.removeFromSections(self)
+      if (art.sections?.count ?? 0) == 0 { art.delete() }
     }
   }
 }
@@ -956,9 +949,13 @@ extension PersistentSection {
 extension PersistentArticle {
   public override func prepareForDeletion() {
     super.prepareForDeletion()
-    for case let author as PersistentAuthor in self.authors ?? []{
+//    debug("Try to Delete Article: \(title ?? "-") HTML Filename: \(self.html?.name ?? "-")")
+    ///array is still a copy so we can itterate directly over it
+    for author in (self.authors?.array as? [PersistentAuthor]) ?? [] {
       author.removeFromArticles(self)
-      if author.articles?.count == 0 { author.delete() }
+      if (author.articles?.count ?? 0) == 0 {
+        author.delete()
+      }
     }
   }
 }
@@ -1715,66 +1712,61 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     get { return pr.validityDate }
     set { pr.validityDate = newValue }
   }
-  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 14s on M1 Pro Simulator
-  //  static func persistGet(publicationDates: [PublicationDate],
-  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-  //    var start = Date()
-  //    var ret:[StoredPublicationDate] = []
-  //    let allPr = Self.getAll(inFeed: feed)
-  //
-  //    for pubDate in publicationDates {
-  //      let storedRecord: StoredPublicationDate
-  //      = allPr.first(where: { $0.date == pubDate.date }) ?? new()
-  //      storedRecord.update(from: pubDate)
-  //      storedRecord.feed = feed
-  //      ret.append(storedRecord)
-  //      feed.pr.addToPublicationDates(storedRecord.pr)
-  //    }
-  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-  //    return ret
-  //  }
   
-  ///For future Performance Studies, after initial installation, with manipulated get PubDates of last 200 Days this Version took 13s on M1 Pro Simulator
-  //  public static func persist(publicationDates: [PublicationDate],
-  //                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
-  //    var start = Date()
-  //    var ret:[StoredPublicationDate] = []
-  //
-  //    for pubDate in publicationDates {
-  //      let storedRecord: StoredPublicationDate
-  //      = Self.get(object: pubDate, inFeed: feed) ?? new()
-  //      storedRecord.update(from: pubDate)
-  //      storedRecord.feed = feed
-  //      ret.append(storedRecord)
-  //      feed.pr.addToPublicationDates(storedRecord.pr)
-  //    }
-  //    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-  //    return ret
-  //  }
-  ///optimal Performance for huge amount of new items: write all existing in Dict => update existing
-  ///in addition to indexed pubDates in Database
+  /// Persists an array of `PublicationDate` objects into the Core Data store for the specified feed.
+  ///
+  /// This method inserts all provided `publicationDates` into the persistent store using a high-performance
+  /// batch insert. It intentionally avoids filtering out duplicates in Swift prior to insertion due to
+  /// the performance cost of comparing thousands of entries in memory (e.g., using `Set` or `filter` operations).
+  ///
+  /// Instead, this method relies on a **Core Data Unique Constraint** defined on the `date` attribute
+  /// of the `PublicationDate` entity to ensure that no duplicates are inserted.
+  ///
+  /// - Important:
+  ///   - The `PublicationDate` entity must define a **Unique Constraint on `date`** in the Core Data model.
+  ///   - This allows the underlying SQLite engine to automatically discard duplicates efficiently during insert.
+  ///   - As a result, no Swift-side filtering or deduplication logic is needed, resulting in significantly better performance,
+  ///     especially when inserting thousands of items.
+  ///
+  /// - Performance:
+  ///   - On a test device (iPad Air 2 running iOS 15.8), the previous Swift-based filtering implementation
+  ///     took approximately **9 seconds** to process ~4,000 items.
+  ///   - With the current approach that delegates duplicate handling to Core Data via unique constraints,
+  ///     the same insert takes only around **2 seconds**, including fetch and batch insert.
+  ///
+  /// - Parameters:
+  ///   - publicationDates: An array of `PublicationDate` instances to be persisted.
+  ///   - feed: The `StoredFeed` entity to which the publication dates belong.
   public static func persist(publicationDates: [PublicationDate],
-                             inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+                             inFeed feed: StoredFeed) {
     let start = Date()
-    var ret:[StoredPublicationDate] = []
-    let allPr = Self.getAll(inFeed: feed)
     
-    var dbItems:[String:StoredPublicationDate] = [:]
-    
-    for prPubDate in allPr {
-      dbItems[prPubDate.date.short] = prPubDate
+    let objectsArray: [[String: Any]] = publicationDates.map {
+      [
+        "date": $0.date,
+        "validityDate": $0.validityDate ?? NSNull()
+      ]
     }
     
-    for pubDate in publicationDates {
-      let storedRecord: StoredPublicationDate
-      = dbItems[pubDate.date.short] ?? new()
-      storedRecord.update(from: pubDate)
-      storedRecord.feed = feed
-      feed.pr.addToPublicationDates(storedRecord.pr)
-      ret.append(storedRecord)
+    guard let entD = NSEntityDescription.entity(forEntityName: StoredPublicationDate.entity, in: ArticleDB.context) else {
+      Log.log("Could not get entity for \(StoredPublicationDate.entity)")
+      return
     }
+    
+    let request = NSBatchInsertRequest(entity: entD, objects: objectsArray)
+    
+    if let insertResult = try? ArticleDB.context.execute(request) as? NSBatchInsertResult,
+       let objectIDs = insertResult.result as? [NSManagedObjectID] {
+      // Importent: for later fetch
+      let changes = [NSInsertedObjectsKey: objectIDs]
+      NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [ArticleDB.context])
+    }
+    
+    // new objects are now in context, so we can fetch them
+    let pds = StoredPublicationDate.getAllWithoutFeed()
+    for pd in pds { feed.pr.addToPublicationDates(pd.pr) }
+    
     Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
-    return ret
   }
   
   /// Return stored record with given name
@@ -1791,6 +1783,12 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   public static func getAll(inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "(feed = %@)", feed.pr)
+    return get(request: request)
+  }
+    
+  private static func getAllWithoutFeed() -> [StoredPublicationDate] {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "feed == nil")
     return get(request: request)
   }
   
@@ -1826,6 +1824,13 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   }
   
 } //StoredPublicationDate
+
+extension Date {
+    var dayKey: Int {
+        let comps = Calendar(identifier: .gregorian).dateComponents([.year, .month, .day], from: self)
+        return comps.year! * 10000 + comps.month! * 100 + comps.day!
+    }
+}
 
 extension StoredIssue: Equatable {
   static public func ==(lhs: StoredIssue, rhs: StoredIssue) -> Bool {
@@ -1930,6 +1935,10 @@ public final class StoredIssue: Issue, StoredObject {
     get { return (pr.lastArticle < 0) ? nil : Int(pr.lastArticle) }
     set(val) { pr.lastArticle = Int32((val==nil) ? -1 : val!) }
   }
+  public var lastArticleScrollPos: CGFloat? {
+    get { return (pr.lastArticleScrollPos < 0) ? nil : CGFloat(pr.lastArticleScrollPos) }
+    set(val) { pr.lastArticleScrollPos = (val == nil ? -1.0 : Float(val!))}
+  }
   public var lastSection: Int? {
     get { return (pr.lastSection < 0) ? nil : Int(pr.lastSection) }
     set(val) { pr.lastSection = Int32((val==nil) ? -1 : val!) }
@@ -1937,6 +1946,10 @@ public final class StoredIssue: Issue, StoredObject {
   public var lastPage: Int? {
     get { return (pr.lastPage < 0) ? nil : Int(pr.lastPage) }
     set(val) { pr.lastPage = Int32((val==nil) ? -1 : val!) }
+  }
+  public var lastReadWasPage: Bool {
+    get { return pr.lastReadWasPage }
+    set(val) { pr.lastReadWasPage = val }
   }
   public var isComplete: Bool {
     get { return pr.isComplete }
@@ -2095,7 +2108,7 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   /// Return an array of Issues in a Feed
-  public static func lastCompleete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
+  public static func lastComplete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
       let request = fetchRequest
       var predicates: [NSPredicate] = [
           NSPredicate(format: "feed = %@", feed.pr),
@@ -2110,7 +2123,7 @@ public final class StoredIssue: Issue, StoredObject {
       return get(request: request).first
   }
   
-  public static func lastCompleete(feed: StoredFeed)
+  public static func lastComplete(feed: StoredFeed)
   -> StoredIssue? {
     let request = fetchRequest
     request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
@@ -2197,19 +2210,19 @@ public final class StoredIssue: Issue, StoredObject {
     return nil
   }
   
-#warning("Not in use! May use in future and exchange in SettingsVC l. 964")
-  /**
-   Exchange after Refactor and issue independent bookmarks; persisted Bookmark issue
-   
-   */
   /// delete all issues in feed
   /// - Parameters:
   ///   - feed: feed for Issues
-  public static func deleteAllIssues(feed: StoredFeed) {
+  ///   - deleteBookmarkIssues: if true, bookmark issues will also be deleted
+  public static func deleteAllIssues(feed: StoredFeed, deleteBookmarkIssues: Bool = false) {
     let allIssues
     = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
     
     for issue in allIssues {
+      if issue.isBookmarkIssue && !deleteBookmarkIssues {
+        Log.log("not deleting \(issue.date.short) due its a bookmark issue")
+        continue
+      }
       if issue.isDownloading == true {
         Log.log("not deleting \(issue.date.short) due its currently downloading")
         continue
@@ -2217,129 +2230,143 @@ public final class StoredIssue: Issue, StoredObject {
       issue.delete()
     }
   }
-  
-  
-  /// Remove old Issues and keep newest
-  /// uses issue.reduceToOverview instead of issue.delete
+   
+  /// Cleans up old issues while keeping recent full and preview issues.
+  ///
+  /// Removes old issues of a feed while retaining the most recent ones.
+  ///
+  /// - Workflow:
+  ///   1. Keep a configurable number of the most recent fully downloaded issues.
+  ///   2. Additionally keep a number of preview issues (reduced via `reduceToOverview`).
+  ///   3. Delete older issues completely if `deleteOlder == true`,
+  ///      otherwise reduce them to Overview only.
+  ///   4. Always keep the bookmark issue and the currently opened issue.
+  ///   5. Optionally remove orphaned issue folders from the filesystem.
+  ///
   /// - Parameters:
-  ///   - feed: feed for Issues
-  ///   - keepDownloaded: count of keep full downloaded
-  ///   - keepPreviews: count of keep previews
+  ///   - feed: The feed whose issues should be cleaned up.
+  ///   - keepDownloaded: Number of fully downloaded issues to retain.
+  ///     `0` means keep all issues (no deletion).
+  ///   - keepPreviews: Number of preview issues to retain in addition to full ones.
+  ///   - deleteOlder: Whether to fully delete preview issues beyond `keepPreviews`.
+  ///     ⚠️ WARNING: deleted issues may still be referenced in `IssueOverviewService`.
+  ///     Starting a download in that state will crash the app.
+  ///   - deleteOrphanFolders: Whether to also remove orphaned issue folders
+  ///     from the filesystem.
   public static func removeOldest(feed: StoredFeed,
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 20,
-                                  doDelete: Bool = false,
-                                  deleteOrphanFolders:Bool = false) {
-    Log.log("keepDownloaded: \(keepDownloaded) keepPreviews: \(keepPreviews) deleteOrphanFolders: \(deleteOrphanFolders)")
-    let lastCompleeteIssues:[StoredIssue]
-    = keepDownloaded == 0
-    ? []
-    : issues(feed: feed, count: keepDownloaded, onlyCompleete: true, sortedBy: .payloadDownloadStarted, ascending: false)
+                                  deleteOlder: Bool = false,
+                                  deleteOrphanFolders: Bool = false) {
+    // User-Setting keepDownloaded:
+    // 0 = means keep all issues
+    // otherwise user setting, at least 3
+    let completeFetchCount: Int = keepDownloaded == 0 ? -1 : max(3, keepDownloaded)
     
-    let allIssues
-    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    Log.debug("keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
     
-    let keepPreviewCount = min(allIssues.count, max(keepPreviews, keepDownloaded))
-    let reduceableIssues = allIssues[..<keepPreviewCount]
-    
-    let keep:Int = keepDownloaded == 0 ? 0 : 2 //Do not reduce the newest 2 Issues
-    
-    if allIssues.isEmpty {
-      Log.log("Prevent crash")
-      return;
-    }
-    var knownDirs: [String] = []
-
-    var reduceToOverviewIssueDates: [String] = []
-    var deletedIssueDates: [String] = []
-    
-    if keep <= allIssues.count {
-      for issue in allIssues[keep...] {
-        if issue.isBookmarkIssue {
-          let dir = feed.feeder.issueDir(issue: issue)
-          if dir.exists { knownDirs.append(dir.path)}
-          continue
-        }
-        if lastCompleeteIssues.contains(issue) { continue }
-        if let storedIssue = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
-           let issueDate = storedIssue.safeDate {
-            if issueDate == issue.safeDate {
-                continue
-            }
-        }
-        if doDelete {
-          deletedIssueDates.append(issue.safeDate?.short ?? "-")
-          issue.delete()
-          continue
-        }
-        if issue.reduceToOverview() {
-          Notification.send("issueProgress", content: "deleted", sender: issue)
-          reduceToOverviewIssueDates.append(issue.safeDate?.short ?? "-")
-        }
+    // all issues which should not be deleted
+    var lastCompleteIssues: [StoredIssue] = issues(feed: feed,
+                                                   count: completeFetchCount,
+                                                   onlyCompleete: true,
+                                                   sortedBy: .payloadDownloadStarted,
+                                                   ascending: false)
+    if let latestComplete = lastComplete(feed: feed),
+       !lastCompleteIssues.contains(latestComplete) {
+      lastCompleteIssues.insert(latestComplete, at: 0)
+      if lastCompleteIssues.count > max(3, keepDownloaded){
+        _ = lastCompleteIssues.popLast()
       }
     }
-
-    if reduceToOverviewIssueDates.count > 0 {
-      Log.log("reduced to Overview for issue dates: \(reduceToOverviewIssueDates.sorted().joined(separator: ", "))")
-    }
-    if deletedIssueDates.count > 0 {
-      Log.log("deleted issue dates: \(deletedIssueDates.sorted().joined(separator: ", "))")
-    }
     
-    guard deleteOrphanFolders else { return }
-    Log.log("delete orphan folders")
-    
-    guard let bookmarkIssue = Bookmarks.shared.bookmarkIssue else {
-      Log.log("bookmarks not inited skip delete folders")
+    let allIssues = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    guard !allIssues.isEmpty else {
+      Log.log("No Issues > cancel")
       return
     }
     
-    ///Prevent delete folder with bookmarked articles
-    for case let art as StoredArticle in bookmarkIssue.allArticles {
-      knownDirs.append(art.dir.path)
-    }
+    var knownDirs: [String] = []
+    var deletedIssueDates: [String] = []
+    var previewCount = 0
     
-    for issue in lastCompleeteIssues {
+    let lastCompleteDates = Set(lastCompleteIssues.compactMap { $0.safeDate?.ISO8601 })
+    
+    var bookmarkIssue: StoredIssue?
+    
+    for issue in allIssues {
       let dir = feed.feeder.issueDir(issue: issue)
-      if dir.exists { knownDirs.append(dir.path)}
-    }
-    
-    for issue in reduceableIssues {
-      ///Probably not needed anymore found error above
-      if issue.pr.feed == nil {
-        Log.log("PREVENTED CRASH")
-        if App.isAlpha {
-          Toast.show("Chrash verhindert!\nDetails im log, bitte an Entwickler senden!\n𝛼")
-        }
+      let path = dir.exists ? dir.path : nil
+      
+      // 1. do not delete bookmark issue or its folder
+      if issue.isBookmarkIssue {
+        bookmarkIssue = issue ///there is only one Bookmark Issue
+        knownDirs.appendIfPresent(path)
         continue
       }
-      let dir = feed.feeder.issueDir(issue: issue)
-      if dir.exists { knownDirs.append(dir.path)}
+      
+      // 2. do not delete a issue if keepDownloaded == 0: "Alle behalten"
+      if keepDownloaded == 0 {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+      
+      previewCount += 1
+      
+      // 3. compleete issue: do not delete
+      if let sd = issue.safeDate?.ISO8601, lastCompleteDates.contains(sd) {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+      
+      // 4. currently opened issue: do not delete; probably also in lastCompleteDates/lastCompleteIssues
+      if let opened = TazAppEnvironment.sharedInstance.feederContext?.openedIssue as? StoredIssue,
+         issue.safeDate?.ISO8601 == opened.safeDate?.ISO8601 {
+        knownDirs.appendIfPresent(path)
+        continue
+      }
+            
+      // 5. delete or reduceToOverview
+      if deleteOlder && previewCount > keepPreviews {
+        deletedIssueDates.append("\(issue.date.ISO8601) \(issue.isComplete ? "complete" :"overview")")
+        ///Notification.send("issueProgress", content: "deleted", sender: issue)...automatically send
+        issue.delete()
+      } else if issue.reduceToOverview() {
+        Notification.send("issueProgress", content: "deleted", sender: issue)
+        knownDirs.appendIfPresent(path)
+      } else {///not deleted (may active download), do not send notification to show issue as deleted
+        knownDirs.appendIfPresent(path)
+      }
     }
+    guard deleteOrphanFolders else { return }
     
+    // scan subdirs
     let allSubdirs = feed.feeder.feedDir(feed.name).scan()
-    
     var deletedFolders: [String] = []
-    var skipDeleteFolders: [String] = []
+    var skippedFolders: [String] = []
+
+    //do not delete Bookmark Articles original folders
+    for art in bookmarkIssue?.allArticles ?? [] {
+      knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
+    }
     
     for path in allSubdirs {
-      if knownDirs.contains(path) {
-        skipDeleteFolders.append(path.lastPathComponents(4))
-        continue
-      }
-      if File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
-        skipDeleteFolders.append(path.lastPathComponents(4))
+      if knownDirs.contains(path) ||
+          File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
+        skippedFolders.append(path.lastPathComponents(4))
         continue
       }
       deletedFolders.append(path.lastPathComponents(4))
       Dir(path).remove()
     }
     
-    if deletedFolders.count > 0 {
-      Log.log("deletedFolders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
+    if !deletedIssueDates.isEmpty {
+      Log.log("...deleted issues:\n  \(deletedIssueDates.sorted().joined(separator: "\n  "))")
     }
-    if skipDeleteFolders.count > 0 {
-      Log.log("skipDeleteFolders:\n  \(skipDeleteFolders.sorted().joined(separator: "\n  "))")
+    if !deletedFolders.isEmpty {
+      Log.log("...deleted folders:\n  \(deletedFolders.sorted().joined(separator: "\n  "))")
+    }
+    if !skippedFolders.isEmpty {
+      Log.log("skipped folders:\n  \(skippedFolders.sorted().joined(separator: "\n  "))")
     }
   }
   
@@ -2358,18 +2385,16 @@ public final class StoredIssue: Issue, StoredObject {
       Log.debug("Delete Issue: \(self.date.short)")
     }
     // Remove files not needed for overview
-    storedPayload?.reduceToOverview()
     // Remove sections and cascading all data referenced by them
     var hasChanges = false
-    if let secs = sections {
-      for section in secs as! [StoredSection] {
-        section.delete()
-        hasChanges = true
-      }
+    for section in self.sections as? [StoredSection] ?? [] {
+      section.delete()
+      hasChanges = true
     }
-    let p1 = pageOneFacsimile
+    
+    let facsimileFileName = pageOneFacsimile?.fileName
     for case let p as StoredPage in pages ?? [] {
-      if p.pdf?.fileName == p1?.fileName { continue }
+      if facsimileFileName != nil && p.pdf?.fileName == facsimileFileName { continue }
       p.delete()
       hasChanges = true
     }
@@ -2461,21 +2486,21 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedPublicationDates: [StoredPublicationDate] {
     let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
     if !dates.isEmpty { return dates }
-    return publicationDatesFromStoredIssues()
+    createPublicationDatesFromStoredIssues()
+    return StoredPublicationDate.publicationDatesInFeed(feed: self)
   }
   
-  private func publicationDatesFromStoredIssues() -> [StoredPublicationDate] {
+  ///Helper for migation from 1.1? to newer version
+  private func createPublicationDatesFromStoredIssues(){
     var dates: [PublicationDate] = []
     for issue in storedIssues {
       let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
       date.validityDate = issue.validityDate
       dates.append(date)
     }
-    guard (issues?.first) != nil else { return [] }
-    let sDates
-    = StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
+    guard (issues?.first) != nil else { return }
+    StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
     ArticleDB.save()
-    return sDates
   }
   
   public var publicationDates: [PublicationDate]? { storedPublicationDates }
@@ -2511,11 +2536,7 @@ public final class StoredFeed: Feed, StoredObject {
     }
     if let pubDates = object.publicationDates {
       let start = Date()
-      let storedPubDates = StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
-      for spd in storedPubDates {
-        pr.addToPublicationDates(spd.pr)
-      }
-      
+      StoredPublicationDate.persist(publicationDates: pubDates, inFeed: self)
 #warning("not removing wrong publicationDates!")
       /// Remove publicationDates no longer needed e.g. wrongly delivered by temporary api error
       /// **is not possible due we request only the newest ones
@@ -2683,8 +2704,8 @@ public final class StoredFeeder: Feeder, StoredObject {
     closure(.failure(error("Can't authenticate at DB Feeder")))
   }
   
-  public func resources(closure: @escaping(Result<Resources,Error>)->()) {
-    closure(.failure(error("Currently no resources available")))
+  public func resources(closure: @escaping(Result<Resources,Error>, Data?)->()) {
+    closure(.failure(error("Currently no resources available")), nil)
   }
   
 } // StoredFeeder

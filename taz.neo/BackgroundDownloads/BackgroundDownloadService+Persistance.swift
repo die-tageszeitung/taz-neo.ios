@@ -155,11 +155,7 @@ extension BackgroundDownloadService {
   
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
   func handlePendingTasks() {
-    guard saveDatabase || tempStorage.publicationDates.count > 0 else {
-      log("WARNING?::No Pending Tasks available skip!")
-      return
-    }
-    ensureMain {[weak self] in
+    ensureMain { [weak self] in
       self?.handlePendingTasksOnMain()
     }
   }
@@ -170,7 +166,9 @@ extension BackgroundDownloadService {
     let finishedStoredIssues = persistCurrentIssues()
     ///1st persist existing if available > this should delete used json then load jsons available
     ///das mach ich doch beim neu erstellen des FeederContext.  => brauche ich hier nicht.
-//    persistJsonData()
+    ///
+    #warning("TODO")
+    //    persistJsonData()...nö nicht (mehr?)
     
     if let storedFeed = feederContext?.defaultFeed,
        tempStorage.publicationDates.count > 0
@@ -183,7 +181,7 @@ extension BackgroundDownloadService {
       }
     }
     else {
-      log("WARNING CANNOT PERSIST \(tempStorage.publicationDates.count) PUBLICATIONDATES")
+      log("No (\(tempStorage.publicationDates.count)) PublicationDates to persist!")
     }
     
     if saveDatabase {
@@ -192,22 +190,18 @@ extension BackgroundDownloadService {
       saveDatabase = false
       log("...saved database")
       tempStorage.deleteJsonFiles(for: finishedStoredIssues)
-      log("...removed obsolete JSON files")
+      log("...removed obsolete JSON files for: \(finishedStoredIssues.count) issues")
       removeDownloadData(for: finishedStoredIssues)
       log("...removed obsolete UserDefaults Entries")
     }
     
-    if isFacsimile == true
-        && autoloadPdf == false
-        && TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
-      ///prevent show empty items in UI
-      isFacsimile = false
-      Notification.send(Const.NotificationNames.viewModeChanged)
-    }
-    
     if informUIAfterSave {
+      debug(">>..informUIAfterSave")
       onMainAfter {
         Notification.send(Const.NotificationNames.newAutolIssueLoaded)
+        for issue in finishedStoredIssues {
+          Notification.send("issueStructure", sender: issue)
+        }
       }
     }
   }
@@ -302,10 +296,10 @@ extension BackgroundDownloadService {
           _ = storedIssue.pages?.first?.facsimile
 
           informUIAfterSave = true
-          log("✅ Issue marked as finished.")
+          log("✅ Issue \(issue.date.short) is marked as finished.")
         scheduleBackgroundIssueCheck()
       } else {
-        log("Issue is not complete...")
+        log("Issue \(issue.date.short) is not complete...")
       }
       
       return storedIssue
