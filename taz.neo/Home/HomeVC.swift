@@ -29,7 +29,13 @@ class HomeVC: UICollectionViewController {
   
   /// Are we in facsimile mode
   @Default("isHomeTiles")
-  public var isHomeTiles: Bool
+  public var isHomeTiles: Bool {
+    didSet {
+      if isHomeTiles == false {
+        updateHeader(hidden: false)
+      }
+    }
+  }
   
   var centerIssueDateKey:String?
   
