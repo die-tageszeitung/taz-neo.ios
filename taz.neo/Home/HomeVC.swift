@@ -372,11 +372,28 @@ class HomeVC: UICollectionViewController {
       self?.statusHeader.currentStatus = .none
     }
     
-    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
-        guard let nData = notification.content as? IssueCellData,
-              nData.date.date.issueKey == self?.centerIssueDateKey else { return }
-      self?.downloadButton.indicator.downloadState = nData.downloadState
+    Notification.receive(Const.NotificationNames.newAutolIssueLoaded) {[weak self] _ in
+      self?.log("received newAutolIssueLoaded on Main-Thread: \(Thread.isMainThread) send reload to ctrl's")
+      self?.service.updateIssues()
+      _ = self?.service.reloadPublicationDates(refresh: nil, verticalCv: false)
+      self?.collectionView.reloadData()
+      self?.onHome()
+      Notification.send(Const.NotificationNames.checkForNewIssues,
+                        content: FetchNewStatusHeader.status.none,
+                        error: nil,
+                        sender: self?.service)
+      if self?.isHomeTiles == true { return }
+      onMainAfter {[weak self] in
+        self?.updateBottomWrapper(for: 0, force: true)
       }
+    }
+    
+    #warning("Check if still required")
+//    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+//        guard let nData = notification.content as? IssueCellData,
+//              nData.date.date.issueKey == self?.centerIssueDateKey else { return }
+//      self?.downloadButton.indicator.downloadState = nData.downloadState
+//      }
     
     updateLoginButton()
     
@@ -445,7 +462,7 @@ class HomeVC: UICollectionViewController {
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     guard isHomeTiles == false else { return }
     bottomItemsWrapper.isUserInteractionEnabled = true
-    guard let centerIndex = centerIndex1 else { return }
+    guard let centerIndex = centerIndex else { return }
     updateBottomWrapper(for: centerIndex)
     scrollTo(centerIndex)
   }
