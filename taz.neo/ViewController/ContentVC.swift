@@ -821,7 +821,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       self.textSettingsClosure?(self)
       Usage.track(Usage.event.dialog.TextSettings)
-      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.font)
     }
     
     backButton.pinSize(CGSize(width: 47, height: 47))

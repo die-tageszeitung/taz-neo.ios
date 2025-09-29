@@ -102,8 +102,8 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
-  @Default("showCoachmarks")
-  var showCoachmarks: Bool
+  @Default("showHelp")
+  var showHelp: Bool
   
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
@@ -454,15 +454,11 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                     self?.autoHideToolbar = newValue
                   })
   
-  lazy var showCoachmarksCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Coachmarks anzeigen",
-                  initialValue: showCoachmarks,
+  lazy var showHelpCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Hilfe anzeigen",
+                  initialValue: showHelp,
                   onChange: {[weak self] newValue in
-                    if self?.showCoachmarks == false && newValue == true {
-                      CoachmarksBusiness.shared.reset()
-                      Toast.show("Re-Aktiviere alle Coachmarks.")
-                    }
-                    self?.showCoachmarks = newValue
+                    self?.showHelp = newValue
                   })
   
   lazy var memoryUsageCell: XSettingsCell
@@ -945,10 +941,6 @@ extension SettingsVC {
       cells.insert(multiColumnSnapCell, at: 1)
     }
     
-    if App.isTAZ && TazAppEnvironment.hasValidAuth {
-      cells.insert(showCoachmarksCell, at: 1)
-    }
-    
     if Device.isIphone {
       cells.insert(hideToolbarCell, at: 0)
     }
@@ -1007,6 +999,7 @@ extension SettingsVC {
       ),
       ("Hilfe".lowerIfTaz, false,
        [
+        showHelpCell,
         onboardingCell,
         faqCell,
         reportErrorCell,

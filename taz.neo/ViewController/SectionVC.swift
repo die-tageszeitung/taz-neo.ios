@@ -197,13 +197,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    onDisplay { [weak self] (secIndex, _, isFromScroll) in
+    onDisplay { [weak self] (secIndex, _, _) in
       guard let self = self else { return }
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex)")
-      if isFromScroll {
-        deactivateCoachmark(Coachmarks.Section.swipe)
-      }
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
       persistReadProgress(sectIdx: secIndex)
@@ -386,13 +383,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     Rating.issueOpened()
   }
   
-  fileprivate var doPreventCoachmark = false
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     persistReadProgress()
     if let iart = initialArticle {
-      doPreventCoachmark = true
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
@@ -408,12 +403,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
-    showCoachmarkIfNeeded()
-  }
-  
-  public override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    doPreventCoachmark = false
   }
   
   open override func didMove(toParent parent: UIViewController?) {
@@ -455,27 +444,25 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
 
 } // SectionVC
 
-extension SectionVC: CoachmarkVC {
-  public var viewName: String { Coachmarks.Section.typeName }
-  
-  public var preventCoachmark: Bool { return doPreventCoachmark }
-  
-  public func targetView(for item: CoachmarkItem) -> UIView? {
-    if let item = item as? Coachmarks.Section {
-      switch item {
-        case .slider:
-          return slider?.button
-        case .swipe:
-          return currentView as? UIView
-      }
-    }
-    return nil
-  }
-  
-  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-    guard index ?? 0 > 0,
-          let item = item as? Coachmarks.Section,
-          item == .swipe else { return nil }
-    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
-  }
-}
+//extension SectionVC: CoachmarkVC {
+//  public var viewName: String { Coachmarks.Section.typeName }
+//  
+//  public func targetView(for item: CoachmarkItem) -> UIView? {
+//    if let item = item as? Coachmarks.Section {
+//      switch item {
+//        case .slider:
+//          return slider?.button
+//        case .swipe:
+//          return currentView as? UIView
+//      }
+//    }
+//    return nil
+//  }
+//  
+//  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+//    guard index ?? 0 > 0,
+//          let item = item as? Coachmarks.Section,
+//          item == .swipe else { return nil }
+//    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
+//  }
+//}

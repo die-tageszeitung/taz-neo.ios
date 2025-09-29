@@ -117,7 +117,6 @@ class HomeVC: UICollectionViewController {
       if let issue = data.issue {
         self?.downloadButton.indicator.downloadState = .waiting
         self?.service.download(issueAt: data.date.date, withAudio: false)
-        CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.IssueCarousel.loading)
       }
     }
     return v
@@ -131,11 +130,8 @@ class HomeVC: UICollectionViewController {
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
   lazy var datePickerOverlay = createDatePickerWrapperView()
-  lazy var helpButton: UIButton = createHelpButton()
   
   let datePicker = UIDatePicker()
-  lazy var datePickerWrapper = createDatePickerWrapperView()
-  
   
   //  FrostGradientView, SoftFrostView
   lazy var blurView: UIView = {
@@ -160,8 +156,12 @@ class HomeVC: UICollectionViewController {
   
   
   func showDatePicker() {
+    guard datePickerOverlay.superview == nil else { return }
+    datePickerOverlay.isHidden = true
     Usage.track(Usage.event.dialog.IssueDatePicker)
     datePicker.date = service.date(at: centerIndex ?? 0)?.date ?? Date()
+    self.view.addSubview(datePickerOverlay)
+    pin(datePickerOverlay, to: self.view)
     datePickerOverlay.showAnimated()
   }
   
@@ -171,6 +171,13 @@ class HomeVC: UICollectionViewController {
     guard !rows.isEmpty else { return nil }
     return rows[(rows.count - 1) / 2]
   }
+  
+  var centerIndex1: Int? {
+    guard let cv = collectionView else { return nil }
+    let center = self.view.convert(cv.center, to: cv)
+    return cv.indexPathForItem(at: center)?.row
+  }
+
   
   /// Returns the index path of the center-most visible item in the collection view.
   /// If `returnFirstItemIfVisible` is `true` and the first item (item 0) is visible,
@@ -224,11 +231,16 @@ class HomeVC: UICollectionViewController {
     return range.contains(index)
   }
   
+  var collectionViewLayoutInitialized = false
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    guard collectionViewLayoutInitialized == false else { return }
+    collectionViewLayoutInitialized = true
     let s = view.frame.size
-    isHomeTiles ? updateCarouselSize(s) : updateGridSize(s)//initially the not displayed one
+    //initially update the not displayed one
+    isHomeTiles ? updateCarouselSize(s) : updateGridSize(s)
+    //initially update the currently displayed one
     updateCollectionViewLayout()
   }
   
@@ -258,6 +270,11 @@ class HomeVC: UICollectionViewController {
     }
   }
     
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    openingIssue = nil
+  }
+  
   override func viewDidLoad() {
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.setCollectionViewLayout(currentLayout, animated: false)
@@ -270,18 +287,14 @@ class HomeVC: UICollectionViewController {
     self.view.insertSubview(blurView, aboveSubview: collectionView)
     self.view.addSubview(blurView)
     self.view.addSubview(statusHeader)
-    self.view.addSubview(helpButton)
     self.view.addSubview(viewModeButton)
     self.view.addSubview(loginButton)
     self.view.addSubview(bottomItemsWrapper)
-    self.view.addSubview(datePickerOverlay)
 
     self.overrideUserInterfaceStyle = .dark
     pin(blurView, to: view, exclude: .bottom)
     pin(blurView.bottom, to: viewModeButton.bottom, dist: Const.Dist2.s10)
     pin(statusHeader.bottom, to: viewModeButton.bottom, dist: 4.0)
-    
-    pin(datePickerOverlay, to: self.view)
     
     pin(loginButton.right, to: self.view.rightGuide(), dist: -9.0)
     pin(loginButton.bottom, to: viewModeButton.bottom)
@@ -294,10 +307,7 @@ class HomeVC: UICollectionViewController {
     
     pin(viewModeButton.left, to: self.view.leftGuide(), dist: 11.0)
     viewModeButtonTopConstraint = pin(viewModeButton.top, to: self.view.topGuide(), dist: 0)
-    
-    pin(helpButton.right, to: self.view.rightGuide(), dist: -9.0)
-    pin(helpButton.bottom, to: self.view.bottomGuide(), dist: -Const.Dist2.m15)
-    
+
     updateLoginButton()
     updateButtonMenu()
     
@@ -361,6 +371,12 @@ class HomeVC: UICollectionViewController {
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
       self?.statusHeader.currentStatus = .none
     }
+    
+    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+        guard let nData = notification.content as? IssueCellData,
+              nData.date.date.issueKey == self?.centerIssueDateKey else { return }
+      self?.downloadButton.indicator.downloadState = nData.downloadState
+      }
     
     updateLoginButton()
     
@@ -429,7 +445,7 @@ class HomeVC: UICollectionViewController {
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     guard isHomeTiles == false else { return }
     bottomItemsWrapper.isUserInteractionEnabled = true
-    guard let centerIndex = centerIndex else { return }
+    guard let centerIndex = centerIndex1 else { return }
     updateBottomWrapper(for: centerIndex)
     scrollTo(centerIndex)
   }
@@ -601,8 +617,10 @@ extension HomeVC {
 extension HomeVC {
   func setupReceiveDownloadIssueNotification(){
     Notification.receive("issueProgress", closure: { [weak self] notif in
+      guard let issue = notif.object as? Issue else { return }
+      
       guard let key = self?.centerIssueDateKey,
-            (notif.object as? Issue)?.date.issueKey == key else { return }
+            issue.date.issueKey == key else { return }
       if (notif.content as? String) == "deleted" {
         self?.downloadButton.indicator.downloadState = .notStarted
       }
@@ -611,6 +629,12 @@ extension HomeVC {
         if percent > 0.05 {
           if percent != 1.0 {
             self?.downloadButton.indicator.downloadState = .process
+          }
+          else {
+            self?.downloadButton.indicator.downloadState
+            = issue.hasLastReadForCurrentMode == true
+            ? .read
+            : .downloaded
           }
           self?.downloadButton.indicator.percent = percent
         }

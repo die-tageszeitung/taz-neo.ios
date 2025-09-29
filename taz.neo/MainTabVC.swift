@@ -13,6 +13,8 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var feederContext: FeederContext
   var service: IssueOverviewService
   
+  lazy var helpButton: UIButton = createHelpButton()
+  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -56,6 +58,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     updateTraitOverrides()
+    setupHelpButton()
   }
   
   override func viewDidLayoutSubviews() {
@@ -310,18 +313,19 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
     self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
     self.selectedIndex = 0
+    helpButton.alpha = 1.0
   }
   
   override var viewControllers: [UIViewController]? {
     didSet {
-      setupTracking()
+      setupNavigationDelegate()
     }
   }
   
-  func setupTracking(){
+  func setupNavigationDelegate(){
     for case let nc as UINavigationController in viewControllers ?? [] {
-      nc.delegate = Usage.shared
-      (nc as? NavigationController)?.navigationDelegate = Usage.shared
+      nc.delegate = self
+      (nc as? NavigationController)?.navigationDelegate = self
     }
   }
   
@@ -345,6 +349,30 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     fatalError("init(coder:) has not been implemented")
   }
 } // MainTabVC
+
+// MARK: - extension UINavigationControllerDelegate: magic tracking on VC show
+extension MainTabVC: NavigationDelegate, UINavigationControllerDelegate {
+  
+  func popViewController() {
+    Usage.shared.popViewController()
+  }
+  
+  func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+    updateHelpButtonVisibility(for: viewController)
+    ///delegate nto usage
+    Usage.shared.navigationController(navigationController, willShow: viewController, animated: animated)
+  }
+  
+  func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+    print("didShow \(viewController)")
+  }
+  
+  fileprivate func updateHelpButtonVisibility(for viewController: UIViewController) {
+    let show = viewController is HelpPresentable
+    show ? helpButton.showAnimated() : helpButton.hideAnimated()
+  }
+}
+
 
 extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue

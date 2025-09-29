@@ -198,7 +198,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
-      showCoachmarkIfNeeded()
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -371,7 +370,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
       guard let self = self else { return }
-      CoachmarksBusiness.shared.deactivateCoachmark(Coachmarks.Article.share)
       self.debug("*** Action: Share Article")
       if self.article?.isShareable == false && feeder.hasValidAbo == false {
         Usage.track(Usage.event.dialog.SharingNotPossible)
@@ -417,23 +415,23 @@ extension ArticleVC {
   }
 }
 
-extension ArticleVC: CoachmarkVC {
-  
-  public var viewName: String { Coachmarks.Article.typeName }
-  
-  public func targetView(for item: CoachmarkItem) -> UIView? {
-    guard let item = item as? Coachmarks.Article else { return nil }
-    
-    switch item {
-      case .audio:
-        return playButton.buttonView
-      case .share:
-        return shareButton.buttonView
-      case .font:
-        return textSettingsButton.buttonView
-    }
-  }
-}
+//extension ArticleVC: CoachmarkVC {
+//  
+//  public var viewName: String { Coachmarks.Article.typeName }
+//  
+//  public func targetView(for item: CoachmarkItem) -> UIView? {
+//    guard let item = item as? Coachmarks.Article else { return nil }
+//    
+//    switch item {
+//      case .audio:
+//        return playButton.buttonView
+//      case .share:
+//        return shareButton.buttonView
+//      case .font:
+//        return textSettingsButton.buttonView
+//    }
+//  }
+//}
 
 
 extension ArticleVC {

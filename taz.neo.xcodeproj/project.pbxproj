@@ -123,6 +123,8 @@
 		77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
 		77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
+		77C778DA2E8820B00098827B /* HelpBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C778D92E8820B00098827B /* HelpBusiness.swift */; };
+		77C778DB2E8820B00098827B /* HelpBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C778D92E8820B00098827B /* HelpBusiness.swift */; };
 		77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */; };
 		77CAE0A92D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */; };
 		77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */; };
@@ -439,6 +441,7 @@
 		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+SheduledCheck.swift"; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
+		77C778D92E8820B00098827B /* HelpBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpBusiness.swift; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadService.swift; sourceTree = "<group>"; };
 		77CB2D1F2A8148EA00021804 /* UIAlertAction+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIAlertAction+Extension.swift"; sourceTree = "<group>"; };
@@ -679,6 +682,7 @@
 		777048A727B3B057007164A0 /* Business */ = {
 			isa = PBXGroup;
 			children = (
+				77C778D92E8820B00098827B /* HelpBusiness.swift */,
 				777607E92CE64FC70023D3EF /* StoreBusiness.swift */,
 				774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
@@ -1310,6 +1314,7 @@
 				77EF78A12E8537A5009B8655 /* HomeVC+UICollectionViewDataSource.swift in Sources */,
 				77EF78A32E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */,
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
+				77C778DB2E8820B00098827B /* HelpBusiness.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
 				AE51318A2AFBCADB002289E8 /* GqlFeederSearch.swift in Sources */,
 				77E6E9A42CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */,
@@ -1561,6 +1566,7 @@
 				4D308EE92834057200529592 /* SearchResultArticleVc.swift in Sources */,
 				AE0C32DB2462D1AE00E4AEA8 /* TextSettingsVC.swift in Sources */,
 				AE44F8E62481621C009DA152 /* IssueInfoProtocol.swift in Sources */,
+				77C778DA2E8820B00098827B /* HelpBusiness.swift in Sources */,
 				7715969625CC605D00508DE8 /* FeedbackView.swift in Sources */,
 				7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */,
 				AEBAF594219ACFAC00566205 /* TestController.swift in Sources */,

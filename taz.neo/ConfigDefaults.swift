@@ -81,7 +81,7 @@ private let configValues = [
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
   // coachmark defaults
-  "showCoachmarks" : Device.isSimulator ? "false" : "true",
+  "showHelp" : "true",
   "cmLastPrio": "1",
   "cmSessionCount": "0",
   "multiColumnModeLandscape": "false",
@@ -102,7 +102,7 @@ private let configValues = [
 private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
-  "showCoachmarks": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
+  "showHelp": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
   "usageTrackingAllowed" : "false",
   "smartBackFromArticle" : "true",///required for page Article header, otherwise current page is not displayed correctly
 ]

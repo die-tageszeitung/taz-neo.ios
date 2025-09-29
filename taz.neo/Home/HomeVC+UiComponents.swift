@@ -39,24 +39,6 @@ extension HomeVC {
     return button
   }
   
-  func createHelpButton() -> UIButton {
-    let button = UIButton(type: .system)
-    button.setImage(UIImage(named: "tooltip"), for: .normal)
-    button.setTitle("Hilfe", for: .normal)
-
-    // Optional: Tintfarbe (Standard ist systemBlue)
-    button.tintColor = Const.Colors.appIconGrey
-
-    // Optional: Zugriffshilfe
-    button.accessibilityLabel = "Hilfe anzeigen"
-    button.layoutVertically()
-    button.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-    button.pinHeight(54.0)
-    button.pinWidth(54.0)
-    button.layer.cornerRadius = 27.0
-    return button
-  }
-  
   func createCalendarButton() -> UIButton {
     let button = UIButton(type: .system)
     button.setImage(UIImage(named: "calendar"), for: .normal)
@@ -134,7 +116,6 @@ extension HomeVC {
     pin(confirmButton.right, to: wrapper.right, dist: -8.0)
     pin(cancelButton.left, to: wrapper.left, dist: 8.0)
 
-    overlay.isHidden = true
     let tapGR = UITapGestureRecognizer(target: self, action: #selector(didTapOverlay(_:)))
     tapGR.delegate = self
     overlay.addGestureRecognizer(tapGR)
@@ -146,33 +127,38 @@ extension HomeVC {
     return overlay
   }
   
+  private func closeDatePickerOverlay() {
+    datePickerOverlay.hideAnimated(completion: {[weak self] in
+      self?.datePickerOverlay.removeFromSuperview()
+    })
+  }
+  
   @objc private func didTapOverlay(_ sender: UITapGestureRecognizer) {
-      datePickerOverlay.hideAnimated()
+    closeDatePickerOverlay()
   }
   
   @objc func dateChanged(_ sender: Any) {
     let selectedDate = datePicker.date
     let idx = self.service.nextIndex(for: selectedDate)
     self.scrollTo(idx, animated: true)
-    datePickerOverlay.hideAnimated()
+    closeDatePickerOverlay()
   }
 }
 
 extension HomeVC: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldReceive touch: UITouch) -> Bool {
-
-        // Falls der Touch in Wrapper ODER DatePicker liegt → ignorieren
-        if let view = touch.view,
-           let wrapper = datePickerOverlay.subviews.first,
-           view.isDescendant(of: wrapper) {
-            return false
-        }
-        return true
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                         shouldReceive touch: UITouch) -> Bool {
+    //Falls der Touch in Wrapper ODER DatePicker liegt → ignorieren
+    if let view = touch.view,
+       let wrapper = datePickerOverlay.subviews.first,
+       view.isDescendant(of: wrapper) {
+      return false
     }
+    return true
+  }
 }
 
-fileprivate extension UIButton {
+extension UIButton {
   func layoutVertically(){
     titleLabel?.contentFont(size: 11)
     

@@ -9,85 +9,21 @@
 import UIKit
 import NorthLib
 
-/***
- 
- Idea:
- 
- UIViewcontroller
- 
- 
- 
- */
-
-public protocol CoachmarkItem: NameDescribable, CodingKey {
-  var title: String { get }
-  var text: String { get }
-}
-
-extension CoachmarkItem {
-  var screenName: String { self.typeName }
-  var itemName: String { self.stringValue }
-  var key: String { screenName + "." + itemName }
+public class CoachmarkItem {
+  var title: String
+  var text: String
+  var isCircleCutout: Bool
+  var targetView: UIView
   
-  var isCircleCutout: Bool {
-    switch key {
-      case Coachmarks.Section.slider.key:
-        return false
-      default:
-        return true
-    }
-  }
-  
-  var prio: Int {
-    switch key {
-      case Coachmarks.IssueCarousel.pdfButton.key,
-        Coachmarks.Section.slider.key,
-        Coachmarks.Article.audio.key:
-        return 1
-      case Coachmarks.Section.swipe.key,
-        Coachmarks.Article.font.key:
-        return 2
-      case Coachmarks.IssueCarousel.loading.key:
-        return 3
-      case Coachmarks.Article.share.key,
-        Coachmarks.IssueCarousel.tiles.key,
-        Coachmarks.Search.filter.key:
-        return 4
-      default:
-        return 4
-    }
+  init(title: String, text: String, isCircleCutout: Bool, targetView: UIView) {
+    self.title = title
+    self.text = text
+    self.isCircleCutout = isCircleCutout
+    self.targetView = targetView
   }
 }
 
-fileprivate extension String {
-  var coachmarkItem: (CoachmarkItem)? {
-    for item in Coachmarks.all {
-      if item.key == self { return item }
-    }
-    return nil
-  }
-}
-
-
-struct Coachmarks {
-#warning("ToDo: rename")
-  enum IssueCarousel: CoachmarkItem, CaseIterable { case pdfButton, loading, tiles}///HomeVC
-  enum Section: CoachmarkItem, CaseIterable { case slider, swipe }///SectionVC
-  enum Article: CoachmarkItem, CaseIterable { case audio, share, font}///ArticleVC
-  enum Search: CoachmarkItem, CaseIterable { case filter }
-  
-  static let all : [CoachmarkItem] = [
-    Coachmarks.IssueCarousel.pdfButton,
-    Coachmarks.Section.slider,
-    Coachmarks.Article.audio,
-    Coachmarks.Section.swipe,
-    Coachmarks.Article.font,
-    Coachmarks.IssueCarousel.loading,
-    Coachmarks.Article.share,
-    Coachmarks.IssueCarousel.tiles,
-    Coachmarks.Search.filter
-  ]
-} // Coachmarks
+/*
 
 extension Coachmarks.IssueCarousel {
   var title: String {
@@ -172,11 +108,11 @@ extension Coachmarks.Search {
     }
   }
 }
+*/
 
 
 public protocol CoachmarkVC where Self: UIViewController {
   var viewName: String { get }
-  var preventCoachmark: Bool { get }
   func targetView(for item: CoachmarkItem) -> UIView?
   
   /// Alternative Target: an image and optional a List of Locations where the Target should be placed
@@ -186,49 +122,10 @@ public protocol CoachmarkVC where Self: UIViewController {
   func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])?
 }
 
-extension CoachmarkVC {
-  public var preventCoachmark: Bool { return false }
-  
-  var items: [CoachmarkItem] {
-    switch viewName {
-      case Coachmarks.IssueCarousel.typeName: return Coachmarks.IssueCarousel.allCases
-      case Coachmarks.Section.typeName: return Coachmarks.Section.allCases
-      case Coachmarks.Article.typeName: return Coachmarks.Article.allCases
-      case Coachmarks.Search.typeName: return Coachmarks.Search.allCases
-      default: return []
-    }
-  }
-  
-  public func showCoachmarkIfNeeded() {
-    guard TazAppEnvironment.hasValidAuth,
-          CoachmarksBusiness.shared.showCoachmarks,
-          CoachmarksBusiness.shared.count < 3 else { return }
-    CoachmarksBusiness.shared.showCoachmarkIfNeeded(sender: self)
-  }
-  
-  func deactivateCoachmark(_ item: CoachmarkItem){
-    CoachmarksBusiness.shared.deactivateCoachmark(item)
-  }
-  
-  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-    return nil
-  }
-}
-
-///Helper to save Array<String> to kvstore
-extension [CoachmarkItem]: @retroactive StringConvertible {
-  public static func fromString(_ str: String?) -> [CoachmarkItem] {
-    return str?.split(separator: "»").compactMap{String($0).coachmarkItem } ?? []
-  }
-  public static func toString(_ val: Self) -> String {
-    return val.map{ $0.key }.joined(separator: "»")
-  }
-}
-
 public class CoachmarksBusiness: DoesLog{
   
-  @Default("showCoachmarks")
-  var showCoachmarks: Bool
+  @Default("showHelp")
+  var showHelp: Bool
   
   @Default("cmLastPrio")
   var cmLastPrio: Int
@@ -241,123 +138,38 @@ public class CoachmarksBusiness: DoesLog{
   public var isFacsimile: Bool
   
   var count:Int = 0
-  var currentPrio:Int = 5
-  
-  @Default("disabledCoachmarks")
-  fileprivate var disabledCoachmarks: [CoachmarkItem]
-  
-  lazy var availableCoachmarkKeys: [String:Int] = {
-    return getCurrentAvailableCoachmarkKeys()
-  }()
-  
-  func getCurrentAvailableCoachmarkKeys() -> [String:Int] {
-//    if false { //debug show all coachmarks
-//      var ret : [String:Int] = [:]
-//      for cm in Coachmarks.all {
-//          ret[cm.key] = 1
-//      }
-//      currentPrio = 1
-//      count = -20
-//      return ret
-//    }
-    
-    let disabledCm = disabledCoachmarks
-    let all = Coachmarks.all
-    var ret : [String:Int] = [:]
-    for cm in all {
-      if disabledCm.contains(where: {$0.key == cm.key}){
-        ret[cm.key] = 0
-        continue
-      }
-      let prio = cm.prio
-      ret[cm.key] = prio
-      
-      if currentPrio > prio {
-        currentPrio = prio
-      }
-    }
-    
-    //ensure Facsimile coachmark not shown if already in facsimile view!
-    if isFacsimile {
-      ret[Coachmarks.IssueCarousel.pdfButton.key] = 0
-    }
-    
-    ///set all coachmarks with a higher priority as currently disabled by setting -1
-    ret.keys.forEach {
-      let itmPrio = ret[$0] ?? 0
-      if itmPrio == currentPrio {
-        hasActiveCoachmarks = true
-      }
-      else if itmPrio > currentPrio  {
-        ret[$0] = -1
-      }
-    }
-    ///if none in current prio, wait 3 App Sessions to show more coachmarks
-    if cmLastPrio != currentPrio {
-      if cmSessionCount > 0 {
-        ///0 on change/next start, 1 next start, reset to 0 && prio change ==2nd ==> 3rd available again!
-        cmSessionCount = 0
-        cmLastPrio = currentPrio
-      }
-      else {
-        cmSessionCount += 1
-      }
-      hasActiveCoachmarks = false
-    }
-    
-    if hasActiveCoachmarks == true {
-      log("Available Coachmarks: \(ret.filter{$0.value == currentPrio}.keys.joined(separator: ", "))")
-    }
-    else {
-      log("Coachmarks are not available. \(currentPrio)\(cmLastPrio)\(cmSessionCount)")
-    }
-    return ret
-  }
-  
-  var hasActiveCoachmarks: Bool?
   
   func reset(){
-    disabledCoachmarks = []
-    currentPrio = 5
     count = 0
-    cmSessionCount = 0
-    cmLastPrio = 1
-    availableCoachmarkKeys = getCurrentAvailableCoachmarkKeys()
   }
   
-  func deactivateCoachmark(_ item: CoachmarkItem){
-    if disabledCoachmarks.contains(where: {$0.key == item.key }) == false {
-      disabledCoachmarks.append(item)
-    }
-    if availableCoachmarkKeys[item.key] == 0 { return }
-    availableCoachmarkKeys[item.key] = 0
-  }
-  
-  func setShown(item: CoachmarkItem){
-    deactivateCoachmark(item)
-    count += 1
-  }
-  
-  fileprivate func showCoachmarkIfNeeded(sender: CoachmarkVC){
-    if UIAccessibility.isVoiceOverRunning { return }
-    if sender.preventCoachmark { return }
-    let activeCmKeys = availableCoachmarkKeys.filter({$0.value == currentPrio})
-    if hasActiveCoachmarks == false { return }//ensure not to test before availableCoachmarkKeys set this!
-    guard let item
-            = sender.items.filter({ item in
-              activeCmKeys.contains(where: {item.key ==  $0.key })
-    }).first else { return }
+  func showHelp(sender: CoachmarkVC){
+    guard let helpSender = sender as? HelpPresentable else { return }
+    guard let itm = helpSender.items.first else { return }
+    showCoachmark(sender: sender, target: itm.targetView, item: itm)
+    #warning("Alternative Target??? see below")
+//    guard let item
+//            = sender.items.filter({ item in
+//              activeCmKeys.contains(where: {item.key ==  $0.key })
+//    }).first else { return }
+//
+//    if let target = sender.targetView(for: item) {
+//      (sender as? ContentVC)?.toolBar.show(show: true, animated: true)
+//      showCoachmark(sender: sender, target: target, item: item)
+//    }
+//    else if let alternativeTarget = sender.target(for: item) {
+//      showCoachmark(sender: sender, target: nil, item: item, alternativeTarget: alternativeTarget)
+//    }
+//    else {
+//      log("Not show coachmarks for: \(item.key)")
+//    }
     
-    if let target = sender.targetView(for: item) {
-      (sender as? ContentVC)?.toolBar.show(show: true, animated: true)
-      showCoachmark(sender: sender, target: target, item: item)
-    }
-    else if let alternativeTarget = sender.target(for: item) {
-      showCoachmark(sender: sender, target: nil, item: item, alternativeTarget: alternativeTarget)
-    }
-    else {
-      log("Not show coachmarks for: \(item.key)")
-    }
+//    extension CoachmarkVC {
+//      public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
+//        return nil
+//      }
+//    }
+    
   }
   
   var currentActiveCMVC: CoachmarkVC?
@@ -369,7 +181,7 @@ public class CoachmarksBusiness: DoesLog{
     if let target = target,
        let window = UIWindow.keyWindow,
        target.isHidden == true
-        || target.isDescendant(of: window) == false 
+        || target.isDescendant(of: window) == false
         || (target as? ButtonView)?.isHiddenInToolbar == true { return }
     guard target?.isVisible ?? true else { return } //if no targets
     guard currentActiveCMVC == nil else { return }
@@ -413,7 +225,6 @@ public class CoachmarksBusiness: DoesLog{
                          cv.removeFromSuperview()
                 
                         })
-        self?.setShown(item: cv.item)
         self?.currentActiveCMVC = nil
         self?.currentCoachmarkView = nil
       }
