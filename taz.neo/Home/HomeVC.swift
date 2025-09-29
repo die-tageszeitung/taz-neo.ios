@@ -626,7 +626,7 @@ extension HomeVC {
     statusWrapperWidthConstraint?.constant = cw*carouselLayout.maxScale
     
     self.collectionView.contentInset
-    = UIEdgeInsets(top:0,left:sideInset,bottom:0,right:sideInset)
+    = UIEdgeInsets(top:46.0,left:sideInset,bottom:0,right:sideInset)
   }
   
 }
