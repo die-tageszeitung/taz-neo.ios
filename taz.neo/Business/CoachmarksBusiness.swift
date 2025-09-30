@@ -13,9 +13,9 @@ public class CoachmarkItem {
   var title: String
   var text: String
   var isCircleCutout: Bool
-  var targetView: UIView
+  var targetView: UIView?
   
-  init(title: String, text: String, isCircleCutout: Bool, targetView: UIView) {
+  init(title: String, text: String, isCircleCutout: Bool, targetView: UIView?) {
     self.title = title
     self.text = text
     self.isCircleCutout = isCircleCutout
@@ -143,47 +143,11 @@ public class CoachmarksBusiness: DoesLog{
     count = 0
   }
   
+  var currentActiveCMVC: CoachmarkVC?
+  
   func showHelp(sender: CoachmarkVC){
     guard let helpSender = sender as? HelpPresentable else { return }
-    guard let itm = helpSender.items.first else { return }
-    showCoachmark(sender: sender, target: itm.targetView, item: itm)
-    #warning("Alternative Target??? see below")
-//    guard let item
-//            = sender.items.filter({ item in
-//              activeCmKeys.contains(where: {item.key ==  $0.key })
-//    }).first else { return }
-//
-//    if let target = sender.targetView(for: item) {
-//      (sender as? ContentVC)?.toolBar.show(show: true, animated: true)
-//      showCoachmark(sender: sender, target: target, item: item)
-//    }
-//    else if let alternativeTarget = sender.target(for: item) {
-//      showCoachmark(sender: sender, target: nil, item: item, alternativeTarget: alternativeTarget)
-//    }
-//    else {
-//      log("Not show coachmarks for: \(item.key)")
-//    }
-    
-//    extension CoachmarkVC {
-//      public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-//        return nil
-//      }
-//    }
-    
-  }
-  
-  var currentActiveCMVC: CoachmarkVC?
-  var currentCoachmarkView: CoachmarkView?
-  
-  func showCoachmark(sender: CoachmarkVC, target: UIView?, item: CoachmarkItem, alternativeTarget: (UIImage, [UIView], [CGPoint])? = nil) {
     guard let window = UIApplication.shared.delegate?.window else { return }
-    //not show coachmark for hidden or not displayed elements
-    if let target = target,
-       let window = UIWindow.keyWindow,
-       target.isHidden == true
-        || target.isDescendant(of: window) == false
-        || (target as? ButtonView)?.isHiddenInToolbar == true { return }
-    guard target?.isVisible ?? true else { return } //if no targets
     guard currentActiveCMVC == nil else { return }
     currentActiveCMVC = sender
     
@@ -194,39 +158,40 @@ public class CoachmarksBusiness: DoesLog{
         return
      }
       
-      let cv = CoachmarkView(target: target, item: item, alternativeTarget: alternativeTarget)
-      cv.alpha = 0.0
-      window?.addSubview(cv)
-      self?.currentCoachmarkView = cv
+      let helpView = HelpView()
+      helpView.items = helpSender.items
+      helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
+      
+      helpView.alpha = 0.0
+      window?.addSubview(helpView)
       
       UIView.animate(withDuration: 0.7,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
-        cv.alpha = 1.0
+        helpView.alpha = 1.0
                      }, completion: { [weak self] (_) in
-                      if cv.isTopmost == false {
-                        window?.bringSubviewToFront(cv)
+                      if helpView.isTopmost == false {
+                        window?.bringSubviewToFront(helpView)
                       }
                        if self?.currentActiveCMVC?.isVisible == false {
-                        cv.targetView = nil
-                        cv.removeFromSuperview()
+//                        helpView.targetView = nil
+                         helpView.removeFromSuperview()
                         self?.currentActiveCMVC = nil
                       }
                      })
-      cv.onClose {[weak self]  in
+      helpView.onClose {[weak self]  in
         UIView.animate(withDuration: 0.7,
                        delay: 0,
                        options: UIView.AnimationOptions.curveEaseInOut,
                        animations: {
-                        cv.alpha = 0.0
+          helpView.alpha = 0.0
                        }, completion: {(_) in
-                         cv.targetView = nil
-                         cv.removeFromSuperview()
+//                         helpView.targetView = nil
+                         helpView.removeFromSuperview()
                 
                         })
         self?.currentActiveCMVC = nil
-        self?.currentCoachmarkView = nil
       }
     }
   }

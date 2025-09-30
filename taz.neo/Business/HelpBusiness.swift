@@ -115,17 +115,51 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
     CoachmarksBusiness.shared.showHelp(sender: self)
   }
   
+  var tabbarItems: [UIView] {
+    var views: [UIView] = []
+    if let tabBar = self.tabBarController?.tabBar {
+      for (index, view) in tabBar.subviews.enumerated() {
+        if let control = view as? UIControl {
+          views.append(control)
+        }
+      }
+    }
+    return views
+  }
+  
   var items: [CoachmarkItem] {
     get {
+      let tabbarItems = self.tabbarItems
       let itm = CoachmarkItem(title:"Willkommen in der taz neo App!",
                               text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
                               isCircleCutout: true,
                               targetView: self.viewModeButton)
       let itm2 = CoachmarkItem(title:"Willkommen in der taz neo App!",
-                              text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
-                              isCircleCutout: false,
-                              targetView: self.collectionView)
-      return [itm, itm2]
+                               text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
+                               isCircleCutout: false,
+                               targetView: self.collectionView)
+      let itm3 = CoachmarkItem(title:"Home",
+                               text: "Hier finden Sie die Ausgaben",
+                               isCircleCutout: true,
+                               targetView: tabbarItems.valueAt(0))
+      let itm4 = CoachmarkItem(title:"Leseliste",
+                               text: "Hier finden Sie Ihre Lesezeichen",
+                               isCircleCutout: true,
+                               targetView: tabbarItems.valueAt(1))
+      let itm5 = CoachmarkItem(title:"Suche",
+                               text: "Hier finden Sie die Suche",
+                               isCircleCutout: true,
+                               targetView: tabbarItems.valueAt(2))
+      let itm6 = CoachmarkItem(title:"Einstellungen",
+                               text: "Hier finden Sie die Einstellungen",
+                               isCircleCutout: true,
+                               targetView: tabbarItems.valueAt(3))
+      
+      let itm8 = CoachmarkItem(title:"Ende",
+                               text: "Hier gibts nichts mehr zu sehen!",
+                               isCircleCutout: false,
+                               targetView: self.collectionView)
+      return [itm, itm2, itm3, itm4, itm5, itm6, itm8]
     }
     
   }

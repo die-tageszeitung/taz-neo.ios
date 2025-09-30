@@ -109,6 +109,10 @@
 		778F741B25CC61340017E426 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
 		779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
 		779229512DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
+		779835DA2E8BBD9C001BB441 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779835D92E8BBD94001BB441 /* HelpView.swift */; };
+		779835DB2E8BBD9C001BB441 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779835D92E8BBD94001BB441 /* HelpView.swift */; };
+		779835DD2E8BE19E001BB441 /* HelpSlideCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779835DC2E8BE194001BB441 /* HelpSlideCell.swift */; };
+		779835DE2E8BE19E001BB441 /* HelpSlideCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779835DC2E8BE194001BB441 /* HelpSlideCell.swift */; };
 		779DE96126FA3D790056187B /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
 		77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A214C325D2B68F00A7C41B /* AppOverlay.swift */; };
@@ -431,6 +435,8 @@
 		778F741525CC60C80017E426 /* TazTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* TazTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextView.swift; sourceTree = "<group>"; };
 		7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+UserDefaults.swift"; sourceTree = "<group>"; };
+		779835D92E8BBD94001BB441 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
+		779835DC2E8BE194001BB441 /* HelpSlideCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSlideCell.swift; sourceTree = "<group>"; };
 		779DE96026FA3D790056187B /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		779EF0CF2A03A16200D6A626 /* InfoToaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoToaster.swift; sourceTree = "<group>"; };
 		77A214C325D2B68F00A7C41B /* AppOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlay.swift; sourceTree = "<group>"; };
@@ -682,6 +688,8 @@
 		777048A727B3B057007164A0 /* Business */ = {
 			isa = PBXGroup;
 			children = (
+				779835DC2E8BE194001BB441 /* HelpSlideCell.swift */,
+				779835D92E8BBD94001BB441 /* HelpView.swift */,
 				77C778D92E8820B00098827B /* HelpBusiness.swift */,
 				777607E92CE64FC70023D3EF /* StoreBusiness.swift */,
 				774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */,
@@ -1293,6 +1301,7 @@
 				AE5131792AFBCADB002289E8 /* Authenticator.swift in Sources */,
 				AE51317A2AFBCADB002289E8 /* IntroVC.swift in Sources */,
 				AE51317B2AFBCADB002289E8 /* ConfigDefaults.swift in Sources */,
+				779835DD2E8BE19E001BB441 /* HelpSlideCell.swift in Sources */,
 				AE51317C2AFBCADB002289E8 /* IssueCollectionViewCell.swift in Sources */,
 				777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				AE51317D2AFBCADB002289E8 /* SubscriptionFormController.swift in Sources */,
@@ -1371,6 +1380,7 @@
 				AE5131AF2AFBCADB002289E8 /* TazCustomized.swift in Sources */,
 				7700E0CA2E0030B000AE4151 /* PublicationSchedule.swift in Sources */,
 				77E6BF162DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift in Sources */,
+				779835DA2E8BBD9C001BB441 /* HelpView.swift in Sources */,
 				AE5131B02AFBCADB002289E8 /* FeederContext+AppUpdate.swift in Sources */,
 				AE5131B12AFBCADB002289E8 /* PwForgottView.swift in Sources */,
 				AE5131B22AFBCADB002289E8 /* FeederContext+IssueDownload.swift in Sources */,
@@ -1496,6 +1506,7 @@
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,
 				004D4EFE24ACDBA7008C4EE7 /* LoginController.swift in Sources */,
+				779835DE2E8BE19E001BB441 /* HelpSlideCell.swift in Sources */,
 				AE4AA2B823F6BEC400EAFE78 /* LoadingView.swift in Sources */,
 				77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */,
 				AE5D9EC023E1B82B0002C3B8 /* Downloader.swift in Sources */,
@@ -1541,6 +1552,7 @@
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
 				777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */,
 				004D4F0024ACDC1F008C4EE7 /* FormView.swift in Sources */,
+				779835DB2E8BBD9C001BB441 /* HelpView.swift in Sources */,
 				AEF2DF35244766E400D1482D /* MomentView.swift in Sources */,
 				77CA154A2689A97600A2A18A /* ScrollDownAnimationView.swift in Sources */,
 				775AA3A02E39221A0044CCF9 /* IssueDisplayService+ContinueReading.swift in Sources */,
