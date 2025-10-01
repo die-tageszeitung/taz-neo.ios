@@ -96,7 +96,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
   let cellIdentifier: String = "CoachmarkCell"
   
   private let controlsContainer = UIView()
-   
+  
   private func setupPageControl() {
     pageControl.hidesForSinglePage = true
     pageControl.isUserInteractionEnabled = true
@@ -233,11 +233,12 @@ extension HelpView {
     maskLayer.path = nil
     line.path = nil
     guard let idx = collectionView.index,
-          let item = items.valueAt(idx) else { return }
+          let item = items.valueAt(idx),
+    let targetView = item.targetView else { return }
     
     //    textWidthConstraint?.constant = bounds.size.width * 0.75
     
-    var tFrame = targetFrame(tv: item.targetView, isCircleCutout: item.isCircleCutout)?.asCenteredSquare() ?? .zero
+    let tFrame = targetFrame(tv: targetView, isCircleCutout: item.isCircleCutout, circleCutoutInsetAdjustment: item.circleCutoutInsetAdjustment)?.asCenteredSquare() ?? .zero
     
     let path = CGMutablePath()
     path.addRect(bounds)
@@ -271,14 +272,16 @@ extension HelpView {
   // MARK: - Layout
   
   
-  private func targetFrame(tv: UIView?, isCircleCutout: Bool = false) -> CGRect? {
+  private func targetFrame(tv: UIView?, isCircleCutout: Bool = false, circleCutoutInsetAdjustment: CGFloat? = nil) -> CGRect? {
     guard let tv = tv,
           tv.superview != nil,
           let window = UIWindow.keyWindow else { return nil }
     guard tv.isDescendant(of: window) else { return nil }
     
+    let inset = circleCutoutInsetAdjustment ?? -8.0
+    
     var frame = isCircleCutout
-    ? tv.frame.insetBy(dx: -8.0, dy: -8.0)
+    ? tv.frame.insetBy(dx: inset, dy: inset)
     : tv.frame
     
     var superview = tv.superview

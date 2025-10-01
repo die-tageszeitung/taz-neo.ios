@@ -134,10 +134,11 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
                               text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
                               isCircleCutout: true,
                               targetView: self.viewModeButton)
+      itm.circleCutoutInsetAdjustment = -14.0
       let itm2 = CoachmarkItem(title:"Willkommen in der taz neo App!",
                                text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
                                isCircleCutout: false,
-                               targetView: self.collectionView)
+                               targetView: nil)
       let itm3 = CoachmarkItem(title:"Home",
                                text: "Hier finden Sie die Ausgaben",
                                isCircleCutout: true,
@@ -154,7 +155,7 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
                                text: "Hier finden Sie die Einstellungen",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(3))
-      
+      itm6.circleCutoutInsetAdjustment = -12.0
       let itm8 = CoachmarkItem(title:"Ende",
                                text: "Hier gibts nichts mehr zu sehen!",
                                isCircleCutout: false,
