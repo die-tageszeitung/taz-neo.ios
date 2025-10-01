@@ -15,11 +15,13 @@ public class CoachmarkItem {
   var isCircleCutout: Bool
   var circleCutoutInsetAdjustment: CGFloat?
   var targetView: UIView?
+  var contentView: UIView?
   
-  init(title: String, text: String, isCircleCutout: Bool, targetView: UIView?) {
+  init(title: String, text: String, isCircleCutout: Bool = false, circleCutoutInsetAdjustment:CGFloat? = nil, targetView: UIView? = nil) {
     self.title = title
     self.text = text
     self.isCircleCutout = isCircleCutout
+    self.circleCutoutInsetAdjustment = circleCutoutInsetAdjustment
     self.targetView = targetView
   }
 }

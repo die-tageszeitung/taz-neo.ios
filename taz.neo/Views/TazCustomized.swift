@@ -12,17 +12,20 @@ import NorthLib
 public extension ButtonControl {
   
   @discardableResult
-  func tazX(_ isUpdate:Bool = false) -> Self{
-    return self.circleIconButton(isUpdate, symbol: "xmark")
+  func tazX(_ isUpdate:Bool = false, isPermanentDark: Bool = false) -> Self{
+    return self.circleIconButton(isUpdate,
+                                 symbol: "xmark",
+                                 isPermanentDark: isPermanentDark)
   }
   
   @discardableResult
-  func circleIconButton(_ isUpdate:Bool = false, symbol: String? = nil) -> Self {
+  func circleIconButton(_ isUpdate:Bool = false, symbol: String? = nil, isPermanentDark: Bool = false) -> Self {
     guard let bv = self as? Button<ImageView> else { return self }
-    bv.buttonView.imageView.tintColor = Const.SetColor.ios(.secondaryLabel).color
-    bv.buttonView.color = Const.SetColor.taz2(.closeX).color
-    bv.buttonView.activeColor = Const.SetColor.taz2(.closeX).color.withAlphaComponent(0.5)
-    bv.layer.backgroundColor = Const.SetColor.taz2(.closeX_background).color.cgColor
+    bv.buttonView.imageView.tintColor
+    = Const.SetColor.ios(.secondaryLabel).color(isPermanentDark)
+    bv.buttonView.color = Const.SetColor.taz2(.closeX).color(isPermanentDark)
+    bv.buttonView.activeColor = Const.SetColor.taz2(.closeX).color(isPermanentDark).withAlphaComponent(0.5)
+    bv.layer.backgroundColor = Const.SetColor.taz2(.closeX_background).color(isPermanentDark).cgColor
     if isUpdate ==  true { return self }
     let circleRadius: CGFloat = 30.0
     bv.buttonView.pinAspect = false

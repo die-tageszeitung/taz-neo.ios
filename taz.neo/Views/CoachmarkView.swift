@@ -11,6 +11,7 @@ final class CoachmarkView: UIView {
   }
   
   var targetView: UIView?
+  var contentView: UIView?
   var alternativeTarget: (UIImage, [UIView], [CGPoint])?
   
   var item: CoachmarkItem? {
@@ -21,7 +22,7 @@ final class CoachmarkView: UIView {
   private let titleLabel = UILabel()
   private let subLabel = UILabel()
   
-  private lazy var textLayer: UIView = {
+  lazy var textLayer: UIView = {
     let wrapper = UIView()
     titleLabel.americanTypewriter(size: 32).white().centerText()
     subLabel.contentFont().white().centerText()
@@ -74,12 +75,19 @@ final class CoachmarkView: UIView {
   // MARK: - Configure / Reset
   
   func configure() {
-    
+    contentView?.removeFromSuperview()
     self.targetView = item?.targetView
     //        self.alternativeTarget = alternativeTarget
     
     titleLabel.text = item?.title
     subLabel.text = item?.text
+    
+    if let cv = item?.contentView {
+      contentView = cv
+      addSubview(cv)
+      pin(cv.top, to: titleLabel.bottom)
+      pin(cv, to: textLayer, exclude: .top)
+    }
     
     // Reset alternativeTargetViews
     alternativeTargetImageViews.forEach { $0.removeFromSuperview() }

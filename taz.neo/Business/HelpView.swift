@@ -31,11 +31,11 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     return l
   }()
   
-  private lazy var closeButton: UIImageView = {
-    let iv = UIImageView(image: UIImage(named: "close")?.withRenderingMode(.alwaysOriginal))
-    iv.isUserInteractionEnabled = true
-    iv.accessibilityLabel = "Schliessen"
-    return iv
+  private lazy var closeButton: UIView = {
+    let xButton = Button<ImageView>()
+    xButton.tazX(isPermanentDark: true)
+    xButton.onPress {[weak self] _ in self?.onCloseHandler?() }
+    return xButton
   }()
   
   private var onCloseHandler: (() -> ())?
@@ -53,30 +53,39 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     self.onCloseHandler = closure
   }
   
+  var currentCoachmarkView: CoachmarkView? {
+    guard let idx = collectionView.index,
+          let cv = (collectionView.view(at: idx) as? CoachmarkView) else { return nil }
+    return cv
+  }
+    
+#warning("Required? multiple times?")
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    guard let cv = currentCoachmarkView else { return }
+    updateCustomLayout(view: cv)
+  }
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
     self.layer.mask = maskLayer
     self.backgroundColor = .black.withAlphaComponent(0.8)
-    
-    addSubview(closeButton)
-    pin(closeButton.right, to: right, dist: -10.0)
-    pin(closeButton.top, to: topGuide(), dist: 10.0)
-    
-    closeButton.onTapping { [weak self] _ in self?.onCloseHandler?() }
     
     collectionView.relativeSpacing = 0.0
     collectionView.relativePageWidth = 1.0
     collectionView.showsHorizontalScrollIndicator = false
     
     _ = self.collectionView.onDisplay {[weak self] (idx, v, isFromScroll) in
-      print("HELP: ondisplay id: \(idx) view: \(v) fromScroll: \(isFromScroll)")
+      let itm = self?.items.valueAt(idx)
+      print("HELP: ondisplay id: \(idx) view: \(v) fromScroll: \(isFromScroll), item: \(itm?.title ?? "-")")
       self?.updateControls(currentPage: idx)
-      self?.updateCustomLayout()
-      //      (v?.mainView as? CoachmarkView)?.updateCustomLayout()
+      if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? CoachmarkView {
+        self?.updateCustomLayout(view: cv)
+      }
     }
-    self.collectionView.viewProvider { idx, view in
+    self.collectionView.viewProvider {[weak self] idx, view in
       let cv = view as? CoachmarkView ?? CoachmarkView()
-      cv.item = self.items.valueAt(idx)
+      cv.item = self?.items.valueAt(idx)
       return cv
     }
     layer.addSublayer(line)
@@ -86,6 +95,11 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     addSubview(collectionView)
     pin(collectionView, to: self)
     collectionView.index = 0
+    
+    addSubview(closeButton)
+    pin(closeButton.right, to: right, dist: -10.0)
+    pin(closeButton.top, to: topGuide(), dist: 10.0)
+    
     setupPageControl()
   }
   
@@ -199,23 +213,21 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
   
   // MARK: - Navigation
   private func goToPrevious() {
-    collectionView.index? -= 1
+    guard let idx = collectionView.index,
+            idx > 0 else { return }
+    collectionView.scrollto(idx - 1, animated: true)
   }
   
   private func goToNextOrClose() {
-    if collectionView.index ?? 0 < items.count - 1 {
-      collectionView.index? += 1    }
+    guard let idx = collectionView.index else { return }
+    if idx < items.count - 1 {
+      collectionView.scrollto(idx + 1, animated: true)
+    }
     else {
       onCloseHandler?()
     }
   }
-  
-#warning("Required? multiple times?")
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    updateCustomLayout()
-  }
-  
+    
   private func updateControls(currentPage: Int) {
     pageControl.currentPage = currentPage
     prevLabel.alpha = (currentPage == 0) ? 0.3 : 1.0
@@ -229,12 +241,17 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
 
 
 extension HelpView {
-  func updateCustomLayout() {
-    maskLayer.path = nil
+  func updateCustomLayout(view: CoachmarkView) {
+    print("HelpView: updateCustomLayout for \(view.item?.title ?? "-"))")
     line.path = nil
-    guard let idx = collectionView.index,
-          let item = items.valueAt(idx),
-    let targetView = item.targetView else { return }
+    
+    guard let item = view.item,
+          let targetView = item.targetView else {
+      let path = CGMutablePath()
+      path.addRect(bounds)
+      maskLayer.path = path
+      return
+    }
     
     //    textWidthConstraint?.constant = bounds.size.width * 0.75
     
@@ -254,13 +271,13 @@ extension HelpView {
     //    if alternativeTarget == nil {
     let linePath = UIBezierPath()
     linePath.move(to: tFrame.center)
-    //      linePath.addLine(to: textLayer.center)
+    linePath.addLine(to: view.textLayer.center)
     linePath.addLine(to: self.center)
     
     let lineMaskPath = CGMutablePath()
     lineMaskPath.addRect(bounds)
     lineMaskPath.addRect(tFrame)
-    //      lineMaskPath.addRect(textLayer.frame)
+    lineMaskPath.addRect(view.textLayer.frame)
     lineMask.fillRule = .evenOdd
     lineMask.path = lineMaskPath
     

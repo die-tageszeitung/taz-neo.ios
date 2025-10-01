@@ -127,42 +127,113 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
     return views
   }
   
+  var issueStatusSymbols: UIView? {
+    let wrapper = UIView()
+    let label1  = UILabel("Heruntergeladen – Die Ausgabe ist vollständig gespeichert und auch offline verfügbar.")
+    let icon1 = UIImageView(image: UIImage(named: "checkmark")?.withRenderingMode(.alwaysOriginal))
+    let label2  = UILabel("Weitere Daten erforderlich – Um die Ausgabe zu lesen, müssen noch Inhalte nachgeladen werden.")
+    let icon2 = UIImageView(image: UIImage(named: "download")?.withRenderingMode(.alwaysOriginal))
+    let label3  = UILabel("Wird geladen – Die Ausgabe lädt gerade herunter.")
+    let icon3 = UIImageView(image: UIImage(named: "downloading")?.withRenderingMode(.alwaysOriginal))
+    let label4  = UILabel("Weitelesen – Springen Sie direkt an die Stelle, an der Sie zuletzt aufgehört haben.")
+    let icon4 = UIImageView(image: UIImage(named: "bookmark")?.withRenderingMode(.alwaysOriginal))
+    
+    label1.contentFont(size: Const.Size.SmallerFontSize).white()
+    label2.contentFont(size: Const.Size.SmallerFontSize).white()
+    label3.contentFont(size: Const.Size.SmallerFontSize).white()
+    label4.contentFont(size: Const.Size.SmallerFontSize).white()
+    
+    wrapper.addSubview(label1)
+    wrapper.addSubview(icon1)
+    wrapper.addSubview(label2)
+    wrapper.addSubview(icon2)
+    wrapper.addSubview(label3)
+    wrapper.addSubview(icon3)
+    wrapper.addSubview(label4)
+    wrapper.addSubview(icon4)
+    
+    pin(icon1.left, to: wrapper.left)
+    pin(label1.left, to: icon1.right, dist: 9.0)
+    pin(icon2.left, to: wrapper.left)
+    pin(label2.left, to: icon1.right, dist: 9.0)
+    pin(icon3.left, to: wrapper.left)
+    pin(label3.left, to: icon1.right, dist: 9.0)
+    pin(icon4.left, to: wrapper.left)
+    pin(label4.left, to: icon1.right, dist: 9.0)
+    
+    pin(label1.right, to: wrapper.right)
+    pin(label2.right, to: wrapper.right)
+    pin(label3.right, to: wrapper.right)
+    pin(label4.right, to: wrapper.right)
+    
+    pin(label1.top, to: wrapper.top, dist: 24.0)
+    pin(label2.top, to: label1.bottom, dist: 8.0)
+    pin(label3.top, to: label2.bottom, dist: 8.0)
+    pin(label4.top, to: label3.bottom, dist: 8.0)
+    pin(label4.bottom, to: wrapper.bottom)
+    
+    icon1.pinSize(CGSize(width: 24.0, height: 24.0))
+    icon2.pinSize(CGSize(width: 24.0, height: 24.0))
+    icon3.pinSize(CGSize(width: 24.0, height: 24.0))
+    icon4.pinSize(CGSize(width: 24.0, height: 24.0))
+    
+    pin(icon1.top, to: label1.top)
+    pin(icon2.top, to: label2.top)
+    pin(icon3.top, to: label3.top)
+    pin(icon4.top, to: label4.top)
+    
+    return wrapper
+  }
+  
   var items: [CoachmarkItem] {
     get {
-      let tabbarItems = self.tabbarItems
-      let itm = CoachmarkItem(title:"Willkommen in der taz neo App!",
-                              text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
-                              isCircleCutout: true,
-                              targetView: self.viewModeButton)
-      itm.circleCutoutInsetAdjustment = -14.0
-      let itm2 = CoachmarkItem(title:"Willkommen in der taz neo App!",
-                               text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
-                               isCircleCutout: false,
-                               targetView: nil)
-      let itm3 = CoachmarkItem(title:"Home",
-                               text: "Hier finden Sie die Ausgaben",
+      let tabbarItems = self.tabbarItems     
+      
+      let wellcomeItem = CoachmarkItem(title:"Willkommen in der taz App!",
+                                       text: "Entdecken Sie die digitale Ausgabe der taz. Blättern Sie durch die Zeitung, speichern Sie Artikel und lassen Sie sich Texte vorlesen.")
+      
+      let viewModeItem = CoachmarkItem(title:"Ansichtssache",
+                                       text: "Wechseln Sie zwischen App- und Zeitungsansicht, sowie  Karussell- oder Kachel-Layout oder springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
+                                       isCircleCutout: true,
+                                       circleCutoutInsetAdjustment: -14.0,
+                                       targetView: self.viewModeButton)
+      
+      let issueStatus = CoachmarkItem(title:"Symbole in der Ausgabenübersicht",
+                                      text: "")
+      issueStatus.contentView = self.issueStatusSymbols
+      if isHomeTiles == false {
+        issueStatus.targetView = self.downloadButton.indicator
+        issueStatus.isCircleCutout = true
+      }
+      
+      
+      let home = CoachmarkItem(title:"Home",
+                               text: "Hier gelangen Sie jederzeit zurück zur Startseite und bei erneutem Tap zur aktuellen Ausgabe.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(0))
-      let itm4 = CoachmarkItem(title:"Leseliste",
-                               text: "Hier finden Sie Ihre Lesezeichen",
+      let bookmarks = CoachmarkItem(title:"Leseliste",
+                               text: "Hier finden Sie Ihre gespeicherten Artikel.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(1))
-      let itm5 = CoachmarkItem(title:"Suche",
-                               text: "Hier finden Sie die Suche",
+      let search = CoachmarkItem(title:"Suche",
+                               text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten, Namen oder Autor:innen.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(2))
-      let itm6 = CoachmarkItem(title:"Einstellungen",
-                               text: "Hier finden Sie die Einstellungen",
-                               isCircleCutout: true,
-                               targetView: tabbarItems.valueAt(3))
-      itm6.circleCutoutInsetAdjustment = -12.0
-      let itm8 = CoachmarkItem(title:"Ende",
-                               text: "Hier gibts nichts mehr zu sehen!",
-                               isCircleCutout: false,
-                               targetView: self.collectionView)
-      return [itm, itm2, itm3, itm4, itm5, itm6, itm8]
+      
+      let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
+      
+      let helpItem = CoachmarkItem(title:"Hilfe!",
+                                       text: "Über das Fragezeichen-Symbol finden Sie Erklärungen zu den Funktionen auf dem aktuellen Bildschirm.",
+                                   isCircleCutout: true,
+                                   circleCutoutInsetAdjustment: 0,
+                                   targetView: helpButton)
+
+      if isInitialStartup {
+        isInitialStartup = false
+        return [wellcomeItem, viewModeItem, issueStatus, home, bookmarks, search, helpItem]
+      }
+      return [viewModeItem, issueStatus, home, bookmarks, search, helpItem]
     }
-    
   }
 }
 

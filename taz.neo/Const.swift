@@ -269,6 +269,8 @@ public struct Const {
       case tintColor
       case _tertiarySystemBackgroundDown
     }
+    
+    func color(_ useDark: Bool = false) -> UIColor { return useDark ? darkColor : color }
       
     var color : UIColor {
       get{
@@ -276,6 +278,15 @@ public struct Const {
         return UITraitCollection.current.accessibilityContrast == .high 
         ? Defaults.darkMode ? set.darkHigh ?? set.dark : set.lightHigh ?? set.light
         : Defaults.darkMode ? set.dark : set.light
+      }
+    }
+    
+    var darkColor : UIColor {
+      get{
+        let set = colors(name: self)
+        return UITraitCollection.current.accessibilityContrast == .high
+        ? set.darkHigh ?? set.dark
+        : set.dark
       }
     }
     

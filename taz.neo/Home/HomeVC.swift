@@ -27,6 +27,9 @@ class HomeVC: UICollectionViewController {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("isInitialStartup")
+  public var isInitialStartup: Bool
+  
   /// Are we in facsimile mode
   @Default("isHomeTiles")
   public var isHomeTiles: Bool {
