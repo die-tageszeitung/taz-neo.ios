@@ -525,16 +525,3 @@ fileprivate extension SearchSettings {
     return "Suche nach \(s.joined(separator: ", "))"
   }
 }
-
-//extension SearchController: CoachmarkVC {
-//  
-//   public var viewName: String { Coachmarks.Search.typeName }
-//  
-//  public func targetView(for item: CoachmarkItem) -> UIView? {
-//    guard let item = item as? Coachmarks.Search else { return nil }
-//    switch item {
-//      case .filter:
-//        return header.extendedSearchButton
-//    }
-//  }
-//}

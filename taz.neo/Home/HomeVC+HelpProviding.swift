@@ -11,35 +11,8 @@ import UIKit
 
 
 extension HomeVC: HelpProviding{
-  var viewName: String {
-    return "Home"
-  }
-  
-  func targetView(for item: CoachmarkItem) -> UIView? {
-    return nil
-  }
-  
-  func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-    return nil
-  }
-  
-  func openHelp() {
-    CoachmarksBusiness.shared.showHelp(sender: self)
-  }
-  
-  var tabbarItems: [UIView] {
-    var views: [UIView] = []
-    if let tabBar = self.tabBarController?.tabBar {
-      for (index, view) in tabBar.subviews.enumerated() {
-        if let control = view as? UIControl {
-          views.append(control)
-        }
-      }
-    }
-    return views
-  }
-    
-  var issueStatusSymbols: UIView? {
+  ///Helper for Icon Help
+  fileprivate var issueStatusSymbols: UIView? {
     let wrapper = UIView()
     let label1  = UILabel("Heruntergeladen: Die Ausgabe ist vollständig geladen und offline verfügbar.")
     let icon1 = UIImageView(image: UIImage(named: "checkmark")?.withRenderingMode(.alwaysOriginal))
@@ -97,20 +70,33 @@ extension HomeVC: HelpProviding{
     return wrapper
   }
   
-  var items: [CoachmarkItem] {
+  ///Helper for Tabbar Items
+  fileprivate var tabbarItems: [UIView] {
+    var views: [UIView] = []
+    if let tabBar = self.tabBarController?.tabBar {
+      for (_, view) in tabBar.subviews.enumerated() {
+        if let control = view as? UIControl {
+          views.append(control)
+        }
+      }
+    }
+    return views
+  }
+
+  var items: [HelpItem] {
     get {
       let tabbarItems = self.tabbarItems
       
-      let wellcomeItem = CoachmarkItem(title:"Willkommen in der taz App!",
+      let wellcomeItem = HelpItem(title:"Willkommen in der taz App!",
                                        text: "Entdecken Sie die digitale Ausgabe der taz. Blättern Sie durch die Zeitung, speichern Sie Artikel und lassen Sie sich Texte vorlesen.")
             
-      let viewModeItem = CoachmarkItem(title:"Ansichtssache",
+      let viewModeItem = HelpItem(title:"Ansichtssache",
                                        text: "Wechseln Sie zwischen App- und Zeitungsansicht, sowie  Karussell- oder Kachel-Layout oder springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
                                        targetView: self.viewModeButton)
       
-      let issueStatus = CoachmarkItem(title:"Symbole in der Ausgabenübersicht",
+      let issueStatus = HelpItem(title:"Symbole in der Ausgabenübersicht",
                                       text: "")
       issueStatus.contentView = self.issueStatusSymbols
       if isHomeTiles == false {
@@ -118,33 +104,33 @@ extension HomeVC: HelpProviding{
         issueStatus.isCircleCutout = true
       }
     
-      let calendar = CoachmarkItem(title:"Datumsauswahl",
+      let calendar = HelpItem(title:"Datumsauswahl",
                                text: "Hier können Sie Ausgaben bis 2011 nach Datum aufrufen. Artikel aus noch älteren Ausgaben finden Sie über die Suche.",
                                isCircleCutout: true,
                                targetView: calenderImageView)
       
-      let home = CoachmarkItem(title:"Home",
+      let home = HelpItem(title:"Home",
                                text: "Wenn Sie hier tippen, gelangen Sie jederzeit zurück zur Startseite. Bei erneutem Tipp springt die Ansicht zur aktuellen Ausgabe.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(0))
-      let bookmarks = CoachmarkItem(title:"Leseliste",
+      let bookmarks = HelpItem(title:"Leseliste",
                                text: "Hier finden Sie Ihre gespeicherten Artikel.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(1))
-      let search = CoachmarkItem(title:"Suche",
+      let search = HelpItem(title:"Suche",
                                text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten, Namen oder Autor:innen.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(2))
       
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
       
-      let helpItem = CoachmarkItem(title:"Hilfe!",
+      let helpItem = HelpItem(title:"Hilfe!",
                                        text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um Erklärungen zu den Funktionen des jeweiligen Bildschirms zu sehen.\nProbieren Sie die Hilfe auch auf einem anderen Bildschirm aus.",
                                    isCircleCutout: true,
                                    circleCutoutInsetAdjustment: 0,
                                    targetView: helpButton)
 
-      let scrollItem = CoachmarkItem(title:"Ausgaben durchstöbern",
+      let scrollItem = HelpItem(title:"Ausgaben durchstöbern",
                                        text: "Wischen Sie auf den Ausgaben nach rechts und links um zu älteren oder neueren Ausgaben zu kommen.")
       if let img = UIImage(name: "arrowshape.left.arrowshape.right"){
         let wrapper = UIView()
@@ -164,7 +150,7 @@ extension HomeVC: HelpProviding{
       }
       
       
-      let homeMenuItem = CoachmarkItem(title:"Für Profis: das Kontextmenü",
+      let homeMenuItem = HelpItem(title:"Für Profis: das Kontextmenü",
                                        text: "Tippen Sie länger auf eine Ausgabe, um das Kontextmenü mit weiteren nützlichen Funktionen zu öffnen.")
       if let img = UIImage(named: "Img-HomeMenu"){
         let view = UIImageView(image: img)

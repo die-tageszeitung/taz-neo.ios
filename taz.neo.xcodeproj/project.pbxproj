@@ -66,8 +66,6 @@
 		77459FD52D0A4FC200129592 /* ArticleDB+SaveErrorhandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77459FD42D0A4FB200129592 /* ArticleDB+SaveErrorhandling.swift */; };
 		77459FD62D0A4FC200129592 /* ArticleDB+SaveErrorhandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77459FD42D0A4FB200129592 /* ArticleDB+SaveErrorhandling.swift */; };
 		774BBAFB2A821DAC0017039D /* FeederContext+AppUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */; };
-		774C27412BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */; };
-		774C27422BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */; };
 		774C27442BA05A7C00835BB9 /* Tom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27432BA05A7C00835BB9 /* Tom.swift */; };
 		774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27452BA05BA800835BB9 /* VirtualArticle.swift */; };
 		774C27482BA05C4500835BB9 /* CoachmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* CoachmarkView.swift */; };
@@ -406,7 +404,6 @@
 		773E74BF2D55234A00570E46 /* VirtualIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualIssue.swift; sourceTree = "<group>"; };
 		77459FD42D0A4FB200129592 /* ArticleDB+SaveErrorhandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArticleDB+SaveErrorhandling.swift"; sourceTree = "<group>"; };
 		774BBAFA2A821DAC0017039D /* FeederContext+AppUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeederContext+AppUpdate.swift"; sourceTree = "<group>"; };
-		774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoachmarksBusiness.swift; sourceTree = "<group>"; };
 		774C27432BA05A7C00835BB9 /* Tom.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tom.swift; sourceTree = "<group>"; };
 		774C27452BA05BA800835BB9 /* VirtualArticle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VirtualArticle.swift; sourceTree = "<group>"; };
 		774C27472BA05C4500835BB9 /* CoachmarkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoachmarkView.swift; sourceTree = "<group>"; };
@@ -696,9 +693,7 @@
 			isa = PBXGroup;
 			children = (
 				779835DC2E8BE194001BB441 /* HelpSlideCell.swift */,
-				779835D92E8BBD94001BB441 /* HelpView.swift */,
 				777607E92CE64FC70023D3EF /* StoreBusiness.swift */,
-				774C27402BA05A7100835BB9 /* CoachmarksBusiness.swift */,
 				77E5E1BB292D772200611148 /* Javascript.swift */,
 				777048AA27B3B077007164A0 /* NotificationBusiness.swift */,
 				77B993D72AC406F900C7D832 /* Rating.swift */,
@@ -762,6 +757,7 @@
 				770544702637FE3D0051F12C /* ContentToolbar.swift */,
 				774C27472BA05C4500835BB9 /* CoachmarkView.swift */,
 				AE0A4D0223F429D800C44625 /* HeaderView.swift */,
+				779835D92E8BBD94001BB441 /* HelpView.swift */,
 				773D564126145E8500B42FEF /* InfoToast.swift */,
 				779EF0CF2A03A16200D6A626 /* InfoToaster.swift */,
 				AE4AA2B723F6BEC400EAFE78 /* LoadingView.swift */,
@@ -1415,7 +1411,6 @@
 				773E74BC2D55219800570E46 /* ArticleExportDialogue.swift in Sources */,
 				77001DD32CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */,
 				AE5131C12AFBCADB002289E8 /* GraphQlSession.swift in Sources */,
-				774C27422BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,
 				AE5131C22AFBCADB002289E8 /* AppOverlay.swift in Sources */,
 				AE5131C32AFBCADB002289E8 /* TazTextView.swift in Sources */,
 				AE5131C42AFBCADB002289E8 /* InfoToast.swift in Sources */,
@@ -1553,7 +1548,6 @@
 				77EF789E2E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
-				774C27412BA05A7100835BB9 /* CoachmarksBusiness.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,

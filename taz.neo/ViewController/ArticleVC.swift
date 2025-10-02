@@ -415,25 +415,6 @@ extension ArticleVC {
   }
 }
 
-//extension ArticleVC: CoachmarkVC {
-//  
-//  public var viewName: String { Coachmarks.Article.typeName }
-//  
-//  public func targetView(for item: CoachmarkItem) -> UIView? {
-//    guard let item = item as? Coachmarks.Article else { return nil }
-//    
-//    switch item {
-//      case .audio:
-//        return playButton.buttonView
-//      case .share:
-//        return shareButton.buttonView
-//      case .font:
-//        return textSettingsButton.buttonView
-//    }
-//  }
-//}
-
-
 extension ArticleVC {
   private static var dialogAlreadyShown = false
   

@@ -443,26 +443,3 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
 
 } // SectionVC
-
-//extension SectionVC: CoachmarkVC {
-//  public var viewName: String { Coachmarks.Section.typeName }
-//  
-//  public func targetView(for item: CoachmarkItem) -> UIView? {
-//    if let item = item as? Coachmarks.Section {
-//      switch item {
-//        case .slider:
-//          return slider?.button
-//        case .swipe:
-//          return currentView as? UIView
-//      }
-//    }
-//    return nil
-//  }
-//  
-//  public func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])? {
-//    guard index ?? 0 > 0,
-//          let item = item as? Coachmarks.Section,
-//          item == .swipe else { return nil }
-//    return (UIImage(named: "cm-swipe")?.withRenderingMode(.alwaysOriginal), [], []) as? (UIImage, [UIView], [CGPoint]) ?? nil
-//  }
-//}

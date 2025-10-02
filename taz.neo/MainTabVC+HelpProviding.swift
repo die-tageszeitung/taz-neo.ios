@@ -12,8 +12,52 @@ import NorthLib
 /// every VC that wants to offer help implements this protocol
 protocol HelpProviding where Self: UIViewController {
   /// called when the global help button is tapped
-  func openHelp()
-  var items: [CoachmarkItem] { get }
+  var items: [HelpItem] { get }
+  func onDisplay(idx: Int, isClosing: Bool)
+}
+
+extension HelpProviding {
+  
+  func onDisplay(idx: Int, isClosing: Bool){}
+  
+  func openHelp(){
+    guard let window = UIApplication.shared.delegate?.window else { return }
+    
+    ///show layer
+      let helpView = HelpView()
+    helpView.onDisplay {[weak self] idx in
+      self?.onDisplay(idx: idx, isClosing: false)
+    }
+      helpView.items = self.items
+      helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
+      
+      helpView.alpha = 0.0
+      window?.addSubview(helpView)
+      
+      UIView.animate(withDuration: 0.7,
+                     delay: 0,
+                     options: UIView.AnimationOptions.curveEaseInOut,
+                     animations: {
+        helpView.alpha = 1.0
+                     }, completion: { [weak self] (_) in
+                      if helpView.isTopmost == false {
+                        window?.bringSubviewToFront(helpView)
+                      }
+                     })
+      helpView.onClose {[weak self]  in
+        UIView.animate(withDuration: 0.7,
+                       delay: 0,
+                       options: UIView.AnimationOptions.curveEaseInOut,
+                       animations: {
+          helpView.alpha = 0.0
+                       }, completion: {(_) in
+//                         helpView.targetView = nil
+                         helpView.removeFromSuperview()
+                
+                        })
+      }
+  }
+  
 }
 
 /// MARK: - extension to provide Base functionality for Help
@@ -54,6 +98,25 @@ extension MainTabVC {
   }
 }
 
+public class HelpItem {
+  var title: String
+  var text: String
+  var isCircleCutout: Bool
+  var circleCutoutInsetAdjustment: CGFloat?
+  var targetView: UIView?
+  var contentView: UIView?
+
+  
+  init(title: String, text: String, isCircleCutout: Bool = false, circleCutoutInsetAdjustment:CGFloat? = nil, targetView: UIView? = nil) {
+    self.title = title
+    self.text = text
+    self.isCircleCutout = isCircleCutout
+    self.circleCutoutInsetAdjustment = circleCutoutInsetAdjustment
+    self.targetView = targetView
+  }
+}
+
+
 fileprivate extension MainTabVC {
   func currentVisibleHelpController() -> HelpProviding? {
       if let nav = selectedViewController as? UINavigationController {
@@ -63,3 +126,28 @@ fileprivate extension MainTabVC {
       }
   }
 }
+/**
+ 
+ Todo
+ 
+ header.extendedSearchButton
+ 
+ 
+ Coachmarks.Section {
+ //      switch item {
+ //        case .slider:
+ //          return slider?.button
+ //        case .swipe:
+ //          return currentView as? UIView
+
+ ArticleVC
+ case .audio:
+//        return playButton.buttonView
+//      case .share:
+//        return shareButton.buttonView
+//      case .font:
+//        return textSettingsButton.buttonView
+ 
+ 
+ 
+ */

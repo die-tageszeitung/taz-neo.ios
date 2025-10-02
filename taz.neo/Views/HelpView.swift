@@ -38,9 +38,16 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     return xButton
   }()
   
+  fileprivate var onDisplayClosure: ((Int)->())? = nil
+   
+  /// Define closure to call when a cell is newly displayed
+  public func onDisplay(closure: ((Int)->())?) {
+    onDisplayClosure = closure
+  }
+  
   private var onCloseHandler: (() -> ())?
   
-  var items: [CoachmarkItem] = []{
+  var items: [HelpItem] = []{
     didSet {
       pageControl.numberOfPages = items.count
       collectionView.count = items.count
@@ -76,6 +83,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     collectionView.showsHorizontalScrollIndicator = false
     
     _ = self.collectionView.onDisplay {[weak self] (idx, v, isFromScroll) in
+      self?.onDisplayClosure?(idx)
       let itm = self?.items.valueAt(idx)
       print("HELP: ondisplay id: \(idx) view: \(v) fromScroll: \(isFromScroll), item: \(itm?.title ?? "-")")
       self?.updateControls(currentPage: idx)

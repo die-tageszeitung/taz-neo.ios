@@ -20,7 +20,7 @@ import NorthLib
 /// Eine UICollectionViewCell-Variante des bisherigen CoachmarkView.
 /// Funktionalität (Maskierung, Close, Layout) bleibt weitgehend erhalten.
 class CoachmarkCell: UICollectionViewCell {
-  var item: CoachmarkItem? {
+  var item: HelpItem? {
     didSet {
       guard let item = item else { return }
       self.targetView = item.targetView

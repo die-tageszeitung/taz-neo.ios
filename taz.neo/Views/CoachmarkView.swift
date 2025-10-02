@@ -14,7 +14,7 @@ final class CoachmarkView: UIView {
   var contentView: UIView?
   var alternativeTarget: (UIImage, [UIView], [CGPoint])?
   
-  var item: CoachmarkItem? {
+  var item: HelpItem? {
     didSet {
       configure()}
   }
