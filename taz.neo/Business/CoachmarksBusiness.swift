@@ -135,8 +135,8 @@ public class CoachmarksBusiness: DoesLog{
     count = 0
   }
   
-  func showHelp(sender: HelpEnabled){
-    guard let helpSender = sender as? HelpEnabled else { return }
+  func showHelp(sender: HelpProviding){
+    guard let helpSender = sender as? HelpProviding else { return }
     guard let window = UIApplication.shared.delegate?.window else { return }
     
     ///show layer
