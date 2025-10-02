@@ -62,44 +62,10 @@ extension MainTabVC {
           return selectedViewController as? HelpEnabled
       }
   }
-//  
-//  private func updateHelpButtonVisibility(animated: Bool) {
-//      let shouldShow = currentVisibleHelpController() != nil
-//
-//    
-//    let targetAlpha: CGFloat = shouldShow ? 1.0 : 0.0
-//
-//      if animated {
-//        self.helpButton.toogleAnimation(to: targetAlpha)
-//          UIView.animate(withDuration: 0.25) {
-//              self.helpButton.alpha = targetAlpha
-//          }
-//      } else {
-//          helpButton.alpha = targetAlpha
-//      }
-//  }
-//  
-//  // MARK: - UITabBarControllerDelegate
-//  func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-//      attachNavDelegateIfNeeded()
-//      updateHelpButtonVisibility(animated: true)
-//  }
-//  private func attachNavDelegateIfNeeded() {
-//      if let nav = selectedViewController as? UINavigationController {
-//          nav.delegate = self
-//      }
-//  }
-//
-//  // MARK: - UINavigationControllerDelegate
-//  func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-//      updateHelpButtonVisibility(animated: true)
-//  }
-//  
-  
 }
 
 
-extension HomeVC: HelpEnabled, CoachmarkVC{
+extension HomeVC: HelpEnabled{
   var viewName: String {
     return "Home"
   }
@@ -278,7 +244,7 @@ extension HomeVC: HelpEnabled, CoachmarkVC{
 }
 
 
-extension ArticleVC: HelpEnabled, CoachmarkVC{
+extension ArticleVC: HelpEnabled{
   public var viewName: String {
     return "Home"
   }

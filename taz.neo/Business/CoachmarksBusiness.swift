@@ -114,17 +114,6 @@ extension Coachmarks.Search {
 */
 
 
-public protocol CoachmarkVC where Self: UIViewController {
-  var viewName: String { get }
-  func targetView(for item: CoachmarkItem) -> UIView?
-  
-  /// Alternative Target: an image and optional a List of Locations where the Target should be placed
-  /// - Parameter item: CoachmarkItem to get target for
-  /// - Returns: Icon and a List ob target points if applicable
-  /// if no ist of target points given, the image will be places under the Coachmark text
-  func target(for item: CoachmarkItem) -> (UIImage, [UIView], [CGPoint])?
-}
-
 public class CoachmarksBusiness: DoesLog{
   
   @Default("showHelp")
@@ -146,21 +135,11 @@ public class CoachmarksBusiness: DoesLog{
     count = 0
   }
   
-  var currentActiveCMVC: CoachmarkVC?
-  
-  func showHelp(sender: CoachmarkVC){
+  func showHelp(sender: HelpEnabled){
     guard let helpSender = sender as? HelpEnabled else { return }
     guard let window = UIApplication.shared.delegate?.window else { return }
-    guard currentActiveCMVC == nil else { return }
-    currentActiveCMVC = sender
     
     ///show layer
-    onMain {[weak self] in
-      if self?.currentActiveCMVC?.isVisible == false {
-        self?.currentActiveCMVC = nil
-        return
-     }
-      
       let helpView = HelpView()
       helpView.items = helpSender.items
       helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
@@ -177,11 +156,6 @@ public class CoachmarksBusiness: DoesLog{
                       if helpView.isTopmost == false {
                         window?.bringSubviewToFront(helpView)
                       }
-                       if self?.currentActiveCMVC?.isVisible == false {
-//                        helpView.targetView = nil
-                         helpView.removeFromSuperview()
-                        self?.currentActiveCMVC = nil
-                      }
                      })
       helpView.onClose {[weak self]  in
         UIView.animate(withDuration: 0.7,
@@ -194,10 +168,7 @@ public class CoachmarksBusiness: DoesLog{
                          helpView.removeFromSuperview()
                 
                         })
-        self?.currentActiveCMVC = nil
       }
-    }
   }
-  
   static let shared = CoachmarksBusiness()
 }
