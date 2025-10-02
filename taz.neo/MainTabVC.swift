@@ -377,7 +377,7 @@ extension MainTabVC: NavigationDelegate, UINavigationControllerDelegate {
   }
   
   fileprivate func updateHelpButtonVisibility(for viewController: UIViewController) {
-    let show = viewController is HelpPresentable
+    let show = viewController is HelpEnabled
     show ? helpButton.showAnimated() : helpButton.hideAnimated()
   }
 }

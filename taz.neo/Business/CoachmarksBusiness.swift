@@ -149,7 +149,7 @@ public class CoachmarksBusiness: DoesLog{
   var currentActiveCMVC: CoachmarkVC?
   
   func showHelp(sender: CoachmarkVC){
-    guard let helpSender = sender as? HelpPresentable else { return }
+    guard let helpSender = sender as? HelpEnabled else { return }
     guard let window = UIApplication.shared.delegate?.window else { return }
     guard currentActiveCMVC == nil else { return }
     currentActiveCMVC = sender

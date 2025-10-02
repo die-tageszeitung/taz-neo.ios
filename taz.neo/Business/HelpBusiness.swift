@@ -10,7 +10,7 @@ import UIKit
 import NorthLib
 
 /// every VC that wants to offer help implements this protocol
-protocol HelpPresentable where Self: UIViewController {
+protocol HelpEnabled where Self: UIViewController {
   /// called when the global help button is tapped
   func openHelp()
   var items: [CoachmarkItem] { get }
@@ -55,11 +55,11 @@ extension MainTabVC {
 
 extension MainTabVC {
 //  // MARK: - Sichtbarkeits-Logik
-  private func currentVisibleHelpController() -> HelpPresentable? {
+  private func currentVisibleHelpController() -> HelpEnabled? {
       if let nav = selectedViewController as? UINavigationController {
-          return nav.visibleViewController as? HelpPresentable
+          return nav.visibleViewController as? HelpEnabled
       } else {
-          return selectedViewController as? HelpPresentable
+          return selectedViewController as? HelpEnabled
       }
   }
 //  
@@ -99,7 +99,7 @@ extension MainTabVC {
 }
 
 
-extension HomeVC: HelpPresentable, CoachmarkVC{
+extension HomeVC: HelpEnabled, CoachmarkVC{
   var viewName: String {
     return "Home"
   }
@@ -278,7 +278,7 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
 }
 
 
-extension ArticleVC: HelpPresentable, CoachmarkVC{
+extension ArticleVC: HelpEnabled, CoachmarkVC{
   public var viewName: String {
     return "Home"
   }
