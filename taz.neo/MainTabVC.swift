@@ -19,6 +19,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
+  @Default("highlightHelpButton")
+  public var highlightHelpButton: Bool
+
+  @Default("showHelp")
+  public var showHelp: Bool
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     TazAppEnvironment.sharedInstance.nextWindowSize = size
@@ -76,6 +82,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    if showHelp && highlightHelpButton {
+      helpButton.highlightOnce(with: Const.Colors.ciColor, width: 8.0)
+    }
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
     TazAppEnvironment.openedFromNotificationCenter = nil
     gotoArticleInIssue(with: data)
@@ -498,4 +507,185 @@ fileprivate extension UIImage {
             return self
         }
     }
+}
+
+fileprivate extension UIView {
+  private func pulsate() {
+
+    self.layer.shadowColor = UIColor.white.cgColor
+    self.layer.shadowOpacity = 1.0
+    self.layer.shadowOffset = CGSize(width: 0, height: 0)
+    self.layer.shadowRadius = 0
+    self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds, cornerRadius: self.layer.cornerRadius).cgPath
+    let duration = 15.0
+    let pulseAnimation = CAKeyframeAnimation(keyPath: "shadowRadius")
+    pulseAnimation.values =   [0, 20,   4,   30,   4,   20,   4,    30,   4,   0]
+    pulseAnimation.keyTimes = [0, 0.15, 0.3, 0.4,  0.5, 0.6,  0.7,  0.8,  0.9, 1]
+    pulseAnimation.duration = duration
+    pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    pulseAnimation.isRemovedOnCompletion = true  // Animation wird nach Ende entfernt
+    self.layer.add(pulseAnimation, forKey: "pulsateShadow")
+    
+    // sanft Schatten zurücksetzen
+    DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.8)
+      self.layer.shadowOpacity = 0.0
+      self.layer.shadowRadius = 0
+      CATransaction.commit()
+    }
+  }
+  private func pulsate1() {
+
+    self.layer.shadowColor = UIColor.white.cgColor
+    self.layer.shadowOpacity = 1.0
+    self.layer.shadowOffset = CGSize(width: 0, height: 0)
+    self.layer.shadowRadius = 8
+    self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds, cornerRadius: self.layer.cornerRadius).cgPath
+    
+    let pulseAnimation = CAKeyframeAnimation(keyPath: "shadowRadius")
+    pulseAnimation.values = [14, 40, 14, 40, 14, 30]
+    pulseAnimation.keyTimes = [0, 0.2, 0.4, 0.6, 0.8, 1]
+    pulseAnimation.duration = 5.0
+    pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    pulseAnimation.isRemovedOnCompletion = true  // Animation wird nach Ende entfernt
+    self.layer.add(pulseAnimation, forKey: "pulsateShadow")
+    
+    // sanft Schatten zurücksetzen
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.3)
+      self.layer.shadowOpacity = 0.0
+      self.layer.shadowRadius = 0
+      CATransaction.commit()
+    }
+  }
+  
+  func highlight(with color: UIColor = .white, width: CGFloat = 1.0) {
+    let radius = min(bounds.width, bounds.height) / 2
+    let center = CGPoint(x: bounds.midX, y: bounds.midY)
+    
+    let circlePath = UIBezierPath(
+      arcCenter: center,
+      radius: radius,
+      startAngle: -.pi/2,
+      endAngle: 1.5 * .pi,
+      clockwise: true
+    )
+    
+    let circleLayer = CAShapeLayer()
+    circleLayer.path = circlePath.cgPath
+    circleLayer.strokeColor = color.cgColor
+    circleLayer.fillColor = UIColor.clear.cgColor
+    circleLayer.lineWidth = width
+    circleLayer.strokeStart = 0
+    circleLayer.strokeEnd = 0
+    self.layer.addSublayer(circleLayer)
+    
+    let stepDuration: CFTimeInterval = 1.0
+    let now = CACurrentMediaTime()
+    
+    // fill from 12>12
+    let fill1 = CABasicAnimation(keyPath: "strokeEnd")
+    fill1.fromValue = 0
+    fill1.toValue = 1
+    fill1.duration = stepDuration
+    fill1.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    fill1.beginTime = now
+    fill1.fillMode = .forwards
+    fill1.isRemovedOnCompletion = false
+    circleLayer.add(fill1, forKey: "fill1")
+    
+    // remove fill from 12>12
+    let erase = CABasicAnimation(keyPath: "strokeStart")
+    erase.fromValue = 0
+    erase.toValue = 1
+    erase.duration = stepDuration
+    erase.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    erase.beginTime = now + stepDuration
+    erase.fillMode = .forwards
+    erase.isRemovedOnCompletion = true
+    circleLayer.add(erase, forKey: "erase")
+    
+    // fill from 12>12
+    let fill2 = CABasicAnimation(keyPath: "strokeEnd")
+    fill2.fromValue = 0
+    fill2.toValue = 1
+    fill2.duration = stepDuration
+    fill2.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    fill2.beginTime = now + 2 * stepDuration
+    fill2.fillMode = .forwards
+    fill2.isRemovedOnCompletion = false
+    circleLayer.add(fill2, forKey: "fill2Clockwise")
+    
+    //Fade-Out
+    let fade = CABasicAnimation(keyPath: "opacity")
+    fade.fromValue = 1
+    fade.toValue = 0
+    fade.duration = 0.8
+    fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    fade.beginTime = now + 4 * stepDuration
+    fade.fillMode = .forwards
+    fade.isRemovedOnCompletion = false
+    circleLayer.add(fade, forKey: "fade")
+    
+    // finally remove layer
+    DispatchQueue.main.asyncAfter(deadline: .now() + 4 * stepDuration + 0.8) { [weak self] in
+      circleLayer.removeFromSuperlayer()
+//      self?.pulsate()
+    }
+  }
+  
+  func highlightOnce(with color: UIColor = .white, width: CGFloat = 1.0) {
+    let radius = min(bounds.width, bounds.height) / 2
+    let center = CGPoint(x: bounds.midX, y: bounds.midY)
+    
+    let circlePath = UIBezierPath(
+      arcCenter: center,
+      radius: radius,
+      startAngle: -.pi/2,
+      endAngle: 1.5 * .pi,
+      clockwise: true
+    )
+    
+    let circleLayer = CAShapeLayer()
+    circleLayer.path = circlePath.cgPath
+    circleLayer.strokeColor = color.cgColor
+    circleLayer.fillColor = UIColor.clear.cgColor
+    circleLayer.lineWidth = width
+    circleLayer.strokeStart = 0
+    circleLayer.strokeEnd = 0
+    self.layer.addSublayer(circleLayer)
+    
+    let stepDuration: CFTimeInterval = 1.0
+    let now = CACurrentMediaTime()
+    
+    // fill from 12>12
+    let fill1 = CABasicAnimation(keyPath: "strokeEnd")
+    fill1.fromValue = 0
+    fill1.toValue = 1
+    fill1.duration = stepDuration
+    fill1.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    fill1.beginTime = now
+    fill1.fillMode = .forwards
+    fill1.isRemovedOnCompletion = false
+    circleLayer.add(fill1, forKey: "fill1")
+    
+    //Fade-Out
+    let fade = CABasicAnimation(keyPath: "opacity")
+    fade.fromValue = 1
+    fade.toValue = 0
+    fade.duration = stepDuration
+    fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    fade.beginTime = now + stepDuration
+    fade.fillMode = .forwards
+    fade.isRemovedOnCompletion = false
+    circleLayer.add(fade, forKey: "fade")
+    
+    // finally remove layer
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2 * stepDuration + 0.2) { [weak self] in
+      circleLayer.removeFromSuperlayer()
+      self?.pulsate()
+    }
+  }
 }

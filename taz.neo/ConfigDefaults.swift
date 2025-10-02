@@ -42,6 +42,8 @@ private let configValues = [
   "isFacsimile" : "false",
   // initial startup
   "isInitialStartup" : "true",
+  "highlightHelpButton" : "true",
+  "showHelp" : "true",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out
@@ -82,10 +84,6 @@ private let configValues = [
   "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
-  // coachmark defaults
-  "showHelp" : "true",
-  "cmLastPrio": "1",
-  "cmSessionCount": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",

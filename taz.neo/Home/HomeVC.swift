@@ -66,6 +66,14 @@ class HomeVC: UICollectionViewController {
   let downloadButton = DownloadStatusButton()
   let dateLabel = CrossfadeLabel()
   
+  lazy var calenderImageView: UIImageView = {
+    let iv = UIImageView(image: UIImage(named: "calendar")?.withRenderingMode(.alwaysOriginal))
+    iv.contentMode = .scaleAspectFit
+    iv.pinSize(CGSize(width: 24, height: 24))
+    iv.centerY()
+    return iv
+  }()
+  
   let gridItemSpacing:CGFloat = UIWindow.shortSide > 320 ? 30.0 : 20.0
   
   var cellSize : CGSize = .zero
@@ -102,6 +110,7 @@ class HomeVC: UICollectionViewController {
     let v = UIView()
     v.addSubview(downloadButton)
     v.addSubview(dateLabel)
+    v.addSubview(calenderImageView)
     statusWrapperWidthConstraint = v.pinWidth(0)
     dateLabel.contentFont()
     dateLabel.textAlignment = .center
@@ -109,11 +118,17 @@ class HomeVC: UICollectionViewController {
     downloadButton.color = Const.SetColor.HomeText.dynamicColor
     dateLabel.textColor = Const.SetColor.HomeText.dynamicColor
     dateLabel.centerX()
+    calenderImageView.centerY(dist: -4)
+    pin(calenderImageView.right, to: dateLabel.left, dist: -16.0)
     v.pinHeight(28)
     
     dateLabel.onTapping {[weak self] _ in
       self?.showDatePicker()
     }
+    calenderImageView.onTapping {[weak self] _ in
+      self?.showDatePicker()
+    }
+    
     downloadButton.onTapping { [weak self] _ in
       guard let idx = self?.centerIndex,
             let data = self?.service.cellData(for: idx) else { return }

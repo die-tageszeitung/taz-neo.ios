@@ -82,10 +82,19 @@ final class CoachmarkView: UIView {
     titleLabel.text = item?.title
     subLabel.text = item?.text
     
-    if let cv = item?.contentView {
+    if let cv = item?.contentView,
+       (item?.text.isEmpty ?? true) == true {
       contentView = cv
+      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
-      pin(cv.top, to: titleLabel.bottom)
+      pin(cv.top, to: titleLabel.bottom, dist: 22)
+      pin(cv, to: textLayer, exclude: .top)
+    }
+    else  if let cv = item?.contentView {
+      contentView = cv
+      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
+      addSubview(cv)
+      pin(cv.top, to: subLabel.bottom, dist: 22)
       pin(cv, to: textLayer, exclude: .top)
     }
     
@@ -107,6 +116,7 @@ final class CoachmarkView: UIView {
     closeClosure = nil
     targetView = nil
     alternativeTarget = nil
+    item?.contentView?.removeFromSuperview()
     item = nil
     titleLabel.text = nil
     subLabel.text = nil

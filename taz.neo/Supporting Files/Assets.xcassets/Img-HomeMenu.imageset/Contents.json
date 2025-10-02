@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "HomeMenu.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

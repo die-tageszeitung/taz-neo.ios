@@ -41,15 +41,16 @@ extension MainTabVC {
     
     button.alpha = 0.0
     button.addTarget(self, action: #selector(helpTapped), for: .touchUpInside)
-    
+    button.backgroundColor = Const.Colors.darkPrimaryBG
     return button
   }
   
   @objc private func helpTapped() {
-        if let helpVC = currentVisibleHelpController() {
-            helpVC.openHelp()
-        }
+    if let helpVC = currentVisibleHelpController() {
+      helpVC.openHelp()
+      highlightHelpButton = false
     }
+  }
 }
 
 extension MainTabVC {
@@ -126,16 +127,16 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
     }
     return views
   }
-  
+    
   var issueStatusSymbols: UIView? {
     let wrapper = UIView()
-    let label1  = UILabel("Heruntergeladen – Die Ausgabe ist vollständig gespeichert und auch offline verfügbar.")
+    let label1  = UILabel("Heruntergeladen: Die Ausgabe ist vollständig geladen und offline verfügbar.")
     let icon1 = UIImageView(image: UIImage(named: "checkmark")?.withRenderingMode(.alwaysOriginal))
-    let label2  = UILabel("Weitere Daten erforderlich – Um die Ausgabe zu lesen, müssen noch Inhalte nachgeladen werden.")
+    let label2  = UILabel("Noch nicht komplett: Tippen Sie auf die Ausgabe, um fehlende Inhalte automatisch zu laden.")
     let icon2 = UIImageView(image: UIImage(named: "download")?.withRenderingMode(.alwaysOriginal))
-    let label3  = UILabel("Wird geladen – Die Ausgabe lädt gerade herunter.")
+    let label3  = UILabel("Wird geladen: Die Ausgabe lädt gerade herunter.")
     let icon3 = UIImageView(image: UIImage(named: "downloading")?.withRenderingMode(.alwaysOriginal))
-    let label4  = UILabel("Weitelesen – Springen Sie direkt an die Stelle, an der Sie zuletzt aufgehört haben.")
+    let label4  = UILabel("Weitelesen: Tippen Sie auf dieses Symbol, um an der zuletzt gelesenen Stelle weiterzumachen.")
     let icon4 = UIImageView(image: UIImage(named: "bookmark")?.withRenderingMode(.alwaysOriginal))
     
     label1.contentFont(size: Const.Size.SmallerFontSize).white()
@@ -166,7 +167,7 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
     pin(label3.right, to: wrapper.right)
     pin(label4.right, to: wrapper.right)
     
-    pin(label1.top, to: wrapper.top, dist: 24.0)
+    pin(label1.top, to: wrapper.top, dist: 0)
     pin(label2.top, to: label1.bottom, dist: 8.0)
     pin(label3.top, to: label2.bottom, dist: 8.0)
     pin(label4.top, to: label3.bottom, dist: 8.0)
@@ -174,14 +175,14 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
     
     icon1.pinSize(CGSize(width: 24.0, height: 24.0))
     icon2.pinSize(CGSize(width: 24.0, height: 24.0))
-    icon3.pinSize(CGSize(width: 24.0, height: 24.0))
+    icon3.pinSize(CGSize(width: 20.0, height: 20.0))
     icon4.pinSize(CGSize(width: 24.0, height: 24.0))
     
     pin(icon1.top, to: label1.top)
     pin(icon2.top, to: label2.top)
     pin(icon3.top, to: label3.top)
     pin(icon4.top, to: label4.top)
-    
+    wrapper.pinWidth(350, priority: .defaultLow)
     return wrapper
   }
   
@@ -191,7 +192,7 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
       
       let wellcomeItem = CoachmarkItem(title:"Willkommen in der taz App!",
                                        text: "Entdecken Sie die digitale Ausgabe der taz. Blättern Sie durch die Zeitung, speichern Sie Artikel und lassen Sie sich Texte vorlesen.")
-      
+            
       let viewModeItem = CoachmarkItem(title:"Ansichtssache",
                                        text: "Wechseln Sie zwischen App- und Zeitungsansicht, sowie  Karussell- oder Kachel-Layout oder springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
@@ -205,10 +206,14 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
         issueStatus.targetView = self.downloadButton.indicator
         issueStatus.isCircleCutout = true
       }
-      
+    
+      let calendar = CoachmarkItem(title:"Datumsauswahl",
+                               text: "Hier können Sie Ausgaben bis 2011 nach Datum aufrufen. Artikel aus noch älteren Ausgaben finden Sie über die Suche.",
+                               isCircleCutout: true,
+                               targetView: calenderImageView)
       
       let home = CoachmarkItem(title:"Home",
-                               text: "Hier gelangen Sie jederzeit zurück zur Startseite und bei erneutem Tap zur aktuellen Ausgabe.",
+                               text: "Wenn Sie hier tippen, gelangen Sie jederzeit zurück zur Startseite. Bei erneutem Tipp springt die Ansicht zur aktuellen Ausgabe.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(0))
       let bookmarks = CoachmarkItem(title:"Leseliste",
@@ -223,16 +228,51 @@ extension HomeVC: HelpPresentable, CoachmarkVC{
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
       
       let helpItem = CoachmarkItem(title:"Hilfe!",
-                                       text: "Über das Fragezeichen-Symbol finden Sie Erklärungen zu den Funktionen auf dem aktuellen Bildschirm.",
+                                       text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um Erklärungen zu den Funktionen des jeweiligen Bildschirms zu sehen.\nProbieren Sie die Hilfe auch auf einem anderen Bildschirm aus.",
                                    isCircleCutout: true,
                                    circleCutoutInsetAdjustment: 0,
                                    targetView: helpButton)
 
+      let scrollItem = CoachmarkItem(title:"Ausgaben durchstöbern",
+                                       text: "Wischen Sie auf den Ausgaben nach rechts und links um zu älteren oder neueren Ausgaben zu kommen.")
+      if let img = UIImage(name: "arrowshape.left.arrowshape.right"){
+        let wrapper = UIView()
+        let view = UIImageView(image: img)
+        if isHomeTiles {
+          view.transform = CGAffineTransform(rotationAngle: .pi / 2)
+          scrollItem.text = "Wischen Sie auf den Ausgaben von unten nach oben um zu älteren Ausgaben zu kommen."
+        }
+        view.tintColor = .white
+        view.contentMode = .center
+        view.pinWidth(80)
+        wrapper.addSubview(view)
+        pin(view.top, to: wrapper.top, dist: 18)
+        pin(view.bottom, to: wrapper.bottom)
+        view.centerX(dist: 20)
+        scrollItem.contentView = wrapper
+      }
+      
+      
+      let homeMenuItem = CoachmarkItem(title:"Für Profis: das Kontextmenü",
+                                       text: "Tippen Sie länger auf eine Ausgabe, um das Kontextmenü mit weiteren nützlichen Funktionen zu öffnen.")
+      if let img = UIImage(named: "Img-HomeMenu"){
+        let view = UIImageView(image: img)
+        view.contentMode = .scaleAspectFit
+        view.pinHeight(170)
+        homeMenuItem.contentView = view
+      }
+      
+      var items = [viewModeItem, issueStatus, scrollItem, home, bookmarks, search, helpItem, homeMenuItem]
+      
+      if isHomeTiles == false {
+        items.insert(calendar, at: 2)///after issueStatus
+      }
+      
       if isInitialStartup {
         isInitialStartup = false
-        return [wellcomeItem, viewModeItem, issueStatus, home, bookmarks, search, helpItem]
+        items.insert(wellcomeItem, at: 0)
       }
-      return [viewModeItem, issueStatus, home, bookmarks, search, helpItem]
+      return items
     }
   }
 }
