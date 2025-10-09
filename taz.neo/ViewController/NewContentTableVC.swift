@@ -285,6 +285,26 @@ extension NewContentTableVC {
   }
 }
 
+/// Mark: Accessors for Help Provider
+extension NewContentTableVC {
+  var momentImageView: UIView? {
+    return header.imageView
+  }
+  
+  var listenButton: UIView? {
+    return header.listenLabel
+  }  
+  var collapseIcon: UIView? {
+    return header.collapseIcon
+  }
+  var firstSectionHeaderLabel: UIView? {
+    return (tableView.headerView(forSection: 0) as? ContentTableHeaderFooterView)?.label
+  }
+  var firstSectionHeaderChevron: UIView? {
+    return (tableView.headerView(forSection: 0) as? ContentTableHeaderFooterView)?.chevron
+  }
+}
+
 ///actions
 extension NewContentTableVC {
   /// Define closure to call when a content label has been pressed

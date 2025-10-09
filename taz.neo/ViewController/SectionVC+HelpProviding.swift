@@ -34,12 +34,46 @@ extension SectionVC: HelpProviding{
         swiping.topImageView = iv
       }
       
-      return [menu, swiping]
+      let menuMoment = HelpItem(title:"Wieder zur Übersicht",
+                               text: "Klicken Sie auf das kleine Titelbild, um zur Übersicht der Ausgaben zurückzukehren. Oder nutzen Sie den \"Zurück\"-Knopf unten links",
+                                targetView: contentTable?.momentImageView)
+      
+      let menuListen = HelpItem(title:"Alle Artikel anhören",
+                               text: "Tippen Sie hier, um sich die gesamte Ausgabe von Anfang bis Ende vorlesen zu lassen.",
+                                targetView: contentTable?.listenButton)
+      
+      let showAll = HelpItem(title:"Alle Artikel anzeigen",
+                               text: "Tippen Sie auf den Doppelpfeil, um die Liste aller Artikel dieser Ausgabe zu öffnen oder wieder zu schließen.",
+                             isCircleCutout: true,
+                                targetView: contentTable?.collapseIcon)
+      #warning("table is not initialized yet, neet getter on first access")
+      let ressortOpen = HelpItem(title:"Themenbereich öffnen",
+                               text: "Tippen Sie auf den Namen des Bereichs, um alle Artikel in der Übersicht dazu zu sehen.",
+                                targetView: contentTable?.firstSectionHeaderLabel)
+      
+      let ressortExpand = HelpItem(title:"Themenbereich aufklappen",
+                               text: "Tippen Sie auf den kleinen Pfeil, um die Artikel in diesem Bereich anzuzeigen.\n  Sie sehen dann alle zum Ressort gehörigen Artikel",
+                                   isCircleCutout: true,
+                                targetView: contentTable?.firstSectionHeaderChevron)
+
+      
+      return [menu, menuMoment, menuListen, showAll, ressortOpen, ressortExpand, swiping]
     }
   }
+  
   func onDisplay(idx: Int, isClosing: Bool) {
-    print("Help Item \(idx+1) \(isClosing ? "closing" : "displaying")")
+    if idx > 0 && slider?.isOpen == false {
+      helpDidOpenSlider = true
+      slider?.open(animated: false)
+    }
+    if idx == 0 && helpDidOpenSlider {
+      helpDidOpenSlider = false
+      slider?.close(animated: false)
+    }
+      
     
+    #warning("on end display fehlt!")///slider was open...do close
+    print("Help Item \(idx+1) \(isClosing ? "closing" : "displaying")")
   }
 }
 
