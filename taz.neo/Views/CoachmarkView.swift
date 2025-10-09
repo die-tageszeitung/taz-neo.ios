@@ -12,7 +12,6 @@ final class CoachmarkView: UIView {
   
   var targetView: UIView?
   var contentView: UIView?
-  var alternativeTarget: (UIImage, [UIView], [CGPoint])?
   
   var item: HelpItem? {
     didSet {
@@ -21,6 +20,8 @@ final class CoachmarkView: UIView {
   
   private let titleLabel = UILabel()
   private let subLabel = UILabel()
+  
+  private var topImageView: UIImageView?
   
   lazy var textLayer: UIView = {
     let wrapper = UIView()
@@ -40,7 +41,6 @@ final class CoachmarkView: UIView {
 
   
   private var textWidthConstraint: NSLayoutConstraint?
-  private var alternativeTargetImageViews: [UIImageView] = []
   
   // MARK: - Init
   
@@ -56,13 +56,6 @@ final class CoachmarkView: UIView {
   // MARK: - Setup
   
   private func setup() {
-    //        addSubview(background)
-    //        pin(background, to: self)
-    //        background.layer.mask = maskLayer
-    //        background.backgroundColor = .black.withAlphaComponent(0.8)
-    
-    
-    
     addSubview(textLayer)
     textLayer.centerAxis()
     textLayer.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
@@ -75,15 +68,18 @@ final class CoachmarkView: UIView {
   // MARK: - Configure / Reset
   
   func configure() {
+    topImageView?.removeFromSuperview()
+    topImageView = nil
+    
     contentView?.removeFromSuperview()
     self.targetView = item?.targetView
-    //        self.alternativeTarget = alternativeTarget
     
     titleLabel.text = item?.title
     subLabel.text = item?.text
-    
+
     if let cv = item?.contentView,
        (item?.text.isEmpty ?? true) == true {
+      /// ONLY Content View - no Text
       contentView = cv
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
@@ -98,30 +94,22 @@ final class CoachmarkView: UIView {
       pin(cv, to: textLayer, exclude: .top)
     }
     
-    // Reset alternativeTargetViews
-    alternativeTargetImageViews.forEach { $0.removeFromSuperview() }
-    alternativeTargetImageViews.removeAll()
-    
-    if let at = alternativeTarget {
-      for _ in 0..<at.1.count {
-        let iv = UIImageView(image: at.0)
-        iv.contentMode = .scaleAspectFit
-        addSubview(iv)
-        alternativeTargetImageViews.append(iv)
-      }
+    if let iv = item?.topImageView {
+      topImageView = iv
+      iv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
+      addSubview(iv)
+      iv.centerX(dist: -10)
+      pin(iv.bottom, to: textLayer.top, dist: -12)
     }
   }
   
   func reset() {
     closeClosure = nil
     targetView = nil
-    alternativeTarget = nil
     item?.contentView?.removeFromSuperview()
     item = nil
     titleLabel.text = nil
     subLabel.text = nil
-    alternativeTargetImageViews.forEach { $0.removeFromSuperview() }
-    alternativeTargetImageViews.removeAll()
   }
 }
 

@@ -159,6 +159,7 @@ extension HomeVC: HelpProviding{
         homeMenuItem.contentView = view
       }
       
+      
       var items = [viewModeItem, issueStatus, scrollItem, home, bookmarks, search, helpItem, homeMenuItem]
       
       if isHomeTiles == false {

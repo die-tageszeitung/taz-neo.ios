@@ -11,7 +11,7 @@ import NorthLib
 
 /// A horizontally scrolling help/onboarding UICollectionView with page control.
 /// Self-contained: no need for a view controller.
-class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
   private let collectionView = PageCollectionView()
   private let pageControl = UIPageControl()
@@ -115,8 +115,6 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     fatalError("init(coder:) has not been implemented")
   }
   
-  let cellIdentifier: String = "CoachmarkCell"
-  
   private let controlsContainer = UIView()
   
   private func setupPageControl() {
@@ -175,31 +173,6 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UI
     // Layout Container
     controlsContainer.centerX()
     pin(controlsContainer.bottom, to: self.bottomGuide(),  dist: -80)
-  }
-  
-  // MARK: - DataSource
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return items.count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView,
-                      willDisplay cell: UICollectionViewCell,
-                      forItemAt indexPath: IndexPath) {
-    if let coachmarkCell = cell as? CoachmarkCell {
-      coachmarkCell.updateCustomLayout()
-    }
-  }
-  
-  func collectionView(_ collectionView: UICollectionView,
-                      cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath)
-    guard let helpCell = cell as? CoachmarkCell,
-          let itm = items.valueAt(indexPath.item)
-    else {
-      return cell
-    }
-    helpCell.item = itm
-    return helpCell
   }
   
   
@@ -276,7 +249,6 @@ extension HelpView {
     maskLayer.fillRule = .evenOdd
     
     // Linien zeichnen
-    //    if alternativeTarget == nil {
     let linePath = UIBezierPath()
     linePath.move(to: tFrame.center)
     linePath.addLine(to: view.textLayer.center)
@@ -291,7 +263,6 @@ extension HelpView {
     
     line.mask = lineMask
     line.path = linePath.cgPath
-    //    }
   }
   
   // MARK: - Layout

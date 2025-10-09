@@ -13,8 +13,8 @@ extension ArticleVC: HelpProviding{
   var items: [HelpItem] {
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
-                               text: "Tippen Sie auf das taz-Logo, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
-                               isCircleCutout: false,
+                          text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
+                          isCircleCutout: true,
                           targetView: slider?.button)
       
 //      Titel: Durch Ressorts blättern
@@ -23,25 +23,67 @@ extension ArticleVC: HelpProviding{
       
       let swiping = HelpItem(title:"Durch Artikel blättern",
                                        text: "Wischen Sie nach links oder rechts, um zum vorigen oder nächsten Artikel zu wechseln.")
-      if let img = UIImage(name: "arrowshape.left.arrowshape.right"){
-        let wrapper = UIView()
-        let view = UIImageView(image: img)
-        view.tintColor = .white
-        view.contentMode = .center
-        view.pinWidth(80)
-        wrapper.addSubview(view)
-        pin(view.top, to: wrapper.top, dist: 18)
-        pin(view.bottom, to: wrapper.bottom)
-        view.centerX(dist: 20)
-        swiping.contentView = wrapper
+      if let img = UIImage(named: "phone-hands-swipe"){
+        let iv = UIImageView(image: img)
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        swiping.topImageView = iv
       }
       
+      let galleryZoom = HelpItem(title:"Bild vergrößern",
+                                       text: "Tippen Sie auf ein Bild, um es im Vollbildmodus zu öffnen. Dort können Sie mit zwei Fingern hineinzoomen.")
+      if let img = UIImage(named: "phone-hands-pinch"){
+        let iv = UIImageView(image: img)
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        galleryZoom.topImageView = iv
+      }
+
       
-      let itm = HelpItem(title:"Willkommen in der taz neo App!",
-                         text: "Hier finden Sie die neuesten Nachrichten und Artikel.",
-                         isCircleCutout: true,
-                         targetView: self.backButton)
-      return [menu, swiping, itm]
+      let gallerySwipe = HelpItem(title:"Bildergalerie",
+                         text: "Wenn im Vollbildmodus kleine Punkte unter dem Bild zu sehen sind, gibt es mehrere Bilder. Wischen Sie nach links oder rechts, um durch die Galerie zu blättern.")
+      
+      if let img = UIImage(named: "phone-hands-swipe"){
+        let iv = UIImageView(image: img)
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        gallerySwipe.topImageView = iv
+      }
+      
+      let toolbarBack = HelpItem(title:"Zurück",
+                         text: "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten direkt zum Startbildschirm.", targetView: backButton)
+  
+      
+      var items = [menu, swiping]
+      
+      if article is VirtualArticle {//TOM's!
+        items.append(toolbarBack)
+        return items
+      }
+      
+      let bookmarkItem = HelpItem(title:"Artikel speichern",
+                            text: "Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.", targetView: bookmarkButton)
+      
+      
+      items.append(contentsOf: [galleryZoom, gallerySwipe, toolbarBack, bookmarkItem])
+      
+      if article?.isShareable == true {
+        items.append(HelpItem(title:"Artikel teilen",
+                              text: "Mit der Teilen-Funktion können Sie den Artikel ganz einfach an andere weiterleiten.", targetView: shareButton))
+      }
+      
+      if article?.canPlayAudio == true {
+        items.append(HelpItem(title:"Artikel anhören",
+                              text: "Tippen Sie auf das Lautsprecher-Symbol, um sich den Artikel vorlesen zu lassen.", targetView: playButton))
+      }
+        
+      items.append(HelpItem(title:"Schriftgröße anpassen",
+                            text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", targetView: textSettingsButton))
+      
+      return items
     }
   }
   func onDisplay(idx: Int, isClosing: Bool) {

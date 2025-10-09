@@ -105,6 +105,7 @@ public class HelpItem {
   var circleCutoutInsetAdjustment: CGFloat?
   var targetView: UIView?
   var contentView: UIView?
+  var topImageView: UIImageView?
 
   
   init(title: String, text: String, isCircleCutout: Bool = false, circleCutoutInsetAdjustment:CGFloat? = nil, targetView: UIView? = nil) {
