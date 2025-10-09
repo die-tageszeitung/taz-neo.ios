@@ -22,7 +22,6 @@ extension SectionVC: HelpProviding{
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
                                text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
-                               isCircleCutout: true,
                           targetView: slider?.button)
       
       let swiping = HelpItem(title:"Durch Ressorts blättern",

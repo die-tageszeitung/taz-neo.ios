@@ -14,7 +14,6 @@ extension ArticleVC: HelpProviding{
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
                           text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
-                          isCircleCutout: true,
                           targetView: slider?.button)
       
 //      Titel: Durch Ressorts blättern
@@ -54,7 +53,7 @@ extension ArticleVC: HelpProviding{
       }
       
       let toolbarBack = HelpItem(title:"Zurück",
-                         text: "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten direkt zum Startbildschirm.", targetView: backButton)
+                         text: "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten, direkt zum Startbildschirm.", isCircleCutout: true, targetView: backButton)
   
       
       var items = [menu, swiping]
@@ -65,23 +64,26 @@ extension ArticleVC: HelpProviding{
       }
       
       let bookmarkItem = HelpItem(title:"Artikel speichern",
-                            text: "Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.", targetView: bookmarkButton)
+                            text: "Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.", isCircleCutout: true, targetView: bookmarkButton)
       
       
       items.append(contentsOf: [galleryZoom, gallerySwipe, toolbarBack, bookmarkItem])
       
       if article?.isShareable == true {
         items.append(HelpItem(title:"Artikel teilen",
-                              text: "Mit der Teilen-Funktion können Sie den Artikel ganz einfach an andere weiterleiten.", targetView: shareButton))
+                              text: "Mit der Teilen-Funktion können Sie den Artikel ganz einfach an andere weiterleiten.", isCircleCutout: true, targetView: shareButton))
       }
       
       if article?.canPlayAudio == true {
         items.append(HelpItem(title:"Artikel anhören",
-                              text: "Tippen Sie auf das Lautsprecher-Symbol, um sich den Artikel vorlesen zu lassen.", targetView: playButton))
+                              text: "Tippen Sie auf das Lautsprecher-Symbol, um sich den Artikel vorlesen zu lassen.", isCircleCutout: true, targetView: playButton))
       }
         
       items.append(HelpItem(title:"Schriftgröße anpassen",
-                            text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", targetView: textSettingsButton))
+                            text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", isCircleCutout: true, targetView: textSettingsButton))
+      
+      items.append(HelpItem(title:"Ressortübersicht öffnen",
+                            text: "Ein Tipp auf den Ressortnamen führt direkt zur Übersicht dieses Ressorts.", targetView: header.titleLabel))
       
       return items
     }

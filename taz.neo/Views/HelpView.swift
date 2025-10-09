@@ -235,8 +235,8 @@ extension HelpView {
     }
     
     //    textWidthConstraint?.constant = bounds.size.width * 0.75
-    
-    let tFrame = targetFrame(tv: targetView, isCircleCutout: item.isCircleCutout, circleCutoutInsetAdjustment: item.circleCutoutInsetAdjustment)?.asCenteredSquare() ?? .zero
+    //?.asCenteredSquare()
+    let tFrame = targetFrame(tv: targetView, isCircleCutout: item.isCircleCutout, circleCutoutInsetAdjustment: item.circleCutoutInsetAdjustment) ?? .zero
     
     let path = CGMutablePath()
     path.addRect(bounds)
@@ -286,7 +286,9 @@ extension HelpView {
       if superview!.superview == nil { break }
       superview = superview!.superview
     }
-    return superview?.convert(frame, to: self)
+    return isCircleCutout
+    ? superview?.convert(frame, to: self).asCenteredSquare()
+    : superview?.convert(frame, to: self)
   }
   
 }
