@@ -83,7 +83,11 @@ extension HomeVC: HelpProviding{
     return views
   }
 
-  var items: [HelpItem] {
+  var lastHelpItemIndex: Int {
+    0
+  }
+  
+  var helpItems: [HelpItem] {
     get {
       let tabbarItems = self.tabbarItems
       

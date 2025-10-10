@@ -132,10 +132,15 @@ class HomeVC: UICollectionViewController {
     downloadButton.onTapping { [weak self] _ in
       guard let idx = self?.centerIndex,
             let data = self?.service.cellData(for: idx) else { return }
-      if let issue = data.issue {
-        self?.downloadButton.indicator.downloadState = .waiting
-        self?.service.download(issueAt: data.date.date, withAudio: false)
+      
+      if self?.downloadButton.indicator.downloadState?.canOpen == true,
+         let issue = data.issue {
+        (self?.parent as? OpenIssueDelegate)?.openIssue(issue, openLast: true)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
+        return
       }
+      self?.downloadButton.indicator.downloadState = .waiting
+      self?.service.download(issueAt: data.date.date, withAudio: false)
     }
     return v
   }()

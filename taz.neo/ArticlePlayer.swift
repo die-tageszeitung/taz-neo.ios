@@ -633,6 +633,8 @@ class ArticlePlayer: DoesLog {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     Usage.xtrack.audio.close()
     userInterface.isErrorState = false
+    (TazAppEnvironment.sharedInstance.rootViewController
+     as? MainTabVC)?.helpButtonPlayerOffset = 0.0
   }
   
   public func play(issue:Issue,

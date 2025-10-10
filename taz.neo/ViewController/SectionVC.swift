@@ -316,6 +316,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         header.title = section.title ?? ""
         header.show(show: false, animated: true)
         toolBar.show(show:false, animated: true)
+        helpButton?.hideAnimated()
         return
       }
     }
@@ -327,6 +328,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     header.show(show: true, animated: true)
     toolBar.show(show:true, animated: true)
+    helpButton?.showAnimated()
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -397,7 +399,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.collectionView?.isHidden = true//??
     }
     else {
-      toolBar.show(show: true, animated: true) 
+      toolBar.show(show: true, animated: true)
     }
   }
   

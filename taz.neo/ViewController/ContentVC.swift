@@ -116,6 +116,9 @@ extension String {
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
+  @Default("showHelp")
+  public var showHelp: Bool
+  
   @Default("multiColumnSnap")
   public var multiColumnSnap: Bool
   
@@ -974,10 +977,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if (ratio < 0) {
         self?.slider?.showMenuImage = true
         if self?.hideOnScroll == false { return }
-        self?.toolBar.show(show: false, animated: true)}
+        self?.toolBar.show(show: false, animated: true)
+        self?.helpButton?.hideAnimated()
+      }
       else {
         self?.slider?.showMenuImage = false
         self?.toolBar.show(show:true, animated: true)
+        self?.helpButton?.showAnimated()
       }
     }
     onDisplay {[weak self]_, _, _  in
@@ -985,6 +991,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if self?.showBarsOnContentChange == true {
         self?.toolBar.show(show:true, animated: true)
         self?.header.show(show: true, animated: true)
+        self?.helpButton?.showAnimated()
       }
       
       if self?.hideOnScroll == false {
@@ -1007,6 +1014,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     displayUrls()
     registerForStyleUpdates()
+  }
+  
+  var helpButton: UIView? {
+    guard showHelp else { return nil }
+    return (TazAppEnvironment.sharedInstance.rootViewController
+     as? MainTabVC)?.helpButton
   }
   
   func persistReadProgress() {}///overwrite in Subclass

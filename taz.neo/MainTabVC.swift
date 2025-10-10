@@ -13,15 +13,29 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var feederContext: FeederContext
   var service: IssueOverviewService
   
-  lazy var helpButton: UIButton = createHelpButton()
+  lazy var helpButton = HelpButton()
+  var helpButtonBottomConstraint: NSLayoutConstraint?
+  var helpButtonDefaultBottomDistance: CGFloat = 0.0
+  
+  var helpButtonPlayerOffset = 0.0 {
+    didSet {
+      guard oldValue != helpButtonPlayerOffset else { return }
+      print("PlayerHeight: \(helpButtonPlayerOffset)")
+      updateHelpButtonBottomConstraint()
+    }
+  }
+  
+  var helpButtonToolbarOffset = 0.0 {
+    didSet {
+      guard oldValue != helpButtonToolbarOffset else { return }
+      updateHelpButtonBottomConstraint()
+    }
+  }
   
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
   
-  @Default("highlightHelpButton")
-  public var highlightHelpButton: Bool
-
   @Default("showHelp")
   public var showHelp: Bool
   
@@ -82,9 +96,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if showHelp && highlightHelpButton {
-      helpButton.highlightOnce(with: Const.Colors.ciColor, width: 8.0)
-    }
+//    if showHelp && highlightHelpButton {
+//      helpButton.highlightOnce(with: Const.Colors.ciColor, width: 8.0)
+//    }
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
     TazAppEnvironment.openedFromNotificationCenter = nil
     gotoArticleInIssue(with: data)
@@ -377,8 +391,12 @@ extension MainTabVC: NavigationDelegate, UINavigationControllerDelegate {
   }
   
   fileprivate func updateHelpButtonVisibility(for viewController: UIViewController) {
-    let show = viewController is HelpProviding
-    show ? helpButton.showAnimated() : helpButton.hideAnimated()
+    guard let ctrl = viewController as? HelpProviding else {
+      helpButton.hideAnimated()
+      return
+    }
+    helpButton.badgeValue = ctrl.newItemsCount
+    helpButton.showAnimated()
   }
 }
 

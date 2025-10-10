@@ -42,8 +42,8 @@ private let configValues = [
   "isFacsimile" : "false",
   // initial startup
   "isInitialStartup" : "true",
-  "highlightHelpButton" : "true",
   "showHelp" : "true",
+  "helpUsedOnce" : "false",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out

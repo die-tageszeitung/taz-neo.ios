@@ -183,6 +183,8 @@
 		77EF78A02E8537A5009B8655 /* HomeVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EF78952E8537A5009B8655 /* HomeVC.swift */; };
 		77EF78A12E8537A5009B8655 /* HomeVC+UICollectionViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EF78982E8537A5009B8655 /* HomeVC+UICollectionViewDataSource.swift */; };
 		77EF78A32E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EF78992E8537A5009B8655 /* HomeVC+UiComponents.swift */; };
+		77F4F1542E98F6AD004AB3FD /* HelpButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F4F1532E98F6A8004AB3FD /* HelpButton.swift */; };
+		77F4F1552E98F6AD004AB3FD /* HelpButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F4F1532E98F6A8004AB3FD /* HelpButton.swift */; };
 		77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */; };
 		94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94487DAB274BCCE10066BCD0 /* AppHelper.swift */; };
 		AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE08C49E2412B66400D41E91 /* ConfigDefaults.swift */; };
@@ -485,6 +487,7 @@
 		77EF78992E8537A5009B8655 /* HomeVC+UiComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeVC+UiComponents.swift"; sourceTree = "<group>"; };
 		77F0D1342742B4E900D3A432 /* addLocalResources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = addLocalResources.sh; sourceTree = "<group>"; };
 		77F0D1392742B58400D3A432 /* LastBuildNumber.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = LastBuildNumber.rb; sourceTree = "<group>"; };
+		77F4F1532E98F6A8004AB3FD /* HelpButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpButton.swift; sourceTree = "<group>"; };
 		77FABFA12A4DD56500FB9EB1 /* ArticlePlayerUI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticlePlayerUI.swift; sourceTree = "<group>"; };
 		94487DAB274BCCE10066BCD0 /* AppHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHelper.swift; sourceTree = "<group>"; };
 		948E40CD2745447500D32CFE /* post-checkout-prototype.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "post-checkout-prototype.sh"; sourceTree = "<group>"; };
@@ -756,6 +759,7 @@
 				770544702637FE3D0051F12C /* ContentToolbar.swift */,
 				774C27472BA05C4500835BB9 /* CoachmarkView.swift */,
 				AE0A4D0223F429D800C44625 /* HeaderView.swift */,
+				77F4F1532E98F6A8004AB3FD /* HelpButton.swift */,
 				779835D92E8BBD94001BB441 /* HelpView.swift */,
 				773D564126145E8500B42FEF /* InfoToast.swift */,
 				779EF0CF2A03A16200D6A626 /* InfoToaster.swift */,
@@ -1395,6 +1399,7 @@
 				AE5131B62AFBCADB002289E8 /* IssueOverviewService.swift in Sources */,
 				AE5131B72AFBCADB002289E8 /* UITests.swift in Sources */,
 				AE5131B82AFBCADB002289E8 /* LoginView.swift in Sources */,
+				77F4F1542E98F6AD004AB3FD /* HelpButton.swift in Sources */,
 				AE5131BA2AFBCADB002289E8 /* SliderTest.swift in Sources */,
 				77791EB62BA0602200E9C0D9 /* CoachmarkView.swift in Sources */,
 				AE5131BB2AFBCADB002289E8 /* TazAppEnvironment.swift in Sources */,
@@ -1449,6 +1454,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77F4F1552E98F6AD004AB3FD /* HelpButton.swift in Sources */,
 				77459FD52D0A4FC200129592 /* ArticleDB+SaveErrorhandling.swift in Sources */,
 				4D308EE52834057200529592 /* SearchResultsTableView.swift in Sources */,
 				775153E02DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,

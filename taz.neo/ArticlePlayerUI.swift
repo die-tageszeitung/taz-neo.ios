@@ -740,16 +740,14 @@ class ArticlePlayerUI: UIView {
         UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) {
           self?.wrapper.alpha = 1.0
           self?.toggleButton.alpha = 1.0
-          if stateChange == true {
-            self?.remainingTimeLabel.alpha = 1.0
-            self?.elapsedTimeLabel.alpha = 1.0
-            self?.backButton.alpha = 1.0
-            self?.forwardButton.alpha = 1.0
-            self?.seekForwardButton.alpha = 1.0
-            self?.seekBackwardButton.alpha = 1.0
-            self?.playNextLabel.alpha = 1.0
-            self?.playNextSwitch.alpha = 1.0
-          }
+          self?.remainingTimeLabel.alpha = 1.0
+          self?.elapsedTimeLabel.alpha = 1.0
+          self?.backButton.alpha = 1.0
+          self?.forwardButton.alpha = 1.0
+          self?.seekForwardButton.alpha = 1.0
+          self?.seekBackwardButton.alpha = 1.0
+          self?.playNextLabel.alpha = 1.0
+          self?.playNextSwitch.alpha = 1.0
         }
       })
     }
@@ -767,6 +765,13 @@ class ArticlePlayerUI: UIView {
           self?.showAnimated()
         }
       }
+    }
+    onMainAfter {[weak self] in
+      guard let self = self else { return }
+      let offset = (self.state == .mini) ? 16.0 : -82.0
+      (TazAppEnvironment.sharedInstance.rootViewController
+       as? MainTabVC)?.helpButtonPlayerOffset
+      = self.frame.size.height + offset
     }
   }
 }

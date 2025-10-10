@@ -18,7 +18,11 @@ import NorthLib
 import UIKit
 
 extension SectionVC: HelpProviding{
-  var items: [HelpItem] {
+  var lastHelpItemIndex: Int {
+    0
+  }
+  
+  var helpItems: [HelpItem] {
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
                                text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
