@@ -47,6 +47,11 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   
   private var onCloseHandler: (() -> ())?
   
+//  func setLastMaxIndex(idx: Int) { NOT WORKING
+//    guard items.count > idx + 1 else { return }
+//    collectionView.index = idx + 1
+//  }
+  
   var items: [HelpItem] = []{
     didSet {
       pageControl.numberOfPages = items.count

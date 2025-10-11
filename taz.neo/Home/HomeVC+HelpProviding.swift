@@ -82,10 +82,6 @@ extension HomeVC: HelpProviding{
     }
     return views
   }
-
-  var lastHelpItemIndex: Int {
-    0
-  }
   
   var helpItems: [HelpItem] {
     get {

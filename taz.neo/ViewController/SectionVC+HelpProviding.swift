@@ -18,10 +18,6 @@ import NorthLib
 import UIKit
 
 extension SectionVC: HelpProviding{
-  var lastHelpItemIndex: Int {
-    0
-  }
-  
   var helpItems: [HelpItem] {
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",

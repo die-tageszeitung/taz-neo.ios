@@ -44,6 +44,11 @@ private let configValues = [
   "isInitialStartup" : "true",
   "showHelp" : "true",
   "helpUsedOnce" : "false",
+  "lastHomeHelpIndex" : "0",
+  "lastSectionHelpIndex" : "0",
+  "lastArticleHelpIndex" : "0",
+  "lastPlayerHelpIndex" : "0",
+  "lastSliderHelpIndex" : "0",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out
@@ -276,31 +281,32 @@ extension Defaults {
 }
 
 fileprivate extension Defaults {
-    /// Retrieves a Boolean value from UserDefaults for the specified key, or returns a fallback value if the key does not exist.
-    /// handle stored Values like UserDefaults.standard.boolForKey
-    /// - Parameters:
-    ///   - key: The key for the value to retrieve.
-    ///   - fallbackIfNotExists: The default Boolean value to return if no value is found for the key.
-    /// - Returns: A Boolean value corresponding to the stored data in UserDefaults.
-    ///            - For NSNumber values, returns `true` for any non-zero value, otherwise `false`.
-    ///            - For String values, returns `true` if the stored string is "YES", "1", or "true" (case-insensitive), otherwise `false`.
-    ///            - Returns `fallbackIfNotExists` if the key is absent or the value cannot be converted to Boolean.
-    func bool(for key: String, _ fallbackIfNotExists: Bool) -> Bool {
-        guard let storedValue = UserDefaults.standard.object(forKey: key) else {
-            return fallbackIfNotExists
-        }
-        
-        // Interpret NSNumber values
-        if let num = storedValue as? NSNumber {
-            return num != 0
-        }
-        
-        // Interpret String values
-        if let str = storedValue as? String {
-            let lowercasedStr = str.lowercased()
-            return lowercasedStr == "1" || lowercasedStr == "yes" || lowercasedStr == "true"
-        }
-        
-        return fallbackIfNotExists
+  /// Retrieves a Boolean value from UserDefaults for the specified key, or returns a fallback value if the key does not exist.
+  /// handle stored Values like UserDefaults.standard.boolForKey
+  /// - Parameters:
+  ///   - key: The key for the value to retrieve.
+  ///   - fallbackIfNotExists: The default Boolean value to return if no value is found for the key.
+  /// - Returns: A Boolean value corresponding to the stored data in UserDefaults.
+  ///            - For NSNumber values, returns `true` for any non-zero value, otherwise `false`.
+  ///            - For String values, returns `true` if the stored string is "YES", "1", or "true" (case-insensitive), otherwise `false`.
+  ///            - Returns `fallbackIfNotExists` if the key is absent or the value cannot be converted to Boolean.
+  func bool(for key: String, _ fallbackIfNotExists: Bool) -> Bool {
+    guard let storedValue = UserDefaults.standard.object(forKey: key) else {
+      return fallbackIfNotExists
     }
+    
+    // Interpret NSNumber values
+    if let num = storedValue as? NSNumber {
+      return num != 0
+    }
+    
+    // Interpret String values
+    if let str = storedValue as? String {
+      let lowercasedStr = str.lowercased()
+      return lowercasedStr == "1" || lowercasedStr == "yes" || lowercasedStr == "true"
+    }
+    
+    return fallbackIfNotExists
+  }
 }
+
