@@ -149,7 +149,6 @@ extension HomeVC: HelpProviding{
         scrollItem.contentView = wrapper
       }
       
-      
       let homeMenuItem = HelpItem(title:"Für Profis: das Kontextmenü",
                                        text: "Tippen Sie länger auf eine Ausgabe, um das Kontextmenü mit weiteren nützlichen Funktionen zu öffnen.")
       if let img = UIImage(named: "Img-HomeMenu"){

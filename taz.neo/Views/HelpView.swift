@@ -13,6 +13,14 @@ import NorthLib
 /// Self-contained: no need for a view controller.
 class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
+  var pageControllBottomOffset: CGFloat = -80.0 {
+    didSet {
+      pageControllBottomOffsetConstraint?.constant = pageControllBottomOffset
+    }
+  }
+  private var pageControllBottomOffsetConstraint: NSLayoutConstraint?
+    
+  
   private let collectionView = PageCollectionView()
   private let pageControl = UIPageControl()
   private let prevLabel = UILabel()
@@ -65,9 +73,9 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     self.onCloseHandler = closure
   }
   
-  var currentCoachmarkView: CoachmarkView? {
+  var currentCoachmarkView: HelpViewCell? {
     guard let idx = collectionView.index,
-          let cv = (collectionView.view(at: idx) as? CoachmarkView) else { return nil }
+          let cv = (collectionView.view(at: idx) as? HelpViewCell) else { return nil }
     return cv
   }
     
@@ -92,12 +100,12 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
       let itm = self?.items.valueAt(idx)
       print("HELP: ondisplay id: \(idx) view: \(v) fromScroll: \(isFromScroll), item: \(itm?.title ?? "-")")
       self?.updateControls(currentPage: idx)
-      if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? CoachmarkView {
+      if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? HelpViewCell {
         self?.updateCustomLayout(view: cv)
       }
     }
     self.collectionView.viewProvider {[weak self] idx, view in
-      let cv = view as? CoachmarkView ?? CoachmarkView()
+      let cv = view as? HelpViewCell ?? HelpViewCell()
       cv.item = self?.items.valueAt(idx)
       return cv
     }
@@ -177,7 +185,8 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     
     // Layout Container
     controlsContainer.centerX()
-    pin(controlsContainer.bottom, to: self.bottomGuide(),  dist: -80)
+    pageControllBottomOffsetConstraint
+    = pin(controlsContainer.bottom, to: self.bottomGuide(),  dist: pageControllBottomOffset)
   }
   
   
@@ -227,7 +236,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
 
 
 extension HelpView {
-  func updateCustomLayout(view: CoachmarkView) {
+  func updateCustomLayout(view: HelpViewCell) {
     print("HelpView: updateCustomLayout for \(view.item?.title ?? "-"))")
     line.path = nil
     

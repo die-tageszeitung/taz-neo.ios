@@ -32,23 +32,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
-  @Default("lastHomeHelpIndex")
-  public var lastHomeHelpIndex: Int
-  @Default("lastSectionHelpIndex")
-  public var lastSectionHelpIndex: Int
-  @Default("lastArticleHelpIndex")
-  public var lastArticleHelpIndex: Int
-  @Default("lastPlayerHelpIndex")
-  public var lastPlayerHelpIndex: Int
-  @Default("lastSliderHelpIndex")
-  public var lastSliderHelpIndex: Int
-  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
-  
-  @Default("showHelp")
-  public var showHelp: Bool
+
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)

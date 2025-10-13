@@ -54,10 +54,11 @@ class HelpButton: UIView {
   }
   
   func handleTap() {
-    if helpUsedOnce == false {
-      helpLabel.removeFromSuperview()
-      bottomConstraint?.constant = 0.0
-    }
+//    if helpUsedOnce == false {
+//      helpLabel.removeFromSuperview()
+//      bottomConstraint?.constant = 0.0
+//    }
+    helpUsedOnce = true
     onTapHelpHandler?()
   }
   

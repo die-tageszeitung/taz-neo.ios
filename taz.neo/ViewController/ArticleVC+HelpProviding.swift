@@ -17,10 +17,6 @@ extension ArticleVC: HelpProviding{
                           text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
                           targetView: slider?.button)
       
-//      Titel: Durch Ressorts blättern
-//      Text: Wischen Sie nach links oder rechts, um zu weiteren Artikeln im Ressort zu gelangen.
-      
-      
       let swiping = HelpItem(title:"Durch Artikel blättern",
                                        text: "Wischen Sie nach links oder rechts, um zum vorigen oder nächsten Artikel zu wechseln.")
       if let img = UIImage(named: "phone-hands-swipe"){
@@ -53,19 +49,42 @@ extension ArticleVC: HelpProviding{
         gallerySwipe.topImageView = iv
       }
       
-      let toolbarBack = HelpItem(title:"Zurück",
-                         text: "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten, direkt zum Startbildschirm.", isCircleCutout: true, targetView: backButton)
-  
+      let isSearchIssue = self.issue is VirtualIssue
+      let isBookmarkIssue = self.issue.isBookmarkIssue
+      let isRegularIssue = !isSearchIssue && !isBookmarkIssue
       
-      var items = [menu, swiping]
+      let backText
+      = isRegularIssue
+      ? "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten, direkt zum Startbildschirm."
+      : isBookmarkIssue
+      ? "Hier geht es zurück zur Leseliste."
+      : "Hier geht es zurück zu den Suchergebnissen."
+      
+      let toolbarBack = HelpItem(title:"Zurück",
+                         text: backText,
+                                 isCircleCutout: true,
+                                 targetView: backButton)
+      
+      var items = [swiping]
+      
+
+      ///Not for Bookmark and Search!
+      if isRegularIssue { items.insert(menu, at: 0) }
       
       if article is VirtualArticle {//TOM's!
         items.append(toolbarBack)
         return items
       }
       
-      let bookmarkItem = HelpItem(title:"Artikel speichern",
-                            text: "Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.", isCircleCutout: true, targetView: bookmarkButton)
+      let bookmarkItem
+      = HelpItem(title: isBookmarkIssue 
+                 ? "Lesezeichen löschen"
+                 : "Artikel speichern",
+                 text: isBookmarkIssue
+                 ? "Tippen Sie auf den gefüllten Stern, um den Artikel von Ihrer Leseliste zu entfernen."
+                 :"Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.",
+                 isCircleCutout: true,
+                 targetView: bookmarkButton)
       
       
       items.append(contentsOf: [galleryZoom, gallerySwipe, toolbarBack, bookmarkItem])
@@ -83,9 +102,11 @@ extension ArticleVC: HelpProviding{
       items.append(HelpItem(title:"Schriftgröße anpassen",
                             text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", isCircleCutout: true, targetView: textSettingsButton))
       
-      items.append(HelpItem(title:"Ressortübersicht öffnen",
-                            text: "Ein Tipp auf den Ressortnamen führt direkt zur Übersicht dieses Ressorts.", targetView: header.titleLabel))
-      
+      if isRegularIssue {
+        items.append(HelpItem(title:"Ressortübersicht öffnen",
+                              text: "Ein Tipp auf den Ressortnamen führt direkt zur Übersicht dieses Ressorts.", targetView: header.titleLabel))
+
+      }
       return items
     }
   }

@@ -1,7 +1,7 @@
 import UIKit
 import NorthLib
 
-final class CoachmarkView: UIView {
+final class HelpViewCell: UIView {
   
   // MARK: - Public API
   
@@ -28,6 +28,7 @@ final class CoachmarkView: UIView {
     titleLabel.americanTypewriter(size: 32).white().centerText()
     subLabel.contentFont().white().centerText()
     titleLabel.numberOfLines = 0
+    titleLabel.lineBreakMode = .byWordWrapping
     subLabel.numberOfLines = 0
     wrapper.addSubview(titleLabel)
     wrapper.addSubview(subLabel)

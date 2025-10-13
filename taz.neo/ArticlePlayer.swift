@@ -25,6 +25,10 @@ class ArticlePlayer: DoesLog {
     userInterface.superview != nil
   }
   
+  public var isMaxiPlayer: Bool {
+    isOpen && userInterface.state == .maxi
+  }
+  
   var ui: UIView? {
     if isOpen == false { return nil }
     return userInterface
@@ -418,7 +422,7 @@ class ArticlePlayer: DoesLog {
   }
   
   private static var _singleton: ArticlePlayer? = nil
-  private lazy var userInterface: ArticlePlayerUI = {
+  lazy var userInterface: ArticlePlayerUI = {
     let v =  ArticlePlayerUI()
     v.onToggle {[weak self] in self?.toggle(origin:.appUi) }
     v.onClose{[weak self] in self?.close() }

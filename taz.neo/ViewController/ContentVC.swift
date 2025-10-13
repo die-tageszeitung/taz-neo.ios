@@ -516,7 +516,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     else { return false }
   }
-  
+    
   /// Setup JS bridge
   private func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
@@ -538,7 +538,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
+        self.helpButton?.isHidden = true
         self.imageOverlay?.onClose {[weak self] in
+          self?.helpButton?.isHidden = false
           self?.imageOverlay = nil///former we had a delayed set nil
           guard Device.isIphone else { return }
           /// reset orientation to portrait, really no negative effect on iPad?

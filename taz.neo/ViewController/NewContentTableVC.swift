@@ -101,7 +101,7 @@ extension NewContentTableVC {
 /// section Header = section title + chevron > or ^
 /// cell as Article Preview (like in serach or bookmarks
 public class NewContentTableVC: UIViewController {
-  private var tableView = UITableView(frame: .zero, style: .plain)
+  var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
   ///for ArticleVC the highlighted Cell
@@ -292,7 +292,7 @@ extension NewContentTableVC {
   }
   
   var listenButton: UIView? {
-    return header.listenLabel
+    return header.listenIcon
   }  
   var collapseIcon: UIView? {
     return header.collapseIcon
@@ -766,7 +766,7 @@ class NewContentTableVcCell: UITableViewCell {
   }
 }
 
-fileprivate class ContentTableHeaderFooterView: TazHeaderFooterView{
+class ContentTableHeaderFooterView: TazHeaderFooterView{
   static let ReuseIdentifier = "ContentTableHeaderFooterViewIdentifier"
   let dottedLine = DottedLineView()
   var topSeperator: UIView?
