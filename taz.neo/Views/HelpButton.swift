@@ -101,6 +101,7 @@ class HelpButton: UIView {
     if helpUsedOnce == false {
       bottomConstraint?.constant = -20.0//helpLabelWrapperHeight+dist
       self.addSubview(helpLabel)
+      helpLabel.centerX()
       pin(helpLabel.top, to: helpIconImageView.bottom, dist: 2.0)
     }
     
