@@ -393,6 +393,7 @@ extension MainTabVC: NavigationDelegate, UINavigationControllerDelegate {
       helpButton.hideAnimated()
       return
     }
+    print(">> HELP BUTTON SET BADGE VALUE from push/pop(appear \(ctrl.newItemsCount)")
     helpButton.badgeValue = ctrl.newItemsCount
     helpButton.showAnimated()
   }

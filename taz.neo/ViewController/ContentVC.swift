@@ -380,6 +380,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard isMultiColumnMode else {
       let isNotAtEnd = super.handleRightTap()
       if hideOnScroll { toolBar.show(show: !isNotAtEnd, animated: true) }
+      helpButton?.hideAnimated()
       return isNotAtEnd
     }
     guard let sv = self.currentWebView?.scrollView  else { return false }
@@ -397,6 +398,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if maxX - x < 5 { x = maxX }  ///fix round errors
       x = min(maxX, x)
     }
+    helpButton?.hideAnimated()
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -1046,8 +1048,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
-    slider?.onOpen{ _ in
+    slider?.onOpen{[weak self] _ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
+      Notification.send(Const.NotificationNames.helpProviderChanged, content: self?.contentTable)
+    }
+    slider?.onClose{[weak self] _ in
+      guard self?.navigationController?.topViewController == self else { return }
+      Notification.send(Const.NotificationNames.helpProviderChanged, content: self)
     }
   }
   

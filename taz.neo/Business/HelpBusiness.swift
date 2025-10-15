@@ -16,8 +16,7 @@ protocol HelpProviding {
 }
 
 extension HelpProviding {
-  var newItemsCount: Int { helpItems.count - 1  }
-  //  var newItemsCount: Int { helpItems.count - 1 - lastHelpItemIndex }
+  var newItemsCount: Int { helpItems.count - (lastIndex ?? 0)  }
   
   /// The concrete type name of the conforming object
   var typeName: String {
@@ -25,6 +24,23 @@ extension HelpProviding {
   }
   func isSameType(as other: HelpProviding) -> Bool {
     self.typeName == other.typeName
+  }
+  
+  var lastIndex: Int? {
+    switch self {
+      case is HomeVC:
+        return HelpBusiness.shared.lastHomeHelpIndex
+      case is SectionVC:
+        return HelpBusiness.shared.lastSectionHelpIndex
+      case is ArticleVC:
+        return HelpBusiness.shared.lastArticleHelpIndex
+      case is ArticlePlayer:
+        return HelpBusiness.shared.lastPlayerHelpIndex
+      case is NewContentTableVC:
+        return HelpBusiness.shared.lastSliderHelpIndex
+      default:
+        return nil
+    }
   }
 }
 
@@ -34,15 +50,15 @@ class HelpBusiness {
   @Default("showHelp")
   public var showHelp: Bool
   
-  @Default("lastHomeHelpIndex")
+  @Default("lastHomeHelpIndex5")
   public var lastHomeHelpIndex: Int
-  @Default("lastSectionHelpIndex")
+  @Default("lastSectionHelpIndex5")
   public var lastSectionHelpIndex: Int
-  @Default("lastArticleHelpIndex")
+  @Default("lastArticleHelpIndex5")
   public var lastArticleHelpIndex: Int
-  @Default("lastPlayerHelpIndex")
+  @Default("lastPlayerHelpIndex5")
   public var lastPlayerHelpIndex: Int
-  @Default("lastSliderHelpIndex")
+  @Default("lastSliderHelpIndex5")
   public var lastSliderHelpIndex: Int
   
   
@@ -56,17 +72,17 @@ class HelpBusiness {
     if helpProvider is ArticlePlayer {
       helpView.pageControllBottomOffset = -250
     }
-    
-    helpView.onDisplay { idx in
-      //      helpProvider.onDisplay(idx: idx, isClosing: false)
+    ///addSubview changes index, save it before
+    let lastIndex = lastHelpItemIndex(for: helpProvider)
+    helpView.onDisplay {[weak self] idx in
+      self?.display(idx: idx, for: helpProvider)
     }
-    helpView.items = helpProvider.helpItems
-    //    helpView.setLastMaxIndex(idx: lastHelpItemIndex)//NOT WORKING
-    helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
     
+    helpView.items = helpProvider.helpItems
+    helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
     helpView.alpha = 0.0
     window?.addSubview(helpView)
-    
+    helpView.setLastMaxIndex(idx: lastIndex)
     UIView.animate(withDuration: 0.7,
                    delay: 0,
                    options: UIView.AnimationOptions.curveEaseInOut,
@@ -78,6 +94,7 @@ class HelpBusiness {
       }
     })
     helpView.onClose {
+      Notification.send(Const.NotificationNames.helpProviderChanged, content: helpProvider)
       UIView.animate(withDuration: 0.7,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
@@ -86,6 +103,40 @@ class HelpBusiness {
       }, completion: {(_) in
         helpView.removeFromSuperview()
       })
+    }
+  }
+  
+  private func lastHelpItemIndex(for helpProvider: HelpProviding) -> Int?{
+    switch helpProvider {
+      case is HomeVC:
+        return lastHomeHelpIndex
+      case is SectionVC:
+        return lastSectionHelpIndex
+      case is ContentVC:
+        return lastArticleHelpIndex
+      case is ArticlePlayer:
+        return lastPlayerHelpIndex
+      case is NewContentTableVC:
+        return lastSliderHelpIndex
+      default:
+        return nil
+    }
+  }
+  
+  private func display(idx:Int, for helpProvider: HelpProviding){
+    switch helpProvider {
+      case is HomeVC:
+        lastHomeHelpIndex = max(idx+1, lastHomeHelpIndex)
+      case is SectionVC:
+        lastSectionHelpIndex = max(idx+1, lastSectionHelpIndex)
+      case is ArticleVC:
+        lastArticleHelpIndex = max(idx+1, lastArticleHelpIndex)
+      case is ArticlePlayer:
+        lastPlayerHelpIndex = max(idx+1, lastPlayerHelpIndex)
+      case is NewContentTableVC:
+        lastSliderHelpIndex = max(idx+1, lastSliderHelpIndex)
+      default:
+        break
     }
   }
   

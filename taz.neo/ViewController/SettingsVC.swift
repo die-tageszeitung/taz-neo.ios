@@ -445,7 +445,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   })
   
   lazy var animateArticleSectionChangeCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Annimiere Sectionwechsel auf Artikelebene",
+  = XSettingsCell(toggleWithText: "Animierte Ressortswechsel auf Artikelebene",
                   detailText: "Alpha Feature",
                   initialValue: animateArticleSectionChange,
                   onChange: {[weak self] newValue in

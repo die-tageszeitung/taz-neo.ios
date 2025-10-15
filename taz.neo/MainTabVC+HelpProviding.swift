@@ -12,6 +12,7 @@ import NorthLib
 /// MARK: - extension to provide Base functionality for Help
 extension MainTabVC {
   func setupHelpButton(){
+    guard helpButton.superview == nil else { return }
     view.addSubview(helpButton)
     helpButtonDefaultBottomDistance
     = tabBar.frame.height + 9.0
@@ -23,6 +24,11 @@ extension MainTabVC {
         to: view.rightGuide(),
         dist: -Const.Dist2.m15)
     helpButton.onTapHelp {[weak self] in self?.helpTapped()}
+    Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] notif in
+      guard let helpProvider = notif.content as? HelpProviding else { return }
+      print(">> HELP BUTTON SET BADGE VALUE from notification \(helpProvider.newItemsCount)")
+      self?.helpButton.badgeValue = helpProvider.newItemsCount
+    })
   }
   
   func updateHelpButtonBottomConstraint(){

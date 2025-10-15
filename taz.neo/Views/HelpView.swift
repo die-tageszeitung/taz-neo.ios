@@ -55,10 +55,12 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   
   private var onCloseHandler: (() -> ())?
   
-//  func setLastMaxIndex(idx: Int) { NOT WORKING
-//    guard items.count > idx + 1 else { return }
-//    collectionView.index = idx + 1
-//  }
+  func setLastMaxIndex(idx: Int?) {
+    guard let idx = idx,
+          items.count > idx else { return }
+    collectionView.index = idx
+    collectionView.doLayout()
+  }
   
   var items: [HelpItem] = []{
     didSet {
@@ -86,11 +88,16 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     updateCustomLayout(view: cv)
   }
   
+//  override func didMoveToSuperview() {
+//    super.didMoveToSuperview()
+//    collectionView.preventInit = false
+//  }
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
     self.layer.mask = maskLayer
     self.backgroundColor = .black.withAlphaComponent(0.8)
-    
+//    collectionView.preventInit = true
     collectionView.relativeSpacing = 0.0
     collectionView.relativePageWidth = 1.0
     collectionView.showsHorizontalScrollIndicator = false

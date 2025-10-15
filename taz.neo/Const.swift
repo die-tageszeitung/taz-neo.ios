@@ -60,6 +60,7 @@ public struct Const {
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
+    static let helpProviderChanged = "Const.NotificationNames.helpProviderChanged"
     static let bookmarksLoaded = "Const.NotificationNames.bookmarksLoaded"
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
