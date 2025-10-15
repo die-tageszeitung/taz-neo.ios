@@ -37,6 +37,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   @Default("smartBackFromArticle")
   var smartBackFromArticle: Bool
   
+  @Default("animateArticleSectionChange")
+  var animateArticleSectionChange: Bool
+  
   var needValidAboToShareText: String {
     if feederContext.isAuthenticated == false {
       return "Sie müssen angemeldet sein, um Texte zu teilen!"
@@ -215,6 +218,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
     header.titletype = .article
     header.isWochentaz = issue.isWeekend
+    header.animateOnTitleChange = animateArticleSectionChange
   }
   
   var articleForLastRead: Article? {

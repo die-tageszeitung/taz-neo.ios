@@ -17,11 +17,19 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   private var beginScrollOffset: CGFloat?
   
   var isWochentaz: Bool = false
+  var animateOnTitleChange: Bool = false
   
   //vars
   var title: String? {
     get{ return titleLabel.text }
-    set{ titleLabel.text = newValue }
+    set{
+      let animate
+      = animateOnTitleChange
+      && titleLabel.text != nil
+      && titleLabel.text != newValue
+      titleLabel.text = newValue
+      if animate { titleLabel.animateZoom() }
+    }
   }
   var subTitle: String? {
     get{ return subTitleLabel.text }
@@ -329,5 +337,28 @@ extension HeaderView {
     animated
     ?  UIView.animate(seconds: 0.3) {handler(); self.superview?.layoutIfNeeded() }
     : handler();self.superview?.layoutIfNeeded()
+  }
+}
+
+fileprivate extension UIView {
+  
+  func animateZoom() {
+    // Ausgangszustand sicherstellen
+    self.transform = .identity
+    
+    UIView.animateKeyframes(withDuration: 0.8, delay: 0, options: [], animations: {
+      
+      UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.9) {
+        self.transform = CGAffineTransform(scaleX: 20, y: 20)
+        self.alpha = 0.0
+      }
+            
+      UIView.addKeyframe(withRelativeStartTime: 0.91, relativeDuration: 0.01) {
+        self.transform = .identity
+      }
+      UIView.addKeyframe(withRelativeStartTime: 0.93, relativeDuration: 0.01) {
+        self.alpha = 1.0
+      }
+    }, completion: nil)
   }
 }

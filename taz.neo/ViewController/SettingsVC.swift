@@ -96,6 +96,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
+  @Default("animateArticleSectionChange")
+  var animateArticleSectionChange: Bool
+  
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
 
@@ -440,6 +443,15 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
                     self?.tabbarInSection = newValue
                   })
+  
+  lazy var animateArticleSectionChangeCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Annimiere Sectionwechsel auf Artikelebene",
+                  detailText: "Alpha Feature",
+                  initialValue: animateArticleSectionChange,
+                  onChange: {[weak self] newValue in
+                    self?.animateArticleSectionChange = newValue
+                  })
+  
   
   lazy var smartBackFromArticleCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Intelligentes Zurück",
@@ -954,6 +966,7 @@ extension SettingsVC {
       cells.append(deleteSearchResultsFolder)
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
+      cells.append(animateArticleSectionChangeCell)
     }
 
     if DefaultAuthenticator.isTazLogin
