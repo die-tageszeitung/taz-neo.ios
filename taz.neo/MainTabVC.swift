@@ -100,9 +100,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-//    if showHelp && highlightHelpButton {
-//      helpButton.highlightOnce(with: Const.Colors.ciColor, width: 8.0)
-//    }
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
     TazAppEnvironment.openedFromNotificationCenter = nil
     gotoArticleInIssue(with: data)
@@ -253,7 +250,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   
   
   func gotoArticleInIssue(article: Article){
-//    CoachmarksBusiness.shared.currentCoachmarkView?.closeClosure?()
     if let art = article as? SearchArticle {
       self.openArticleFromSearch(article: art)
       return
@@ -266,16 +262,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
        let sectIssue = sectVc.issue as? StoredIssue,
        issue == sectIssue {
       sectVc.showArticle(article, animated: true)
-#warning("ToDO 1.6.0")
-//      home.togglePdfButton.isHidden = true
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
       issue.lastArticle = issue.indexOf(article: article)
       if isFacsimile, let page = issue.pageIndexOf(article: article) { issue.lastPage = page }
       home.openIssue(issue, openLast: true)
-#warning("ToDO 1.6.0")
-//      home.togglePdfButton.isHidden = true
     }
   }
   

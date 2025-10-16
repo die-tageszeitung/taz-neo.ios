@@ -514,6 +514,14 @@ class TazAppEnvironment: NSObject, DoesLog {
       UITabBarItem.appearance()
         .setTitleTextAttributes([NSAttributedString.Key.font:defaultFont10],
                                 for: .normal)
+      let appearance = UIToolbarAppearance()
+      appearance.configureWithOpaqueBackground()  // macht den Hintergrund undurchsichtig
+      
+      appearance.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
+      UIToolbar.appearance().standardAppearance = appearance
+      if #available(iOS 15.0, *) {
+        UIToolbar.appearance().scrollEdgeAppearance = appearance
+      }
       //Not working
       // UILabel.appearance(whenContainedInInstancesOf: [UIDatePicker.self]) ...
       // UILabel.appearance().font = Const.Fonts.contentFont

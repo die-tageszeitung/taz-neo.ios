@@ -73,30 +73,3 @@ public class HelpItem {
     self.targetView = targetView
   }
 }
-
-
-/**
- 
- Todo
- 
- header.extendedSearchButton
- 
- 
- Coachmarks.Section {
- //      switch item {
- //        case .slider:
- //          return slider?.button
- //        case .swipe:
- //          return currentView as? UIView
- 
- ArticleVC
- case .audio:
- //        return playButton.buttonView
- //      case .share:
- //        return shareButton.buttonView
- //      case .font:
- //        return textSettingsButton.buttonView
- 
- 
- 
- */
