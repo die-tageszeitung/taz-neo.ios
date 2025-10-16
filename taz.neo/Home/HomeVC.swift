@@ -34,10 +34,30 @@ class HomeVC: UICollectionViewController {
   @Default("isHomeTiles")
   public var isHomeTiles: Bool {
     didSet {
+      guard oldValue != isHomeTiles else { return }
+      applyScrollDirection(reload: scrollFromLeftToRight)
       if isHomeTiles == false {
         updateHeader(hidden: false)
       }
     }
+  }
+  
+  @Default("scrollFromLeftToRight")
+  public var scrollFromLeftToRight: Bool {
+    didSet {
+      guard oldValue != scrollFromLeftToRight else { return }
+      applyScrollDirection(reload: true)
+    }
+  }
+  
+  func applyScrollDirection(reload: Bool){
+    if isHomeTiles == false && scrollFromLeftToRight {
+      collectionView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
+    }
+    else {
+      collectionView.transform = .identity
+    }
+    if reload { collectionView.reloadData() }
   }
   
   var centerIssueDateKey:String?
@@ -423,6 +443,7 @@ class HomeVC: UICollectionViewController {
     setupPullToRefresh()
     updateBottomWrapper(for: 0)
     setupReceiveDownloadIssueNotification()
+    applyScrollDirection(reload: false)
   }
   
   public func updateDate(){

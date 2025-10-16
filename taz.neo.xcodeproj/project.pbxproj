@@ -49,7 +49,6 @@
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A62A1C0A7C00678647 /* IssueOverviewService.swift */; };
 		773500B02A1C0A7C00678647 /* IssueTilesCvcCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */; };
-		773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */; };
 		773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */; };
 		773500B42A1C0A7C00678647 /* FetchNewStatusHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500AC2A1C0A7C00678647 /* FetchNewStatusHeader.swift */; };
 		773500B52A1C0A7C00678647 /* IssueCarouselFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500AD2A1C0A7C00678647 /* IssueCarouselFlowLayout.swift */; };
@@ -246,7 +245,6 @@
 		AE5131942AFBCADB002289E8 /* IssueCollectionViewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500B82A1C0B7E00678647 /* IssueCollectionViewActions.swift */; };
 		AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB6B042A02653000C42712 /* NotificationsView.swift */; };
 		AE5131982AFBCADB002289E8 /* InfoToaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779EF0CF2A03A16200D6A626 /* InfoToaster.swift */; };
-		AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */; };
 		AE51319A2AFBCADB002289E8 /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779DE96026FA3D790056187B /* SettingsVC.swift */; };
 		AE51319B2AFBCADB002289E8 /* FormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006E17E824D418090092DC0D /* FormComponents.swift */; };
 		AE51319C2AFBCADB002289E8 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004D4EFD24ACDBA7008C4EE7 /* LoginController.swift */; };
@@ -399,7 +397,6 @@
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
 		773500A62A1C0A7C00678647 /* IssueOverviewService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueOverviewService.swift; sourceTree = "<group>"; };
 		773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueTilesCvcCell.swift; sourceTree = "<group>"; };
-		773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueTilesCVC.swift; sourceTree = "<group>"; };
 		773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueDisplayService.swift; sourceTree = "<group>"; };
 		773500AC2A1C0A7C00678647 /* FetchNewStatusHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchNewStatusHeader.swift; sourceTree = "<group>"; };
 		773500AD2A1C0A7C00678647 /* IssueCarouselFlowLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueCarouselFlowLayout.swift; sourceTree = "<group>"; };
@@ -677,7 +674,6 @@
 				773500B82A1C0B7E00678647 /* IssueCollectionViewActions.swift */,
 				773500A62A1C0A7C00678647 /* IssueOverviewService.swift */,
 				773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */,
-				773500A92A1C0A7C00678647 /* IssueTilesCVC.swift */,
 				773500AB2A1C0A7C00678647 /* IssueDisplayService.swift */,
 				775AA39E2E3922060044CCF9 /* IssueDisplayService+ContinueReading.swift */,
 				773500AC2A1C0A7C00678647 /* FetchNewStatusHeader.swift */,
@@ -1364,7 +1360,6 @@
 				77E6E9B62CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
 				77129FFF2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				773E74BB2D55219100570E46 /* StoreBusiness.swift in Sources */,
-				AE5131992AFBCADB002289E8 /* IssueTilesCVC.swift in Sources */,
 				AE51319A2AFBCADB002289E8 /* SettingsVC.swift in Sources */,
 				AE51319B2AFBCADB002289E8 /* FormComponents.swift in Sources */,
 				AE51319C2AFBCADB002289E8 /* LoginController.swift in Sources */,
@@ -1529,7 +1524,6 @@
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
-				773500B12A1C0A7C00678647 /* IssueTilesCVC.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
 				006E17E924D418090092DC0D /* FormComponents.swift in Sources */,
 				778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,

@@ -109,13 +109,13 @@ extension IssueCollectionViewActions {
       self?.service.exportMoment(issue: issue, sourceView: self?.view)
     }
     
-//    if self.isKind(of: IssueCarouselCVC.self) {
-//      actions.addMenuItem(title: "Scrollrichtung umkehren",
-//                          icon: "repeat") {[weak self] _ in
-////        guard let ccvc = self as? IssueCarouselCVC else { return }
-////        ccvc.scrollFromLeftToRight = !ccvc.scrollFromLeftToRight
-//      }
-//    }
+    if let home = self as? HomeVC,
+        home.isHomeTiles == false {
+      actions.addMenuItem(title: "Scrollrichtung umkehren",
+                          icon: "repeat") {_ in
+        home.scrollFromLeftToRight.toggle()
+      }
+    }
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)
     Usage.track(Usage.event.dialog.IssueActions)

@@ -60,6 +60,13 @@ extension HomeVC  {
         }
       }
     }
+    
+    if isHomeTiles == false && scrollFromLeftToRight {
+      cell.contentView.transform = CGAffineTransform(rotationAngle: -CGFloat.pi)
+    }
+    else {
+      cell.contentView.transform = CGAffineTransform(rotationAngle: 0)
+    }
     return cell
   }
   
@@ -71,12 +78,7 @@ extension HomeVC  {
       return cell
     }
     
-//    if scrollFromLeftToRight {
-//      cell.contentView.transform = CGAffineTransform(rotationAngle: -CGFloat.pi)
-//    }
-//    else {
-//      cell.contentView.transform = CGAffineTransform(rotationAngle: 0)
-//    }
+
     
     if cell.momentView.interactions.isEmpty {
 //      let menuInteraction = UIContextMenuInteraction(delegate: self)
