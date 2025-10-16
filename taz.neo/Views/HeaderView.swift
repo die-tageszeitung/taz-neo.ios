@@ -28,7 +28,10 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
       && titleLabel.text != nil
       && titleLabel.text != newValue
       titleLabel.text = newValue
-      if animate { titleLabel.animateZoom() }
+      if animate {
+        //        titleLabel.animateMagnifyingLense()
+        titleLabel.animateZoom()
+      }
     }
   }
   var subTitle: String? {
@@ -130,7 +133,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   var line = DottedLineView()
   var subTitleLabel = Label()
   var pageNumberLabel = HidingLabel()
-
+  
   private var titleTopConstraint: NSLayoutConstraint?
   private var titleBottomConstraint: NSLayoutConstraint?
   private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
@@ -148,9 +151,9 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   var titleBottomSpaceS = 0.0
   var titleBottomSpaceL = 0.0
   let titleTopIndentS: CGFloat = 6.5
-    
+  
   public var tapRecognizer = TapRecognizer()
-    
+  
   public func applyStyles() {
     titleLabel.textColor = Const.SetColor.ios(.label).color
     subTitleLabel.textColor = Const.SetColor.ios(.label).color
@@ -160,7 +163,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     line.strokeColor = Const.SetColor.ios(.label).color
     line.setNeedsDisplay()
   }
-
+  
   private var onTitleClosure: ((String?)->())?
   
   /// Define closure to call if a title has been touched
@@ -186,7 +189,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     line.backgroundColor = .clear
     line.fillColor = Const.SetColor.ios(.label).color
     line.strokeColor = Const.SetColor.ios(.label).color
-
+    
     titleTopConstraint
     = pin(titleLabel.top, to: self.topGuide(), dist: titleTopIndentL)
     
@@ -216,7 +219,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     super.layoutSubviews()
     applyStyles()
   }
-
+  
   
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -250,7 +253,7 @@ extension HeaderView {
   
   private func didScrolling(offsetDelta:CGFloat, end: Bool){
     if titletype == .bigLeft { return }
-     
+    
     let isMaxi = lastRatio == 0.0
     let isMini = lastRatio == 1.0
     
@@ -287,11 +290,11 @@ extension HeaderView {
   }
   
   func updateFonts(titleFontSize: CGFloat? = nil,
-                           labelsFontSize: CGFloat? = nil) {
+                   labelsFontSize: CGFloat? = nil) {
     let titleFontSize = titleFontSize ?? titleFontSizeDefault
     let labelsFontSize = labelsFontSize ?? subTitleFontSizeDefault
     if isWochentaz && titletype != .section0
-    || isWochentaz && titletype == .article {
+        || isWochentaz && titletype == .article {
       titleLabel.font = Const.Fonts.knileSemiBoldFont(size: titleFontSize)
       subTitleLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
       pageNumberLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
@@ -340,6 +343,95 @@ extension HeaderView {
   }
 }
 
+
+
+extension UILabel {
+  func animateMagnifyingLense(
+    scale: CGFloat = 1.8,
+    perCharDuration: CFTimeInterval = 0.2,
+    fadeDuration: CFTimeInterval = 0.3
+  ) {
+    superview?.layoutIfNeeded()
+    guard let text = self.text, !text.isEmpty else { return }
+    guard let superview = self.superview else { return }
+    
+    // Alte Animation entfernen
+    superview.subviews
+      .filter { $0.tag == 999_999 }
+      .forEach { $0.removeFromSuperview() }
+    
+    // Container über dem Original-Label
+    let containerFrame = superview.convert(self.frame, from: self.superview)
+    let container = UIView(frame: containerFrame)
+    container.tag = 999_999
+    container.isUserInteractionEnabled = false
+    container.clipsToBounds = false
+    superview.addSubview(container)
+    
+    // Original-Label ausblenden, aber alpha = 0
+    self.isHidden = false
+    self.alpha = 0
+    
+    // Buchstaben einfügen
+    var letterLabels: [UILabel] = []
+    var xOffset: CGFloat = 0
+    for char in text {
+      let letterLabel = UILabel()
+      letterLabel.text = String(char)
+      letterLabel.font = self.font
+      letterLabel.textColor = self.textColor
+      letterLabel.sizeToFit()
+      letterLabel.center = CGPoint(
+        x: xOffset + letterLabel.bounds.width / 2,
+        y: container.bounds.height / 2
+      )
+      xOffset += letterLabel.bounds.width
+      container.addSubview(letterLabel)
+      letterLabels.append(letterLabel)
+    }
+    
+    var currentIndex = 0
+    let stepTime = perCharDuration / 3.0
+    
+    Timer.scheduledTimer(withTimeInterval: stepTime, repeats: true) { timer in
+      // Reset vorherige Buchstaben
+      UIView.animate(withDuration: perCharDuration,
+                     delay: 0,
+                     options: [.curveEaseInOut, .allowUserInteraction],
+                     animations: {
+        for letter in letterLabels {
+          letter.transform = .identity
+        }
+      })
+      
+      // Aktueller Buchstabe skalieren
+      if currentIndex < letterLabels.count {
+        UIView.animate(withDuration: perCharDuration,
+                       delay: 0,
+                       options: [.curveEaseInOut, .allowUserInteraction],
+                       animations: {
+          letterLabels[currentIndex].transform = CGAffineTransform(scaleX: scale, y: scale)
+        })
+      }
+      
+      currentIndex += 1
+      if currentIndex >= letterLabels.count {
+        timer.invalidate()
+        
+        // Sanftes Fade-Out aller Buchstaben, Original fade-in
+        UIView.animate(withDuration: fadeDuration, delay: 0, options: [.curveEaseInOut], animations: {
+          for letter in letterLabels {
+            letter.alpha = 0
+          }
+          self.alpha = 1
+        }, completion: { _ in
+          container.removeFromSuperview()
+        })
+      }
+    }
+  }
+}
+
 fileprivate extension UIView {
   
   func animateZoom() {
@@ -352,7 +444,7 @@ fileprivate extension UIView {
         self.transform = CGAffineTransform(scaleX: 20, y: 20)
         self.alpha = 0.0
       }
-            
+      
       UIView.addKeyframe(withRelativeStartTime: 0.91, relativeDuration: 0.01) {
         self.transform = .identity
       }
