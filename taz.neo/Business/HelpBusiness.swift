@@ -78,6 +78,10 @@ class HelpBusiness {
           let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
     let helpProvider = mainTabVc.currentHelpProvider else { return }
     
+    if let cvc = helpProvider as? ContentVC {
+      cvc.toolBar.show(show: true, animated: false)
+    }
+    
     ///show layer
     let helpView = HelpView()
     if helpProvider is ArticlePlayer {
