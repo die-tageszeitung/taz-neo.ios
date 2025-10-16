@@ -110,6 +110,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     bottomSheet?.close()
     removeGestures()
     finishHandler = nil
+    HelpBusiness.helpButtonAdditionalSheetOffset = 0.0
   }
   
   func handleAction(){
@@ -153,7 +154,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     applyStyles()
     self.view.doLayout()
     bottomSheet?.coverage = view.frame.size.height + io
-    
+    HelpBusiness.helpButtonAdditionalSheetOffset = view.frame.size.height + 12.0
     self.bottomSheet?.open()
   }
   

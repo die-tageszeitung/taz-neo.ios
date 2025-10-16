@@ -24,11 +24,18 @@ extension MainTabVC {
         to: view.rightGuide(),
         dist: -Const.Dist2.m15)
     helpButton.onTapHelp {[weak self] in self?.helpTapped()}
-    Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] notif in
-      guard let helpProvider = notif.content as? HelpProviding else { return }
-      print(">> HELP BUTTON SET BADGE VALUE from notification \(helpProvider.newItemsCount)")
-      self?.helpButton.badgeValue = helpProvider.newItemsCount
+    Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] _ in
+      self?.helpProviderChanged()
     })
+  }
+  
+  func helpProviderChanged(){
+    guard let helpProvider = currentHelpProvider else {
+      helpButton.hideAnimated()
+      return
+    }
+    helpButton.badgeValue = helpProvider.newItemsCount
+    helpButton.showAnimated()
   }
   
   func updateHelpButtonBottomConstraint(){
@@ -39,6 +46,7 @@ extension MainTabVC {
       = -self.helpButtonDefaultBottomDistance
       - self.helpButtonPlayerOffset
       - self.helpButtonToolbarOffset
+      - self.helpButtonAdditionalSheetOffset
     }
   }
   

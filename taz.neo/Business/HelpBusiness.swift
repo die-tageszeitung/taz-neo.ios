@@ -50,22 +50,33 @@ class HelpBusiness {
   @Default("showHelp")
   public var showHelp: Bool
   
-  @Default("lastHomeHelpIndex5")
+  @Default("lastHomeHelpIndex")
   public var lastHomeHelpIndex: Int
-  @Default("lastSectionHelpIndex5")
+  @Default("lastSectionHelpIndex")
   public var lastSectionHelpIndex: Int
-  @Default("lastArticleHelpIndex5")
+  @Default("lastArticleHelpIndex")
   public var lastArticleHelpIndex: Int
-  @Default("lastPlayerHelpIndex5")
+  @Default("lastPlayerHelpIndex")
   public var lastPlayerHelpIndex: Int
-  @Default("lastSliderHelpIndex5")
+  @Default("lastSliderHelpIndex")
   public var lastSliderHelpIndex: Int
+  @Default("helpUsedOnce")
+  public var helpUsedOnce: Bool
+  
+  func resetHelp(){
+    helpUsedOnce = false
+    lastHomeHelpIndex = 0
+    lastSectionHelpIndex = 0
+    lastArticleHelpIndex = 0
+    lastPlayerHelpIndex = 0
+    lastSliderHelpIndex = 0
+  }
   
   
   func openHelp(){
     guard let window = UIApplication.shared.delegate?.window,
           let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
-    let helpProvider = mainTabVc.currentVisibleHelpController()else { return }
+    let helpProvider = mainTabVc.currentHelpProvider else { return }
     
     ///show layer
     let helpView = HelpView()
@@ -94,7 +105,7 @@ class HelpBusiness {
       }
     })
     helpView.onClose {
-      Notification.send(Const.NotificationNames.helpProviderChanged, content: helpProvider)
+      Notification.send(Const.NotificationNames.helpProviderChanged)
       UIView.animate(withDuration: 0.7,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
@@ -143,9 +154,30 @@ class HelpBusiness {
   static let shared = HelpBusiness()
 }
 
+/// MARK: Access Helper
+extension HelpBusiness {
+  private static var mainTabVc: MainTabVC? {
+    TazAppEnvironment.sharedInstance.rootViewController
+     as? MainTabVC
+  }
+  
+  static var helpButtonPlayerOffset: Double? {
+    get { mainTabVc?.helpButtonPlayerOffset }
+    set { if let newValue = newValue { mainTabVc?.helpButtonPlayerOffset = newValue } }
+  }
+  static var helpButtonToolbarOffset: Double? {
+    get { mainTabVc?.helpButtonToolbarOffset }
+    set { if let newValue = newValue { mainTabVc?.helpButtonToolbarOffset = newValue } }
+  }
+  static var helpButtonAdditionalSheetOffset: Double? {
+    get { mainTabVc?.helpButtonAdditionalSheetOffset }
+    set { if let newValue = newValue { mainTabVc?.helpButtonAdditionalSheetOffset = newValue } }
+  }
+}
 
-fileprivate extension MainTabVC {
-  func currentVisibleHelpController() -> HelpProviding? {
+
+extension MainTabVC {
+  var currentHelpProvider: HelpProviding? {
     if ArticlePlayer.singleton.isMaxiPlayer {
       return ArticlePlayer.singleton
     }

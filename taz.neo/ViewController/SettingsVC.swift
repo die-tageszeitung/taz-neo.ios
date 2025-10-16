@@ -107,10 +107,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   @Default("showHelp")
   var showHelp: Bool
-  
-  @Default("helpUsedOnce")
-  public var helpUsedOnce: Bool
-  
+
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
@@ -473,8 +470,8 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(toggleWithText: "Hilfe anzeigen",
                   initialValue: showHelp,
                   onChange: {[weak self] newValue in
-                    self?.showHelp = newValue
-                    if newValue == true { self?.helpUsedOnce = false }
+    self?.showHelp = newValue
+    if newValue == true { HelpBusiness.shared.resetHelp() }
                   })
   
   lazy var memoryUsageCell: XSettingsCell

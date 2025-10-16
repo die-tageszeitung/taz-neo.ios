@@ -1050,11 +1050,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.sliderView.clipsToBounds = false
     slider?.onOpen{[weak self] _ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
-      Notification.send(Const.NotificationNames.helpProviderChanged, content: self?.contentTable)
+      Notification.send(Const.NotificationNames.helpProviderChanged)
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
-      Notification.send(Const.NotificationNames.helpProviderChanged, content: self)
+      Notification.send(Const.NotificationNames.helpProviderChanged)
     }
   }
   

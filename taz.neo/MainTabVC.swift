@@ -20,7 +20,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var helpButtonPlayerOffset = 0.0 {
     didSet {
       guard oldValue != helpButtonPlayerOffset else { return }
-      print("PlayerHeight: \(helpButtonPlayerOffset)")
       updateHelpButtonBottomConstraint()
     }
   }
@@ -28,6 +27,13 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var helpButtonToolbarOffset = 0.0 {
     didSet {
       guard oldValue != helpButtonToolbarOffset else { return }
+      updateHelpButtonBottomConstraint()
+    }
+  }
+  
+  var helpButtonAdditionalSheetOffset = 0.0 {
+    didSet {
+      guard oldValue != helpButtonAdditionalSheetOffset else { return }
       updateHelpButtonBottomConstraint()
     }
   }
@@ -100,6 +106,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     guard let data = TazAppEnvironment.openedFromNotificationCenter else { return }
     TazAppEnvironment.openedFromNotificationCenter = nil
     gotoArticleInIssue(with: data)
+  }
+  
+  override var selectedIndex: Int {
+    didSet {
+      if let vc = self.selectedViewController {
+        self.tabBarController(self, didSelect: vc)
+      }
+    }
   }
   
   override func viewDidLoad() {
@@ -379,23 +393,12 @@ extension MainTabVC: NavigationDelegate, UINavigationControllerDelegate {
   }
   
   func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-    updateHelpButtonVisibility(for: viewController)
     ///delegate nto usage
     Usage.shared.navigationController(navigationController, willShow: viewController, animated: animated)
   }
   
   func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-    print("didShow \(viewController)")
-  }
-  
-  fileprivate func updateHelpButtonVisibility(for viewController: UIViewController) {
-    guard let ctrl = viewController as? HelpProviding else {
-      helpButton.hideAnimated()
-      return
-    }
-    print(">> HELP BUTTON SET BADGE VALUE from push/pop(appear \(ctrl.newItemsCount)")
-    helpButton.badgeValue = ctrl.newItemsCount
-    helpButton.showAnimated()
+    Notification.send(Const.NotificationNames.helpProviderChanged)
   }
 }
 
@@ -506,6 +509,10 @@ extension MainTabVC : UITabBarControllerDelegate {
     }
     return true
   }
+  
+  func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+    Notification.send(Const.NotificationNames.helpProviderChanged)
+  }
 }
 
 public protocol ReloadAfterAuthChanged {
@@ -526,9 +533,8 @@ fileprivate extension UIImage {
     }
 }
 
-fileprivate extension UIView {
-  private func pulsate() {
-
+extension UIView {
+  func pulsate() {
     self.layer.shadowColor = UIColor.white.cgColor
     self.layer.shadowOpacity = 1.0
     self.layer.shadowOffset = CGSize(width: 0, height: 0)
@@ -552,6 +558,7 @@ fileprivate extension UIView {
       CATransaction.commit()
     }
   }
+  
   private func pulsate1() {
 
     self.layer.shadowColor = UIColor.white.cgColor
@@ -577,6 +584,80 @@ fileprivate extension UIView {
       CATransaction.commit()
     }
   }
+    
+  /// animate a outer ring for the view
+  /// - Parameters:
+  ///   - color: color of the ring, default white
+  ///   - maxRadius: maximal radius of the ring from center (default: 200)
+  ///   - duration: animation duration (default: 2.5s)
+  func animateFocus(color: UIColor = .white, maxRadius: CGFloat = 200.0, duration: CFTimeInterval = 2.5) {
+      guard let superview = self.superview else { return }
+      
+      let radius = min(bounds.width, bounds.height) / 2
+
+      // place layer below the view
+      let shapeLayer = CAShapeLayer()
+      shapeLayer.path = UIBezierPath(arcCenter: center,
+                                     radius: radius,
+                                     startAngle: 0,
+                                     endAngle: 2 * .pi,
+                                     clockwise: true).cgPath
+      shapeLayer.fillColor = UIColor.clear.cgColor
+      shapeLayer.strokeColor = color.cgColor
+      shapeLayer.lineWidth = 0
+      shapeLayer.opacity = 0.8
+      
+      superview.layer.insertSublayer(shapeLayer, below: self.layer)
+
+      let widthAnim = CABasicAnimation(keyPath: "lineWidth")
+      widthAnim.fromValue = 0
+      widthAnim.toValue = maxRadius
+
+      let fadeAnim = CABasicAnimation(keyPath: "opacity")
+      fadeAnim.fromValue = 0.8
+      fadeAnim.toValue = 0.0
+
+      let group = CAAnimationGroup()
+      group.animations = [widthAnim, fadeAnim]
+      group.duration = duration
+      group.timingFunction = CAMediaTimingFunction(name: .easeOut)
+      group.fillMode = .forwards
+      group.isRemovedOnCompletion = true
+
+      shapeLayer.add(group, forKey: "pulseRing")
+
+      // remove layer after animation
+      DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) {
+          shapeLayer.removeFromSuperlayer()
+      }
+  }
+  
+  func pulsateX2() {
+      let borderAnimation = CABasicAnimation(keyPath: "borderWidth")
+      borderAnimation.fromValue = 0.0
+      borderAnimation.toValue = 200.0
+      borderAnimation.duration = 1.3
+      borderAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+      self.layer.add(borderAnimation, forKey: "borderWidthAnimation")
+      self.layer.borderWidth = 200.0 // finaler Wert bleibt gesetzt
+
+      let colorAnimation = CABasicAnimation(keyPath: "borderColor")
+      colorAnimation.fromValue = UIColor.white.cgColor
+      colorAnimation.toValue = UIColor.clear.cgColor
+      colorAnimation.duration = 1.3
+      colorAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+      self.layer.add(colorAnimation, forKey: "borderColorAnimation")
+      self.layer.borderColor = UIColor.clear.cgColor
+
+      // Danach wieder zurücksetzen
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+          self.layer.borderWidth = 0.0
+          self.layer.borderColor = UIColor.white.cgColor
+      }
+  }
+  
   
   func highlight(with color: UIColor = .white, width: CGFloat = 1.0) {
     let radius = min(bounds.width, bounds.height) / 2

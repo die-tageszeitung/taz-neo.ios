@@ -385,6 +385,7 @@ class ArticlePlayerUI: UIView {
   func minimize(){
     Usage.xtrack.audio.minimize()
     state = .mini
+    Notification.send(Const.NotificationNames.helpProviderChanged)
   }
   
   func maximize(){
@@ -394,6 +395,7 @@ class ArticlePlayerUI: UIView {
     else {
       state = .maxi
       Usage.xtrack.audio.maximize()
+      Notification.send(Const.NotificationNames.helpProviderChanged)
     }
   }
   

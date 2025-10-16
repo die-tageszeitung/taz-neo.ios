@@ -4,12 +4,6 @@ import NorthLib
 final class HelpViewCell: UIView {
   
   // MARK: - Public API
-  
-  private(set) var closeClosure: (() -> Void)?
-  func onClose(closure: @escaping () -> Void) {
-    closeClosure = closure
-  }
-  
   var targetView: UIView?
   var contentView: UIView?
   
@@ -61,9 +55,6 @@ final class HelpViewCell: UIView {
     textLayer.centerAxis()
     textLayer.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
     textWidthConstraint = textLayer.pinWidth(UIWindow.size.width * 0.7)
-    
-    textLayer.onTapping { [weak self] _ in self?.closeClosure?() }
-    //        background.onTapping { [weak self] _ in self?.closeClosure?() }
   }
   
   // MARK: - Configure / Reset
@@ -105,7 +96,6 @@ final class HelpViewCell: UIView {
   }
   
   func reset() {
-    closeClosure = nil
     targetView = nil
     item?.contentView?.removeFromSuperview()
     item = nil
