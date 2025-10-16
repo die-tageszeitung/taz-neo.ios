@@ -302,10 +302,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     guard let date = date,
         let home = ((self.selectedViewController as? UINavigationController)?
               .viewControllers.first as? HomeVC) else { return }
-#warning("ToDO 1.6.0")
-    //    home.scroll(up: true)
-//    let idx = home.carouselController.service.nextIndex(for: date)
-//    home.carouselController.scrollTo(idx, animated: true)
+    let idx = home.service.nextIndex(for: date)
+    home.collectionView
+      .scrollToItem(at: IndexPath(row: idx, section: 0),
+                    at: home.isHomeTiles ? .centeredVertically : .centeredHorizontally,
+                    animated: true)
   }
   
   func setupTabbar() {
