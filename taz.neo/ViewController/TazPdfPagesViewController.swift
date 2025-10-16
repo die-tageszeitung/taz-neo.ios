@@ -631,7 +631,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     sliderContentVc.currentPage = page
     (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
     #endif
-    slider?.showMenuImage = false
   }
   
   var lastWindowSize: CGSize?
@@ -721,7 +720,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         self?.slider?.showMenuImage = zoomedIn
       }
       self?.toolBar.show(show:true, animated: true)
-      self?.slider?.showMenuImage = false
     }
   }
 

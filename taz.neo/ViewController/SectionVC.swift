@@ -12,8 +12,6 @@ import NorthLib
 /// The Section view controller managing a collection of Section pages
 open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelegate {
   
-  var helpDidOpenSlider = false
-  
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   

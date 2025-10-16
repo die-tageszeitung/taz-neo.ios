@@ -45,7 +45,6 @@ open class ContentToolbar: UIView {
     pin(toolbar.right, to: self.right)
     toolbar.pinHeight(Toolbar.ContentToolbarHeight)
     toolbar.createBars(2)
-    toolbar.isTranslucent = false
     self.clipsToBounds = true
   }
   
