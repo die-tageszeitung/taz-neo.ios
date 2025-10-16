@@ -25,7 +25,7 @@ extension SectionVC: HelpProviding{
                           targetView: slider?.button)
       
       let swiping = HelpItem(title:"Durch Ressorts blättern",
-                                       text: "Wischen Sie nach links oder rechts, um zum vorigen oder nächsten Ressort zu wechseln.")
+                                       text: "Wischen Sie nach links oder rechts, um zum vorherigen oder nächsten Ressort zu wechseln.")
       
       let toolbarBack = HelpItem(title:"Zurück",
                          text: "Hier geht es zurück zum Startbildschirm.", isCircleCutout: true, targetView: backButton)

@@ -88,10 +88,10 @@ extension HomeVC: HelpProviding{
       let tabbarItems = self.tabbarItems
       
       let wellcomeItem = HelpItem(title:"Willkommen in der taz App!",
-                                       text: "Entdecken Sie die digitale Ausgabe der taz. Blättern Sie durch die Zeitung, speichern Sie Artikel und lassen Sie sich Texte vorlesen.")
+                                       text: "Entdecken Sie die digitale Ausgabe der taz: Blättern Sie durch die Zeitung, speichern Sie Artikel oder lassen Sie sich Texte vorlesen.")
             
       let viewModeItem = HelpItem(title:"Ansichtssache",
-                                       text: "Wechseln Sie zwischen App- und Zeitungsansicht, sowie  Karussell- oder Kachel-Layout oder springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
+                                       text: "Wechseln Sie zwischen App- und Zeitungsansicht, wählen Sie Karussell- oder Kachel-Layout und springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
                                        targetView: self.viewModeButton)
@@ -114,7 +114,7 @@ extension HomeVC: HelpProviding{
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(0))
       let bookmarks = HelpItem(title:"Leseliste",
-                               text: "Hier finden Sie Ihre gespeicherten Artikel.",
+                               text: "Hier finden Sie alle Ihre gespeicherten Artikel.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(1))
       let search = HelpItem(title:"Suche",
@@ -125,7 +125,7 @@ extension HomeVC: HelpProviding{
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
       
       let helpItem = HelpItem(title:"Hilfe!",
-                                       text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um Erklärungen zu den Funktionen des jeweiligen Bildschirms zu sehen.\nProbieren Sie die Hilfe auch auf einem anderen Bildschirm aus.",
+                                       text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um die Funktionen des aktuellen Bildschirms erklärt zu bekommen.\nProbieren Sie die Hilfe auch auf anderen Bildschirmen aus.",
                                    isCircleCutout: true,
                                    circleCutoutInsetAdjustment: 0,
                                    targetView: helpButton)

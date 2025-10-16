@@ -47,7 +47,7 @@ extension NewContentTableVC : HelpProviding {
                             isCircleCutout: true,
                           targetView: self.momentImageView)
       let showAllArticles = HelpItem(title:"Alle Artikel anzeigen",
-                          text: "Tippen Sie hier um alle Artikel der Ausgabe anzuzeigen.",
+                          text: "Tippen Sie hier, um alle Artikel der Ausgabe anzuzeigen.",
                                      isCircleCutout: true,
                           targetView: self.collapseIcon)
       let playAllArticles = HelpItem(title:"Alle Artikel anhören",
@@ -62,7 +62,7 @@ extension NewContentTableVC : HelpProviding {
                                    isCircleCutout: true,
                           targetView: firstVisibleSectionHeader?.chevron)
       let bookmark = HelpItem(title:"Zur Leseliste hinzufügen",
-                          text: "Tippen Sie auf den Stern neben einem Artikel, um diesen Artikel zur Leseliste für später hinzuzufügen. Die Leseliste finden Sie auf dem Startbildschirm der App neben \"Home\".",
+                          text: "Tippen Sie auf den Stern neben einem Artikel, um ihn zu Ihrer Leseliste hinzuzufügen. Ihre Leseliste finden Sie auf dem Startbildschirm neben \"Home\".",
                               isCircleCutout: true,
                               targetView: firstVisibleCell?.bookmarkButton)
       

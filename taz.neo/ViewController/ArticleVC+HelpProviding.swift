@@ -18,7 +18,7 @@ extension ArticleVC: HelpProviding{
                           targetView: slider?.button)
       
       let swiping = HelpItem(title:"Durch Artikel blättern",
-                                       text: "Wischen Sie nach links oder rechts, um zum vorigen oder nächsten Artikel zu wechseln.")
+                                       text: "Wischen Sie nach links oder rechts, um zum vorherigen oder nächsten Artikel zu wechseln.")
       if let img = UIImage(named: "phone-hands-swipe"){
         let iv = UIImageView(image: img)
         iv.tintColor = .white
@@ -91,7 +91,7 @@ extension ArticleVC: HelpProviding{
       
       if article?.isShareable == true {
         items.append(HelpItem(title:"Artikel teilen",
-                              text: "Mit der Teilen-Funktion können Sie den Artikel ganz einfach an andere weiterleiten.", isCircleCutout: true, targetView: shareButton))
+                              text: "Tippen Sie auf das Teilen-Symbol, um den Artikel an andere weiterzuleiten.", isCircleCutout: true, targetView: shareButton))
       }
       
       if article?.canPlayAudio == true {
@@ -104,7 +104,7 @@ extension ArticleVC: HelpProviding{
       
       if isRegularIssue {
         items.append(HelpItem(title:"Ressortübersicht öffnen",
-                              text: "Ein Tipp auf den Ressortnamen führt direkt zur Übersicht dieses Ressorts.", targetView: header.titleLabel))
+                              text: "Tippen Sie auf den Ressortnamen, um direkt zur Übersicht dieses Ressorts zu gelangen.", targetView: header.titleLabel))
 
       }
       return items
@@ -115,4 +115,3 @@ extension ArticleVC: HelpProviding{
     
   }
 }
-

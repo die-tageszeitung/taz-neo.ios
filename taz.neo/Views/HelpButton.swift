@@ -37,11 +37,11 @@ class HelpButton: UIView {
       badgeLabel.text = "\(badgeValue)"
       if badgeValue > 0 {
         badgeLabel.isHidden = false
-        startAnimation()
+//        startAnimation()
       }
       else {
         badgeLabel.isHidden = true
-        removeAnimation()
+//        removeAnimation()
       }
     }
   }
@@ -103,6 +103,13 @@ class HelpButton: UIView {
       self.addSubview(helpLabel)
       helpLabel.centerX()
       pin(helpLabel.top, to: helpIconImageView.bottom, dist: 2.0)
+      onMainAfter(2.0) {[weak self] in
+        self?.helpIconImageView.animateFocus()
+      }
+      onMainAfter(8.0) {[weak self] in
+        guard self?.helpUsedOnce == false else { return }
+        self?.helpIconImageView.animateFocus()
+      }
     }
     
     pin(badgeLabel.top, to: self.top, dist: -7.0)
