@@ -142,7 +142,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     pin(declineLabel.right, to: view.right, dist: -padding)
   }
   
-  func setup(){
+  func setup(additionalHelpOffset: CGFloat = 12.0){
     let bottomView = declineLabel.superview != nil ? declineLabel : bottomLabel
     pin(bottomView.bottom, to: view.bottom, dist: -padding)
     bottomSheet?.handleColor = .clear
@@ -154,7 +154,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     applyStyles()
     self.view.doLayout()
     bottomSheet?.coverage = view.frame.size.height + io
-    HelpBusiness.helpButtonAdditionalSheetOffset = view.frame.size.height + 12.0
+    HelpBusiness.helpButtonAdditionalSheetOffset = view.frame.size.height + additionalHelpOffset
     self.bottomSheet?.open()
   }
   
@@ -234,7 +234,7 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     topLabel.boldContentFont()
     bottomLabel.contentFont()
     setupButtons()
-    setup()
+    setup(additionalHelpOffset: 52.0)
     bottomSheet?.xButton.isHidden = true
     setupTouches(targetVc: targetVc)
   }

@@ -429,13 +429,13 @@ class HomeVC: UICollectionViewController {
         self?.updateBottomWrapper(for: 0, force: true)
       }
     }
-    
-    #warning("Check if still required")
-//    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
-//        guard let nData = notification.content as? IssueCellData,
-//              nData.date.date.issueKey == self?.centerIssueDateKey else { return }
-//      self?.downloadButton.indicator.downloadState = nData.downloadState
-//      }
+#warning("ToDo 1.6.0")//????
+    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+      guard self?.isHomeTiles == false,
+            let nData = notification.content as? IssueCellData,
+            nData.date.date.issueKey == self?.centerIssueDateKey else { return }
+      self?.downloadButton.indicator.downloadState = nData.downloadState
+    }
     
     updateLoginButton()
     
@@ -497,7 +497,7 @@ class HomeVC: UICollectionViewController {
       lastContentOffset = offsetY
       return
     }
-    guard let i = centerIndex2, scrollLastCenterIndex != i else { return }
+    guard let i = centerIndex, scrollLastCenterIndex != i else { return }
     scrollLastCenterIndex = i
     updateBottomWrapper(for: i)
   }
@@ -526,6 +526,7 @@ class HomeVC: UICollectionViewController {
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
       centerIssueDateKey = newKey
+      print(">>>setText: \(txt)")
       dateLabel.setText(txt)
     }
   }

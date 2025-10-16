@@ -50,9 +50,9 @@ extension IssueCollectionViewActions {
   }
   
   func updateCarouselDownloadButton(){
-//    guard let ccvc = self as? IssueCarouselCVC else { return }
-//    ccvc.downloadButton.indicator.downloadState
-//    = self.service.cellData(for: ccvc.centerIndex ?? 0)?.downloadState
+    guard let home = self as? HomeVC else { return }
+    home.downloadButton.indicator.downloadState
+    = self.service.cellData(for: home.centerIndex ?? 0)?.downloadState
   }
   
   func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
@@ -80,27 +80,27 @@ extension IssueCollectionViewActions {
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: true)
-//        guard let ccvc = self as? IssueCarouselCVC,
-//              ccvc.centerIndex == indexPath.row else { return }
-//        ccvc.downloadButton.indicator.downloadState = .waiting
+        guard let home = self as? HomeVC,
+              home.centerIndex == indexPath.row else { return }
+        home.downloadButton.indicator.downloadState = .waiting
       }
     } else if issue.isComplete == false {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: false)
-//        guard let ccvc = self as? IssueCarouselCVC,
-//              ccvc.centerIndex == indexPath.row else { return }
-//        ccvc.downloadButton.indicator.downloadState = .waiting
+        guard let home = self as? HomeVC,
+              home.centerIndex == indexPath.row else { return }
+        home.downloadButton.indicator.downloadState = .waiting
       }
       ///issue.audioFiles.count > 0 not possible until download
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
         self?.service.download(issueAt: issue.date, withAudio: true)
-//        guard let ccvc = self as? IssueCarouselCVC,
-//              ccvc.centerIndex == indexPath.row else { return }
-//        ccvc.downloadButton.indicator.downloadState = .waiting
+        guard let home = self as? HomeVC,
+              home.centerIndex == indexPath.row else { return }
+        home.downloadButton.indicator.downloadState = .waiting
       }
     }
     
