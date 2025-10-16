@@ -107,6 +107,16 @@ extension ArticleVC: HelpProviding{
                               text: "Tippen Sie auf den Ressortnamen, um direkt zur Übersicht dieses Ressorts zu gelangen.", targetView: header.titleLabel))
 
       }
+      
+      let search = HelpItem(title:"Archivsuche – leicht gemacht!",
+                            text: "Halten Sie ein Wort im Artikel gedrückt, um es zu markieren.\nÜber das Kontextmenü können Sie es kopieren oder direkt im taz-Archiv danach suchen.")
+      if let img = UIImage(named: "Img-SearchMenu"){
+        let view = UIImageView(image: img)
+        view.contentMode = .scaleAspectFit
+        view.pinHeight(130)
+        search.contentView = view
+      }
+      items.append(search)
       return items
     }
   }

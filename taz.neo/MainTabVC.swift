@@ -406,7 +406,6 @@ extension MainTabVC {
         
     for case let tabNav as UINavigationController in self.viewControllers ?? [] {
       let firstVc = tabNav.viewControllers.first
-#warning("ToDO 1.6.0")
       let vcCount = tabNav.viewControllers.count
       if let home = firstVc as? HomeVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
@@ -419,8 +418,7 @@ extension MainTabVC {
           continue
         }
         ///Facsimile/PDF View or Article/Section VC wich need Update
-#warning("ToDO 1.6.0")//Argument type 'HomeVC' does not conform to expected type 'ReloadAfterAuthChanged'
-//        if vcCount > 1 { reloadTargets.append(home)}
+        if vcCount > 1 { reloadTargets.append(home)}
       }
       else if let search = firstVc as? SearchController{
         if search.currentState == .result { reloadTargets.append(search)}

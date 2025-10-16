@@ -73,7 +73,6 @@ class HomeVC: UICollectionViewController {
   var service: IssueOverviewService
   
   lazy var statusHeader = FetchNewStatusHeader()
-  public var issueSelectionChangeDelegate: IssueSelectionChangeDelegate?
   private var topStatusButtonConstraint:NSLayoutConstraint?
   private var statusWrapperBottomConstraint: NSLayoutConstraint?
   private var statusWrapperWidthConstraint:NSLayoutConstraint?
@@ -520,8 +519,6 @@ class HomeVC: UICollectionViewController {
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){
     guard let data = service.cellData(for: cidx) else { return }
-    issueSelectionChangeDelegate?.setCurrent(cellData: data,
-                                             idx: cidx)
     let isMonthly = service.feed.cycle == .monthly
     let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
                           data.date.validityDateText(short: true)
@@ -709,23 +706,17 @@ extension HomeVC {
   }
 }
 
-
-protocol IssueSelectionChangeDelegate {
-  /// Register Handler for Current Object
-  /// Will call applyStyles() on register @see extension UIStyleChangeDelegate
-  func setCurrent(cellData: IssueCellData, idx: Int)
-}
-
-
-extension HomeVC: IssueSelectionChangeDelegate {
-  func  setCurrent(cellData: IssueCellData, idx: Int) {
-//    if cellData.issue?.audioFiles.count ?? 0 > 0 {
-//      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) abspielen"
-//      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) abspielen"
-//    }
-//    else {
-//      accessibilityPlayHelper.text = "taz vom\n\(cellData.date.date.short) laden und abspielen"
-//      accessibilityPlayHelper.accessibilityLabel = "taz vom\n\(cellData.date.date.short) laden und abspielen"
-//    }
+extension HomeVC: ReloadAfterAuthChanged {
+  public func reloadOpened(){
+    guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
+    navigationController?.popToRootViewController(animated: false)
+    if selectedIssue.isDownloading == false {
+      self.openIssue(selectedIssue, openLast: true)
+      return
+    } else {
+      Notification.receiveOnce("issue", from: selectedIssue) { [weak self] notif in
+        self?.openIssue(selectedIssue, openLast: true)
+      }
+    }
   }
 }
