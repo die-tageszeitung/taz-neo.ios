@@ -17,11 +17,19 @@ extension LocalNotifications {
                               message: "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
                               notificationIdentifier: tazAppOfflineListenNotPossibleIdentifier)
   }
-  #warning("IMPORTANT TO USE!")
-  static func removeOfflineListenNotPossibleNotifications(){
-    UNUserNotificationCenter.current()
-      .removePendingNotificationRequests(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
-    UNUserNotificationCenter.current()
-      .removeDeliveredNotifications(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
-  }
+  
+  /// Previously marked with #warning("IMPORTANT TO USE!")
+  /// Intended to remove the "Offline Listen Not Possible" notification.
+  /// This function was never actually called anywhere in the app.
+  /// Its purpose would be to remove the offline notification from NotificationCenter
+  /// due no negative User Feedback this seams not to be required
+  /// iOS automatically replaces notifications with the same identifier, so duplicates are generally avoided.
+  /// Could be called, for example, in FeederContext's notifyNetStatus(isConnected:) when network reconnects.
+  /// or on App-Start online....
+//  static func removeOfflineListenNotPossibleNotifications(){
+//    UNUserNotificationCenter.current()
+//      .removePendingNotificationRequests(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
+//    UNUserNotificationCenter.current()
+//      .removeDeliveredNotifications(withIdentifiers:[tazAppOfflineListenNotPossibleIdentifier])
+//  }
 }

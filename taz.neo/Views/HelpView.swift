@@ -81,7 +81,6 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     return cv
   }
     
-#warning("Required? multiple times?")
   override func layoutSubviews() {
     super.layoutSubviews()
     guard let cv = currentCoachmarkView else { return }
@@ -101,8 +100,6 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     
     _ = self.collectionView.onDisplay {[weak self] (idx, v, isFromScroll) in
       self?.onDisplayClosure?(idx)
-      let itm = self?.items.valueAt(idx)
-      print("HELP: ondisplay id: \(idx) view: \(v) fromScroll: \(isFromScroll), item: \(itm?.title ?? "-")")
       self?.updateControls(currentPage: idx)
       if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? HelpViewCell {
         self?.updateCustomLayout(view: cv)
@@ -126,6 +123,16 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     pin(closeButton.top, to: topGuide(), dist: 10.0)
     
     setupPageControl()
+    
+    Notification.receive(Const.NotificationNames.viewSizeTransition) {[weak self] _ in
+      onMainAfter {[weak self] in
+        self?.frame = UIApplication.shared.delegate?.window??.bounds ?? .zero
+        self?.collectionView.collectionViewLayout.invalidateLayout()
+        self?.collectionView.layoutIfNeeded()
+        self?.layoutIfNeeded()
+        self?.collectionView.reloadData()
+      }
+    }
   }
   
   required init?(coder: NSCoder) {

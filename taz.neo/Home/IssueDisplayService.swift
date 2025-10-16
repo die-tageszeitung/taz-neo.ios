@@ -9,8 +9,6 @@
 import UIKit
 import NorthLib
 
-#warning("Still Required?")
-
 /// Protocol to handle Open and Display an Issue
 protocol PushIssueDelegate {
   /// delagate back the push of a child VC to prevent multiple pushes
