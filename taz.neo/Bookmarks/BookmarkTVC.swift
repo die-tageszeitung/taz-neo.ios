@@ -100,7 +100,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
 //    Bookmarks.shared.deleteAllBookmarks()
   }
   
-  private func downloadAllAudio(){
+  private var remoteAudioContent: [Article] {
     var dlContent: [Article] = []
     for art in Bookmarks.shared.bookmarkedArticles {
       guard let fileEntry = art.audioItem?.file else { continue }
@@ -108,27 +108,31 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       let file = File(localFilePath)
       if file.exists == false {  dlContent.append(art) }
     }
-
+    return dlContent
+  }
+  
+  private func downloadAllAudio(){
+    let dlContent = remoteAudioContent
     guard dlContent.count > 0 else {
       Toast.show("Alle Audioinhalte der Leseliste wurden bereits heruntergeladen.")
+      updateMoreButtonMenu()
       return
     }
     debug("can download \(dlContent.count) items")
     Bookmarks.downloadAllAudio(dlContent: dlContent)
+    onMainAfter(10.0) {   [weak self] in
+      self?.updateMoreButtonMenu()
+    }
   }
   
-  private lazy var headerMoreButton: UIButton = {
-    let btn = UIButton()
-    btn.setImage(UIImage(named: "ellipsis-circle"), for: .normal)
-    btn.pinSize(CGSize(width: 27, height: 27))
-    btn.tintColor = Const.Colors.appIconGrey
+  func updateMoreButtonMenu(){
     let deleteAllAction = UIAction(
       title: "Alle Lesezeichen löschen",
       image: UIImage(systemName: "trash"), attributes: [.destructive]) {[weak self] _ in
         self?.requestDeleteAllBookmarks()
       }
     let syncAction = UIAction(
-      title: "Leselisten synchronoisieren",
+      title: "Leseliste synchronoisieren",
       image: UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")) {[weak self] _ in
         self?.syncBookmarks()
       }
@@ -140,15 +144,27 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     
     var menuActions: [UIAction] = [syncAction]
     
-    if Bookmarks.shared.bookmarkedArticles.count > 0 {
+    if remoteAudioContent.count > 0 {
       menuActions.append(downloadAllAudioAction)
+    }
+    
+    if Bookmarks.shared.bookmarkedArticles.count > 0 {
       menuActions.append(deleteAllAction)
     }
     
     if #available(iOS 14.0, *) {
-      btn.menu = UIMenu(title: "", children: menuActions)
-      btn.showsMenuAsPrimaryAction = true
+      headerMoreButton.menu = UIMenu(title: "", children: menuActions)
+      headerMoreButton.showsMenuAsPrimaryAction = true
+    } else {
+      headerMoreButton.isHidden = true
     }
+  }
+  
+  private lazy var headerMoreButton: UIButton = {
+    let btn = UIButton()
+    btn.setImage(UIImage(named: "ellipsis-circle"), for: .normal)
+    btn.pinSize(CGSize(width: 27, height: 27))
+    btn.tintColor = Const.Colors.appIconGrey
     return btn
   }()
   
@@ -206,6 +222,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     bookmarksTable.reloadData()///ugly to reload all rows
     applyStyles()
     updateAudioButton()
+    updateMoreButtonMenu()
   }
 }
 

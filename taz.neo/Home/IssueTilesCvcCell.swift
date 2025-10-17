@@ -46,6 +46,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
                                                       leadingText: "")
       return
     }
+    if issue.pr.feed == nil { return }
     if issue.feed.cycle == .monthly {
       button.label.text = issue.date.gMonthYear(tz: GqlFeeder.tz)
     }
