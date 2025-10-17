@@ -290,6 +290,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
+  func page(for art: Article) -> Page? {
+    self.issue.pages?.first { page in
+      page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
+    }
+  }
+  
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
   }
@@ -477,6 +483,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self?.navigationController?.popToRootViewController(animated: true)
     }
     #else
+    articleVC.header.onTitle { [weak self] _ in
+      self?.debug("*** Action: Header back to Page pressed")
+      if  let art = articleVC.article,
+      let idx = pdfModel.pageIndexForArticle(art) {
+        self?.index = idx
+      }
+      articleVC.navigationController?.popViewController(animated: true)
+    }
+    
     articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
@@ -1069,6 +1084,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupSlider()//not called with contentTable set
+    header.isFromFacsimile = true
   }
   
   override func viewWillDisappear(_ animated: Bool) {

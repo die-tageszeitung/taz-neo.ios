@@ -292,7 +292,15 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           if let st = art.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
-          header.pageNumber = "\(i+1)/\(articles.count)"
+          //Exchange Labels if ArticleVC comes from Facsimile
+          if let page = (adelegate as? TazPdfPagesViewController)?.page(for: art),
+              let pagina = page.pagina {
+            header.title = pagina
+            header.pageNumber = "\(title)"
+          }
+          else {
+            header.pageNumber = "\(i+1)/\(articles.count)"
+          }
           contentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
         }

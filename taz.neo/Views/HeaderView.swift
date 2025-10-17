@@ -17,6 +17,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   private var beginScrollOffset: CGFloat?
   
   var isWochentaz: Bool = false
+  var isFromFacsimile: Bool = false
   var animateOnTitleChange: Bool = false
   
   //vars
@@ -291,18 +292,28 @@ extension HeaderView {
   
   func updateFonts(titleFontSize: CGFloat? = nil,
                    labelsFontSize: CGFloat? = nil) {
-    let titleFontSize = titleFontSize ?? titleFontSizeDefault
-    let labelsFontSize = labelsFontSize ?? subTitleFontSizeDefault
-    if isWochentaz && titletype != .section0
-        || isWochentaz && titletype == .article {
-      titleLabel.font = Const.Fonts.knileSemiBoldFont(size: titleFontSize)
-      subTitleLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
-      pageNumberLabel.font = Const.Fonts.knileRegularFont(size: labelsFontSize)
-    }
-    else {
-      titleLabel.titleFont(size: titleFontSize)
-      pageNumberLabel.contentFont(size: labelsFontSize)
-      subTitleLabel.contentFont(size: labelsFontSize)
+    let titleSize = titleFontSize ?? titleFontSizeDefault
+    let labelSize = labelsFontSize ?? subTitleFontSizeDefault
+    let isWochentazTitle = isWochentaz && (titletype != .section0 || titletype == .article)
+    
+    let contentFont = isWochentazTitle
+      ? Const.Fonts.knileRegularFont(size: labelSize)
+      : Const.Fonts.contentFont(size: labelSize)
+    
+    let titleFont = isWochentazTitle
+      ? Const.Fonts.knileSemiBoldFont(size: titleSize)
+      : Const.Fonts.titleFont(size: titleSize)
+
+    titleLabel.font = isFromFacsimile ? contentFont : titleFont
+    subTitleLabel.font = contentFont
+    pageNumberLabel.font = isFromFacsimile ? titleFont : contentFont
+    
+    if isFromFacsimile,
+       traitCollection.horizontalSizeClass != .compact,
+        let txt = titleLabel.text,
+        txt.contains("Impressum") == false
+    {
+      titleLabel.text = txt.prepend("Seite ")
     }
   }
   
