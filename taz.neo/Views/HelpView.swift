@@ -30,6 +30,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   
   private let maskLayer = CAShapeLayer()
   private let lineMask = CAShapeLayer()
+  private let dimmedBackground = UIView()
   
   private let line: CAShapeLayer = {
     let l = CAShapeLayer()
@@ -89,8 +90,10 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   
   override init(frame: CGRect) {
     super.init(frame: frame)
-    self.layer.mask = maskLayer
-    self.backgroundColor = .black.withAlphaComponent(0.8)
+    self.addSubview(dimmedBackground)
+    pin(dimmedBackground, to: self)
+    dimmedBackground.layer.mask = maskLayer
+    dimmedBackground.backgroundColor = .black.withAlphaComponent(0.8)
     collectionView.onTapping {[weak self] _ in
       self?.closeButton.animateFocus()
     }
