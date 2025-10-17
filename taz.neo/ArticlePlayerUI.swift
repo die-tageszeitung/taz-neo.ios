@@ -770,10 +770,9 @@ class ArticlePlayerUI: UIView {
     }
     onMainAfter {[weak self] in
       guard let self = self else { return }
-      let offset = (self.state == .mini) ? 16.0 : -82.0
       (TazAppEnvironment.sharedInstance.rootViewController
        as? MainTabVC)?.helpButtonPlayerOffset
-      = self.frame.size.height + offset
+      = self.frame.size.height - ((parentBottomConstraint?.constant ?? 0.0) + 50.0)
     }
   }
 }

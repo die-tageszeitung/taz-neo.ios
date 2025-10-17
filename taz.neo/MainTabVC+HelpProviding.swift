@@ -18,7 +18,7 @@ extension MainTabVC {
     = tabBar.frame.height + 9.0
     helpButtonBottomConstraint
     = pin(helpButton.bottom,
-          to: view.bottomGuide(),
+          to: view.bottomGuide(isMargin: true),
           dist: -helpButtonDefaultBottomDistance)
     pin(helpButton.right,
         to: view.rightGuide(),
