@@ -149,6 +149,22 @@ extension Bookmarks {
     }
   }
   
+  func removeAllBookmarks(){
+    guard let bookmarkSection = bookmarkSection else { return }
+    
+    for article in bookmarkSection.articles as? [StoredArticle] ?? [] {
+      article.pr.removeFromSections(bookmarkSection.pr)
+      bookmarkSection.pr.removeFromArticles(article.pr)
+      // Remove the stored article if it no longer belongs to any section
+      if article.pr.sections?.count == 0 {
+        article.delete()
+      }
+      Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+    }
+    ArticleDB.save()
+    bookmarkedArticles = []
+  }
+  
   private func removeBookmarked(article: StoredArticle, from section: StoredSection){
     guard let serverId = article.serverId else { return }
     bookmarkedArticles.removeAll{ $0.serverId == serverId }

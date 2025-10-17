@@ -88,10 +88,19 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     return btn
   }()
   
-  var headerPlayButtonContextMenu: ContextMenu?
+  func requestDeleteAllBookmarks(){
+    Alert.confirm(message: "Alle Lesezeichen löschen?", okText: "Löschen", isDestructive: true) {[weak self] choice in
+      guard choice == true else { return }
+      Bookmarks.shared.removeAllBookmarks()
+      self?.bookmarksTable.reloadData()
+    }
+  }
   
-  public var menu: MenuActions? {
-    let ctxMenu = Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)
+  private func syncBookmarks(){
+//    Bookmarks.shared.deleteAllBookmarks()
+  }
+  
+  private func downloadAllAudio(){
     var dlContent: [Article] = []
     for art in Bookmarks.shared.bookmarkedArticles {
       guard let fileEntry = art.audioItem?.file else { continue }
@@ -99,16 +108,55 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       let file = File(localFilePath)
       if file.exists == false {  dlContent.append(art) }
     }
-    
-    if dlContent.count == 0 { return ctxMenu }
+
+    guard dlContent.count > 0 else {
+      Toast.show("Alle Audioinhalte der Leseliste wurden bereits heruntergeladen.")
+      return
+    }
     debug("can download \(dlContent.count) items")
-    ctxMenu?.addMenuItem(title: "Alle Audioinhalte der Leseliste herunterladen",
-                         icon: "download",
-                         group: 0,
-                         closure: { _ in
-      Bookmarks.downloadAllAudio(dlContent: dlContent)
-    })
-    return ctxMenu
+    Bookmarks.downloadAllAudio(dlContent: dlContent)
+  }
+  
+  private lazy var headerMoreButton: UIButton = {
+    let btn = UIButton()
+    btn.setImage(UIImage(named: "ellipsis-circle"), for: .normal)
+    btn.pinSize(CGSize(width: 27, height: 27))
+    btn.tintColor = Const.Colors.appIconGrey
+    let deleteAllAction = UIAction(
+      title: "Alle Lesezeichen löschen",
+      image: UIImage(systemName: "trash"), attributes: [.destructive]) {[weak self] _ in
+        self?.requestDeleteAllBookmarks()
+      }
+    let syncAction = UIAction(
+      title: "Leselisten synchronoisieren",
+      image: UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")) {[weak self] _ in
+        self?.syncBookmarks()
+      }
+    let downloadAllAudioAction = UIAction(
+      title: "Alle Audioinhalte der Leseliste herunterladen",
+      image: UIImage(named: "download")) {[weak self] _ in
+        self?.downloadAllAudio()
+      }
+    
+    var menuActions: [UIAction] = [syncAction]
+    
+    if Bookmarks.shared.bookmarkedArticles.count > 0 {
+      menuActions.append(downloadAllAudioAction)
+      menuActions.append(deleteAllAction)
+    }
+    
+    if #available(iOS 14.0, *) {
+      btn.menu = UIMenu(title: "", children: menuActions)
+      btn.showsMenuAsPrimaryAction = true
+    }
+    return btn
+  }()
+  
+  var headerPlayButtonContextMenu: ContextMenu?
+  var headerMoreButtonContextMenu: ContextMenu?
+  
+  public var menu: MenuActions? {
+    return Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)
   }
   
   // MARK: - Lifecycle
@@ -129,8 +177,11 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     pin(bookmarksTable.top, to: header.bottom, dist: -2)
     
     self.header.addSubview(headerPlayButton)
+    self.header.addSubview(headerMoreButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
+    pin(headerMoreButton.right, to: headerPlayButton.left, dist: -10)
     pin(headerPlayButton.centerY, to: header.titleLabel.centerY)
+    pin(headerMoreButton.centerY, to: header.titleLabel.centerY)
     headerPlayButton.activeColor = Const.SetColor.taz2(.text).color
     headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
     headerPlayButtonContextMenu?.itemPrivider = self

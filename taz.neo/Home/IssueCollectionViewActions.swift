@@ -57,13 +57,7 @@ extension IssueCollectionViewActions {
   
   func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
     let actions = MenuActions()
-    
-    actions.addMenuItem(title: "Ausgabe löschen",
-                        icon: "trash",
-                        enabled: issue.isDownloading == false) {[weak self] _ in
-      self?.deleteIssue(issue: issue, at: indexPath)
-    }
-    
+        
     if issue.hasLastReadForCurrentMode {
       actions.addMenuItem(title: "Weiterlesen",
                           icon: "bookmark") {[weak self] _ in
@@ -121,6 +115,12 @@ extension IssueCollectionViewActions {
                           icon: "repeat") {_ in
         home.scrollFromLeftToRight.toggle()
       }
+    }
+    
+    actions.addMenuItem(title: "Ausgabe löschen",
+                        icon: "trash",
+                        enabled: issue.isDownloading == false) {[weak self] _ in
+      self?.deleteIssue(issue: issue, at: indexPath)
     }
     
     actions.actions.append(contentsOf: issue.contextMenu(group: 1).actions)

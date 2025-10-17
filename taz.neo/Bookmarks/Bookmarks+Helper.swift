@@ -29,7 +29,9 @@ extension Bookmarks {
   /// Downloads all audio files for a list of articles.
    static func downloadAllAudio(dlContent: [Article]) {
        guard let context = shared.feederContext else { return }
-       
+     var filesCount = dlContent.count
+     var errorCount = dlContent.count
+     Toast.show("Lade Audiodateien für \(filesCount) Artikel herunter...")
        for article in dlContent {
            guard let baseUrl = article.baseURL,
                  let audioFile = article.audioItem?.file else { continue }
@@ -41,7 +43,15 @@ extension Bookmarks {
            ) { error in
                if let error = error {
                    shared.log("Error downloading \(audioFile.fileName): \(error)")
+                 errorCount += 1
                }
+             filesCount -= 1
+             if filesCount == 0 {
+               let msg = errorCount == 0
+               ? "Audiodateien heruntergeladen."
+               : "\(errorCount) Audiodateien konnten nicht heruntergeladen werden."
+               Toast.show(msg)
+             }
            }
        }
    }
