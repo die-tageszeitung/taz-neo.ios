@@ -45,11 +45,10 @@ extension HomeVC  {
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
-      #warning("ToDO depends on State")
       cell.button.onTapping { [weak self] _ in
         if cell.button.indicator.downloadState?.canOpen == true,
           let issue = cell.data?.issue {
-          (self?.parent as? OpenIssueDelegate)?.openIssue(issue,
+          (self as? OpenIssueDelegate)?.openIssue(issue,
                                                           openLast: true)
           Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
           return

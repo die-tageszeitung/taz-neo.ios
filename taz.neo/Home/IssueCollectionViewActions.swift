@@ -64,15 +64,21 @@ extension IssueCollectionViewActions {
       self?.deleteIssue(issue: issue, at: indexPath)
     }
     
-    actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
-                        icon: "bookmark-stroke-s",
-                        enabled: issue.isDownloading == false) {[weak self] _ in
-      issue.lastPage = nil
-      issue.lastArticle = nil
-      issue.lastSection = nil
-      self?.collectionView.reloadItems(at: [indexPath])
-      self?.updateCarouselDownloadButton()
+    if issue.hasLastReadForCurrentMode {
+      actions.addMenuItem(title: "Weiterlesen",
+                          icon: "bookmark") {[weak self] _ in
+        (self as? OpenIssueDelegate)?.openIssue(issue, openLast: true)
+      }
+      actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
+                          icon: "bookmark-stroke-s") {[weak self] _ in
+        issue.lastPage = nil
+        issue.lastArticle = nil
+        issue.lastSection = nil
+        self?.collectionView.reloadItems(at: [indexPath])
+        self?.updateCarouselDownloadButton()
+      }
     }
+   
     
     if issue.isComplete && issue.isAudioComplete == false && issue.hasAudio
     {

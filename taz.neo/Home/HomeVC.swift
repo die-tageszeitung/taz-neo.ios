@@ -22,7 +22,7 @@ extension OpenIssueDelegate {
   }
 }
 
-class HomeVC: UICollectionViewController {
+class HomeVC: UICollectionViewController, OpenIssueDelegate {
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -526,7 +526,6 @@ class HomeVC: UICollectionViewController {
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
       centerIssueDateKey = newKey
-      print(">>>setText: \(txt)")
       dateLabel.setText(txt)
     }
   }
