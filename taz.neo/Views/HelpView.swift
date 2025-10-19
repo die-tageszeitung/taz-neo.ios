@@ -40,10 +40,17 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     return l
   }()
   
+  private lazy var closeButtonWrapper: UIView = {
+    let wrapper = UIView()
+    wrapper.onTapping{[weak self] _ in self?.onCloseHandler?()}
+    wrapper.addSubview(closeButton)
+    pin(closeButton, to: wrapper, dist: 4.0)
+    return wrapper
+  }()
+  
   private lazy var closeButton: UIView = {
     let xButton = Button<ImageView>()
     xButton.tazX(isPermanentDark: true)
-    xButton.onPress {[weak self] _ in self?.onCloseHandler?() }
     return xButton
   }()
   
@@ -121,9 +128,9 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     pin(collectionView, to: self)
     collectionView.index = 0
     
-    addSubview(closeButton)
-    pin(closeButton.right, to: right, dist: -10.0)
-    pin(closeButton.top, to: topGuide(), dist: 10.0)
+    addSubview(closeButtonWrapper)
+    pin(closeButtonWrapper.right, to: right, dist: -7.0)
+    pin(closeButtonWrapper.top, to: topGuide(), dist: 7.0)
     
     setupPageControl()
     

@@ -98,9 +98,9 @@ class HelpBusiness {
     helpView.alpha = 0.0
     window?.addSubview(helpView)
     helpView.setLastMaxIndex(idx: lastIndex)
-    UIView.animate(withDuration: 0.7,
+    UIView.animate(withDuration: 0.2,
                    delay: 0,
-                   options: UIView.AnimationOptions.curveEaseInOut,
+                   options: UIView.AnimationOptions.curveEaseIn,
                    animations: {
       helpView.alpha = 1.0
     }, completion: { (_) in
@@ -110,7 +110,7 @@ class HelpBusiness {
     })
     helpView.onClose {
       Notification.send(Const.NotificationNames.helpProviderChanged)
-      UIView.animate(withDuration: 0.7,
+      UIView.animate(withDuration: 0.5,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
                      animations: {
