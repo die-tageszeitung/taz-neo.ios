@@ -442,6 +442,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
           .withTintColor(.white)
   }
   
+  private func updateArticleVcMenuAudioButton(){
+    guard let cell = (childArticleVC?.slider?.slider as? PdfOverviewCollectionVC)?.titleCell else { return }
+    let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
+    cell.listenLabel.text = playing ? "Wiedergabe beenden" : "Ausgabe hören"
+    
+    cell.listenIcon.image  = UIImage(named: playing  ? "audio-active" : "audio")?
+          .withRenderingMode(.alwaysOriginal)
+          .withTintColor(.white)
+  }
+  
   func openArticle(name: String?, path: String?, reopenArticleScrollPos: CGFloat?){
     guard let pdfModel = pdfModel as? NewPdfModel else { return }
     guard let issueInfo = pdfModel.issueInfo else { return }
@@ -552,6 +562,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       = self?.playingCurrentSection ?? false
       ? "audio-active" : "audio"
       self?.updateMenuAudioButton()
+      self?.updateArticleVcMenuAudioButton()
     }
     
     onRightTap {[weak self] in
@@ -945,6 +956,7 @@ extension TazPdfPagesViewController {
         self?.tapPlayInSlider()
       }
       self?.updateMenuAudioButton()
+      self?.updateArticleVcMenuAudioButton()
     }
     return ctrl
   }
