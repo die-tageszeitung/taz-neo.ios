@@ -19,6 +19,14 @@ class HelpButton: UIView {
   
   private var bottomConstraint: NSLayoutConstraint?
   
+  func show(){
+    
+  }
+  
+  func hide(){
+  }
+
+  
   private lazy var badgeLabel: UILabel = {
     let lbl = UILabel()
     lbl.pinSize(CGSize(width: 16, height: 16))

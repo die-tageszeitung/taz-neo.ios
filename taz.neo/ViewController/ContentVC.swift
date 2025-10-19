@@ -116,9 +116,6 @@ extension String {
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
-  @Default("showHelp")
-  public var showHelp: Bool
-  
   @Default("multiColumnSnap")
   public var multiColumnSnap: Bool
   
@@ -380,7 +377,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard isMultiColumnMode else {
       let isNotAtEnd = super.handleRightTap()
       if hideOnScroll { toolBar.show(show: !isNotAtEnd, animated: true) }
-      helpButton?.hideAnimated()
+      (self as? HelpProviding)?.hideHelpButton()
       return isNotAtEnd
     }
     guard let sv = self.currentWebView?.scrollView  else { return false }
@@ -398,7 +395,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if maxX - x < 5 { x = maxX }  ///fix round errors
       x = min(maxX, x)
     }
-    helpButton?.hideAnimated()
+    (self as? HelpProviding)?.hideHelpButton()
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -540,9 +537,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
-        self.helpButton?.isHidden = true
+        (self as? HelpProviding)?.hideHelpButton()
         self.imageOverlay?.onClose {[weak self] in
-          self?.helpButton?.isHidden = false
+          (self as? HelpProviding)?.showHelpButton()
           self?.imageOverlay = nil///former we had a delayed set nil
           guard Device.isIphone else { return }
           /// reset orientation to portrait, really no negative effect on iPad?
@@ -982,12 +979,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self?.slider?.showMenuImage = true
         if self?.hideOnScroll == false { return }
         self?.toolBar.show(show: false, animated: true)
-        self?.helpButton?.hideAnimated()
+        (self as? HelpProviding)?.hideHelpButton()
       }
       else {
         self?.slider?.showMenuImage = false
         self?.toolBar.show(show:true, animated: true)
-        self?.helpButton?.showAnimated()
+        (self as? HelpProviding)?.showHelpButton()
       }
     }
     onDisplay {[weak self]_, _, _  in
@@ -995,7 +992,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       if self?.showBarsOnContentChange == true {
         self?.toolBar.show(show:true, animated: true)
         self?.header.show(show: true, animated: true)
-        self?.helpButton?.showAnimated()
+        (self as? HelpProviding)?.showHelpButton()
       }
       
       if self?.hideOnScroll == false {
@@ -1018,12 +1015,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     
     displayUrls()
     registerForStyleUpdates()
-  }
-  
-  var helpButton: UIView? {
-    guard showHelp else { return nil }
-    return (TazAppEnvironment.sharedInstance.rootViewController
-     as? MainTabVC)?.helpButton
   }
   
   func persistReadProgress() {}///overwrite in Subclass

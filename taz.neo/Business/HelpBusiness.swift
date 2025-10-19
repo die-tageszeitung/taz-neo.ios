@@ -42,6 +42,53 @@ extension HelpProviding {
         return nil
     }
   }
+  
+  var doNotShowHelpInThisAreaAnymore: Bool {
+    get {
+      switch self {
+        case is HomeVC:
+          return HelpBusiness.shared.lastHomeHelpIndex < 0
+        case is SectionVC:
+          return HelpBusiness.shared.lastSectionHelpIndex < 0
+        case is ArticleVC:
+          return HelpBusiness.shared.lastArticleHelpIndex < 0
+        case is ArticlePlayer:
+          return HelpBusiness.shared.lastPlayerHelpIndex < 0
+        case is NewContentTableVC:
+          return HelpBusiness.shared.lastSliderHelpIndex < 0
+        default:
+          return true
+      }
+    }
+    set {
+      guard newValue == true else { return }
+      switch self {
+        case is HomeVC:
+          HelpBusiness.shared.lastHomeHelpIndex = -1
+        case is SectionVC:
+          return HelpBusiness.shared.lastSectionHelpIndex = -1
+        case is ArticleVC:
+          return HelpBusiness.shared.lastArticleHelpIndex = -1
+        case is ArticlePlayer:
+          return HelpBusiness.shared.lastPlayerHelpIndex = -1
+        case is NewContentTableVC:
+          return HelpBusiness.shared.lastSliderHelpIndex = -1
+        default:
+          break
+      }
+    }
+  }
+  
+  func showHelpButton(){
+    guard doNotShowHelpInThisAreaAnymore == false else { return }
+    (TazAppEnvironment.sharedInstance.rootViewController
+            as? MainTabVC)?.helpButton.showAnimated()
+  }
+  
+  func hideHelpButton(){
+    (TazAppEnvironment.sharedInstance.rootViewController
+            as? MainTabVC)?.helpButton.hideAnimated()
+  }
 }
 
 class HelpBusiness {
@@ -76,7 +123,8 @@ class HelpBusiness {
   func openHelp(){
     guard let window = UIApplication.shared.delegate?.window,
           let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
-    let helpProvider = mainTabVc.currentHelpProvider else { return }
+    var helpProvider = mainTabVc.currentHelpProvider else { return }
+    let helpItemsCount = helpProvider.helpItems.count
     
     if let cvc = helpProvider as? ContentVC {
       cvc.toolBar.show(show: true, animated: false)
@@ -87,10 +135,31 @@ class HelpBusiness {
     if helpProvider is ArticlePlayer {
       helpView.pageControllBottomOffset = -250
     }
+    
+    let close = {
+      Notification.send(Const.NotificationNames.helpProviderChanged)
+      UIView.animate(withDuration: 0.5,
+                     delay: 0,
+                     options: UIView.AnimationOptions.curveEaseInOut,
+                     animations: {
+        helpView.alpha = 0.0
+      }, completion: {(_) in
+        helpView.removeFromSuperview()
+      })
+    }
+    
     ///addSubview changes index, save it before
     let lastIndex = lastHelpItemIndex(for: helpProvider)
     helpView.onDisplay {[weak self] idx in
       self?.display(idx: idx, for: helpProvider)
+      if idx + 1 >= helpItemsCount {
+        helpView.doNotShowHelpInThisAreaAnymore.showAnimated()
+        helpView.doNotShowHelpInThisAreaAnymore.onTapping { _ in
+          helpProvider.doNotShowHelpInThisAreaAnymore = true
+          close()
+          Notification.send(Const.NotificationNames.helpProviderChanged)
+        }
+      }
     }
     
     helpView.items = helpProvider.helpItems
@@ -108,17 +177,7 @@ class HelpBusiness {
         window?.bringSubviewToFront(helpView)
       }
     })
-    helpView.onClose {
-      Notification.send(Const.NotificationNames.helpProviderChanged)
-      UIView.animate(withDuration: 0.5,
-                     delay: 0,
-                     options: UIView.AnimationOptions.curveEaseInOut,
-                     animations: {
-        helpView.alpha = 0.0
-      }, completion: {(_) in
-        helpView.removeFromSuperview()
-      })
-    }
+    helpView.onClose { close() }
   }
   
   private func lastHelpItemIndex(for helpProvider: HelpProviding) -> Int?{

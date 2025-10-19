@@ -10,6 +10,9 @@ import UIKit
 
 class MainTabVC: UITabBarController, UIStyleChangeDelegate {
 
+  @Default("showHelp")
+  var showHelp: Bool
+  
   var feederContext: FeederContext
   var service: IssueOverviewService
   

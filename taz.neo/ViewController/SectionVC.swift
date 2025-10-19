@@ -314,7 +314,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         header.title = section.title ?? ""
         header.show(show: false, animated: true)
         toolBar.show(show:false, animated: true)
-        helpButton?.hideAnimated()
+        hideHelpButton()
         return
       }
     }
@@ -326,7 +326,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     header.show(show: true, animated: true)
     toolBar.show(show:true, animated: true)
-    helpButton?.showAnimated()
+    showHelpButton()
   }
   
   open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

@@ -54,6 +54,15 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     return xButton
   }()
   
+  lazy var doNotShowHelpInThisAreaAnymore: UILabel = {
+    let lbl = UILabel()
+    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize).white().centerText()
+    lbl.text = "Hilfe für diesen Bereich nicht mehr anzeigen."
+//    lbl.text = "Diese Hilfe nicht mehr anzeigen."
+    lbl.isHidden = true
+    return lbl
+  }()
+  
   fileprivate var onDisplayClosure: ((Int)->())? = nil
    
   /// Define closure to call when a cell is newly displayed
@@ -133,6 +142,10 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     pin(closeButtonWrapper.top, to: topGuide(), dist: 7.0)
     
     setupPageControl()
+    doNotShowHelpInThisAreaAnymore.addBorder(.white, only: .bottom)
+    addSubview(doNotShowHelpInThisAreaAnymore)
+    doNotShowHelpInThisAreaAnymore.centerX()
+    pin(doNotShowHelpInThisAreaAnymore.top, to: controlsContainer.bottom, dist: 8.0)
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {[weak self] _ in
       onMainAfter {[weak self] in

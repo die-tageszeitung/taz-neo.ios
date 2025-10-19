@@ -30,7 +30,10 @@ extension MainTabVC {
   }
   
   func helpProviderChanged(){
-    guard let helpProvider = currentHelpProvider else {
+    guard let helpProvider = currentHelpProvider,
+          helpProvider.doNotShowHelpInThisAreaAnymore == false,
+          showHelp == true
+    else {
       helpButton.hideAnimated()
       return
     }

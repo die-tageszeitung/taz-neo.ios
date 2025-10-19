@@ -471,7 +471,10 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: showHelp,
                   onChange: {[weak self] newValue in
     self?.showHelp = newValue
-    if newValue == true { HelpBusiness.shared.resetHelp() }
+    if newValue == true {
+      HelpBusiness.shared.resetHelp()
+      Toast.show("Hilfe zurückgesetzt!")
+    }
                   })
   
   lazy var memoryUsageCell: XSettingsCell
