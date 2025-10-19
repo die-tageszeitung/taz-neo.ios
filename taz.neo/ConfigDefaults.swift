@@ -49,6 +49,7 @@ private let configValues = [
   "lastArticleHelpIndex" : "0",
   "lastPlayerHelpIndex" : "0",
   "lastSliderHelpIndex" : "0",
+  "lastPdfHelpIndex" : "0",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out

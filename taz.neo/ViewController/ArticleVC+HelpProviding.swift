@@ -127,8 +127,4 @@ extension ArticleVC: HelpProviding{
       return items
     }
   }
-  func onDisplay(idx: Int, isClosing: Bool) {
-    print("Help Item \(idx+1) \(isClosing ? "closing" : "displaying")")
-    
-  }
 }

@@ -834,7 +834,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider?.button.shadow()
   }
   
-  private var shareButton: Button<ImageView>?
+  var shareButton: Button<ImageView>?
+  var backButton: Button<ImageView>?
+  var homeButton: Button<ImageView>?
   ///sectionAudio Button only used in state 1 e.g. for bundestalk
   private var audioButton: Button<ImageView>?
   
@@ -875,12 +877,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     //the buttons and alignments
-    _ = toolBar.addImageButton(name: "home",
+    homeButton = toolBar.addImageButton(name: "home",
                                onPress: onHome,
                                direction: .right,
                                atToolbars: [0,1],
                                accessibilityLabel: "Übersicht")
-    _ = toolBar.addImageButton(name: "chevron-left",
+    backButton = toolBar.addImageButton(name: "chevron-left",
                                onPress: onHome,
                                direction: .left,
                                atToolbars: [0,1],

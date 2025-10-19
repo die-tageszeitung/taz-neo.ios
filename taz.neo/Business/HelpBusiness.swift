@@ -34,6 +34,8 @@ extension HelpProviding {
         return HelpBusiness.shared.lastSectionHelpIndex
       case is ArticleVC:
         return HelpBusiness.shared.lastArticleHelpIndex
+      case is TazPdfPagesViewController:
+        return HelpBusiness.shared.lastPdfHelpIndex
       case is ArticlePlayer:
         return HelpBusiness.shared.lastPlayerHelpIndex
       case is NewContentTableVC:
@@ -44,22 +46,7 @@ extension HelpProviding {
   }
   
   var doNotShowHelpInThisAreaAnymore: Bool {
-    get {
-      switch self {
-        case is HomeVC:
-          return HelpBusiness.shared.lastHomeHelpIndex < 0
-        case is SectionVC:
-          return HelpBusiness.shared.lastSectionHelpIndex < 0
-        case is ArticleVC:
-          return HelpBusiness.shared.lastArticleHelpIndex < 0
-        case is ArticlePlayer:
-          return HelpBusiness.shared.lastPlayerHelpIndex < 0
-        case is NewContentTableVC:
-          return HelpBusiness.shared.lastSliderHelpIndex < 0
-        default:
-          return true
-      }
-    }
+    get { lastIndex ?? 0  < 0 }
     set {
       guard newValue == true else { return }
       switch self {
@@ -71,6 +58,8 @@ extension HelpProviding {
           return HelpBusiness.shared.lastArticleHelpIndex = -1
         case is ArticlePlayer:
           return HelpBusiness.shared.lastPlayerHelpIndex = -1
+        case is TazPdfPagesViewController:
+          return HelpBusiness.shared.lastPdfHelpIndex  = -1
         case is NewContentTableVC:
           return HelpBusiness.shared.lastSliderHelpIndex = -1
         default:
@@ -107,6 +96,8 @@ class HelpBusiness {
   public var lastPlayerHelpIndex: Int
   @Default("lastSliderHelpIndex")
   public var lastSliderHelpIndex: Int
+  @Default("lastPdfHelpIndex")
+  public var lastPdfHelpIndex: Int
   @Default("helpUsedOnce")
   public var helpUsedOnce: Bool
   
@@ -117,6 +108,7 @@ class HelpBusiness {
     lastArticleHelpIndex = 0
     lastPlayerHelpIndex = 0
     lastSliderHelpIndex = 0
+    lastPdfHelpIndex = 0
   }
   
   
@@ -190,6 +182,8 @@ class HelpBusiness {
         return lastArticleHelpIndex
       case is ArticlePlayer:
         return lastPlayerHelpIndex
+      case is TazPdfPagesViewController:
+        return lastPdfHelpIndex
       case is NewContentTableVC:
         return lastSliderHelpIndex
       default:
@@ -205,6 +199,8 @@ class HelpBusiness {
         lastSectionHelpIndex = max(idx+1, lastSectionHelpIndex)
       case is ArticleVC:
         lastArticleHelpIndex = max(idx+1, lastArticleHelpIndex)
+      case is TazPdfPagesViewController:
+        lastPdfHelpIndex = max(idx+1, lastPdfHelpIndex)
       case is ArticlePlayer:
         lastPlayerHelpIndex = max(idx+1, lastPlayerHelpIndex)
       case is NewContentTableVC:
