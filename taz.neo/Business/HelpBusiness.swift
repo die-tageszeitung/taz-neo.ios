@@ -234,7 +234,6 @@ extension HelpBusiness {
   }
 }
 
-
 extension MainTabVC {
   var currentHelpProvider: HelpProviding? {
     if ArticlePlayer.singleton.isMaxiPlayer {
@@ -242,9 +241,12 @@ extension MainTabVC {
     }
     if let nav = selectedViewController as? UINavigationController {
       if let cvc = nav.visibleViewController as? ContentVC,
-         cvc.slider?.isOpen == true,
-         let menu = cvc.slider?.slider as? HelpProviding {
-          return menu
+         cvc.slider?.isOpen == true {
+        return cvc.slider?.slider as? HelpProviding
+      }
+      else if let cvc = nav.visibleViewController as? TazPdfPagesViewController,
+         cvc.slider?.isOpen == true {
+        return cvc.slider?.slider as? HelpProviding
       }
       return nav.visibleViewController as? HelpProviding
     } else {

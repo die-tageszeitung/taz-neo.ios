@@ -44,7 +44,6 @@ extension NewContentTableVC : HelpProviding {
       
       let moment = HelpItem(title:"Zurück zur Übersicht",
                           text: "Tippen Sie auf das Titelbild, um zur Ausgabenübersicht zurückzukehren.",
-                            isCircleCutout: true,
                           targetView: self.momentImageView)
       let showAllArticles = HelpItem(title:"Alle Artikel anzeigen",
                           text: "Tippen Sie hier, um alle Artikel der Ausgabe anzuzeigen.",

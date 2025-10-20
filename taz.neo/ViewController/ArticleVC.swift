@@ -295,7 +295,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           //Exchange Labels if ArticleVC comes from Facsimile
           if let page = (adelegate as? TazPdfPagesViewController)?.page(for: art),
               let pagina = page.pagina {
-            header.title = pagina
+            if let i = Int(pagina), i < 10 {
+              header.title = String(format: "%02d", i)
+            }
+            else {
+              header.title = pagina
+            }
             header.pageNumber = "\(title)"
           }
           else {

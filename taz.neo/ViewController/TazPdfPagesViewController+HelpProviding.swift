@@ -26,14 +26,14 @@ extension TazPdfPagesViewController: HelpProviding{
         swiping.topImageView = iv
       }
       
-      var articleTapText = "Tippen Sie auf der Seite auf einen Artikel, um ihn im Lesemodus anzuzeigen."
+      var articleTapText = "Tippen Sie auf der Seite auf einen Artikel, um ihn im Lesemodus anzuzeigen.\nDort können Sie die Schriftgröße ändern, sich den Artikel vorlesen lassen und den Nachtmodus aktivieren."
       if articleFromPdf == false {
         articleTapText.append("\nAchtung! Sie haben diese Funktion deaktiviert. Blättern Sie in der Hilfe weiter, um zu erfahren wie Sie diese Funktion wieder aktivieren können.")
       }
       let articleTap = HelpItem(title:"Artikel lesen",
                                        text: articleTapText)
  
-      var pageZoomText 
+      let pageZoomText
       = doubleTapToZoomPdf
       ? "Vergrößern Sie die Seite, indem Sie zwei Finger auflegen und auseinanderziehen oder tippen Sie einfach doppelt an die Stelle, die Sie vergrößern möchten."
       : "Vergrößern Sie die Seite, indem Sie zwei Finger auflegen und auseinanderziehen."

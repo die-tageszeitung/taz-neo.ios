@@ -54,7 +54,9 @@ extension ArticleVC: HelpProviding{
       let isRegularIssue = !isSearchIssue && !isBookmarkIssue
       
       let backText
-      = isRegularIssue
+      = self is ArticleVcWithPdfInSlider
+      ? "Hier geht es zurück zum Zeitungslayout der Ausgabe und wenn Sie lange gedrückt halten, direkt zum Startbildschirm."
+      : isRegularIssue
       ? "Hier geht es zurück zur Ressortübersicht und wenn Sie lange gedrückt halten, direkt zum Startbildschirm."
       : isBookmarkIssue
       ? "Hier geht es zurück zur Leseliste."
@@ -103,11 +105,18 @@ extension ArticleVC: HelpProviding{
                             text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", isCircleCutout: true, targetView: textSettingsButton))
       
       if isRegularIssue {
-        items.append(HelpItem(title:"Ressortübersicht öffnen",
-                              text: "Tippen Sie auf den Ressortnamen, um direkt zur Übersicht dieses Ressorts zu gelangen.",
-                              isCircleCutout: true,
-                              targetView: header.titleLabel))
-
+        if self is ArticleVcWithPdfInSlider {
+          items.append(HelpItem(title:"Seite anzeigen",
+                                text: "Tippen Sie auf den Ressortnamen oder die Seitenzahl, um direkt zur zugehörigen (ersten) Seite dieses Artikels im Zeitungslayout zu gelangen.",
+                                isCircleCutout: true,
+                                targetView: header.pageNumberLabel))
+        }
+        else {
+          items.append(HelpItem(title:"Ressortübersicht öffnen",
+                                text: "Tippen Sie auf den Ressortnamen, um direkt zur Übersicht dieses Ressorts zu gelangen.",
+                                isCircleCutout: true,
+                                targetView: header.titleLabel))
+        }
       }
       
       let search = HelpItem(title:"Archivsuche – leicht gemacht!",

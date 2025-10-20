@@ -201,7 +201,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     
     titlePageNumberLabelBottomConstraint =
     pin(pageNumberLabel.bottom, to: titleLabel.bottom, dist: 0)
-    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding)
+    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding, priority: .fittingSizeLevel)
     
     titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
     pin(titleLabel.right, to: self.right, dist: -sidePadding).priority = .defaultHigh

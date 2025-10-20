@@ -1039,7 +1039,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
-    slider?.onOpen{[weak self] _ in
+    slider?.onOpen{_ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
       Notification.send(Const.NotificationNames.helpProviderChanged)
     }
