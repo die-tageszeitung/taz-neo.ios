@@ -80,6 +80,7 @@ extension IssueCollectionViewActions {
       actions.addMenuItem(title: "Audioinhalte laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
+        Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: true)
         guard let home = self as? HomeVC,
               home.centerIndex == indexPath.row else { return }
@@ -89,6 +90,7 @@ extension IssueCollectionViewActions {
       actions.addMenuItem(title: "Ausgabe laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
+        Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: false)
         guard let home = self as? HomeVC,
               home.centerIndex == indexPath.row else { return }
@@ -98,6 +100,7 @@ extension IssueCollectionViewActions {
       actions.addMenuItem(title: "Ausgabe mit Audio laden",
                           icon: "download",
                           enabled: issue.isDownloading == false) {[weak self] _ in
+        Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: true)
         guard let home = self as? HomeVC,
               home.centerIndex == indexPath.row else { return }

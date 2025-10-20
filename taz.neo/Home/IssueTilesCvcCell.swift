@@ -73,7 +73,6 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   }
   
   private func updateButtonVisibillity(){
-    log("updateButtonVisibillity for Button: \(button.label.text) sisible \(isHomeTiles)")
     button.isHidden = !isHomeTiles
     cvBottomConstraint?.isActive = !isHomeTiles
   }
@@ -110,6 +109,9 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       if (notif.object as? Issue)?.date != safeDate { return }
       if (notif.content as? String) == "deleted" {
         self.button.indicator.downloadState = .notStarted
+      }
+      else if (notif.content as? String) == "waiting" {
+        self.button.indicator.downloadState = .waiting
       }
       else if let (loaded,total) = notif.content as? (Int64,Int64) {
         let percent = Float(loaded)/Float(total)
