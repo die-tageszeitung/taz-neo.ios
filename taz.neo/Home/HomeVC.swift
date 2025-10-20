@@ -299,11 +299,17 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     nextHorizontalSizeClass = nil
   }
   
+  private func headerTopDist(hidden: Bool) -> CGFloat{
+    let isBigScreen = UIWindow.keyWindow?.screen.bounds.height ?? 0 > 900
+    let hiddenTopDist = isBigScreen ? -10.0 : -40.0
+    let fullTopDist = isBigScreen ? isHomeTiles ? 10.0 : 30.0 : 0.0
+    return hidden ? hiddenTopDist : fullTopDist
+  }
+  
   private func updateHeader(hidden: Bool) {
-    let targetConstant: CGFloat = hidden ? -40 : 0
-    guard viewModeButtonTopConstraint?.constant != targetConstant else { return
-    }
-    viewModeButtonTopConstraint?.constant = targetConstant
+    let dist = headerTopDist(hidden: hidden)
+    guard viewModeButtonTopConstraint?.constant != dist else { return }
+    viewModeButtonTopConstraint?.constant = dist
     
     UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut]) {
       self.viewModeButton.imageView?.alpha = hidden ? 0 : 1
@@ -348,7 +354,9 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     pin(statusHeader.right, to: loginButton.left, priority: .defaultLow)
     
     pin(viewModeButton.left, to: self.view.leftGuide(), dist: 11.0)
-    viewModeButtonTopConstraint = pin(viewModeButton.top, to: self.view.topGuide(), dist: 0)
+    viewModeButtonTopConstraint = pin(viewModeButton.top,
+                                      to: self.view.topGuide(),
+                                      dist: headerTopDist(hidden: false))
 
     updateLoginButton()
     updateButtonMenu()
