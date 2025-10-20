@@ -102,11 +102,12 @@ extension HomeVC  {
       error("Issue not available try later")
       return
     }
-//    loadingMoment = (collectionView.cellForItem(at: indexPath) as? IssueCollectionViewCell)?.momentView
-    #warning("ToDo 1.6.0")//????
-//    if data.downloadState == .notStarted {
-//      downloadButton.indicator.downloadState = .waiting
-//    }
+    if isHomeTiles {
+      Notification.send("issueProgress", content: "waiting", sender: issue)
+    }
+    else if data.downloadState == .notStarted {
+      downloadButton.indicator.downloadState = .waiting
+    }
     openIssue(issue)
   }
   
