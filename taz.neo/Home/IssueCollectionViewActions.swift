@@ -62,6 +62,7 @@ extension IssueCollectionViewActions {
       actions.addMenuItem(title: "Weiterlesen",
                           icon: "bookmark") {[weak self] _ in
         (self as? OpenIssueDelegate)?.openIssue(issue, openLast: true)
+        Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
       }
       actions.addMenuItem(title: "Lesestatus zurücksetzen",//Als neu/ungelesen markieren
                           icon: "bookmark-stroke-s") {[weak self] _ in

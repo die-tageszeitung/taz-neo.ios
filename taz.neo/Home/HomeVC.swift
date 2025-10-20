@@ -154,7 +154,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       
       if self?.downloadButton.indicator.downloadState?.canOpen == true,
          let issue = data.issue {
-        (self?.parent as? OpenIssueDelegate)?.openIssue(issue, openLast: true)
+        self?.openIssue(issue, openLast: true)
         Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
         return
       }
@@ -195,8 +195,6 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
                                 animated: true)
   }
   
-  
-  
   func showDatePicker() {
     guard datePickerOverlay.superview == nil else { return }
     datePickerOverlay.isHidden = true
@@ -207,19 +205,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     datePickerOverlay.showAnimated()
   }
   
-
   var centerIndex: Int? {
-    let rows = collectionView.indexPathsForVisibleItems.map(\.row).sorted()
-    guard !rows.isEmpty else { return nil }
-    return rows[(rows.count - 1) / 2]
-  }
-  
-  var centerIndex1: Int? {
     guard let cv = collectionView else { return nil }
     let center = self.view.convert(cv.center, to: cv)
     return cv.indexPathForItem(at: center)?.row
   }
-
   
   /// Returns the index path of the center-most visible item in the collection view.
   /// If `returnFirstItemIfVisible` is `true` and the first item (item 0) is visible,
