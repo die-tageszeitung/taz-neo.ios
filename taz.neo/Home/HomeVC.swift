@@ -300,7 +300,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   private func headerTopDist(hidden: Bool) -> CGFloat{
-    let isBigScreen = UIWindow.keyWindow?.screen.bounds.height ?? 0 > 900
+    let isBigScreen = UIWindow.keyWindow?.screen.bounds.height ?? 0 > 990
     let hiddenTopDist = isBigScreen ? -10.0 : -40.0
     let fullTopDist = isBigScreen ? isHomeTiles ? 10.0 : 30.0 : 0.0
     return hidden ? hiddenTopDist : fullTopDist
