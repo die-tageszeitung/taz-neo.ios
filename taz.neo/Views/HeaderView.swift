@@ -42,6 +42,14 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
       setRatio(0, animated: false)
     }
   }
+  ///due complex layout and multiple states in various use cases its more easy to add a help target
+  ///otherwise in pdf the target is left of the text in the header == on a blank area
+  public lazy var labelsHelpTarget: UIView = {
+    let view = UIView()
+    view.pinSize(CGSize(width: 30, height: 30))
+    return view
+  }()
+  
   var pageNumber: String? {
     get{ return pageNumberLabel.text }
     set{ pageNumberLabel.text = newValue }
@@ -176,6 +184,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   }
   
   private func setup() {
+    self.addSubview(labelsHelpTarget)
     self.addSubview(titleLabel)
     self.addSubview(line)
     self.addSubview(subTitleLabel)
@@ -201,10 +210,13 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     
     titlePageNumberLabelBottomConstraint =
     pin(pageNumberLabel.bottom, to: titleLabel.bottom, dist: 0)
-    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding, priority: .fittingSizeLevel)
+    leftConstraint = pin(pageNumberLabel.left, to: self.left, dist:sidePadding)
     
     titleLeftConstraint = pin(titleLabel.left, to: pageNumberLabel.right, dist: 8)
     pin(titleLabel.right, to: self.right, dist: -sidePadding).priority = .defaultHigh
+    
+    pin(labelsHelpTarget.centerY, to: titleLabel.centerY)
+    pin(labelsHelpTarget.right, to: titleLabel.left, dist:-20)
     
     pin(line.left, to: self.left, dist:sidePadding)
     pin(line.right, to: self.right, dist:-sidePadding).priority = .defaultHigh

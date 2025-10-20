@@ -109,7 +109,7 @@ extension ArticleVC: HelpProviding{
           items.append(HelpItem(title:"Seite anzeigen",
                                 text: "Tippen Sie auf den Ressortnamen oder die Seitenzahl, um direkt zur zugehörigen (ersten) Seite dieses Artikels im Zeitungslayout zu gelangen.",
                                 isCircleCutout: true,
-                                targetView: header.pageNumberLabel))
+                                targetView: header.labelsHelpTarget))
         }
         else {
           items.append(HelpItem(title:"Ressortübersicht öffnen",
