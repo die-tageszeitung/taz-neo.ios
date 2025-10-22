@@ -942,6 +942,7 @@ extension PersistentSection {
     for art in articlesCopy {
         art.removeFromSections(self)
       if (art.sections?.count ?? 0) == 0 { art.delete() }
+//      else if art.sectionTitle == nil { art.sectionTitle = self.title }
     }
   }
 }
