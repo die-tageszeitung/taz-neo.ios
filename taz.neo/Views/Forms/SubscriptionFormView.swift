@@ -90,9 +90,9 @@ public class SubscriptionFormView : FormView{
     
     switch formType {
       case .print2Digi:
-        text = "Ja! Ich möchte nur noch digital lesen."
+        text = "Mein Zugang zur digitalen taz"
       case .printPlusDigi:
-        text = "Ja! Schalten Sie die App zu meinem Abo frei!"
+        text = "Mein Zugang zur digitalen taz"
       default:
         if let d = expireDate {
           text = "Ihr \(abo) ist am \(d.gDate()) abgelaufen."
@@ -120,9 +120,9 @@ public class SubscriptionFormView : FormView{
     
     switch formType {
       case .print2Digi://Achtung anderer Text erst in Step 2 mit Taz-ID!!
-        text = "Super! Auf in die Zukunft. Herzlichen Glückwunsch zu diesem Schritt. Um Sie einordnen zu können, brauchen wir ein paar Daten von Ihnen.\nWir kontaktieren Sie in den nächsten Tagen per Mail."
+        text = "Um Ihnen den Zugang zur digitalen taz ermöglichen zu können, benötigen wir einige Informationen von Ihnen.\nWir melden uns so schnell wie möglich bei Ihnen."
       case .printPlusDigi:
-        text = "Das machen wir gerne! Geben Sie Ihre bei uns hinterlegten Kundendaten ein, so dass wir Sie zuordnen können.\nWir werden Sie dann kontaktieren."
+        text = "Um Ihnen den Zugang zur digitalen taz ermöglichen zu können, benötigen wir einige Informationen von Ihnen.\nWir melden uns so schnell wie möglich bei Ihnen."
       default:
         text = """
         Wir haben Ihnen zum Ablauf Ihres \(abo) Informationen zu unseren Abonnements an Ihre E-Mail-Adresse zugesandt.
