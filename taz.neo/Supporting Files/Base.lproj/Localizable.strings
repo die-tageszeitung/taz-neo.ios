@@ -35,7 +35,7 @@
 "login_trial_subscription_button_text" = "Jetzt kostenlos testen";
 "login_switch_print2digi_title" = "Digitaler Zugang für Abonnent:innen";
 "login_switch_print2digi_body" = "Sie hatten bisher ein Print-Abo und benötigen Zugang zur digitalen taz oder Hilfe beim Anmelden?";
-"login_switch_print2digi_button_text" = "Hier Kontakt aufzunehmen";
+"login_switch_print2digi_button_text" = "Hier Kontakt aufnehmen";
 
 /* translation from Android */
 "fragment_login_help_lmd" = "Wenn Sie sich bereits mit Ihrer E-Mail-Adresse registriert und ein Passwort erstellt haben, nutzen Sie bitte diese, um sich anzumelden.\n\nFalls nicht, können Sie es mit Ihrer numerischen Abo-ID und dem dazugehörigen, von uns mitgeteilten Passwort versuchen.\n\nSollten Sie diese Informationen nicht finden, helfen wir Ihnen gerne weiter. Bitte kontaktieren Sie uns unter: app@monde-diplomatique.de";
