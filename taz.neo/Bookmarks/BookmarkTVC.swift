@@ -111,23 +111,29 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     
     headerSyncButton.isHidden = false
     headerSyncButton.startRotating()
+    var hasChanges: Bool = false
     
     Task {
       do {
+        hasChanges =
         try await BookmarksSyncBusiness.sync(localBookmarks: Bookmarks.shared.bookmarkedArticles)
         
       } catch {
         print("Error due Sync:", error)
       }
       await MainActor.run {[weak self] in
-        self?.syncBookmarksFinished()
+        self?.syncBookmarksFinished(hasChanges)
       }
     }
   }
   
-  private func syncBookmarksFinished(){
+  private func syncBookmarksFinished(_ hasChanges: Bool){
     headerSyncButton.stopRotating()
     headerSyncButton.isHidden = true
+    if hasChanges {
+      updateData()
+      bookmarksTable.reloadData()
+    }
   }
   
   

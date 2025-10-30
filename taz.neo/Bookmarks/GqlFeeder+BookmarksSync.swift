@@ -17,7 +17,6 @@ class GqlBookmarkCustomerData: GQLObject {
   var mediaSyncId: String       // "name" field in GQL (ID of the bookmarked media)
   var issueDate: Date           // parsed from val JSON ({"date":"2025-10-15"})
 
-
   enum CodingKeys: String, CodingKey {
     case sTime
     case category
@@ -98,21 +97,6 @@ extension GqlFeeder {
       var customerDataList: [GqlBookmarkCustomerData]?
       var authInfo: GqlAuthInfo
     }
-//    // MARK: - GQL Response Structs
-//    struct BookmarkResponseData: Decodable {
-//      var data: BookmarkResponse
-//    }
-//    
-//    // MARK: - GQL Response Structs
-//    struct BookmarkResponse: Decodable {
-//      var getCustomerData: BookmarkLoading
-//    }
-//    
-//    struct BookmarkLoading: Decodable {
-//      var error: String?
-//      var customerDataList: [GqlBookmarkCustomerData]?
-//      var authInfo: GqlAuthInfo
-//    }
 
     // MARK: - Request Builder
     let request = """
@@ -144,63 +128,5 @@ extension GqlFeeder {
     }
 
     return response.customerDataList ?? []
-  }
-}
-
-extension GqlFeeder {
-  
-  
-
-  func loadBookmarksOLD(finished: @escaping (Result<[GqlBookmarkCustomerData], Error>) -> ()) {
-    
-    // MARK: - GQL Response Structs
-    struct BookmarkResponse: Decodable {
-      var error: String?
-      var customerDataList: [GqlBookmarkCustomerData]?
-      var authInfo: GqlAuthInfo
-    }
-    
-    struct BookmarkLoading: Decodable {
-      var error: String?
-      var customerDataList: [GqlBookmarkCustomerData]?
-      var authInfo: GqlAuthInfo
-    }
-
-    // MARK: - Request Builder
-    let request = """
-        getCustomerData(category: "bookmarks", name: "*") {
-          error
-          customerDataList { \(GqlBookmarkCustomerData.fields) }
-          authInfo { \(GqlAuthInfo.fields) }
-        }
-    """
-
-    // MARK: - GraphQL Session Check
-    guard let gqlSession = self.gqlSession else {
-      finished(.failure(fatal("Not connected")))
-      return
-    }
-
-    // MARK: - Perform Query
-    gqlSession.query(graphql: request, type: [String: BookmarkResponse].self) {[weak self] (result, _) in
-      guard let self = self else { return }
-      switch result {
-      case .success(let response):
-        // GraphQL responses are typically keyed under "data"
-        guard let res = response["getCustomerData"] else {
-          finished(.failure(fatal("Missing 'data' node in GraphQL response")))
-          return
-        }
-
-        if let err = res.error, !err.isEmpty {
-          finished(.failure(fatal("Server error: \(err)")))
-        } else {
-          finished(.success(res.customerDataList ?? []))
-        }
-
-      case .failure(let error):
-        finished(.failure(error))
-      }
-    }
   }
 }

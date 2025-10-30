@@ -10,7 +10,7 @@ import Foundation
 import NorthLib
 
 /// One Article of an Issue
-class GqlSingleArticle: GQLObject {
+class GqlSingleArticle: GQLObject, DoesLog {
   var gqlArticle: GqlArticle
   /// Name of section
   var sectionTitle: String?
