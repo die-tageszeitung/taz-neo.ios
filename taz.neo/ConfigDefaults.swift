@@ -60,6 +60,9 @@ private let configValues = [
   "fullPdfOnPageSwitch" : "true",
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
+  // Bookmarks
+  "autoSyncBookmarks" : "false",
+  "lastBookmarkSyncDateString" : "",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
   "showBarsOnContentChange" : "false",

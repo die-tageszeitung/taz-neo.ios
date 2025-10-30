@@ -76,7 +76,6 @@ class Rating: NSObject, DoesLog{
     }
   }
   
-  
   static let sharedInstance = Rating()
   
   func goingForeground(){

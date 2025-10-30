@@ -63,7 +63,7 @@ extension BackgroundDownloadService {
   }
 }
 
-fileprivate extension GraphQlSession {
+extension GraphQlSession {
   /// Async wrapper for `query`, preserving generic decoding.
   func query<T: Decodable>(
     graphql: String,

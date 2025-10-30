@@ -85,7 +85,6 @@ extension GqlFeeder {
       finished(.failure(fatal("Not connected"))); return
     }
     
-    let wasAuthenticated: Bool = authToken != nil
     let request = ArticleLoading.request(articles)
       
       gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
@@ -97,5 +96,82 @@ extension GqlFeeder {
           }
       }
   }
+  
+  func loadArticlesOLD(withMediaSyncIds: [String],
+                           finished: @escaping (Result<[GqlSingleArticle], Error>) -> ()) {
+    
+    struct ArticleLoading: Decodable {
+      var authInfo: GqlAuthInfo
+      var articleList: [GqlSingleArticle]?
+    
+      static func request(mediaSyncIds: [String]) -> String{
+        return """
+              articleLoading: getArticlesByMediaSyncId(mediaSyncIds: "\(mediaSyncIds.joined(separator: ", "))") {
+                authInfo { \(GqlAuthInfo.fields) }
+                articleList { \(GqlSingleArticle.fields) }
+              }
+            """
+      }
+    }
+    
+    // GraphQL Session
+    guard let gqlSession = self.gqlSession else {
+      finished(.failure(fatal("Not connected"))); return
+    }
+    
+    let request = ArticleLoading.request(mediaSyncIds: withMediaSyncIds)
+      
+      gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
+          switch result {
+          case .success(let response):
+              finished(.success((response["articleLoading"])?.articleList ?? []))
+          case .failure(let error):
+              finished(.failure(error))
+          }
+      }
+  }
+  
+  
 
+}
+
+
+extension GqlFeeder {
+  func loadArticles(withMediaSyncIds mediaSyncIds: [String]) async throws -> [GqlSingleArticle] {
+    
+    struct ArticleLoading: Decodable {
+      var authInfo: GqlAuthInfo
+      var articleList: [GqlSingleArticle]?
+      
+      static func request(mediaSyncIds: [String]) -> String {
+        """
+        articleLoading: getArticlesByMediaSyncId(mediaSyncIds: "\(mediaSyncIds.joined(separator: ", "))") {
+          authInfo { \(GqlAuthInfo.fields) }
+          articleList { \(GqlSingleArticle.fields) }
+        }
+        """
+      }
+    }
+    
+    // MARK: - GraphQL Session Check
+    guard let gqlSession = self.gqlSession else {
+      throw fatal("Not connected")
+    }
+    
+    // MARK: - Request Build
+    let request = ArticleLoading.request(mediaSyncIds: mediaSyncIds)
+    
+    // MARK: - Await Query
+    let responseDict = try await gqlSession.query(
+      graphql: request,
+      type: [String: ArticleLoading].self
+    )
+    
+    // MARK: - Extract Results
+    guard let articleLoading = responseDict["articleLoading"] else {
+      throw fatal("Missing 'articleLoading' in GraphQL response")
+    }
+    
+    return articleLoading.articleList ?? []
+  }
 }

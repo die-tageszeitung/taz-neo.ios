@@ -942,7 +942,7 @@ extension PersistentSection {
     for art in articlesCopy {
         art.removeFromSections(self)
       if (art.sections?.count ?? 0) == 0 { art.delete() }
-//      else if art.sectionTitle == nil { art.sectionTitle = self.title }
+//      else if art.sectionTitle == nil {  art.sectionTitle = self.title }
     }
   }
 }
@@ -1019,6 +1019,11 @@ public final class StoredArticle: Article, StoredObject {
   public var title: String? {
     get { return pr.title }
     set { pr.title = newValue }
+  }
+
+  public var bookmarkedDate: Date? {
+    get { return pr.bookmarkedDate }
+    set { pr.bookmarkedDate = newValue }
   }
   
   public var html: FileEntry? {

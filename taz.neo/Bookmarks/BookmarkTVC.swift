@@ -11,6 +11,9 @@ import UIKit
 
 class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
+  @Default("autoSyncBookmarks")
+  var autoSyncBookmarks: Bool
+  
   // MARK: - Properties: Data
   ///Titles/keys for row 0, used as section header
   var sortedSectionKeys: [String] = []
@@ -30,7 +33,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }
   private var articleVC: ArticleVC? {
     if _articleVC == nil,
-      let issueInfo = Bookmarks.shared.issueInfo {
+       let issueInfo = Bookmarks.shared.issueInfo {
       _articleVC =  ArticleVC(feederContext: issueInfo.feederContext)
       _articleVC?.delegate = issueInfo
     }
@@ -97,8 +100,36 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }
   
   private func syncBookmarks(){
-//    Bookmarks.shared.deleteAllBookmarks()
+    if TazAppEnvironment.isAuthenticated == false {
+      Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
+                        actions: UIAlertAction.init( title: "Anmelden",
+                                                     style: .default ){_ in
+        TazAppEnvironment.sharedInstance.feederContext?.authenticate()
+      })
+      return
+    }
+    
+    headerSyncButton.isHidden = false
+    headerSyncButton.startRotating()
+    
+    Task {
+      do {
+        try await BookmarksSyncBusiness.sync(localBookmarks: Bookmarks.shared.bookmarkedArticles)
+        
+      } catch {
+        print("Error due Sync:", error)
+      }
+      await MainActor.run {[weak self] in
+        self?.syncBookmarksFinished()
+      }
+    }
   }
+  
+  private func syncBookmarksFinished(){
+    headerSyncButton.stopRotating()
+    headerSyncButton.isHidden = true
+  }
+  
   
   private var remoteAudioContent: [Article] {
     var dlContent: [Article] = []
@@ -115,49 +146,10 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     let dlContent = remoteAudioContent
     guard dlContent.count > 0 else {
       Toast.show("Alle Audioinhalte der Leseliste wurden bereits heruntergeladen.")
-      updateMoreButtonMenu()
       return
     }
     debug("can download \(dlContent.count) items")
     Bookmarks.downloadAllAudio(dlContent: dlContent)
-    onMainAfter(10.0) {   [weak self] in
-      self?.updateMoreButtonMenu()
-    }
-  }
-  
-  func updateMoreButtonMenu(){
-    let deleteAllAction = UIAction(
-      title: "Alle Lesezeichen löschen",
-      image: UIImage(systemName: "trash"), attributes: [.destructive]) {[weak self] _ in
-        self?.requestDeleteAllBookmarks()
-      }
-    let syncAction = UIAction(
-      title: "Leseliste synchronoisieren",
-      image: UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")) {[weak self] _ in
-        self?.syncBookmarks()
-      }
-    let downloadAllAudioAction = UIAction(
-      title: "Alle Audioinhalte der Leseliste herunterladen",
-      image: UIImage(named: "download")) {[weak self] _ in
-        self?.downloadAllAudio()
-      }
-    
-    var menuActions: [UIAction] = [syncAction]
-    
-    if remoteAudioContent.count > 0 {
-      menuActions.append(downloadAllAudioAction)
-    }
-    
-    if Bookmarks.shared.bookmarkedArticles.count > 0 {
-      menuActions.append(deleteAllAction)
-    }
-    
-    if #available(iOS 14.0, *) {
-      headerMoreButton.menu = UIMenu(title: "", children: menuActions)
-      headerMoreButton.showsMenuAsPrimaryAction = true
-    } else {
-      headerMoreButton.isHidden = true
-    }
   }
   
   private lazy var headerMoreButton: UIButton = {
@@ -165,6 +157,81 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     btn.setImage(UIImage(named: "ellipsis-circle"), for: .normal)
     btn.pinSize(CGSize(width: 27, height: 27))
     btn.tintColor = Const.Colors.appIconGrey
+    if #available(iOS 14.0, *) {
+      btn.addTarget(self, action: #selector(updateMenuBeforeOpen), for: .touchDown)
+      btn.showsMenuAsPrimaryAction = true
+      btn.menu = moreButtonMenu
+    }
+    return btn
+  }()
+  
+  @available(iOS 14.0, *)
+  @objc private func updateMenuBeforeOpen() {
+      headerMoreButton.menu = moreButtonMenu
+  }
+  
+  private var moreButtonMenu: UIMenu? {
+    get {
+      guard #available(iOS 14.0, *) else {
+        return nil
+      }
+      
+      let deleteAllAction = UIAction(
+        title: "Alle Lesezeichen löschen",
+        image: UIImage(systemName: "trash"), attributes: [.destructive]) {[weak self] _ in
+          self?.requestDeleteAllBookmarks()
+        }
+      let autoSyncAction = UIAction(
+        title: "Leseliste automatisch synchronisieren"/*,
+                                                       image: UIImage(systemName: "clock.arrow.trianglehead.2.counterclockwise.rotate.90")*/) {[weak self] _ in
+                                                         self?.autoSyncBookmarks.toggle()
+                                                       }
+      autoSyncAction.state = autoSyncBookmarks ? .on : .off
+      let syncAction = UIAction(
+        title: "Leseliste jetzt synchronisieren",
+        image: UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")) {[weak self] _ in
+          self?.syncBookmarks()
+        }
+      let lastSyncInfo = UIAction(
+        title: "Letzte Synchronisierung:\n\(BookmarksSyncBusiness.lastBookmarkSyncAgoString)"){_ in }
+      lastSyncInfo.attributes = [.disabled]
+      
+      let downloadAllAudioAction = UIAction(
+        title: "Alle Audioinhalte der Leseliste herunterladen",
+        image: UIImage(named: "download")) {[weak self] _ in
+          self?.downloadAllAudio()
+        }
+      
+      var otherActions: [UIAction] = []
+      
+      if remoteAudioContent.count > 0 {
+        otherActions.append(downloadAllAudioAction)
+      }
+      
+      if Bookmarks.shared.bookmarkedArticles.count > 0 {
+        otherActions.append(deleteAllAction)
+      }
+      
+      let syncMenu: UIMenu
+      = UIMenu(title: "Synchronisierung",
+               options: .displayInline,
+               children: [autoSyncAction, syncAction, lastSyncInfo])
+      var menuActions: [UIMenu] = [syncMenu]
+      
+      if otherActions.count > 0 {
+        let defaultMenu = UIMenu(title: "Allgemein", options: .displayInline, children: otherActions)
+        menuActions.insert(defaultMenu, at: 0) }
+      
+      return UIMenu(title: "", children: menuActions)
+    }
+  } 
+  
+  private lazy var headerSyncButton: UIButton = {
+    let btn = UIButton()
+    btn.setImage(UIImage(name: "arrow.trianglehead.2.clockwise.rotate.90"), for: .normal)
+    btn.pinSize(CGSize(width: 27, height: 27))
+    btn.tintColor = Const.Colors.appIconGrey
+    btn.isHidden = true
     return btn
   }()
   
@@ -194,10 +261,13 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     
     self.header.addSubview(headerPlayButton)
     self.header.addSubview(headerMoreButton)
+    self.header.addSubview(headerSyncButton)
     pin(headerPlayButton.right, to: self.header.right, dist: -10)
     pin(headerMoreButton.right, to: headerPlayButton.left, dist: -10)
+    pin(headerSyncButton.right, to: headerMoreButton.left, dist: -10)
     pin(headerPlayButton.centerY, to: header.titleLabel.centerY)
     pin(headerMoreButton.centerY, to: header.titleLabel.centerY)
+    pin(headerSyncButton.centerY, to: header.titleLabel.centerY)
     headerPlayButton.activeColor = Const.SetColor.taz2(.text).color
     headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
     headerPlayButtonContextMenu?.itemPrivider = self
@@ -214,6 +284,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
         self?.bookmarksTable.reloadData()///ugly to reload all rows
       }
     }
+    guard #available(iOS 14.0, *) else { headerMoreButton.isHidden = true; return}
   }
   
   open override func viewWillAppear(_ animated: Bool) {
@@ -222,7 +293,6 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     bookmarksTable.reloadData()///ugly to reload all rows
     applyStyles()
     updateAudioButton()
-    updateMoreButtonMenu()
   }
 }
 
@@ -430,7 +500,7 @@ extension BookmarkTVC: ReloadAfterAuthChanged {
       ///Reload Overview Table
       self?.updateData()
       self?.bookmarksTable.reloadData()
-
+      
       guard let reloadArtIndex = reloadArtIndex else {
         /// no article reopen needed; e.g. loadAndOpen(article: Article) sets and pushes correct articleVc himself
         return
@@ -441,5 +511,28 @@ extension BookmarkTVC: ReloadAfterAuthChanged {
       self?.navigationController?.pushViewController(avc, animated: true)
     }
     Bookmarks.shared.loadFullArticlesIfNeeded()
+  }
+}
+
+
+extension UIView {
+  func startRotating(duration: CFTimeInterval = 2) {
+    // Verhindert doppelte Animationen
+    if self.layer.animation(forKey: "rotationAnimation") != nil {
+      return
+    }
+    
+    let rotation = CABasicAnimation(keyPath: "transform.rotation")
+    rotation.fromValue = 0
+    rotation.toValue = CGFloat.pi * 2
+    rotation.duration = duration
+    rotation.repeatCount = Float.infinity
+    rotation.isRemovedOnCompletion = false
+    
+    self.layer.add(rotation, forKey: "rotationAnimation")
+  }
+  
+  func stopRotating() {
+    self.layer.removeAnimation(forKey: "rotationAnimation")
   }
 }

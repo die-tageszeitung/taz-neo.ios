@@ -133,6 +133,7 @@ extension Bookmarks {
       // Activate the bookmark
       guard let storedArticle = bookmarkableArticle(from: article) else { return }
       
+      storedArticle.bookmarkedDate = Date()
       storedArticle.pr.addToSections(bookmarkSection.pr)
       bookmarkSection.pr.addToArticles(storedArticle.pr)
       
