@@ -96,43 +96,6 @@ extension GqlFeeder {
           }
       }
   }
-  
-  func loadArticlesOLD(withMediaSyncIds: [String],
-                           finished: @escaping (Result<[GqlSingleArticle], Error>) -> ()) {
-    
-    struct ArticleLoading: Decodable {
-      var authInfo: GqlAuthInfo
-      var articleList: [GqlSingleArticle]?
-    
-      static func request(mediaSyncIds: [String]) -> String{
-        return """
-              articleLoading: getArticlesByMediaSyncId(mediaSyncIds: "\(mediaSyncIds.joined(separator: ", "))") {
-                authInfo { \(GqlAuthInfo.fields) }
-                articleList { \(GqlSingleArticle.fields) }
-              }
-            """
-      }
-    }
-    
-    // GraphQL Session
-    guard let gqlSession = self.gqlSession else {
-      finished(.failure(fatal("Not connected"))); return
-    }
-    
-    let request = ArticleLoading.request(mediaSyncIds: withMediaSyncIds)
-      
-      gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
-          switch result {
-          case .success(let response):
-              finished(.success((response["articleLoading"])?.articleList ?? []))
-          case .failure(let error):
-              finished(.failure(error))
-          }
-      }
-  }
-  
-  
-
 }
 
 

@@ -82,32 +82,4 @@ final class BookmarksSyncBusiness {
     print("✅ Bookmark sync finished.")
     Self.lastBookmarkSyncDate = Date()
   }
-  
-  static func syncOLD(localBookmarks: [StoredArticle], finished: @escaping (Bool) -> Void){
-    guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
-      return
-    }
-    gqlFeeder.loadBookmarksOLD { result in
-      switch result {
-        case .success(let bookmarks):
-          // Process the retrieved bookmarks
-          print("Retrieved \(bookmarks.count) bookmarks.")
-          
-          gqlFeeder.loadArticlesOLD(withMediaSyncIds: bookmarks.map { $0.mediaSyncId }) { res in
-            switch res {
-              case .success(let articles):
-                print("Retrieved \(articles.count) articles for bookmarks.")
-              case .failure(let error):
-                print("Failed to load articles: \(error)")
-            }
-          }
-          Self.lastBookmarkSyncDate = Date()
-          finished(true)
-        case .failure(let error):
-          // Handle the error
-          print("Failed to load bookmarks: \(error)")
-          finished(false)
-      }
-    }
-  }
 }
