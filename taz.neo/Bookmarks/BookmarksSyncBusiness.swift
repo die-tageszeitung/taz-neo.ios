@@ -176,25 +176,11 @@ fileprivate extension GqlSingleArticle {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     
-    var dlFiles: [FileEntry]  = []
-    
-    ///copy serach content to target issue dir
-    for fileEntry in gqlArticle.files {
-      let f = File(dir: Dir.searchResults.path, fname: fileEntry.fileName)
-      if !f.exists { dlFiles.append(fileEntry); continue }
-      f.copyResourceWT(to: issueDir.path + "/" + fileEntry.fileName)
-    }
-    
-    ///copy serach content to target issue dir
-    for author in gqlArticle.authors ?? [] {
-      guard let fileEntry = author.photo else { continue }
-      let f = File(dir: feeder.globalDir.path, fname: fileEntry.fileName)
-      if !f.exists { dlFiles.append(fileEntry) }
-    }
+    let dlFiles: [FileEntry]  = gqlArticle.files
     
     if dlFiles.count > 0 {
       ///try to download not yet downloaded files
-      feederContext.dloader.downloadSearchHitFiles(files: dlFiles, baseUrl: baseUrl, closure: { err in
+      feederContext.dloader.downloadSearchHitFiles(files: dlFiles, baseUrl: baseUrl, targetDir: issueDir, closure: { err in
         for file in dlFiles {
           if file.storageType == .global { continue }///prevent move author images from global to issue folder
           let f = File(dir: Dir.searchResults.path, fname: file.fileName)

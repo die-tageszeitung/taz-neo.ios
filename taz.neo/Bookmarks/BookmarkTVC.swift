@@ -131,6 +131,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     headerSyncButton.stopRotating()
     headerSyncButton.isHidden = true
     if hasChanges {
+      Bookmarks.shared.reloadBookmarksFromDatabase()
       updateData()
       bookmarksTable.reloadData()
     }
@@ -391,7 +392,6 @@ extension BookmarkTVC {
     for (sectionKey, articles) in dict {
       //Cannot use mutating member on immutable value: 'articles' is a 'let' constant
       out[sectionKey] = articles
-      
     }
     
     groupedArticles = out

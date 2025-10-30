@@ -68,6 +68,11 @@ public class Bookmarks: DoesLog {
     }
   }
   
+  func reloadBookmarksFromDatabase(){
+    self.bookmarkSection
+    = bookmarkIssue?.sections?.first as? StoredSection
+  }
+  
   private func setup(){
     ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
     guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
