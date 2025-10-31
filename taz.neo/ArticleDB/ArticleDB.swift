@@ -2307,6 +2307,9 @@ public final class StoredIssue: Issue, StoredObject {
       if issue.isBookmarkIssue {
         bookmarkIssue = issue ///there is only one Bookmark Issue
         knownDirs.appendIfPresent(path)
+        for art in bookmarkIssue?.allArticles ?? [] {
+          knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
+        }
         continue
       }
       
@@ -2354,9 +2357,12 @@ public final class StoredIssue: Issue, StoredObject {
     for art in bookmarkIssue?.allArticles ?? [] {
       knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
     }
+    ///remove duplicates and percent encoding
+    knownDirs = Array(Set(knownDirs.map { $0.removingPercentEncoding ?? $0 }))
     
     for path in allSubdirs {
-      if knownDirs.contains(path) ||
+      let decodedPath = path.removingPercentEncoding ?? path
+      if knownDirs.contains(decodedPath) ||
           File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
         skippedFolders.append(path.lastPathComponents(4))
         continue
