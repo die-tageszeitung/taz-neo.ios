@@ -176,7 +176,11 @@ fileprivate extension GqlSingleArticle {
     if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
     if !glink.isLink { glink.link(to: feeder.globalDir.path) }
     
-    let dlFiles: [FileEntry]  = gqlArticle.files
+    var dlFiles: [FileEntry]  = gqlArticle.files
+    
+    let momentFilename = date.defaultMomentImageFilename
+    dlFiles.append(TmpFileEntry(name: momentFilename))
+    log("Download moment file: \(momentFilename)")
     
     if dlFiles.count > 0 {
       ///try to download not yet downloaded files
@@ -200,7 +204,7 @@ fileprivate extension GqlSingleArticle {
     ///set default properties, wich are not set correctly in
     storedArticle.pr.issueDate = date
     storedArticle.baseURL = baseUrl
-    storedArticle.sectionTitle = sectionTitle
+    storedArticle.sectionTitle = sectionTitle ?? gqlArticle.sectionTitle
     for au in gqlArticle.authors ?? [] {
       let sau = StoredAuthor.persist(object: au)
       sau.pr.addToArticles(storedArticle.pr)

@@ -43,6 +43,8 @@ public class Bookmarks: DoesLog {
   var loadingArticles: [StoredArticle] = []
   
   /// Cached issue information for ArticleVC @see: ArticleVCdelegate
+  #warning("Problem? Keine Aktualisierung der Artikelliste auf ArticleVC Ebene, nach Download, löschen...")
+#warning("Problem#2: Nach Neustart aufräumen löscht Ordner oder so? => Check Cleanup Funktion")
   private var _issueInfo: BookmarksIssueInfo?
   
   /// Accessor for BookmarksIssueInfo lazily initialized if feederContext and bookmarkIssue is already set

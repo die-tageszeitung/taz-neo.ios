@@ -336,7 +336,20 @@ class GqlArticle: Article, GQLObject {
   readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
-  """  
+  """
+  
+  static var fieldsMinimum = """
+  articleHtml { \(GqlFile.fields) }
+  gqlAudio: audio { \(GqlAudio.fields) }
+  title
+  teaser
+  onlineLink
+  articleType
+  serverId: mediaSyncId
+  readingDuration: readMinutes
+  imageList { \(GqlImage.fields) }
+  authorList { \(GqlAuthor.fields) }
+  """
 }
 
 /// A Section of an Issue

@@ -67,7 +67,7 @@ public class SearchSection: VirtualSection {}
 /// A temporary file entry
 public class TmpFileEntry: FileEntry {
   public var name: String
-  public var storageType: FileStorageType { .unknown }
+  public var storageType: FileStorageType { .issue }
   public var moTime: Date
   public var size: Int64 { 0 }
   public var sha256: String { "" }

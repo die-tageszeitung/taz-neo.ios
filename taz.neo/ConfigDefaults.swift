@@ -62,6 +62,7 @@ private let configValues = [
   "showPdfInfoToast" : "true",
   // Bookmarks
   "autoSyncBookmarks" : "false",
+  "requestedSyncBookmarks" : "false",
   "lastBookmarkSyncDateString" : "",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",

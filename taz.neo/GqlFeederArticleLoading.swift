@@ -22,25 +22,32 @@ class GqlSingleArticle: GQLObject, DoesLog {
   
   enum CodingKeys: String, CodingKey {
     case gqlArticle
-    case sSectionTitle
-    case sArticleHtml
+    case sectionTitle
+    case articleHtml
     case sDate
     case baseUrl
   }
-
+  
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     gqlArticle = try container.decode(GqlArticle.self, forKey: .gqlArticle)
-    sectionTitle = try container.decodeIfPresent(String.self, forKey: .sSectionTitle)
-    articleHtml = try container.decodeIfPresent(String.self, forKey: .sArticleHtml)
+    sectionTitle = try container.decodeIfPresent(String.self, forKey: .sectionTitle)
+    articleHtml = try container.decodeIfPresent(String.self, forKey: .articleHtml)
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
     sDate = try container.decode(String.self, forKey: .sDate)
   }
-
+  
   static var fields = """
     gqlArticle:article { \(GqlArticle.fields) }
     sectionTitle
     articleHtml
+    sDate: date
+    baseUrl
+  """
+  
+  static var fieldsMinimum = """
+    gqlArticle:article { \(GqlArticle.fieldsMinimum) }
+    sectionTitle
     sDate: date
     baseUrl
   """
@@ -59,12 +66,12 @@ class GqlSingleArticle: GQLObject, DoesLog {
 
 extension GqlFeeder {
   func loadArticles(_ articles: [Article],
-                           finished: @escaping (Result<[GqlSingleArticle], Error>) -> ()) {
+                    finished: @escaping (Result<[GqlSingleArticle], Error>) -> ()) {
     
     struct ArticleLoading: Decodable {
       var authInfo: GqlAuthInfo
       var articleList: [GqlSingleArticle]?
-    
+      
       static func request(_ articles: [Article]) -> String{
         let mediaSyncIds = articles
           .compactMap { $0.serverId }
@@ -86,15 +93,15 @@ extension GqlFeeder {
     }
     
     let request = ArticleLoading.request(articles)
-      
-      gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
-          switch result {
-          case .success(let response):
-              finished(.success((response["articleLoading"])?.articleList ?? []))
-          case .failure(let error):
-              finished(.failure(error))
-          }
+    
+    gqlSession.query(graphql: request, type: [String:ArticleLoading].self) { (result, _) in
+      switch result {
+        case .success(let response):
+          finished(.success((response["articleLoading"])?.articleList ?? []))
+        case .failure(let error):
+          finished(.failure(error))
       }
+    }
   }
 }
 
@@ -110,7 +117,7 @@ extension GqlFeeder {
         """
         articleLoading: getArticlesByMediaSyncId(mediaSyncIds: "\(mediaSyncIds.joined(separator: ", "))") {
           authInfo { \(GqlAuthInfo.fields) }
-          articleList { \(GqlSingleArticle.fields) }
+          articleList { \(GqlSingleArticle.fieldsMinimum) }
         }
         """
       }

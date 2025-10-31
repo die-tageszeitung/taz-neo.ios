@@ -64,8 +64,19 @@ extension Bookmarks {
           let feed = Self.shared.bookmarkIssue?.feed as? StoredFeed,
           let issue = StoredIssue.get(date: issueDate, inFeed: feed).first,
           let image = issue.moment.lowres
-    else { return nil }
+    else { return defaultMomentImage(for: article) }
    return UIImage(contentsOfFile: "\(issue.dir.path)/\(image.name)")
+  }
+  
+  private static func defaultMomentImage(for article:Article?) -> UIImage? {
+    guard let path = article?.dir.path,
+          let filename = article?.issueDate?.defaultMomentImageFilename else { return nil }
+    return UIImage(contentsOfFile: "\(path)/\(filename)")
   }
 }
 
+extension Date {
+  var defaultMomentImageFilename: String {
+    return "\(ISO8601).taz.moment.high.jpg"
+  }
+}

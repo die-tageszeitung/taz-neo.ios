@@ -14,6 +14,9 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   @Default("autoSyncBookmarks")
   var autoSyncBookmarks: Bool
   
+  @Default("requestedSyncBookmarks")
+  var requestedSyncBookmarks: Bool
+  
   // MARK: - Properties: Data
   ///Titles/keys for row 0, used as section header
   var sortedSectionKeys: [String] = []
@@ -134,9 +137,9 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       Bookmarks.shared.reloadBookmarksFromDatabase()
       updateData()
       bookmarksTable.reloadData()
+      articleVC?.setup()///re-init delegate!
     }
   }
-  
   
   private var remoteAudioContent: [Article] {
     var dlContent: [Article] = []
@@ -251,6 +254,30 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   // MARK: - Lifecycle
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    guard requestedSyncBookmarks == false else { return }
+   
+    let syncAction =  UIAlertAction.init( title: "Einmalig Synchronisieren",
+                                           style: .default) { [weak self] _ in
+      self?.syncBookmarks()
+    }
+    let autoSyncAction =  UIAlertAction.init( title: "Automatisch Synchronisieren",
+                                          style: .default) {  [weak self] _ in
+      self?.autoSyncBookmarks = true
+      self?.syncBookmarks()
+    }
+    
+    let cancelAction =  UIAlertAction.init( title: "Nicht Synchronisieren",
+                                            style: .cancel)
+
+    Alert.message(message: "Möchten Sie Ihre Leseliste jetzt mit der Cloud synchronisieren?",
+                      actions: [syncAction, autoSyncAction, cancelAction], presentationController: self)
+    requestedSyncBookmarks = true
+  }
+    
+    
+  
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.view.addSubview(placeholderView)
@@ -340,6 +367,7 @@ extension BookmarkTVC {
     }
     guard let avc = articleVC else { return }
     avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
+    avc.view.doLayout()
     self.navigationController?.pushViewController(avc, animated: true)
   }
   
