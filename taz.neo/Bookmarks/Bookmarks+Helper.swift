@@ -69,7 +69,8 @@ extension Bookmarks {
   }
   
   private static func defaultMomentImage(for article:Article?) -> UIImage? {
-    guard let path = article?.dir.path,
+    guard article?.primaryIssue != nil,
+          let path = article?.dir.path,
           let filename = article?.issueDate?.defaultMomentImageFilename else { return nil }
     return UIImage(contentsOfFile: "\(path)/\(filename)")
   }

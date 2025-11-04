@@ -62,3 +62,31 @@ class PlaceholderView: UIView{
     fatalError("init(coder:) has not been implemented")
   }
 }
+
+class BookmarksEmptyStateView: PlaceholderView{
+  
+  lazy var syncLabel: UILabel = {
+    let lbl = UILabel()
+    lbl.textAlignment = .center
+    lbl.numberOfLines = 0
+    lbl.contentFont()
+    lbl.textColor = Const.SetColor.ios(.secondaryLabel).color
+    lbl.addBorderView(Const.SetColor.ios(.secondaryLabel).color, edge: .bottom)
+    return lbl
+  }()
+  
+  lazy var spinner = UIActivityIndicatorView()
+  
+  override func setup(){
+    super.setup()
+    spinner.isHidden = true
+    spinner.style = .medium
+    spinner.color = Const.SetColor.ios(.secondaryLabel).color
+    self.addSubview(syncLabel)
+    self.addSubview(spinner)
+    syncLabel.centerX()
+    spinner.centerX()
+    pin(syncLabel.top, to: label.bottom, dist: 18)
+    pin(spinner.centerY, to: syncLabel.centerY)
+  }
+}

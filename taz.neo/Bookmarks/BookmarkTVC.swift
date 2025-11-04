@@ -77,8 +77,28 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     return tv
   }()
   
-  let placeholderView = PlaceholderView("Sie haben noch keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
-                                        image: UIImage(named: "star"))
+  private lazy var placeholderView: BookmarksEmptyStateView = {
+    let view = BookmarksEmptyStateView("Sie haben keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
+                                              image: UIImage(named: "star"))
+    view.syncLabel.text = "Leseliste automatisch synchronisieren"
+    
+    Task {
+      var hasRemoteBookmarks = false
+      do { hasRemoteBookmarks = try await BookmarksSyncBusiness.hasRemoteBookmarks()
+      } catch { print("Error due Sync:", error) }
+      await MainActor.run {[weak self] in view.syncLabel.isHidden = !hasRemoteBookmarks }
+    }
+
+    view.syncLabel.onTapping {[weak self] _ in
+      view.spinner.isHidden = false
+      view.syncLabel.hideAnimated()
+      view.spinner.startAnimating()
+      self?.syncBookmarks()
+      self?.autoSyncBookmarks = true
+      self?.requestedSyncBookmarks = true
+    }
+    return view
+  }()
   
   private lazy var headerPlayButton: Button<ImageView> = {
     let btn = Button<ImageView>()
@@ -131,13 +151,20 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }
   
   private func syncBookmarksFinished(_ hasChanges: Bool){
-    headerSyncButton.stopRotating()
-    headerSyncButton.isHidden = true
     if hasChanges {
       Bookmarks.shared.reloadBookmarksFromDatabase()
       updateData()
       bookmarksTable.reloadData()
       articleVC?.setup()///re-init delegate!
+      updateAudioButton()
+    }
+    if placeholderView.spinner.isAnimating {
+      placeholderView.spinner.stopAnimating()
+      placeholderView.spinner.hideAnimated()
+    }
+    onMainAfter(1.0) {[weak self] in
+      self?.headerSyncButton.stopRotating()
+      self?.headerSyncButton.isHidden = true
     }
   }
   
@@ -256,12 +283,10 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    guard requestedSyncBookmarks == false else { return }
-   
-    let syncAction =  UIAlertAction.init( title: "Einmalig Synchronisieren",
-                                           style: .default) { [weak self] _ in
-      self?.syncBookmarks()
-    }
+    
+    guard requestedSyncBookmarks == false
+    && placeholderView.isHidden else { return }
+    
     let autoSyncAction =  UIAlertAction.init( title: "Automatisch Synchronisieren",
                                           style: .default) {  [weak self] _ in
       self?.autoSyncBookmarks = true
@@ -271,8 +296,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     let cancelAction =  UIAlertAction.init( title: "Nicht Synchronisieren",
                                             style: .cancel)
 
-    Alert.message(message: "Möchten Sie Ihre Leseliste jetzt mit der Cloud synchronisieren?",
-                      actions: [syncAction, autoSyncAction, cancelAction], presentationController: self)
+    Alert.message(message: "Möchten Sie Ihre Leseliste mit anderen Geräten, mit denen Sie die taz lesen synchronisieren?",
+                      actions: [autoSyncAction, cancelAction], presentationController: self)
     requestedSyncBookmarks = true
   }
     
@@ -441,15 +466,15 @@ extension BookmarkTVC {
     if articleVC?.articles.count == 0 {
       articleVC?.navigationController?.popViewController(animated: true)
     }
-    
-    if isActiveAndVisible == false { return }
     guard let indexPath = indexPath(for: article) else {
       ///added bookmark!
       updateData()
       bookmarksTable.reloadData()
       return
     }
-    self.removeBookmarkArticleCell(at: indexPath, article: article)
+    if article.hasBookmark == false {
+      self.removeBookmarkArticleCell(at: indexPath, article: article)
+    }
   }
   
   

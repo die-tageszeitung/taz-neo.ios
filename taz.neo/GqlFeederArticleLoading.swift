@@ -16,8 +16,8 @@ class GqlSingleArticle: GQLObject, DoesLog {
   var sectionTitle: String?
   var articleHtml: String?
   /// date of original issue
-  var sDate: String
-  var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  var sIssueDate: String
+  var issueDate: Date { return UsTime(iso: sIssueDate, tz: GqlFeeder.tz).date }
   var baseUrl: String
   
   enum CodingKeys: String, CodingKey {
@@ -34,14 +34,14 @@ class GqlSingleArticle: GQLObject, DoesLog {
     sectionTitle = try container.decodeIfPresent(String.self, forKey: .sectionTitle)
     articleHtml = try container.decodeIfPresent(String.self, forKey: .articleHtml)
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
-    sDate = try container.decode(String.self, forKey: .sDate)
+    sIssueDate = try container.decode(String.self, forKey: .sDate)
   }
   
   static var fields = """
     gqlArticle:article { \(GqlArticle.fields) }
     sectionTitle
     articleHtml
-    sDate: date
+    sIssueDate: date
     baseUrl
   """
   
@@ -57,7 +57,7 @@ class GqlSingleArticle: GQLObject, DoesLog {
       gqlArticle:  \(gqlArticle.toString())
       sectionTitle:  \(sectionTitle ?? "-")
       articleHtml:  \(articleHtml?.prefix(150) ?? "-")
-      date: \(date.short)
+      date: \(issueDate.short)
       baseUrl:   \(baseUrl)
     """
   }

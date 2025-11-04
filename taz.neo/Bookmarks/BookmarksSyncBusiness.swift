@@ -9,7 +9,7 @@
 import NorthLib
 import Foundation
 
-final class BookmarksSyncBusiness {
+final class BookmarksSyncBusiness: DoesLog {
   
   @Default("lastBookmarkSyncDate")
   static var lastBookmarkSyncDateString: String
@@ -47,70 +47,144 @@ final class BookmarksSyncBusiness {
     }
   }
   
+  static func hasRemoteBookmarks() async throws -> Bool {
+    guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
+      return false
+    }
+    return try await gqlFeeder.loadBookmarks().count > 0
+  }
+  
   static func sync(localBookmarks: [StoredArticle]) async throws -> Bool {
     guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       throw "No GQL feeder available"
     }
     
-    // MARK: - 1️⃣ Lade Bookmarks vom Server
+    // 1) Remote abrufen
     let remoteBookmarks = try await gqlFeeder.loadBookmarks()
     print("✅ Retrieved \(remoteBookmarks.count) bookmarks from server")
     
-    // MARK: - 2️⃣ Berechne MediaSyncIDs, die noch lokal fehlen
-    let localIds = Set(localBookmarks.compactMap { $0.serverId }.map { String($0) })
+    // Hilfsdaten
+    let lastSync = Self.lastBookmarkSyncDate
+    let remoteIdsSet = Set(remoteBookmarks.map { $0.mediaSyncId })
+    let localById: [String: StoredArticle] = Dictionary(
+      uniqueKeysWithValues: localBookmarks.compactMap { local in
+        guard let sid = local.serverId else { return nil }
+        return (String(sid), local)
+      }
+    )
+    
+    // 2) Neue remote-only IDs bestimmen (nur solche, die neuer sind als lastSync)
     let missingRemoteIds = remoteBookmarks
-      .map { $0.mediaSyncId }
-      .filter { !localIds.contains($0) }
+      .filter { remote in
+        guard localById[remote.mediaSyncId] == nil else { return false }
+        if let last = lastSync, let t = TimeInterval(remote.sTime) {
+          return Date(timeIntervalSince1970: t) > last
+        }
+        return true
+      }
+      .map(\.mediaSyncId)
     
-    print("ℹ️ \(missingRemoteIds.count) remote bookmarks missing locally")
+    print("ℹ️ \(missingRemoteIds.count) new remote bookmarks (since last sync)")
     
-    // MARK: - 3️⃣ Lade die fehlenden Artikel
-    let missingArticles = try await gqlFeeder.loadArticles(withMediaSyncIds: missingRemoteIds)
-    print("✅ Retrieved \(missingArticles.count) missing bookmarked articles")
+    // 3) Lade nur die wirklich neuen remote-Artikel
+    var missingArticles: [GqlSingleArticle] = []
+    if !missingRemoteIds.isEmpty {
+      missingArticles = try await gqlFeeder.loadArticles(withMediaSyncIds: missingRemoteIds)
+      print("✅ Retrieved \(missingArticles.count) missing bookmarked articles")
+    }
     
-    // MARK: - 4️⃣ Mergen: Setze bookmarkedDate bei lokalen Artikeln
-    // RemoteBookmarks enthalten `time` (UNIX Timestamp)
-    
+    // 4) Merge vorhandener lokaler Artikel (wenn auch remote vorhanden, aktualisiere bookmarkedDate)
     var mergedArticles: [StoredArticle] = []
-    
-    // 4a - Update vorhandene lokale Artikel, falls sie remote gebookmarkt sind
-    for local in localBookmarks {
-      if let remote = remoteBookmarks.first(where: { String(local.serverId ?? 0) == $0.mediaSyncId }) {
-        local.bookmarkedDate = Date(timeIntervalSince1970: TimeInterval(remote.sTime) ?? Date().timeIntervalSince1970)
+    for (_, local) in localById {
+      if let remote = remoteBookmarks.first(where: { $0.mediaSyncId == String(local.serverId ?? 0) }) {
+        if let t = TimeInterval(remote.sTime) {
+          local.bookmarkedDate = Date(timeIntervalSince1970: t)
+        }
         mergedArticles.append(local)
       }
     }
-    ///MAIN!!!
-    // 4b - Füge die fehlenden Artikel als neue StoredArticle hinzu
-    let newStoredArticles: [StoredArticle] = try await MainActor.run {
-      try persistRemoteBookmarks(articles: missingArticles, bookmarks: remoteBookmarks)
-    }
-    mergedArticles.append(contentsOf: newStoredArticles)
     
-    // MARK: - 5️⃣ Optional: Entfernte Bookmarks erkennen
-    // z.B. alle lokalen Artikel, die nicht mehr auf remoteBookmarks sind
-    let remoteIdsSet = Set(remoteBookmarks.map { $0.mediaSyncId })
-    let removedLocal = mergedArticles.filter { !remoteIdsSet.contains(String($0.serverId ?? 0)) }
-    if !removedLocal.isEmpty {
-      #warning("TODO!!!!")
-      print("⚠️ \(removedLocal.count) bookmarks removed on server")
-      // Optional: löschen oder markieren
-    }
+    // 5) Bestimme Uploads vs. lokale Löschungen
+    var toUpload: [StoredArticle] = []
+    var toDeleteLocal: [StoredArticle] = []
     
-    // MARK: - 6️⃣ Fertig
-    print("✅ Bookmark sync finished. Total merged: \(mergedArticles.count)")
-    Self.lastBookmarkSyncDate = Date()
-    
-    guard newStoredArticles.count > 0 else { return removedLocal.count > 0 }
-    await MainActor.run {
-      ArticleDB.save()
-      for article in newStoredArticles {
-        Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+    for (_, local) in localById {
+      let idStr = String(local.serverId ?? 0)
+      if remoteIdsSet.contains(idStr) { continue }
+      
+      guard let last = lastSync else {
+        // Erstsynchronisation → hochladen statt löschen
+        toUpload.append(local)
+        continue
+      }
+      
+      let localDate = local.bookmarkedDate ?? .distantPast
+      if localDate > last {
+        toUpload.append(local)
+      } else {
+        toDeleteLocal.append(local)
       }
     }
-    return true
+    
+    print("⬆️ toUpload: \(toUpload.count)  ⬇️ toDeleteLocal: \(toDeleteLocal.count)")
+    
+    // 6) Neue Remote-Artikel persistieren (Datenkopien zum Schutz)
+    let articlesCopy = missingArticles
+    let bookmarksCopy = remoteBookmarks
+    // persistRemoteBookmarks selbst läuft bereits auf MainActor intern; wir rufen sie auf und erhalten result
+    let newStoredArticles: [StoredArticle] = try await MainActor.run {
+      try persistRemoteBookmarks(articles: articlesCopy, bookmarks: bookmarksCopy)
+    }
+    
+    // 7) Server-Update (nur Uploads)
+    let updateResults = try await gqlFeeder.updateRemoteBookmarks(
+      newBookmarked: toUpload,
+      deletedBookmarks: []
+    )
+    print("ℹ️ Bookmark update results: \(updateResults.count) entries processed")
+    
+    // ---------------------------
+    // Wichtig: Erstelle hier unveränderliche Kopien aller Variablen,
+    // die du im MainActor.run verwenden willst, um Swift-6-Capture-Fehler zu vermeiden.
+    // ---------------------------
+    let newStoredArticlesCopy = newStoredArticles
+    let toDeleteLocalCopy = toDeleteLocal
+    // Falls du weitere Collections brauchst, kopiere sie ebenfalls:
+    // let toUploadCopy = toUpload
+    
+    // 8) Abschluss: DB-Änderungen und Notifications (nur ein MainActor.run!)
+    await MainActor.run {
+      var changedArticles: [StoredArticle] = []
+      
+      // Neue vom Server persistierte Artikel
+      changedArticles.append(contentsOf: newStoredArticlesCopy)
+      
+      // Remote-gelöschte lokal entfernen
+      for local in toDeleteLocalCopy {
+        Log.log("Deleting local bookmark \(local.title ?? "-") MediaSyncID: \(local.serverId ?? -1) because server removed it.")
+        local.delete()
+        changedArticles.append(local)
+      }
+      
+      // DB speichern, Notifications senden
+      if !changedArticles.isEmpty {
+        ArticleDB.save()
+        for article in changedArticles {
+          Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+        }
+      }
+    }
+    
+    // 9) Letzten Sync-Zeitpunkt aktualisieren
+    Self.lastBookmarkSyncDate = Date()
+    
+    // 10) Rückgabe: hat sich was geändert?
+    let didChange = !newStoredArticlesCopy.isEmpty || !toUpload.isEmpty || !toDeleteLocalCopy.isEmpty
+    print("✅ Bookmark sync finished. Changes: \(didChange ? "YES" : "NO")")
+    
+    return didChange
   }
-  
+    
   /// WARNING: DB INTERACTION – must run on Main Thread
   @MainActor
   private static func persistRemoteBookmarks(
@@ -149,10 +223,10 @@ final class BookmarksSyncBusiness {
 fileprivate extension GqlSingleArticle {
   func getOrCreateStoredBookmarkArticle() -> StoredArticle? {
     if let storedArticle = StoredArticle.get(object: gqlArticle){
-        return storedArticle
+      return storedArticle
     }
     
-    guard let issueDir = Bookmarks.shared.commonIssueDir(for: date) else {
+    guard let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate) else {
       error("something went wrong, did not found commonIssueDir for: \(self)")
       return nil
     }
@@ -178,7 +252,7 @@ fileprivate extension GqlSingleArticle {
     
     var dlFiles: [FileEntry]  = gqlArticle.files
     
-    let momentFilename = date.defaultMomentImageFilename
+    let momentFilename = issueDate.defaultMomentImageFilename
     dlFiles.append(TmpFileEntry(name: momentFilename))
     log("Download moment file: \(momentFilename)")
     
@@ -202,7 +276,7 @@ fileprivate extension GqlSingleArticle {
     let storedArticle = StoredArticle.persist(object: gqlArticle)
     
     ///set default properties, wich are not set correctly in
-    storedArticle.pr.issueDate = date
+    storedArticle.pr.issueDate = issueDate
     storedArticle.baseURL = baseUrl
     storedArticle.sectionTitle = sectionTitle ?? gqlArticle.sectionTitle
     for au in gqlArticle.authors ?? [] {

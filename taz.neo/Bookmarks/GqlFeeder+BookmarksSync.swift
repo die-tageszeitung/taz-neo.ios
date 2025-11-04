@@ -12,7 +12,7 @@ import NorthLib
 /// One Bookmark entry from customerDataList (category == "bookmarks")
 class GqlBookmarkCustomerData: GQLObject {
   var sTime: String        // raw timestamp string from server (e.g. "1760541336")
-  var date: Date { return UsTime(iso: sTime, tz: GqlFeeder.tz).date }
+  var date: Date { return UsTime(Int64(sTime) ?? 0).date }
   var category: String          // should be "bookmarks"
   var mediaSyncId: String       // "name" field in GQL (ID of the bookmarked media)
   var issueDate: Date           // parsed from val JSON ({"date":"2025-10-15"})
@@ -128,5 +128,125 @@ extension GqlFeeder {
     }
 
     return response.customerDataList ?? []
+  }
+}
+
+extension GqlFeeder {
+
+  enum BookmarkOperation: String {
+    case upload = "Upload"
+    case delete = "Delete"
+  }
+
+  struct BookmarkSyncResult {
+    let article: Article
+    let operation: BookmarkOperation
+    let error: String?
+  }
+
+  /// Führt Uploads und Deletes von Bookmarks zum Server durch.
+  /// - Returns: Array von Ergebnissen (Artikel + Operation + evtl. Fehlermeldung)
+  func updateRemoteBookmarks(
+    newBookmarked: [Article],
+    deletedBookmarks: [Article]
+  ) async throws -> [BookmarkSyncResult] {
+
+    // MARK: - Check Session
+    guard let gqlSession = self.gqlSession else {
+      throw fatal("Not connected")
+    }
+
+    // MARK: - Build Mutation Parts
+    var mutationParts: [String] = []
+    var resultMap: [(alias: String, article: Article, op: BookmarkOperation)] = []
+    var aliasCounter = 1
+
+    // Upload new bookmarks
+    for art in newBookmarked {
+      guard let sid = art.serverId else {
+        log("Skip upload — article has no serverId (\(art))")
+        continue
+      }
+      guard let issueDate = art.issueDate else {
+        log("Skip upload article \(sid) — missing issueDate (cannot build bookmark payload).")
+        continue
+      }
+
+      let valJson = "{\"date\": \"\(issueDate.ISO8601)\"}".quote()
+      let alias = "s\(aliasCounter)"
+      aliasCounter += 1
+
+      mutationParts.append("""
+        \(alias): saveCustomerData(category: "bookmarks", name: "\(sid)", val: \(valJson)) {
+          error
+          ok
+        }
+      """)
+      resultMap.append((alias, art, .upload))
+    }
+
+    // Delete removed bookmarks
+    for art in deletedBookmarks {
+      guard let sid = art.serverId else {
+        log("Skip delete — article has no serverId (\(art))", logLevel: .Error)
+        continue
+      }
+
+      let alias = "d\(aliasCounter)"
+      aliasCounter += 1
+
+      mutationParts.append("""
+        \(alias): deleteCustomerData(category: "bookmarks", name: "\(sid)") {
+          error
+          ok
+        }
+      """)
+      resultMap.append((alias, art, .delete))
+    }
+
+    // Wenn keine Operationen
+    if mutationParts.isEmpty {
+      log("No bookmark changes to sync (no uploads or deletes).", logLevel: .Error)
+      return []
+    }
+
+    // MARK: - Build full GraphQL mutation
+    let request = """
+      \(mutationParts.joined(separator: "\n"))
+    """
+
+    // MARK: - Define generic response type
+    struct MutationResponse: Decodable {
+      var error: String?
+      var ok: Bool?
+    }
+
+    // MARK: - Execute request
+    let responseDict = try await gqlSession.mutation(
+      graphql: request,
+      type: [String: MutationResponse].self
+    )
+
+    // MARK: - Collect results
+    var results: [BookmarkSyncResult] = []
+
+    for entry in resultMap {
+      let alias = entry.alias
+      let article = entry.article
+      let operation = entry.op
+
+      if let res = responseDict[alias] {
+        if let err = res.error, !err.isEmpty {
+          results.append(.init(article: article, operation: operation, error: err))
+        } else if res.ok != true {
+          results.append(.init(article: article, operation: operation, error: "Unknown server failure"))
+        } else {
+          results.append(.init(article: article, operation: operation, error: nil))
+        }
+      } else {
+        results.append(.init(article: article, operation: operation, error: "Missing response for alias \(alias)"))
+      }
+    }
+    return results
   }
 }

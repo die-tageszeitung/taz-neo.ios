@@ -82,4 +82,22 @@ extension GraphQlSession {
       }
     }
   }
+  
+  /// Async wrapper for `query`, preserving generic decoding.
+  func mutation<T: Decodable>(
+    graphql: String,
+    type: T.Type,
+    returnOnMain: Bool = true
+  ) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+      self.mutation(graphql: graphql, type: type, returnOnMain: returnOnMain) { result, _ in
+        switch result {
+          case .success(let value):
+            continuation.resume(returning: value)
+          case .failure(let error):
+            continuation.resume(throwing: error)
+        }
+      }
+    }
+  }
 }
