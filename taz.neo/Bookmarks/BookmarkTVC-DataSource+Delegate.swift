@@ -15,6 +15,7 @@ import NorthLib
 extension BookmarkTVC {
   
   fileprivate func article(for indexPath: IndexPath) -> Article? {
+    guard self.isVisible else { return nil }
     let sectionKey = sortedSectionKeys[indexPath.section]
     guard let articlesForSection = groupedArticles[sectionKey] else { return nil }
     if indexPath.row - 1  > articlesForSection.count { return nil }
