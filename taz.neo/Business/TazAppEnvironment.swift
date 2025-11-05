@@ -338,15 +338,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     let settings = """
         Current app settings for diagnostics - some values may have changed!
         ---
-        newIssueSystemSetting: \(Defaults.singleton["newIssueSystemSetting"] ?? "-")
-        specialArticleSystemSetting: \(Defaults.singleton["specialArticleSystemSetting"] ?? "-")
-        autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
-        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
+        \(Defaults.singleton.currentValues.joined(separator: ", "))
+        ---
         BackgroundSession.hasOpenDownloads: \(BackgroundDownloadService.shared.backgroundSession.hasOpenDownloads)
         BackgroundDownloadService.tempStorage.hasActiveDownloads: \(BackgroundDownloadService.shared.tempStorage.hasActiveDownloads)
         ---
-        voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
-        smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
     """
     self.log(settings)
   }

@@ -304,3 +304,15 @@ fileprivate extension Defaults {
         return fallbackIfNotExists
     }
 }
+
+
+extension Defaults {
+  var currentValues:[String] {
+    let keys = configValues.keys
+    var out:[String] = []
+    for key in keys {
+      out.append("\(key): \(self[key] ?? "-")")
+    }
+    return out
+  }
+}
