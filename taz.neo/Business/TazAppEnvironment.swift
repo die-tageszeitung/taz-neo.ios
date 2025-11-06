@@ -157,7 +157,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     let dfl = Defaults.singleton
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
-    debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
+    debug("Startup: #\(nStarted), last: \(lastStarted.toString())")
     logKeychain(msg: "initial")
     logSystemEvents()
     let now = UsTime.now
@@ -336,15 +336,32 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func logRelevantSettings() {
     let settings = """
-        Current app settings for diagnostics - some values may have changed!
+        Current app settings for diagnostics
         ---
         \(Defaults.singleton.currentValues.joined(separator: ", "))
+        ---
+        \(self.deviceDiagnostics)
         ---
         BackgroundSession.hasOpenDownloads: \(BackgroundDownloadService.shared.backgroundSession.hasOpenDownloads)
         BackgroundDownloadService.tempStorage.hasActiveDownloads: \(BackgroundDownloadService.shared.tempStorage.hasActiveDownloads)
         ---
     """
     self.log(settings)
+  }
+  
+  var deviceDiagnostics:String {
+    UIDevice.current.isBatteryMonitoringEnabled = true
+    let lastBoot = Date(timeIntervalSinceNow: -ProcessInfo.processInfo.systemUptime)
+    let batteryLevel = UIDevice.current.batteryLevel
+    let batteryState = UIDevice.current.batteryState
+    let lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+    UIDevice.current.isBatteryMonitoringEnabled = false
+    return("""
+      - last device restart: \(lastBoot.dateAndTime)
+      - battery: \(batteryLevel * 100)%
+      - batteryState: \(batteryState)
+      - is lowPower mode: \(lowPower)
+      """)
   }
   
   func logSystemEvents() {
