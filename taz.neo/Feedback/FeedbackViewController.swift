@@ -585,11 +585,6 @@ extension Log.FileLogger {
       log += lString
     }
     
-    if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
-      return log
-    }
-    
-    //for @taz.de useraccounts add 3 app session logs
     
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
     if secondLastLog.exists,
@@ -598,6 +593,11 @@ extension Log.FileLogger {
       log += "\n###################################"
       log += "\n     2nd L A S T - E X E C U T I O N"
       log += "\n     \(created)"
+      //for @taz.de useraccounts add 3 app session logs
+      if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
+        log += "\nskipped 2nd last log"
+        return log
+      }
       log += "\n###################################\n\n"
       log += lString
     }

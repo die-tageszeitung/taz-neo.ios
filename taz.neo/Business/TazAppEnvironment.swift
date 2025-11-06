@@ -510,8 +510,10 @@ class TazAppEnvironment: NSObject, DoesLog {
      */
     File(Log.FileLogger.lastLogfile)
       .copy(to: Log.FileLogger.secondLastLogfile, isOverwrite: true)
+    File(Log.FileLogger.secondLastLogfile).mTime = File(Log.FileLogger.lastLogfile).mTime
     File(Log.FileLogger.tmpLogfile)
       .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
+    File(Log.FileLogger.lastLogfile).mTime = File(Log.FileLogger.tmpLogfile).mTime
   }
   
   static func updateDefaultsIfNeeded(){
