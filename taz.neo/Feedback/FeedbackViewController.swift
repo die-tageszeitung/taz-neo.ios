@@ -569,9 +569,23 @@ extension Log.FileLogger {
   
   public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
     var log = ""
-    if let data = data,
-       let lString = String(data:data , encoding: .utf8) {
-      log = lString
+    
+    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
+    if secondLastLog.exists,
+       let lString = String(data:secondLastLog.data, encoding: .utf8) {
+      let created = secondLastLog.cTime.dateAndTime
+      log += "\n###################################"
+      log += "\n     2nd L A S T - E X E C U T I O N"
+      log += "\n     \(created)"
+      //for @taz.de useraccounts add 3 app session logs
+      if (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
+        log += "\n not appending 2nd last log"
+        log += "\n###################################"
+      }
+      else {
+        log += "\n###################################\n\n"
+        log += lString
+      }
     }
     
     let lastLog = File(Log.FileLogger.lastLogfile)
@@ -585,21 +599,12 @@ extension Log.FileLogger {
       log += lString
     }
     
-    
-    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
-    if secondLastLog.exists,
-       let lString = String(data:secondLastLog.data, encoding: .utf8) {
-      let created = secondLastLog.cTime.dateAndTime
+    if let data = data,
+       let lString = String(data:data , encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     2nd L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
-      //for @taz.de useraccounts add 3 app session logs
-      if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
-        log += "\nskipped 2nd last log"
-        return log
-      }
-      log += "\n###################################\n\n"
-      log += lString
+      log += "\n  C U R R E N T - E X E C U T I O N"
+      log += "\n###################################"
+      log += "\n \(lString)"
     }
     return log
   }
