@@ -120,11 +120,7 @@ open class Downloader: DoesLog {
     guard let feeder else { return }
     createDirs()
     let idir = feeder.issueDir(feed: feed, issue: issue)
-    idir.create()
-    let rlink = File(dir: idir.path, fname: "resources")
-    let glink = File(dir: idir.path, fname: "global")
-    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
-    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+    idir.createGlobalLinksIfNeeded(feeder: feeder)
   }
   
   public func createIssueDir(issue: Issue) {
@@ -240,7 +236,29 @@ open class Downloader: DoesLog {
   /// Download Issue data
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
-    if issue.isComplete { closure(nil); return }
+    if issue.isComplete {
+      let issuePath = issue.dir.path
+      var missingFiles = false
+      for file in files {
+        if file.exists(inDir: issuePath) == false {
+          missingFiles = true
+        }
+      }
+      if missingFiles == false { closure(nil); return }
+      log("Issue marked as complete but files missing, redownloading...", logLevel: .Error)
+      issue.isComplete = false
+      ///notify home to show correct state for download button
+      Notification.send("issueProgress", content: "deleted", sender: issue)
+      issue.dir.createGlobalLinksIfNeeded(feeder: issue.feed.feeder)
+      let allIssueFiles = issue.files
+      ///redownload all files, existing files will be skipped by HttpLoader
+      downloadGlobalFiles(files: allIssueFiles) { [weak self] err in
+        guard err == nil else { closure(err); return }
+        guard let self = self else { return }
+        self.downloadIssueFiles(issue: issue, files: allIssueFiles, closure: closure)
+      }
+    }
+    
     if issue.isBookmarkIssue { closure(nil); return }
     downloadGlobalFiles(files: files) { [weak self] err in
       guard err == nil else { closure(err); return }
@@ -257,3 +275,13 @@ open class Downloader: DoesLog {
     else { downloadIssueData(issue: issue, files: section.files, closure: closure) }
   }
 } // Downloader
+
+extension Dir {
+  func createGlobalLinksIfNeeded(feeder: Feeder){
+    if exists == false { create() }
+    let rlink = File(dir: path, fname: "resources")
+    let glink = File(dir: path, fname: "global")
+    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
+    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+  }
+}
