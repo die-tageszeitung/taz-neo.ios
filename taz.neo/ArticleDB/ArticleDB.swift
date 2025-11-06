@@ -2227,6 +2227,7 @@ public final class StoredIssue: Issue, StoredObject {
         Log.log("not deleting \(issue.date.short) due its currently downloading")
         continue
       }
+      Log.log("delete issue: \(issue.date.short)")
       issue.delete()
     }
   }

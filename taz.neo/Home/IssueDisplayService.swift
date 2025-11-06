@@ -75,7 +75,7 @@ extension IssueDisplayService {
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
-      
+    var issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)"
     
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
@@ -88,6 +88,7 @@ extension IssueDisplayService {
     
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
+      log("No update needed to show issue in \(isFacsimile ? "facsimileView" : "appView")\n\(issueStatus)")
       pushIssueVC(issue: issue,
                 atSection: atSection,
                 atArticle: atArticle,
@@ -101,6 +102,7 @@ extension IssueDisplayService {
       }
       return
     }
+    log("Update needed to show issue in \(isFacsimile ? "facsimileView" : "appView")\n\(issueStatus)")
     //      if isDownloading {
     //        statusHeader.currentStatus = .loadIssue
     //        return
