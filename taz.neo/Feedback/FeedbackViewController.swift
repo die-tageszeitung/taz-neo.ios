@@ -283,22 +283,10 @@ public class FeedbackViewController : UIViewController{
       body.append("Gerät: \(Device.singleton), \(Utsname.machine)\n")
       body.append("installationId: \(App.installationId)\n")
       body.append("pushToken: \(Defaults.singleton["pushToken"] ?? "-")\n")
-      var storageAvailable = "-"
-      if let mem = deviceData?.storageAvailable, let iMem = Int(mem) {
-        storageAvailable = "\(iMem/(1024*1024))MB"
-      }
-      body.append("storageAvailable: \(storageAvailable)\n")
-      var ramAvailable = "-"
-      if let mem = deviceData?.ramAvailable, let iMem = Int(mem) {
-        ramAvailable = "\(iMem/(1024*1024))MB"
-      }
-      body.append("ramAvailable: \(ramAvailable)\n")
-      var ramUsed = "-"
-      if let mem = deviceData?.ramUsed, let iMem = Int(mem) {
-        ramUsed = "\(iMem/(1024*1024))MB"
-      }
-      body.append("ramUsed: \(ramUsed)\n")
-
+      body.append("storageAvailable: \(deviceData?.storageAvailableRaw?.formattedStorage ?? "-"), ")
+      body.append("storageUsed: \(deviceData?.storageUsedRaw?.formattedStorage ?? "-")\n")
+      body.append("ramAvailable: \(deviceData?.ramAvailableRaw?.formattedStorage ?? "-"), ")
+      body.append("ramUsed: \(deviceData?.ramUsedRaw?.formattedStorage ?? "-")\n")
       mail.setMessageBody("\(body) \n\n\n\n",isHTML: false)
       
       let dateId = Date().ddMMyy_HHmmss

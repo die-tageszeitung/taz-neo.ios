@@ -421,6 +421,10 @@ extension Usage {
       case Authenticated = "State Authenticated",
            Anonymous = "State Anonymous"
     }
+    enum errorEvent: String, TrackingEvent {
+      var category: String { "Error Event" }
+      case MissingIssueFiles = "Missing files in complete issue"
+    }
     enum bookmarks: String, TrackingEvent {
       var category: String { "Bookmarks" }
       case AddArticle = "Add Article",
@@ -551,6 +555,7 @@ extension Usage {
 protocol TrackingEvent: CodableEnum { var category: String { get } }
 extension TrackingEvent {
   var action: String { rawValue }
+  var eventCase: String { rawValue }
   var finishSession:Bool { return self is Usage.event.user }
 }
 

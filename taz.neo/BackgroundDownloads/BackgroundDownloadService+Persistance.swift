@@ -173,7 +173,7 @@ extension BackgroundDownloadService {
     if let storedFeed = feederContext?.defaultFeed,
        tempStorage.publicationDates.count > 0
     {
-      log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)")
+      log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)\nDates: \(tempStorage.publicationDates.map{ $0.date.short }.joined(separator: ", "))")
       for date in tempStorage.publicationDates {
         let spd = StoredPublicationDate.persist(object: date)
         storedFeed.pr.addToPublicationDates(spd.pr)
@@ -300,6 +300,8 @@ extension BackgroundDownloadService {
         scheduleBackgroundIssueCheck()
       } else {
         log("Issue \(issue.date.short) is not complete...")
+        storedIssue.isDownloading = true
+        storedIssue.isAutodownloading = true
       }
       
       return storedIssue

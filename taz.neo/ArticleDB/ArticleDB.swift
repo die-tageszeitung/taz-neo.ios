@@ -2379,11 +2379,11 @@ public final class StoredIssue: Issue, StoredObject {
     if isDownloading {
       ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
       ///not in first Step: get Structure Data @REFACTORING
-      Log.log("Delete Issue: \(self.date.short) while downloading")
+      Log.log("Delete Issue: \(self.date.short) prevented while downloading")
       return false
     }
     else {
-      Log.debug("Delete Issue: \(self.date.short)")
+      Log.log("Delete Issue: \(self.date.short)")
     }
     // Remove files not needed for overview
     // Remove sections and cascading all data referenced by them

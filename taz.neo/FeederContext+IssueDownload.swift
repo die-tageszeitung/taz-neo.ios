@@ -158,7 +158,7 @@ extension FeederContext {
   func markStopDownload(dlId: String?, tstart: UsTime) {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
-      debug("Sending stop of download to server")
+      log("Sending stop of download to server")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){[weak self] _ in
         self?.cleanupOldIssues()
       }
@@ -173,17 +173,17 @@ extension FeederContext {
       }
   }
 
-  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
-      guard let dlId = dlId else { return }
-      return await withCheckedContinuation { continuation in
-          let nsec = UsTime.now.timeInterval - tstart.timeInterval
-          debug("Sending stop of download to server")
-          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
-              self?.cleanupOldIssues()
-              continuation.resume()
-          }
-      }
-  }
+//  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
+//      guard let dlId = dlId else { return }
+//      return await withCheckedContinuation { continuation in
+//          let nsec = UsTime.now.timeInterval - tstart.timeInterval
+//          log("Sending stop of download to server")
+//          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
+//              self?.cleanupOldIssues()
+//              continuation.resume()
+//          }
+//      }
+//  }
 
   
   ///check is new issue was available since popup should be shown (Step1)

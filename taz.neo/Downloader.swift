@@ -246,6 +246,8 @@ open class Downloader: DoesLog {
       }
       if missingFiles == false { closure(nil); return }
       log("Issue marked as complete but files missing, redownloading...", logLevel: .Error)
+      Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "\(issue.date.short)")
+      
       issue.isComplete = false
       ///notify home to show correct state for download button
       Notification.send("issueProgress", content: "deleted", sender: issue)

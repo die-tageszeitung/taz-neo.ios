@@ -535,7 +535,13 @@ open class FeederContext: DoesLog {
   }
   
   func cleanupOldIssues(deleteOlder:Bool = false){
-    if self.dloader.isDownloading { return }
+    log("deleteOlder: \(deleteOlder)")
+    if self.dloader.isDownloading { log("...DO-NOT-CLEANUP, downloader is busy"); return }
+    guard TazAppEnvironment.currentApplicationStartContext == .foregroundUserStarted else {
+      log("...DO-NOT-CLEANUP, not foreground user started app start")
+      Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "Prevented Cleanup")
+      return
+    }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,

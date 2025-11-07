@@ -10,6 +10,16 @@ import NorthLib
 import UIKit
 import BackgroundTasks
 
+enum ApplicationStartContext:String {
+//  case backgroundTask = "backgroundTask"
+  case handlePushNotification  = "handlePushNotification"
+  case foregroundUserStarted = "foregroundUserStarted"
+  //    case foregroundUserResume
+//  case backgroundFetch = "backgroundFetch"
+  case unknown = "unknown"
+  var description: String { rawValue }
+}
+  
 class TazAppEnvironment: NSObject, DoesLog {
   
   class Spinner: UIViewController {
@@ -75,6 +85,12 @@ class TazAppEnvironment: NSObject, DoesLog {
         window.showAnimated()
         self.setupTopMenus(targetWindow: window)
       }
+    }
+  }
+  
+  public static var currentApplicationStartContext: ApplicationStartContext = .unknown  {
+    didSet {
+      Log.log("currentApplicationStartContext changed: \(oldValue.description) -> \(currentApplicationStartContext.description)")
     }
   }
   
@@ -303,7 +319,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       if let sf = feederContext?.defaultFeed {
         let latestLocalIssue = StoredIssue.latest(feed: sf)
         if latestLocalIssue?.isComplete == false {
-          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue is incompleete")
+          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue (\(latestLocalIssue?.date.short ?? "-")) is incompleete")
         }
       }
       else {
@@ -353,14 +369,12 @@ class TazAppEnvironment: NSObject, DoesLog {
     UIDevice.current.isBatteryMonitoringEnabled = true
     let lastBoot = Date(timeIntervalSinceNow: -ProcessInfo.processInfo.systemUptime)
     let batteryLevel = UIDevice.current.batteryLevel
-    let batteryState = UIDevice.current.batteryState
+    let batteryState = UIDevice.current.batteryState.customDescription
     let lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
     UIDevice.current.isBatteryMonitoringEnabled = false
     return("""
-      - last device restart: \(lastBoot.dateAndTime)
-      - battery: \(batteryLevel * 100)%
-      - batteryState: \(batteryState)
-      - is lowPower mode: \(lowPower)
+      last device restart: \(lastBoot.dateAndTime)
+      battery: \(batteryLevel * 100)%, batteryState: \(batteryState), is lowPower mode: \(lowPower)
       """)
   }
   
@@ -518,10 +532,9 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
+    ///No Force Write here! Only set missing values
     dfl.setDefaults(values: ConfigDefaults)
   }
-  
-  
   
   static func setupDefaultStyles(){
     if let defaultFontName = Const.Fonts.contentFontName,
@@ -879,11 +892,26 @@ extension Log {
     net?.whenUp { caller.log("Network up") }
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
+    ///this is the first entry in log after appending fileLoger
+    let state = TazAppEnvironment.currentApplicationStartContext.description
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+        "state: \(state)\n" +
         "git-hash: \(BuildConst.hash)\n" +
         "Path: \(Dir.appSupportPath)\n" +
         "isTAZ: \(App.isTAZ)")
+  }
+}
+
+extension UIDevice.BatteryState {
+  var customDescription: String {
+    switch self {
+      case .unknown: return "unknown"
+      case .unplugged: return "unplugged"
+      case .charging: return "charging"
+      case .full: return "full"
+      @unknown default: return "unknown future state"
+    }
   }
 }

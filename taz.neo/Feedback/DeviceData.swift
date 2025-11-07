@@ -15,16 +15,20 @@ public struct DeviceData : DoesLog {
   
   /// Ram used by current App (quite exactly like xCode displayed)
   var ramUsed : String?
+  var ramUsedRaw : UInt64?
   
   /// Free Ram available for App (less than DeviceRam - VM Used)
   var ramAvailable : String?
+  var ramAvailableRaw : UInt64?
   
   /// Storage available for ImportantUsage (less than SystemSettings total Free Space)
   var storageAvailable : String?
+  var storageAvailableRaw : UInt64?
   
   /// Used Storage by current App (little bit less than Settings->PhoneStorage-> App used->Doc&Data)
   /// Did not contain the App-Size itself
   var storageUsed : String?
+  var storageUsedRaw : UInt64?
   
   /// Used Storage by current App (little bit less than Settings->PhoneStorage-> App used->Doc&Data)
   /// Did not contain the App-Size itself
@@ -37,19 +41,24 @@ public struct DeviceData : DoesLog {
     var _dc:DeviceDataCollect? = DeviceDataCollect()
     if let dc = _dc {
       
-      ramAvailable = "\(dc.freeMemory())"
+      let freeRam = dc.freeMemory()
+      ramAvailable = "\(freeRam)"
+      ramAvailableRaw = UInt64(max(0, freeRam))
       
       if let used = dc.appUsedRam() {
         ramUsed = "\(used)"
+        ramUsedRaw = used
       }
       
       if let free = dc.freeStorage() {
         storageAvailable = "\(free)"
+        storageAvailableRaw = UInt64(max(0, free))
       }
       
       detailStorage = dc.storageUsedByApp()
-      
-      storageUsed = "\(detailStorage.data + detailStorage.app)"
+      let storageUsedCalc = UInt64(max(0, detailStorage.data)) + detailStorage.app
+      storageUsed = "\(storageUsedCalc)"
+      storageUsedRaw = storageUsedCalc
     }
     _dc = nil
   }
@@ -184,5 +193,27 @@ public struct DeviceData : DoesLog {
       }
       return size
     }
+  }
+}
+
+extension UInt64 {
+  var formattedStorage: String? {
+    let mb = Double(self) / (1024 * 1024)
+    let formatter = NumberFormatter()
+    formatter.locale = Locale(identifier: "de_DE")
+    formatter.maximumFractionDigits = 3
+    formatter.minimumFractionDigits = 0
+    
+    if mb >= 1024 {
+      let gb = mb / 1024
+      if let formatted = formatter.string(from: NSNumber(value: gb)) {
+        return "\(formatted)GB"
+      }
+    } else {
+      if let formatted = formatter.string(from: NSNumber(value: mb)) {
+        return "\(formatted)MB"
+      }
+    }
+    return nil
   }
 }
