@@ -143,7 +143,7 @@ public enum CustomUIActivityType {
   /// - Returns: A localized string corresponding to the activity type.
   public var title: String {
     switch self {
-      case .openInSafari:    return "In Safari öffnen"  // "Open in Safari"
+      case .openInSafari:    return "Im Browser öffnen"  // "Open in Safari"
       case .paperPdfSave:  return "Zeitungs PDF laden und in Dateien sichern"  // "Save Newspaper PDF in Files"
       case .paperPdfPrint:  return "Zeitungs PDF laden und drucken"  // "Print Newspaper PDF"
       case .moreInfo:  return "Informationen zum teilen"  // "More Information about Sharing"
