@@ -24,7 +24,7 @@ class AppDelegate: NotifiedDelegate {
       TazAppEnvironment.currentApplicationStartContext = .foregroundUserStarted
     }
     
-    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///not in File Logger
+    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data
     onOpenApplicationFromNotification {center, response, handler in
@@ -33,7 +33,11 @@ class AppDelegate: NotifiedDelegate {
     }
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
-    log("started with #launchOptions: \(launchOptions?.count ?? 0)")
+    if let keys = launchOptions?.keys.map({ $0.rawValue }) {
+      log("started with \(keys.count) launchOptions: \(keys)")
+    }else {
+      log("started with \(launchOptions?.count ?? 0) launchOptions")
+    }
 //    self.window?.rootViewController =  TmpTestController()
 //    let res = SearchResultsTVC()
 //    res.searchResponse = GqlFeeder.test()
