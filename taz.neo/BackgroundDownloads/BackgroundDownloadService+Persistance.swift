@@ -286,14 +286,14 @@ extension BackgroundDownloadService {
 
       let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
       if storedIssue.payload.downloadStarted == nil {
-        if let startTime = getDownloadData(dateKey: self.dateKey).startTime {
+        if let startTime = getDownloadData(forDateKey: storedIssue.date.ISO8601)?.startTime {
           let started = UsTime(startTime).date
-          log("Set downloadStarted for issue \(self.dateKey) from stored startTime: \(started.dateAndTime)")
+          log("Set downloadStarted for issue \(issue.date.ISO8601) from stored startTime: \(started.dateAndTime)")
           storedIssue.pr.payload?.downloadStarted = started
         }
         else {
           storedIssue.pr.payload?.downloadStarted = Date()
-          log("Set downloadStarted to now for issue \(self.dateKey) ...as fallback")
+          log("Set downloadStarted to now for issue \(issue.date.ISO8601) ...as fallback")
         }
       }
 
