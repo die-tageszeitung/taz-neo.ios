@@ -10,16 +10,6 @@ import NorthLib
 import UIKit
 import BackgroundTasks
 
-enum ApplicationStartContext:String {
-//  case backgroundTask = "backgroundTask"
-  case handlePushNotification  = "handlePushNotification"
-  case foregroundUserStarted = "foregroundUserStarted"
-  //    case foregroundUserResume
-//  case backgroundFetch = "backgroundFetch"
-  case unknown = "unknown"
-  var description: String { rawValue }
-}
-  
 class TazAppEnvironment: NSObject, DoesLog {
   
   class Spinner: UIViewController {
@@ -85,12 +75,6 @@ class TazAppEnvironment: NSObject, DoesLog {
         window.showAnimated()
         self.setupTopMenus(targetWindow: window)
       }
-    }
-  }
-  
-  public static var currentApplicationStartContext: ApplicationStartContext = .unknown  {
-    didSet {
-      Log.log("currentApplicationStartContext changed: \(oldValue.description) -> \(currentApplicationStartContext.description)")
     }
   }
   
@@ -893,11 +877,9 @@ extension Log {
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
     ///this is the first entry in log after appending fileLoger
-    let state = TazAppEnvironment.currentApplicationStartContext.description
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
-        "state: \(state)\n" +
         "git-hash: \(BuildConst.hash)\n" +
         "Path: \(Dir.appSupportPath)\n" +
         "isTAZ: \(App.isTAZ)")
