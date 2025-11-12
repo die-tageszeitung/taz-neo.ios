@@ -238,15 +238,15 @@ open class Downloader: DoesLog {
                                 closure: @escaping (Error?)->()) {
     if issue.isComplete {
       let issuePath = issue.dir.path
-      var missingFiles = false
+      var missingFilesCount = 0
       for file in files {
-        if file.exists(inDir: issuePath) == false {
-          missingFiles = true
+        if file.existsIgnoringTime(inDir: issuePath) == false {
+          missingFilesCount += 1
         }
       }
-      if missingFiles == false { closure(nil); return }
-      log("Issue marked as complete but files missing, redownloading...", logLevel: .Error)
-      Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "\(issue.date.short)")
+      if missingFilesCount == 0 { closure(nil); return }
+      log("Issue marked as complete but \(missingFilesCount) files missing, redownloading...", logLevel: .Error)
+      Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "\(issue.date.short) MissingFilesCount: \(missingFilesCount)")
       
       issue.isComplete = false
       ///notify home to show correct state for download button
