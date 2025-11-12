@@ -9,16 +9,17 @@
 import NorthLib
 import UIKit
 import BackgroundTasks
+import Foundation
 
-enum ApplicationStartContext:String {
-//  case backgroundTask = "backgroundTask"
-  case handlePushNotification  = "handlePushNotification"
-  case foregroundUserStarted = "foregroundUserStarted"
-  //    case foregroundUserResume
-//  case backgroundFetch = "backgroundFetch"
-  case unknown = "unknown"
-  var description: String { rawValue }
-}
+//enum ApplicationStartContext:String {
+////  case backgroundTask = "backgroundTask"
+//  case handlePushNotification  = "handlePushNotification"
+//  case foregroundUserStarted = "foregroundUserStarted"
+//  //    case foregroundUserResume
+////  case backgroundFetch = "backgroundFetch"
+//  case unknown = "unknown"
+//  var description: String { rawValue }
+//}
   
 class TazAppEnvironment: NSObject, DoesLog {
   
@@ -88,12 +89,6 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
   }
   
-  public static var currentApplicationStartContext: ApplicationStartContext = .unknown  {
-    didSet {
-      Log.log("currentApplicationStartContext changed: \(oldValue.description) -> \(currentApplicationStartContext.description)")
-    }
-  }
-  
   public static let sharedInstance = TazAppEnvironment()
   ///shared startup info
   public static var openedFromNotificationCenter:PushNotification.Payload.ArticlePushData?
@@ -132,6 +127,13 @@ class TazAppEnvironment: NSObject, DoesLog {
   @Default("articleTextSize")
   private var articleTextSize: Int
   
+  ///will be resetet by app reset
+  @Default("appCrashedCount")
+  var appCrashedCount: Int
+  ///will be resetet by app delete and install
+  @Default("appCrashedCountTotal")
+  var appCrashedCountTotal: Int
+  
   public internal(set) var isErrorReporting = false {
     didSet {
       print("isErrorReporting set to: \(isErrorReporting)")
@@ -159,9 +161,90 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func setup(){
     setupLogging()
+    setupCrashReporting()
     setupFeeder()
   }
   
+  func setupCrashReporting() {
+    NSSetUncaughtExceptionHandler {exception in
+      let dfl = Defaults.singleton
+      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+      dfl["appCrashedLastType"] = "\(exception.typeName)"
+      dfl["appCrashedLastDescription"] = "\(exception.description)"
+      UserDefaults().synchronize() ///Required???
+      Usage.track(Usage.event.errorEvent.Crash, name: "type-now: \(exception.typeName)")
+      Usage.dispatch()
+      Log.log("App crashed with ExceptionType: \(exception.typeName)\n\(exception.description)", logLevel: .Error)
+    }
+    
+    CrashMonitor.shared.setup()
+//    // fängt SIGFPE (Division by zero), SIGABRT usw. ab
+//    signal(SIGABRT) { _ in self.handleSignal("SIGABRT") }
+//    signal(SIGILL)  { _ in self.handleSignal("SIGILL") }
+//    signal(SIGSEGV) { _ in self.handleSignal("SIGSEGV") }
+//    signal(SIGFPE)  { _ in self.handleSignal("SIGFPE") } // Division durch null
+//    signal(SIGBUS)  { _ in self.handleSignal("SIGBUS") }
+//    signal(SIGPIPE) { _ in self.handleSignal("SIGPIPE") }
+    
+//    // fängt SIGFPE (Division by zero), SIGABRT usw. ab
+//    signal(SIGABRT) { name in
+//      UserDefaults.standard.set(Date(), forKey: "lastCrashSignal_\(name)")
+//      UserDefaults.standard.synchronize()
+//      
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "SIGABRT"
+//      UserDefaults.standard.synchronize()
+//    }
+//    signal(SIGILL)  { msg in
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "\(msg.description)"
+//      UserDefaults.standard.synchronize()
+//    }
+//    signal(SIGSEGV){ msg in
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "\(msg.description)"
+//      UserDefaults.standard.synchronize()
+//    }
+//    signal(SIGFPE){ msg in
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "\(msg.description)"
+//      UserDefaults.standard.synchronize()
+//    }
+//    signal(SIGBUS) { msg in
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "\(msg.description)"
+//      UserDefaults.standard.synchronize()
+//    }
+//    signal(SIGPIPE){ msg in
+//      dfl["appCrashedLastDate"] = "\(UsTime.now.sec)"
+//      dfl["appCrashedLastDescription"] = "\(msg.description)"
+//      UserDefaults.standard.synchronize()
+//    }
+    
+    let dfl = Defaults.singleton
+    guard let appCrashedLastDate = dfl["appCrashedLastDate"] else { return }
+    
+    let appCrashedLastTime = appCrashedLastDate.usTime
+    appCrashedCount += 1
+    appCrashedCountTotal += 1
+    
+    let appCrashedLastType = dfl["appCrashedLastType"] ?? "-"
+    let appCrashedLastDescription = dfl["appCrashedLastDescription"] ?? "-"
+    
+    dfl["appCrashedLastDate"] = nil
+    dfl["appCrashedLastDescription"] = nil
+    dfl["appCrashedLastDate"] = nil
+    
+    log("App crashed on last execution on \(appCrashedLastTime.toString())\nExceptionType: \(appCrashedLastType)\n\(appCrashedLastDescription)\ntotal crashes:  \(appCrashedCount)(\(appCrashedCountTotal))", logLevel: .Error)
+    Usage.track(Usage.event.errorEvent.Crash, name: "type: \(appCrashedLastType)")
+  }
+  
+  private func handleSignal(_ name: String) {
+      print("💥 Received signal: \(name)")
+      UserDefaults.standard.set(Date(), forKey: "lastCrashSignal_\(name)")
+      UserDefaults.standard.synchronize()
+  }
+
   func setupLogging() {
     Log.setupLogging(caller: self,
                      fileLogger: Self.fileLogger,
@@ -893,7 +976,7 @@ extension Log {
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
     ///this is the first entry in log after appending fileLoger
-    let state = TazAppEnvironment.currentApplicationStartContext.description
+    let state = Log.appStartContext.rawValue
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
@@ -914,4 +997,52 @@ extension UIDevice.BatteryState {
       @unknown default: return "unknown future state"
     }
   }
+}
+
+fileprivate extension Date {
+  var isUnset: Bool {
+    return self.timeIntervalSince1970 < 1000
+  }
+}
+
+
+final class CrashMonitor {
+    static let shared = CrashMonitor()
+    private init() {}
+
+    func setup() {
+//        // NSException handler
+//        NSSetUncaughtExceptionHandler { exception in
+//            CrashMonitor.shared.handleNSException(exception)
+//        }
+        // Signal handlers (alle C-kompatibel)
+        signal(SIGABRT, signalHandler)
+        signal(SIGILL,  signalHandler)
+        signal(SIGSEGV, signalHandler)
+        signal(SIGFPE,  signalHandler)
+        signal(SIGBUS,  signalHandler)
+        signal(SIGPIPE, signalHandler)
+    }
+
+//    private func handleNSException(_ exception: NSException) {
+//        print("⚠️ Uncaught NSException: \(exception.name)")
+//        UserDefaults.standard.set(Date(), forKey: "lastObjCExceptionDate")
+//    }
+}
+
+func signalHandler(_ signal: Int32) {
+    let name: String
+    switch signal {
+    case SIGABRT: name = "SIGABRT"
+    case SIGILL:  name = "SIGILL"
+    case SIGSEGV: name = "SIGSEGV"
+    case SIGFPE:  name = "SIGFPE"
+    case SIGBUS:  name = "SIGBUS"
+    case SIGPIPE: name = "SIGPIPE"
+    default:      name = "UNKNOWN"
+    }
+    print("Received Crash signal: \(name)")
+    UserDefaults.standard.set(Date(), forKey: "appCrashedLastDate")
+    UserDefaults.standard.set(name, forKey: "appCrashedLastType")
+    UserDefaults.standard.synchronize()
 }

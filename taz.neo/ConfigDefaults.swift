@@ -95,6 +95,7 @@ private let configValues = [
   "reopenRessortSetting" : "false",
   "newIssueSystemSetting" : "true",
   "specialArticleSystemSetting" : "true",
+  "appCrashedCount" : "0",
   //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
 
 ]

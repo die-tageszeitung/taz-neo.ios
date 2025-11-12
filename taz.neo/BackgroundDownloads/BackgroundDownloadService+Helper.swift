@@ -92,8 +92,10 @@ public extension Issue {
   
   /// Marks this issue as finished, reset isAutodownloading flag.
   func setAutodownloadCompleete() {
-    self.isComplete = true
+    self.isComplete = true///DID IT WORK??? who sets compleete if not!!! if its not a stored issue look at paths
     self.isAutodownloading = false
+    guard let si = self as? StoredIssue else { return }
+    si.pr.payload?.downloadStopped = Date()
   }
 }
 

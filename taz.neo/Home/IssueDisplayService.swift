@@ -76,6 +76,19 @@ extension IssueDisplayService {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
     var issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)"
+    let path = issue.feed.feeder.issueDir(issue: issue).path
+    if let protection = try? URL(fileURLWithPath: path)
+      .resourceValues(forKeys: [.fileProtectionKey]), protection.allValues.isEmpty == false {
+      var issueDirProtection = ""
+      for (key, value) in protection.allValues {
+        issueDirProtection += "\n  \(key): \(value)"
+      }
+      log("file protection info for path: \(path) \nis:\(issueDirProtection)")
+    }
+    else {
+      log("No file protection info for path: \(path)")
+    }
+    
     
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
@@ -85,7 +98,7 @@ extension IssueDisplayService {
      ein open issue in dem Fall wäre praktisch,
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
-    
+    var num2 = 1/(Int("0") ?? 1)
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
       log("No update needed to show issue in \(isFacsimile ? "facsimileView" : "appView")\n\(issueStatus)")

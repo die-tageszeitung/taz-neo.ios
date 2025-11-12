@@ -285,6 +285,10 @@ extension BackgroundDownloadService {
       }
 
       let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
+    if storedIssue.payload.downloadStarted == nil {
+      ///maybe wrong date but required for cleanup logic
+      storedIssue.pr.payload?.downloadStarted = Date()
+    }
 
       // If the issue is complete, update its completion state and perform finalization steps.
       if issue.isComplete {

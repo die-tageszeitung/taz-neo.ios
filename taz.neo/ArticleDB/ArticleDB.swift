@@ -917,19 +917,19 @@ extension PersistentContent: PersistentObject {
     super.prepareForDeletion()
     ///Do not itterate over org set while changing it; this causes errors!
     let imagesCopy = (self.images as? Set<PersistentImageEntry>) ?? []
-    for img in imagesCopy {
+    for img in imagesCopy { 
       img.removeFromImageContent(self)
       if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
-      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
+//      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
     }
     if audioItem?.referencesCount ?? 0 <= 1 {///Section or Article
-      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
+//      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
       audioItem?.delete()
     }
     else {
-      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
+//      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
     }
   }
 }
@@ -2279,6 +2279,7 @@ public final class StoredIssue: Issue, StoredObject {
         _ = lastCompleteIssues.popLast()
       }
     }
+    Log.log("lastCompleteIssues:\n\(lastCompleteIssues.map{"issue: \($0.date.short) payloadDLStart: \($0.payload.downloadStarted?.dateAndTime ?? "-")"}.joined(separator: "\n"))")
     
     let allIssues = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
     guard !allIssues.isEmpty else {
