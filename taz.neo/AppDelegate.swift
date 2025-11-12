@@ -81,10 +81,12 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
-      log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
-      BackgroundSession.resumeBackgroundURLSession(name: identifier,
-                                   completionHandler: completionHandler,
-                                   callback: BackgroundDownloadService.dlCallback)
+    log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
+    tzset() // <— reload timezone info
+    log("application handleEventsForBackgroundURLSession identifier: \(identifier) ...after fixed TimeZone ")
+    BackgroundSession.resumeBackgroundURLSession(name: identifier,
+                                                 completionHandler: completionHandler,
+                                                 callback: BackgroundDownloadService.dlCallback)
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {
