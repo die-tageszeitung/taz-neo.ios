@@ -922,14 +922,14 @@ extension PersistentContent: PersistentObject {
       if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
-      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
+//      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
     }
     if audioItem?.referencesCount ?? 0 <= 1 {///Section or Article
-      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
+//      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
       audioItem?.delete()
     }
     else {
-      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
+//      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
     }
   }
 }
