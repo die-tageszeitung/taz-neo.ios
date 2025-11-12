@@ -285,11 +285,25 @@ extension BackgroundDownloadService {
       }
 
       let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
+      if storedIssue.payload.downloadStarted == nil {
+        if let startTime = getDownloadData(dateKey: self.dateKey).startTime {
+          let started = UsTime(startTime).date
+          log("Set downloadStarted for issue \(self.dateKey) from stored startTime: \(started.dateAndTime)")
+          storedIssue.pr.payload?.downloadStarted = started
+        }
+        else {
+          storedIssue.pr.payload?.downloadStarted = Date()
+          log("Set downloadStarted to now for issue \(self.dateKey) ...as fallback")
+        }
+      }
 
       // If the issue is complete, update its completion state and perform finalization steps.
       if issue.isComplete {
           storedIssue.isComplete = true // Needed if not persisted between fetch and download complete
           storedIssue.isOvwComplete = true
+          if storedIssue.payload.downloadStopped == nil {
+            storedIssue.pr.payload?.downloadStopped = Date()
+          }
           storedIssue.fixMoTime()
 
           // Preload facsimile if available (triggers lazy loading)
