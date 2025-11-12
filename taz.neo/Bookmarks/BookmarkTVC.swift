@@ -77,6 +77,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   private lazy var headerPlayButton: Button<ImageView> = {
     let btn = Button<ImageView>()
     btn.onTapping { [weak self] _ in
+      self?.log("Crash Catch Test")
+      let num = 1/(Int("0") ?? 1)
       guard let sissue = Bookmarks.shared.bookmarkIssue else { return }
       ArticlePlayer.singleton.play(issue: sissue,
                                    startFromArticle: nil,

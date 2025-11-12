@@ -98,7 +98,11 @@ extension IssueDisplayService {
      ein open issue in dem Fall wäre praktisch,
      ...würde dann den >>>Notification.receiveOnce("issueStructure"<<<" raus nehmen
      */
-    var num2 = 1/(Int("0") ?? 1)
+    
+    let dfl = Defaults.singleton
+    dfl["appCrashedLastDate"] = "\(Date())"
+    dfl["appCrashedLastType"] = "fake crash..."
+    
     guard feederContext.needsUpdate(issue: issue,
                                     toShowPdf: isFacsimile) else {
       log("No update needed to show issue in \(isFacsimile ? "facsimileView" : "appView")\n\(issueStatus)")

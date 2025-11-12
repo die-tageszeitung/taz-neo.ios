@@ -231,12 +231,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     let appCrashedLastType = dfl["appCrashedLastType"] ?? "-"
     let appCrashedLastDescription = dfl["appCrashedLastDescription"] ?? "-"
     
-    dfl["appCrashedLastDate"] = nil
     dfl["appCrashedLastDescription"] = nil
     dfl["appCrashedLastDate"] = nil
     
     log("App crashed on last execution on \(appCrashedLastTime.toString())\nExceptionType: \(appCrashedLastType)\n\(appCrashedLastDescription)\ntotal crashes:  \(appCrashedCount)(\(appCrashedCountTotal))", logLevel: .Error)
-    Usage.track(Usage.event.errorEvent.Crash, name: "type: \(appCrashedLastType)")
+//    Usage.track(Usage.event.errorEvent.Crash, name: "type: \(appCrashedLastType)")
   }
   
   private func handleSignal(_ name: String) {
@@ -1031,8 +1030,8 @@ final class CrashMonitor {
 }
 
 func signalHandler(_ signal: Int32) {
-    let name: String
-    switch signal {
+  let name: String
+  switch signal {
     case SIGABRT: name = "SIGABRT"
     case SIGILL:  name = "SIGILL"
     case SIGSEGV: name = "SIGSEGV"
@@ -1040,9 +1039,9 @@ func signalHandler(_ signal: Int32) {
     case SIGBUS:  name = "SIGBUS"
     case SIGPIPE: name = "SIGPIPE"
     default:      name = "UNKNOWN"
-    }
-    print("Received Crash signal: \(name)")
-    UserDefaults.standard.set(Date(), forKey: "appCrashedLastDate")
-    UserDefaults.standard.set(name, forKey: "appCrashedLastType")
-    UserDefaults.standard.synchronize()
+  }
+  print("Received Crash signal: \(name)")
+  let dfl = Defaults.singleton
+  dfl["appCrashedLastDate"] = "\(Date())"
+  dfl["appCrashedLastDescription"] = name
 }
