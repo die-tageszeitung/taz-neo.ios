@@ -75,21 +75,7 @@ extension IssueDisplayService {
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
-    var issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)"
-    #warning("TODO: Remove if blank issue error fixed!")
-    let path = issue.feed.feeder.issueDir(issue: issue).path
-    if let protection = try? URL(fileURLWithPath: path)
-      .resourceValues(forKeys: [.fileProtectionKey]), protection.allValues.isEmpty == false {
-      var issueDirProtection = ""
-      for (key, value) in protection.allValues {
-        issueDirProtection += "\n  \(key): \(value)"
-      }
-      log("file protection info for path: \(path) \nis:\(issueDirProtection)")
-    }
-    else {
-      log("No file protection info for path: \(path)")
-    }
-    
+    let issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)"
     
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +
