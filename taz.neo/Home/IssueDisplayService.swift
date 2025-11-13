@@ -75,7 +75,7 @@ extension IssueDisplayService {
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
       debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
-    let issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)"
+    let issueStatus = "status: \(issue.status), isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete), isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete) articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0), downloadStarted: \(issue.payload.downloadStarted?.dateAndTime ?? "-"), downloadStoped: \(issue.payload.downloadStopped?.dateAndTime ?? "-")"
     
     feederContext.openedIssue = issue //remember opened issue to not delete if
     debug("*** Action: Entering \(issue.feed.name)-" +

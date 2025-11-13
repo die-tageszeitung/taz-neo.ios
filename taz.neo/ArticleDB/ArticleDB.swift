@@ -2272,6 +2272,28 @@ public final class StoredIssue: Issue, StoredObject {
                                                    onlyCompleete: true,
                                                    sortedBy: .payloadDownloadStarted,
                                                    ascending: false)
+    let missingdownloadStartedCount = lastCompleteIssues.filter { $0.payload.downloadStarted == nil }.count
+    if missingdownloadStartedCount > 0 {
+      Log.log("WARNING :: for \(missingdownloadStartedCount) issues payload.downloadStarted is not set, setting fallback values!")
+      Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "Fixed missing downloadStarted for \(missingdownloadStartedCount) issues.")
+      ///works only particulaty for multiple issues with missing downloadStarted; but in that case these issutill deleted
+      lastCompleteIssues = lastCompleteIssues
+        .map { issue in
+          if issue.payload.downloadStarted == nil {
+            issue.pr.payload?.downloadStarted = issue.date.addingTimeInterval(-3600 * 8)
+            Log.log("Issue: \(issue.date.short) - setting payload.downloadStarted to \(issue.payload.downloadStarted?.dateAndTime ?? "nil")")
+          }
+          return issue
+        }
+        .sorted { a, b in
+          guard let da = a.payload.downloadStarted,
+                let db = b.payload.downloadStarted else {
+            return false
+          }
+          return da > db // descending
+        }
+    }
+    
     if let latestComplete = lastComplete(feed: feed),
        !lastCompleteIssues.contains(latestComplete) {
       lastCompleteIssues.insert(latestComplete, at: 0)
