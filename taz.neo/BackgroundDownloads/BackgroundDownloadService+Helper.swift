@@ -11,27 +11,6 @@ import NorthLib
 
 /// MARK: - Helper Methods TEMP COLLECTION
 extension BackgroundDownloadService {
-  /// Checks whether there is an active download for the given issue date.
-  ///
-  /// - Parameters:
-  ///   - issueDate: The date of the issue to check for an active download.
-  ///   - stopInactiveDownloads: A Boolean value indicating whether to stop inactive downloads during the check. Defaults to `true`.
-  ///
-  /// - Returns: `true` if an active download exists for the given issue date; otherwise, `false`.
-  func hasActiveDownload(for issueDate: Date, stopInactiveDownloads: Bool = true, stopActiveDownloads: Bool) -> Bool {
-    
-    return false // TODO: remove this line, this is a temporary collection
-    #warning("ToDo Implement!")
-//    guard let url = getUrl(forDateKey: issueDate.ISO8601) else {
-//      log("has NO Download Data for: \(issueDate.ISO8601)")
-//      return false
-//    }
-//    let hasActiveDownload = BackgroundSession.hasActiveDownload(for: url, cancelIfSuspended: stopInactiveDownloads, cancelActiveDownloads: stopActiveDownloads)
-//    log("has Download Data for: \(issueDate.ISO8601) isActive: \(hasActiveDownload)")
-//    if hasActiveDownload == false { removeDownloadData(forDownloadUrl: url) }
-//    
-//    return hasActiveDownload
-  }
   
   ///send stop to server
   ///in case of missing downloadId, startDate or issueDate do nothing
@@ -39,7 +18,6 @@ extension BackgroundDownloadService {
   func sendDownloadStopAndTrack(for downloadData: DownloadData,
                                 with url: String,
                                 feederContext: FeederContext?) {
-    
     guard let feederContext = feederContext else {
       log("⚠️WARNING:...No FeederContext available, cannot send stop to server")
       return

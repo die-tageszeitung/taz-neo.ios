@@ -73,17 +73,12 @@ extension FeederContext {
                 name: issue.date.ISO8601,
                 dimensions: Usage.event.issue.downloadDim(pdf: isPages,
                                                            audio: withAudio))
-    
-    func shouldStopActiveBackgroundDownloads() -> Bool {
-      ///located here (and not in BG Download Service) to hopefully not risk race condition and crash in init netAvailability
-      return netAvailability.isMobile && autoloadOnlyInWLAN
-    }
-    
-    if issue.isDownloading || BackgroundDownloadService.shared.hasActiveDownload(for: issue.date, stopActiveDownloads: shouldStopActiveBackgroundDownloads()) {
+
+    if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
-      log("not downloading due \(issue.isDownloading ? "" : "background") download")
+      log("not downloading twice, due active download")
       return
     }
     let loadPages = isPages || autoloadPdf
