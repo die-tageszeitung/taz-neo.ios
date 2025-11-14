@@ -30,7 +30,6 @@ extension FeederContext {
   
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
-    //    enqueuedDownlod.append(issue)
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
@@ -51,7 +50,6 @@ extension FeederContext {
         }
         else { res = .failure(err!) }
         self?.markStopDownload(dlId: dlId, tstart: tstart)
-        //        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
         Notification.send("issue", result: res, sender: issue)
       }
     }
