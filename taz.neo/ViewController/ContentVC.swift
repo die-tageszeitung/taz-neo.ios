@@ -927,8 +927,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
             || selfSafeIssue.isBookmarkIssue == true {
           guard let baseUrl = curl.content.baseURL,
                 let issueDate = curl.content.issueDate,
+                let storedFeeder = self?.feederContext.storedFeeder,
                 let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
           else { return }
+          issueDir.createGlobalLinksIfNeeded(feeder: storedFeeder)
           self?.dloader.downloadSearchHitFiles(files: curl.content.files,
                                               baseUrl: baseUrl,
                                               targetDir: issueDir) { err in

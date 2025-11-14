@@ -2375,8 +2375,13 @@ public final class StoredIssue: Issue, StoredObject {
       knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
     }
     
+    ///remove duplicates and percent encoding
+    knownDirs = Array(Set(knownDirs.map { $0.removingPercentEncoding ?? $0 }))
+
+    
     for path in allSubdirs {
-      if knownDirs.contains(path) ||
+      let decodedPath = path.removingPercentEncoding ?? path
+      if knownDirs.contains(decodedPath) ||
           File("\(path)/\(BackgroundDownloadService.jsonDataFilename)").exists {
         skippedFolders.append(path.lastPathComponents(4))
         continue
