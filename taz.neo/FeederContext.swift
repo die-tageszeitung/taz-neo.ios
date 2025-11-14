@@ -513,6 +513,12 @@ open class FeederContext: DoesLog {
   
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
+    ///ensure manual download while automatic download is queued in the background.
+    if issue.isAutodownloading {
+      issue.isDownloading = false
+      issue.isAutodownloading = false
+      return true
+    }
     guard !issue.isDownloading else { return false }
     
     if issue.isReduced, isAuthenticated, !Defaults.expiredAccount {

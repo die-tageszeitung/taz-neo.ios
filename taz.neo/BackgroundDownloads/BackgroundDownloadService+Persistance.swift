@@ -314,7 +314,6 @@ extension BackgroundDownloadService {
         scheduleBackgroundIssueCheck()
       } else {
         log("Issue \(issue.date.short) is not complete...")
-        storedIssue.isDownloading = true
         storedIssue.isAutodownloading = true
       }
       

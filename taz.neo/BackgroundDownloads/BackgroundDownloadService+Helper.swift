@@ -94,6 +94,7 @@ public extension Issue {
   func setAutodownloadCompleete() {
     self.isComplete = true
     self.isAutodownloading = false
+    self.isDownloading = false ///ensure right flag, but dont set it true for download start
   }
 }
 
