@@ -506,12 +506,16 @@ class TazAppEnvironment: NSObject, DoesLog {
     @see also FeedbackViewController adds this in feedback request
      Question: is this called for incomming push notification?
      */
+    let currentLogEndTime = File(Log.FileLogger.tmpLogfile).mTime
+    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
+    
     File(Log.FileLogger.lastLogfile)
       .copy(to: Log.FileLogger.secondLastLogfile, isOverwrite: true)
-    File(Log.FileLogger.secondLastLogfile).mTime = File(Log.FileLogger.lastLogfile).mTime
     File(Log.FileLogger.tmpLogfile)
       .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
-    File(Log.FileLogger.lastLogfile).mTime = File(Log.FileLogger.tmpLogfile).mTime
+    ///restore mTime to have correct times in logfiles header parts
+    File(Log.FileLogger.secondLastLogfile).mTime = lastLogEndTime
+    File(Log.FileLogger.lastLogfile).mTime = currentLogEndTime
   }
   
   static func updateDefaultsIfNeeded(){

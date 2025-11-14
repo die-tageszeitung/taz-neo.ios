@@ -557,14 +557,16 @@ extension Log.FileLogger {
   
   public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
     var log = ""
+    // remember mTime before it gets overwritten by access
+    let secondLastLogEndTime = File(Log.FileLogger.secondLastLogfile).mTime
+    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
     
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
     if secondLastLog.exists,
        let lString = String(data:secondLastLog.data, encoding: .utf8) {
-      let created = secondLastLog.cTime.dateAndTime
       log += "\n###################################"
       log += "\n     2nd L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
+      log += "\n     Last: \(secondLastLogEndTime.dateAndTime)"
       //for @taz.de useraccounts add 3 app session logs
       if (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
         log += "\n not appending 2nd last log"
@@ -579,10 +581,9 @@ extension Log.FileLogger {
     let lastLog = File(Log.FileLogger.lastLogfile)
     if lastLog.exists,
        let lString = String(data:lastLog.data, encoding: .utf8) {
-      let created = lastLog.cTime.dateAndTime
       log += "\n###################################"
       log += "\n     L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
+      log += "\n     Last: \(lastLogEndTime.dateAndTime)"
       log += "\n###################################\n\n"
       log += lString
     }
@@ -592,7 +593,7 @@ extension Log.FileLogger {
       log += "\n###################################"
       log += "\n  C U R R E N T - E X E C U T I O N"
       log += "\n###################################"
-      log += "\n \(lString)"
+      log += "\n Last: \(lString)"
     }
     return log
   }
