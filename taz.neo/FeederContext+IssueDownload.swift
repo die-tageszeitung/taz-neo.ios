@@ -173,6 +173,7 @@ extension FeederContext {
       }
   }
 
+  /// uncommented due not in use currently maybe for later use on async change
 //  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
 //      guard let dlId = dlId else { return }
 //      return await withCheckedContinuation { continuation in

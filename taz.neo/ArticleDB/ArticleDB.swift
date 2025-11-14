@@ -922,14 +922,18 @@ extension PersistentContent: PersistentObject {
       if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
-//      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
+      #warning("ToDo 1.6.0: Bundestalk is not deleted at the last reference, but  during a later cleanup-folders!")
+      ///Maybe this is the better behavior for users who manually delete issues after read,
+      ///then bundestalk maybe will be downloaded multiple times
+      ///Solution: Check if related issue is older than 10 days && RefCount is 0 => DELETE
+      debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
     }
     if audioItem?.referencesCount ?? 0 <= 1 {///Section or Article
-//      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
+      debug("Delete AutioItem \(audioItem?.file?.name ?? "-") due last Reference")
       audioItem?.delete()
     }
     else {
-//      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
+      debug("do not Delete AutioItem Reference count \(audioItem?.referencesCount ?? 0)")
     }
   }
 }
@@ -2276,7 +2280,8 @@ public final class StoredIssue: Issue, StoredObject {
     if missingdownloadStartedCount > 0 {
       Log.log("WARNING :: for \(missingdownloadStartedCount) issues payload.downloadStarted is not set, setting fallback values!")
       Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "Fixed missing downloadStarted for \(missingdownloadStartedCount) issues.")
-      ///works only particulaty for multiple issues with missing downloadStarted; but in that case these issutill deleted
+      ///works only particulaty for multiple issues with missing downloadStarted,
+      ///but in that case these issue is still deleted on earlier cleanups
       lastCompleteIssues = lastCompleteIssues
         .map { issue in
           if issue.payload.downloadStarted == nil {
