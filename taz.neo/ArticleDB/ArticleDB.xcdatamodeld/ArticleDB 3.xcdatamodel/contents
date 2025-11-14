@@ -136,6 +136,7 @@
     <entity name="Issue" representedClassName="PersistentIssue" syncable="YES" codeGenerationType="class">
         <attribute name="baseUrl" attributeType="String"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fullDownloadedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="isAudioComplete" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isAutodownloading" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isComplete" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
