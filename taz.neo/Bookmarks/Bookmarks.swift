@@ -190,6 +190,7 @@ extension Bookmarks {
       if article.pr.sections?.count == 0 {
         article.delete()
       }
+      BookmarksSyncBusiness.appendLocalDeletedBookmarkMediaSyncId(article.serverId)
       ArticleDB.save()
     }
     let msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"

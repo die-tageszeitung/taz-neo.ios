@@ -139,7 +139,7 @@ extension GqlFeeder {
   }
 
   struct BookmarkSyncResult {
-    let article: Article
+    let article: SimpleArticle
     let operation: BookmarkOperation
     let error: String?
   }
@@ -147,8 +147,8 @@ extension GqlFeeder {
   /// Führt Uploads und Deletes von Bookmarks zum Server durch.
   /// - Returns: Array von Ergebnissen (Artikel + Operation + evtl. Fehlermeldung)
   func updateRemoteBookmarks(
-    newBookmarked: [Article],
-    deletedBookmarks: [Article]
+    newBookmarked: [SimpleArticle],
+    deletedBookmarks: [SimpleArticle]
   ) async throws -> [BookmarkSyncResult] {
 
     // MARK: - Check Session
@@ -158,7 +158,7 @@ extension GqlFeeder {
 
     // MARK: - Build Mutation Parts
     var mutationParts: [String] = []
-    var resultMap: [(alias: String, article: Article, op: BookmarkOperation)] = []
+    var resultMap: [(alias: String, article: SimpleArticle, op: BookmarkOperation)] = []
     var aliasCounter = 1
 
     // Upload new bookmarks

@@ -11,6 +11,48 @@ import Foundation
 
 final class BookmarksSyncBusiness: DoesLog {
   
+  @Default("localDeletedBookmarks")
+  static var localDeletedBookmarksString: String   // "id:ts,id:ts"
+
+  static var localDeletedBookmarks: [Int: TimeInterval] {
+      get {
+          guard !localDeletedBookmarksString.isEmpty else { return [:] }
+
+          let pairs = localDeletedBookmarksString.split(separator: ",")
+          var map: [Int: TimeInterval] = [:]
+
+          for pair in pairs {
+              let parts = pair.split(separator: ":")
+              if parts.count == 2,
+                 let id = Int(parts[0]),
+                 let ts = TimeInterval(parts[1]) {
+                  map[id] = ts
+              }
+          }
+          return map
+      }
+      set {
+          let str = newValue
+              .map { "\($0.key):\($0.value)" }
+              .joined(separator: ",")
+          localDeletedBookmarksString = str
+      }
+  }
+
+  /// Merkt lokale Löschung eines Bookmarks
+  static func appendLocalDeletedBookmarkMediaSyncId(_ mediaSyncId: Int?) {
+      guard let id = mediaSyncId else { return }
+
+      var map = localDeletedBookmarks
+
+      // Wenn noch nicht markiert → aktuell lokale Löschzeit
+      if map[id] == nil {
+          map[id] = Date().timeIntervalSince1970
+      }
+
+      localDeletedBookmarks = map
+  }
+  
   @Default("lastBookmarkSyncDate")
   static var lastBookmarkSyncDateString: String
   static var lastBookmarkSyncDate: Date? {
@@ -54,137 +96,189 @@ final class BookmarksSyncBusiness: DoesLog {
     return try await gqlFeeder.loadBookmarks().count > 0
   }
   
+  /// Synchronizes bookmarks between local and server using tombstones (local deletion timestamps).
+  /// Returns true if something changed (new remote articles persisted, local deletions applied, uploads/deletes executed).
   static func sync(localBookmarks: [StoredArticle]) async throws -> Bool {
     guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       throw "No GQL feeder available"
     }
     
-    // 1) Remote abrufen
+    // 1) Pull remote bookmarks
     let remoteBookmarks = try await gqlFeeder.loadBookmarks()
-    print("✅ Retrieved \(remoteBookmarks.count) bookmarks from server")
+    Log.log("✅ Retrieved \(remoteBookmarks.count) bookmarks from server")
     
-    // Hilfsdaten
+    // Snapshot common values to avoid capturing mutable variables across awaits
     let lastSync = Self.lastBookmarkSyncDate
+    let deletedMap = Self.localDeletedBookmarks // [Int: TimeInterval] persisted tombstones
+    // Convenience sets/maps
+    let remoteById: [String: GqlBookmarkCustomerData] = Dictionary(uniqueKeysWithValues: remoteBookmarks.map { ($0.mediaSyncId, $0) })
     let remoteIdsSet = Set(remoteBookmarks.map { $0.mediaSyncId })
+    
     let localById: [String: StoredArticle] = Dictionary(
       uniqueKeysWithValues: localBookmarks.compactMap { local in
         guard let sid = local.serverId else { return nil }
         return (String(sid), local)
       }
     )
+    let localIdsSet = Set(localById.keys)
     
-    // 2) Neue remote-only IDs bestimmen (nur solche, die neuer sind als lastSync)
-    let missingRemoteIds = remoteBookmarks
-      .filter { remote in
-        guard localById[remote.mediaSyncId] == nil else { return false }
-        if let last = lastSync, let t = TimeInterval(remote.sTime) {
-          return Date(timeIntervalSince1970: t) > last
-        }
-        return true
-      }
-      .map(\.mediaSyncId)
-    
-    print("ℹ️ \(missingRemoteIds.count) new remote bookmarks (since last sync)")
-    
-    // 3) Lade nur die wirklich neuen remote-Artikel
-    var missingArticles: [GqlSingleArticle] = []
-    if !missingRemoteIds.isEmpty {
-      missingArticles = try await gqlFeeder.loadArticles(withMediaSyncIds: missingRemoteIds)
-      print("✅ Retrieved \(missingArticles.count) missing bookmarked articles")
-    }
-    
-    // 4) Merge vorhandener lokaler Artikel (wenn auch remote vorhanden, aktualisiere bookmarkedDate)
-    var mergedArticles: [StoredArticle] = []
-    for (_, local) in localById {
-      if let remote = remoteBookmarks.first(where: { $0.mediaSyncId == String(local.serverId ?? 0) }) {
-        if let t = TimeInterval(remote.sTime) {
-          local.bookmarkedDate = Date(timeIntervalSince1970: t)
-        }
-        mergedArticles.append(local)
-      }
-    }
-    
-    // 5) Bestimme Uploads vs. lokale Löschungen
-    var toUpload: [StoredArticle] = []
-    var toDeleteLocal: [StoredArticle] = []
-    
-    for (_, local) in localById {
-      let idStr = String(local.serverId ?? 0)
-      if remoteIdsSet.contains(idStr) { continue }
+    // 2) Decide which remote-only IDs to pull:
+    //    - remote-only (not present locally)
+    //    - not blocked by a local tombstone (deleted AFTER lastSync)
+    //    - and remote.time > lastSync (or if lastSync == nil: first sync -> pull everything)
+    let remoteOnlyToPull: [String] = remoteBookmarks.compactMap { remote in
+      let id = remote.mediaSyncId
       
+      // Skip if already present locally
+      if localById[id] != nil { return nil }
+      
+      // If a tombstone exists and was recorded after lastSync => the user deleted locally after last sync.
+      // In that case we must NOT pull the remote item (we intend to delete remote).
+      if let last = lastSync, let deletedAt = deletedMap[Int(id) ?? -1] {
+        let deletedAtDate = Date(timeIntervalSince1970: deletedAt)
+        if deletedAtDate > last {
+          return nil
+        }
+      }
+      
+      // If we have a lastSync, only pull if remote is newer than lastSync
+      if let last = lastSync, let t = TimeInterval(remote.sTime) {
+        let remoteDate = Date(timeIntervalSince1970: t)
+        return remoteDate > last ? id : nil
+      }
+      
+      // No lastSync => first sync -> pull everything remote-only
+      return id
+    }
+    
+    Log.log("ℹ️ remoteOnlyToPull: \(remoteOnlyToPull.count)")
+    
+    // 3) Fetch remote articles for those to pull
+    var pulledArticles: [GqlSingleArticle] = []
+    if !remoteOnlyToPull.isEmpty {
+      pulledArticles = try await gqlFeeder.loadArticles(withMediaSyncIds: remoteOnlyToPull)
+      Log.log("✅ Pulled \(pulledArticles.count) remote articles")
+    }
+    
+    // 4) Decide uploads (local-only and created after lastSync or first sync),
+    //    local deletes to apply (server removed items that local didn't change since lastSync),
+    //    and tombstone-based remote deletes (local deleted after lastSync -> delete remote)
+    var toUpload: [StoredArticle] = []
+    var localDeletesToApply: [StoredArticle] = []
+    var tombstoneDeletesToRemoteIds: [String] = []
+    
+    // 4a) For each local item that is NOT on remote:
+    for (id, local) in localById {
+      if remoteIdsSet.contains(id) { continue } // remote still has it -> no upload decision here
+      
+      // If no lastSync -> first sync -> upload local to remote to preserve user's data
       guard let last = lastSync else {
-        // Erstsynchronisation → hochladen statt löschen
         toUpload.append(local)
         continue
       }
       
       let localDate = local.bookmarkedDate ?? .distantPast
       if localDate > last {
+        // local created/changed after last sync -> upload
         toUpload.append(local)
       } else {
-        toDeleteLocal.append(local)
+        // local existed before last sync but remote now lacks it -> server removed it -> delete local
+        localDeletesToApply.append(local)
       }
     }
     
-    print("⬆️ toUpload: \(toUpload.count)  ⬇️ toDeleteLocal: \(toDeleteLocal.count)")
-    
-    // 6) Neue Remote-Artikel persistieren (Datenkopien zum Schutz)
-    let articlesCopy = missingArticles
-    let bookmarksCopy = remoteBookmarks
-    // persistRemoteBookmarks selbst läuft bereits auf MainActor intern; wir rufen sie auf und erhalten result
-    let newStoredArticles: [StoredArticle] = try await MainActor.run {
-      try persistRemoteBookmarks(articles: articlesCopy, bookmarks: bookmarksCopy)
+    // 4b) For tombstones: delete on server if tombstone was recorded after lastSync and server still has the id
+    if let last = lastSync {
+      for (idInt, deletedAt) in deletedMap {
+        let deletedAtDate = Date(timeIntervalSince1970: deletedAt)
+        if deletedAtDate > last {
+          let idStr = String(idInt)
+          if remoteIdsSet.contains(idStr) {
+            tombstoneDeletesToRemoteIds.append(idStr)
+          }
+        }
+      }
+    } else {
+      // first sync: do not issue server deletes for local deletions before first sync
     }
     
-    // 7) Server-Update (nur Uploads)
+    Log.log("⬆️ toUpload: \(toUpload.count)  ⬇️ tombstoneDeletesToRemote: \(tombstoneDeletesToRemoteIds.count)  localDeletesToApply: \(localDeletesToApply.count)")
+    
+    // 5) Persist pulled remote articles (MainActor) — copy arrays first to avoid captures
+    let pulledCopy = pulledArticles
+    let remoteBookmarksCopy = remoteBookmarks
+    let persistedPulled: [StoredArticle] = try await MainActor.run {
+      try persistRemoteBookmarks(articles: pulledCopy, bookmarks: remoteBookmarksCopy)
+    }
+    
+    // 6) Prepare server operations: convert StoredArticle -> SimpleArticle for API   
+    let uploadArticles: [SimpleArticle] = toUpload.map { local in
+      SimpleArticle(issueDate: local.bookmarkedDate, serverId: local.serverId)
+    }
+    let deleteArticlesForServer: [SimpleArticle] = tombstoneDeletesToRemoteIds.compactMap { idStr in
+      guard let sid = Int(idStr) else { return nil }
+      return SimpleArticle(issueDate: nil, serverId: sid)
+    }
+    
+    // 7) Call updateRemoteBookmarks (uploads + deletes)
+    // Note: your updateRemoteBookmarks signature expects SimpleArticle arrays now
     let updateResults = try await gqlFeeder.updateRemoteBookmarks(
-      newBookmarked: toUpload,
-      deletedBookmarks: []
+      newBookmarked: uploadArticles,
+      deletedBookmarks: deleteArticlesForServer
     )
-    print("ℹ️ Bookmark update results: \(updateResults.count) entries processed")
+    Log.log("ℹ️ Bookmark update results: \(updateResults.count) entries processed")
     
-    // ---------------------------
-    // Wichtig: Erstelle hier unveränderliche Kopien aller Variablen,
-    // die du im MainActor.run verwenden willst, um Swift-6-Capture-Fehler zu vermeiden.
-    // ---------------------------
-    let newStoredArticlesCopy = newStoredArticles
-    let toDeleteLocalCopy = toDeleteLocal
-    // Falls du weitere Collections brauchst, kopiere sie ebenfalls:
-    // let toUploadCopy = toUpload
+    // 8) Process server results: remove successful tombstones from persistent store
+    // Collect succeeded delete ids (serverId ints -> Strings)
+    let succeededDeleteIds: [String] = updateResults
+      .filter { $0.operation == .delete && $0.error == nil }
+      .compactMap { $0.article.serverId }
+      .map { String($0) }
     
-    // 8) Abschluss: DB-Änderungen und Notifications (nur ein MainActor.run!)
+    if !succeededDeleteIds.isEmpty {
+      var tombstones = Self.localDeletedBookmarks // [Int: TimeInterval]
+      for idStr in succeededDeleteIds {
+        if let id = Int(idStr) { tombstones.removeValue(forKey: id) }
+      }
+      Self.localDeletedBookmarks = tombstones
+    }
+    
+    // 9) Single MainActor.run for all local DB changes & notifications
+    let persistedPulledCopy = persistedPulled
+    let localDeletesToApplyCopy = localDeletesToApply
+    // Note: toUpload are local items we uploaded; nothing to change locally for success case here.
+    
     await MainActor.run {
-      var changedArticles: [StoredArticle] = []
+      var changed: [StoredArticle] = []
       
-      // Neue vom Server persistierte Artikel
-      changedArticles.append(contentsOf: newStoredArticlesCopy)
+      // a) Add persisted pulled articles
+      changed.append(contentsOf: persistedPulledCopy)
       
-      // Remote-gelöschte lokal entfernen
-      for local in toDeleteLocalCopy {
+      // b) Apply local deletes (server removed these)
+      for local in localDeletesToApplyCopy {
         Log.log("Deleting local bookmark \(local.title ?? "-") MediaSyncID: \(local.serverId ?? -1) because server removed it.")
-        local.delete()
-        changedArticles.append(local)
+        local.delete() // implement actual CoreData deletion / bookmark removal
+        changed.append(local)
       }
       
-      // DB speichern, Notifications senden
-      if !changedArticles.isEmpty {
+      // c) Save & notify if anything changed
+      if !changed.isEmpty {
         ArticleDB.save()
-        for article in changedArticles {
-          Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+        for art in changed {
+          Notification.send(Const.NotificationNames.bookmarkChanged, sender: art)
         }
       }
     }
     
-    // 9) Letzten Sync-Zeitpunkt aktualisieren
+    // 10) Update last sync timestamp
     Self.lastBookmarkSyncDate = Date()
     
-    // 10) Rückgabe: hat sich was geändert?
-    let didChange = !newStoredArticlesCopy.isEmpty || !toUpload.isEmpty || !toDeleteLocalCopy.isEmpty
-    print("✅ Bookmark sync finished. Changes: \(didChange ? "YES" : "NO")")
-    
+    // 11) Return whether anything changed
+    let didChange = !persistedPulled.isEmpty || !toUpload.isEmpty || !localDeletesToApply.isEmpty || !succeededDeleteIds.isEmpty
+    Log.log("✅ Bookmark sync finished. Changes: \(didChange ? "YES" : "NO")")
     return didChange
   }
-    
+  
   /// WARNING: DB INTERACTION – must run on Main Thread
   @MainActor
   private static func persistRemoteBookmarks(
@@ -218,7 +312,10 @@ final class BookmarksSyncBusiness: DoesLog {
   }
 }
 
-
+struct SimpleArticle {
+  var issueDate: Date?
+  var serverId: Int?
+}
 
 fileprivate extension GqlSingleArticle {
   func getOrCreateStoredBookmarkArticle() -> StoredArticle? {

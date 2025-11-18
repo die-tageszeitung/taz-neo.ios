@@ -197,10 +197,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
-    onDisplay { [weak self] (secIndex, _, _) in
+    onDisplay { [weak self] (secIndex, webview, _) in
       guard let self = self else { return }
       self.contentTable?.setActive(row: nil, section: secIndex)
-      self.debug("onDisplay: \(secIndex)")
+      self.debug("onDisplay: \(secIndex) webview: \(webview.debugDescription)")
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
       persistReadProgress(sectIdx: secIndex)
