@@ -131,6 +131,11 @@ extension GqlFeeder {
   }
 }
 
+struct BookmarkArticle {
+  var issueDate: Date?
+  var serverId: Int?
+}
+
 extension GqlFeeder {
 
   enum BookmarkOperation: String {
@@ -139,16 +144,16 @@ extension GqlFeeder {
   }
 
   struct BookmarkSyncResult {
-    let article: SimpleArticle
+    let article: BookmarkArticle
     let operation: BookmarkOperation
     let error: String?
   }
 
-  /// Führt Uploads und Deletes von Bookmarks zum Server durch.
-  /// - Returns: Array von Ergebnissen (Artikel + Operation + evtl. Fehlermeldung)
+  /// post new bookmarks and deleted to server
+  /// - Returns: array of results (articles, operations, error messages if any)
   func updateRemoteBookmarks(
-    newBookmarked: [SimpleArticle],
-    deletedBookmarks: [SimpleArticle]
+    newBookmarked: [BookmarkArticle],
+    deletedBookmarks: [BookmarkArticle]
   ) async throws -> [BookmarkSyncResult] {
 
     // MARK: - Check Session
@@ -158,7 +163,7 @@ extension GqlFeeder {
 
     // MARK: - Build Mutation Parts
     var mutationParts: [String] = []
-    var resultMap: [(alias: String, article: SimpleArticle, op: BookmarkOperation)] = []
+    var resultMap: [(alias: String, article: BookmarkArticle, op: BookmarkOperation)] = []
     var aliasCounter = 1
 
     // Upload new bookmarks
@@ -185,7 +190,7 @@ extension GqlFeeder {
       resultMap.append((alias, art, .upload))
     }
 
-    // Delete removed bookmarks
+    // post removed bookmarks
     for art in deletedBookmarks {
       guard let sid = art.serverId else {
         log("Skip delete — article has no serverId (\(art))", logLevel: .Error)
@@ -204,7 +209,7 @@ extension GqlFeeder {
       resultMap.append((alias, art, .delete))
     }
 
-    // Wenn keine Operationen
+    // if no changes do not post anything
     if mutationParts.isEmpty {
       log("No bookmark changes to sync (no uploads or deletes).", logLevel: .Error)
       return []

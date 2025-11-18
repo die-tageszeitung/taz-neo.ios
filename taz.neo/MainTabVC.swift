@@ -343,7 +343,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     settings.tabBarItem.image = UIImage(named: "settings")?.tabBarSizedIcon()
 
     self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
-    self.selectedIndex = 1
+    self.selectedIndex = 0
     helpButton.alpha = 1.0
   }
   
