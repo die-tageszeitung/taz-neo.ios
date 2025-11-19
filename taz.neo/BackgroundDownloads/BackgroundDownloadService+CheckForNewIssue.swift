@@ -366,12 +366,7 @@ fileprivate extension GqlFeeder {
 fileprivate extension Issue {
   
   func createFolderStructureIfNeeded(for feederContext: FeederContext) {
-    let issueDir = self.dir
-    if !issueDir.exists { issueDir.create() }
-    let rlink = File(dir: issueDir.path, fname: "resources")
-    let glink = File(dir: issueDir.path, fname: "global")
-    if !rlink.isLink { rlink.link(to: feederContext.storedFeeder.resourcesDir.path) }
-    if !glink.isLink { glink.link(to: feederContext.storedFeeder.globalDir.path) }
+    self.dir.createGlobalLinksIfNeeded(feeder: feederContext.storedFeeder)
   }
   
   var zipAudioUrl: String? {

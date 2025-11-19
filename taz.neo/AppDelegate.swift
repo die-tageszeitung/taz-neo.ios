@@ -7,6 +7,7 @@
 
 import UIKit
 import NorthLib
+import Darwin
 
 @UIApplicationMain
 class AppDelegate: NotifiedDelegate {
@@ -17,7 +18,8 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
-    log("starting with #launchOptions: \(launchOptions?.count ?? -1)")
+    
+    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data
     onOpenApplicationFromNotification {center, response, handler in
@@ -26,6 +28,20 @@ class AppDelegate: NotifiedDelegate {
     }
     self.window = UIWindow(frame: UIScreen.main.bounds)
     self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
+    //FileLogger is available now!
+    if let keys = launchOptions?.keys.map({ $0.rawValue }) {
+      log("started with \(keys.count) launchOptions: \(keys)")
+    }else {
+      log("started with \(launchOptions?.count ?? 0) launchOptions")
+    }
+    
+    if launchOptions?[.remoteNotification] != nil {
+      Log.appStartContext = .handlePushNotification
+    } else if launchOptions?.count ?? 0 == 0 {
+      Log.appStartContext = .foregroundUserStarted
+    }else {
+      Log.appStartContext = .unknown
+    }
 //    self.window?.rootViewController =  TmpTestController()
 //    let res = SearchResultsTVC()
 //    res.searchResponse = GqlFeeder.test()
@@ -65,10 +81,12 @@ class AppDelegate: NotifiedDelegate {
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
                    completionHandler: @escaping () -> Void) {
-      log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
-      BackgroundSession.resumeBackgroundURLSession(name: identifier,
-                                   completionHandler: completionHandler,
-                                   callback: BackgroundDownloadService.dlCallback)
+    log("application handleEventsForBackgroundURLSession identifier: \(identifier)")
+    tzset() // <— reload timezone info
+    log("application handleEventsForBackgroundURLSession identifier: \(identifier) ...after fixed TimeZone ")
+    BackgroundSession.resumeBackgroundURLSession(name: identifier,
+                                                 completionHandler: completionHandler,
+                                                 callback: BackgroundDownloadService.dlCallback)
   }
 
   func applicationDidEnterBackground(_ application: UIApplication) {

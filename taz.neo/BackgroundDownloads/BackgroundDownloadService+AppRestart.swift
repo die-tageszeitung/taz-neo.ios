@@ -71,6 +71,7 @@ extension BackgroundDownloadService {
           }
           log("BDL DownloadData for issue: \(issueDateKey) found issue is: \(idd.isDownloaded ? "downloaded" : "not downloaded")")
           if idd.isDownloaded == true {
+            log("set isAutodownloading compleete!")
             issue.setAutodownloadCompleete()
           }
           else if isOutdated(date: idd.date) && useTestServer == false {

@@ -283,22 +283,10 @@ public class FeedbackViewController : UIViewController{
       body.append("Gerät: \(Device.singleton), \(Utsname.machine)\n")
       body.append("installationId: \(App.installationId)\n")
       body.append("pushToken: \(Defaults.singleton["pushToken"] ?? "-")\n")
-      var storageAvailable = "-"
-      if let mem = deviceData?.storageAvailable, let iMem = Int(mem) {
-        storageAvailable = "\(iMem/(1024*1024))MB"
-      }
-      body.append("storageAvailable: \(storageAvailable)\n")
-      var ramAvailable = "-"
-      if let mem = deviceData?.ramAvailable, let iMem = Int(mem) {
-        ramAvailable = "\(iMem/(1024*1024))MB"
-      }
-      body.append("ramAvailable: \(ramAvailable)\n")
-      var ramUsed = "-"
-      if let mem = deviceData?.ramUsed, let iMem = Int(mem) {
-        ramUsed = "\(iMem/(1024*1024))MB"
-      }
-      body.append("ramUsed: \(ramUsed)\n")
-
+      body.append("storageAvailable: \(deviceData?.storageAvailableRaw?.formattedStorage ?? "-"), ")
+      body.append("storageUsed: \(deviceData?.storageUsedRaw?.formattedStorage ?? "-")\n")
+      body.append("ramAvailable: \(deviceData?.ramAvailableRaw?.formattedStorage ?? "-"), ")
+      body.append("ramUsed: \(deviceData?.ramUsedRaw?.formattedStorage ?? "-")\n")
       mail.setMessageBody("\(body) \n\n\n\n",isHTML: false)
       
       let dateId = Date().ddMMyy_HHmmss
@@ -569,37 +557,43 @@ extension Log.FileLogger {
   
   public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
     var log = ""
-    if let data = data,
-       let lString = String(data:data , encoding: .utf8) {
-      log = lString
+    // remember mTime before it gets overwritten by access
+    let secondLastLogEndTime = File(Log.FileLogger.secondLastLogfile).mTime
+    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
+    
+    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
+    if secondLastLog.exists,
+       let lString = String(data:secondLastLog.data, encoding: .utf8) {
+      log += "\n###################################"
+      log += "\n     2nd L A S T - E X E C U T I O N"
+      log += "\n     Last: \(secondLastLogEndTime.dateAndTime)"
+      //for @taz.de useraccounts add 3 app session logs
+      if (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
+        log += "\n not appending 2nd last log"
+        log += "\n###################################"
+      }
+      else {
+        log += "\n###################################\n\n"
+        log += lString
+      }
     }
     
     let lastLog = File(Log.FileLogger.lastLogfile)
     if lastLog.exists,
        let lString = String(data:lastLog.data, encoding: .utf8) {
-      let created = lastLog.cTime.dateAndTime
       log += "\n###################################"
       log += "\n     L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
+      log += "\n     Last: \(lastLogEndTime.dateAndTime)"
       log += "\n###################################\n\n"
       log += lString
     }
     
-    if !(DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
-      return log
-    }
-    
-    //for @taz.de useraccounts add 3 app session logs
-    
-    let secondLastLog = File(Log.FileLogger.secondLastLogfile)
-    if secondLastLog.exists,
-       let lString = String(data:secondLastLog.data, encoding: .utf8) {
-      let created = secondLastLog.cTime.dateAndTime
+    if let data = data,
+       let lString = String(data:data , encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     2nd L A S T - E X E C U T I O N"
-      log += "\n     \(created)"
-      log += "\n###################################\n\n"
-      log += lString
+      log += "\n  C U R R E N T - E X E C U T I O N"
+      log += "\n###################################"
+      log += "\n Last: \(lString)"
     }
     return log
   }

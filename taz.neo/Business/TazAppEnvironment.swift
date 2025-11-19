@@ -157,7 +157,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     let dfl = Defaults.singleton
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
-    debug("Startup: #\(nStarted), last: \(lastStarted.isoDate())")
+    debug("Startup: #\(nStarted), last: \(lastStarted.toString())")
     logKeychain(msg: "initial")
     logSystemEvents()
     let now = UsTime.now
@@ -303,7 +303,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       if let sf = feederContext?.defaultFeed {
         let latestLocalIssue = StoredIssue.latest(feed: sf)
         if latestLocalIssue?.isComplete == false {
-          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue is incompleete")
+          BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue (\(latestLocalIssue?.date.short ?? "-")) is incompleete")
         }
       }
       else {
@@ -336,19 +336,30 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func logRelevantSettings() {
     let settings = """
-        Current app settings for diagnostics - some values may have changed!
+        Current app settings for diagnostics
         ---
-        newIssueSystemSetting: \(Defaults.singleton["newIssueSystemSetting"] ?? "-")
-        specialArticleSystemSetting: \(Defaults.singleton["specialArticleSystemSetting"] ?? "-")
-        autoloadNewIssues: \(Defaults.singleton["autoloadNewIssues"] ?? "-")
-        autoloadOnlyInWLAN: \(Defaults.singleton["autoloadOnlyInWLAN2"] ?? "-")
+        \(Defaults.singleton.currentValues.joined(separator: ", "))
+        ---
+        \(self.deviceDiagnostics)
+        ---
         BackgroundSession.hasOpenDownloads: \(BackgroundDownloadService.shared.backgroundSession.hasOpenDownloads)
         BackgroundDownloadService.tempStorage.hasActiveDownloads: \(BackgroundDownloadService.shared.tempStorage.hasActiveDownloads)
         ---
-        voiceoverControls: \(Defaults.singleton["voiceoverControls"] ?? "-")
-        smartBackFromArticle: \(Defaults.singleton["smartBackFromArticle"] ?? "-")
     """
     self.log(settings)
+  }
+  
+  var deviceDiagnostics:String {
+    UIDevice.current.isBatteryMonitoringEnabled = true
+    let lastBoot = Date(timeIntervalSinceNow: -ProcessInfo.processInfo.systemUptime)
+    let batteryLevel = UIDevice.current.batteryLevel
+    let batteryState = UIDevice.current.batteryState.customDescription
+    let lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+    UIDevice.current.isBatteryMonitoringEnabled = false
+    return("""
+      last device restart: \(lastBoot.dateAndTime)
+      battery: \(batteryLevel * 100)%, batteryState: \(batteryState), is lowPower mode: \(lowPower)
+      """)
   }
   
   func logSystemEvents() {
@@ -495,18 +506,23 @@ class TazAppEnvironment: NSObject, DoesLog {
     @see also FeedbackViewController adds this in feedback request
      Question: is this called for incomming push notification?
      */
+    let currentLogEndTime = File(Log.FileLogger.tmpLogfile).mTime
+    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
+    
     File(Log.FileLogger.lastLogfile)
       .copy(to: Log.FileLogger.secondLastLogfile, isOverwrite: true)
     File(Log.FileLogger.tmpLogfile)
       .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
+    ///restore mTime to have correct times in logfiles header parts
+    File(Log.FileLogger.secondLastLogfile).mTime = lastLogEndTime
+    File(Log.FileLogger.lastLogfile).mTime = currentLogEndTime
   }
   
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton
+    ///No Force Write here! Only set missing values
     dfl.setDefaults(values: ConfigDefaults)
   }
-  
-  
   
   static func setupDefaultStyles(){
     if let defaultFontName = Const.Fonts.contentFontName,
@@ -880,11 +896,24 @@ extension Log {
     net?.whenUp { caller.log("Network up") }
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
+    ///this is the first entry in log after appending fileLoger
     log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
         "\(App.bundleIdentifier)\n" +
         "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
         "git-hash: \(BuildConst.hash)\n" +
         "Path: \(Dir.appSupportPath)\n" +
         "isTAZ: \(App.isTAZ)")
+  }
+}
+
+extension UIDevice.BatteryState {
+  var customDescription: String {
+    switch self {
+      case .unknown: return "unknown"
+      case .unplugged: return "unplugged"
+      case .charging: return "charging"
+      case .full: return "full"
+      @unknown default: return "unknown future state"
+    }
   }
 }

@@ -922,6 +922,10 @@ extension PersistentContent: PersistentObject {
       if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
     if audioItem?.file?.name?.contains("bundestalk") == true {
+      #warning("ToDo 1.6.0: Bundestalk is not deleted at the last reference, but  during a later cleanup-folders!")
+      ///Maybe this is the better behavior for users who manually delete issues after read,
+      ///then bundestalk maybe will be downloaded multiple times
+      ///Solution: Check if related issue is older than 10 days && RefCount is 0 => DELETE
       debug("Try to Delete AutioItem \(audioItem?.file?.name ?? "-") in \(self.title ?? "-") with Reference count \(audioItem?.referencesCount ?? 0)")
     }
     if audioItem?.referencesCount ?? 0 <= 1 {///Section or Article
@@ -1882,6 +1886,11 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.validityDate }
     set { pr.validityDate = newValue }
   }
+  
+  public var fullDownloadedDate: Date? {
+    get { return pr.fullDownloadedDate }
+    set { pr.fullDownloadedDate = newValue }
+  }
   public var moTime: Date {
     get { return pr.moTime! }
     set { pr.moTime = newValue }
@@ -1967,7 +1976,12 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isComplete }
     set {
       pr.isComplete = newValue
-      if newValue { pr.isOvwComplete = newValue }
+      if newValue == true {
+        pr.isOvwComplete = newValue
+        pr.fullDownloadedDate = Date()
+      } else {
+        pr.fullDownloadedDate = nil
+      }
     }
   }
   public var isAutodownloading: Bool {
@@ -2004,6 +2018,7 @@ public final class StoredIssue: Issue, StoredObject {
     var sendUpdateBookmarksNotification: Bool = false
     self.feed = object.feed
     self.date = object.date
+    self.fullDownloadedDate = object.fullDownloadedDate
     self.validityDate = object.validityDate
     self.isAutodownloading = object.isAutodownloading
     self.isDownloading = object.isDownloading
@@ -2171,14 +2186,14 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// fetch helper for issue sorting
   public enum IssueSorting {
-    case issueDate, payloadDownloadStarted
+    case issueDate, fullDownloadedDate
     var key: String {
       get {
         switch self {
           case .issueDate:
             return "date"
-          case .payloadDownloadStarted:
-            return "payload.downloadStarted"
+          case .fullDownloadedDate:
+            return "fullDownloadedDate"
         }
       }
     }
@@ -2193,23 +2208,32 @@ public final class StoredIssue: Issue, StoredObject {
   /// - Parameters:
   ///   - feed: feed to use
   ///   - count: max count
-  ///   - onlyCompleete: only fetch compleetly downloaded issues
+  ///   - onlyComplete: only fetch compleetly downloaded issues
   ///   - sortedBy: used sorting
   ///   - ascending: descending if false
   /// - Returns: array of Issues
   public static func issues(feed: StoredFeed,
                             count: Int = -1,
-                            onlyCompleete: Bool,
+                            onlyComplete: Bool,
+                            onlyWithoutCompleteDate: Bool = false,
                             sortedBy: IssueSorting = .issueDate,
                             ascending:Bool = true) -> [StoredIssue] {
     let request = fetchRequest
     
-    if onlyCompleete {
-      request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    var predicates: [NSPredicate] = [
+        NSPredicate(format: "feed = %@", feed.pr)
+    ]
+
+    if onlyComplete {
+        predicates.append(NSPredicate(format: "isComplete = true"))
     }
-    else {
-      request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+
+    if onlyWithoutCompleteDate {
+        predicates.append(NSPredicate(format: "fullDownloadedDate = nil"))
     }
+
+    request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+    
     request.sortDescriptors = [sortedBy.sortDescriptor(ascending:ascending)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
@@ -2228,7 +2252,7 @@ public final class StoredIssue: Issue, StoredObject {
   ///   - deleteBookmarkIssues: if true, bookmark issues will also be deleted
   public static func deleteAllIssues(feed: StoredFeed, deleteBookmarkIssues: Bool = false) {
     let allIssues
-    = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    = issues(feed: feed, onlyComplete: false, sortedBy: .issueDate, ascending: false)
     
     for issue in allIssues {
       if issue.isBookmarkIssue && !deleteBookmarkIssues {
@@ -2281,9 +2305,10 @@ public final class StoredIssue: Issue, StoredObject {
     // all issues which should not be deleted
     var lastCompleteIssues: [StoredIssue] = issues(feed: feed,
                                                    count: completeFetchCount,
-                                                   onlyCompleete: true,
-                                                   sortedBy: .payloadDownloadStarted,
+                                                   onlyComplete: true,
+                                                   sortedBy: .fullDownloadedDate,
                                                    ascending: false)
+    
     if let latestComplete = lastComplete(feed: feed),
        !lastCompleteIssues.contains(latestComplete) {
       lastCompleteIssues.insert(latestComplete, at: 0)
@@ -2292,7 +2317,7 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
     
-    let allIssues = issues(feed: feed, onlyCompleete: false, sortedBy: .issueDate, ascending: false)
+    let allIssues = issues(feed: feed, onlyComplete: false, sortedBy: .issueDate, ascending: false)
     guard !allIssues.isEmpty else {
       Log.log("No Issues > cancel")
       return
@@ -2367,6 +2392,10 @@ public final class StoredIssue: Issue, StoredObject {
     ///remove duplicates and percent encoding
     knownDirs = Array(Set(knownDirs.map { $0.removingPercentEncoding ?? $0 }))
     
+    ///remove duplicates and percent encoding
+    knownDirs = Array(Set(knownDirs.map { $0.removingPercentEncoding ?? $0 }))
+
+    
     for path in allSubdirs {
       let decodedPath = path.removingPercentEncoding ?? path
       if knownDirs.contains(decodedPath) ||
@@ -2397,11 +2426,11 @@ public final class StoredIssue: Issue, StoredObject {
     if isDownloading {
       ///WARNING May not catch all states, due isDownloading is set if Downloader.downloading files;
       ///not in first Step: get Structure Data @REFACTORING
-      Log.log("Delete Issue: \(self.date.short) while downloading")
+      Log.log("Delete Issue: \(self.date.short) prevented while downloading")
       return false
     }
     else {
-      Log.debug("Delete Issue: \(self.date.short)")
+      Log.log("Delete Issue: \(self.date.short) Status compleete: \(isComplete) isOvwComplete: \(isOvwComplete) autoDownloading: \(isAutodownloading) downloaded: \(fullDownloadedDate?.dateAndTime ?? "-")")
     }
     // Remove files not needed for overview
     // Remove sections and cascading all data referenced by them

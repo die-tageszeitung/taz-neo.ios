@@ -61,6 +61,7 @@ extension BackgroundDownloadService {
     if let issue = tempStorage.getIssue(with: serverBaseUrl) {
       log("...found issue in tempStorage: \(issue.date.short)")
       updateLatestIssueDownloadDate(ifNewer: issue.date)
+      log("...set isAutodownloading compleete!")
       issue.setAutodownloadCompleete()
       notify(issueDate: issue.date, finished: true)
       handlePendingTasks()
@@ -83,6 +84,7 @@ extension BackgroundDownloadService {
          issue.isAutodownloading == true {
         self?.log("...found issue in databse: \(issue.date.short)")
         /// If auto-downloading is true, full data is available—not just overview data.
+        self?.log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         self?.notify(issueDate: issue.date, finished: true)
         self?.handlePendingTasks()
@@ -134,6 +136,7 @@ fileprivate extension BackgroundDownloadService {
       }
 #warning("CHECK: try")
       try tempStorage.add(issue)
+      log("...set isAutodownloading compleete!")
       issue.setAutodownloadCompleete()
       notify(issueDate: issue.date, finished: true)
       handlePendingTasks()

@@ -239,13 +239,7 @@ extension Bookmarks {
     }
     
     ///link Resources (js/css/author images) if needed
-    if issueDir.exists == false {
-      issueDir.create()
-    }
-    let rlink = File(dir: issueDir.path, fname: "resources")
-    let glink = File(dir: issueDir.path, fname: "global")
-    if !rlink.isLink { rlink.link(to: feeder.resourcesDir.path) }
-    if !glink.isLink { glink.link(to: feeder.globalDir.path) }
+    issueDir.createGlobalLinksIfNeeded(feeder: feeder)
     
     var dlFiles: [FileEntry]  = []
     

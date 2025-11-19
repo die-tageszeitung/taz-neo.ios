@@ -564,6 +564,7 @@ class GqlIssue: Issue, GQLObject {
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  var fullDownloadedDate: Date?
   /// date until issue is valid if more then one
   var sValidityDate: String?
   var validityDate: Date? {

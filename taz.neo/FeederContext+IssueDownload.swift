@@ -30,7 +30,6 @@ extension FeederContext {
   
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
-    //    enqueuedDownlod.append(issue)
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
     markStartDownload(feed: issue.feed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
@@ -51,7 +50,6 @@ extension FeederContext {
         }
         else { res = .failure(err!) }
         self?.markStopDownload(dlId: dlId, tstart: tstart)
-        //        self.enqueuedDownlod.removeAll{ $0.date == issue.date}
         Notification.send("issue", result: res, sender: issue)
       }
     }
@@ -75,13 +73,12 @@ extension FeederContext {
                 name: issue.date.ISO8601,
                 dimensions: Usage.event.issue.downloadDim(pdf: isPages,
                                                            audio: withAudio))
-    
-    BackgroundDownloadService.shared.stopActiveDownload(for: issue.date)
-    if issue.isDownloading  {
+
+    if issue.isDownloading {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
-      log("not downloading due \(issue.isDownloading ? "" : "background") download")
+      log("not downloading twice, due active download")
       return
     }
     let loadPages = isPages || autoloadPdf
@@ -154,7 +151,7 @@ extension FeederContext {
   func markStopDownload(dlId: String?, tstart: UsTime) {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
-      debug("Sending stop of download to server")
+      log("Sending stop of download to server")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){[weak self] _ in
         self?.cleanupOldIssues()
       }
@@ -169,17 +166,18 @@ extension FeederContext {
       }
   }
 
-  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
-      guard let dlId = dlId else { return }
-      return await withCheckedContinuation { continuation in
-          let nsec = UsTime.now.timeInterval - tstart.timeInterval
-          debug("Sending stop of download to server")
-          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
-              self?.cleanupOldIssues()
-              continuation.resume()
-          }
-      }
-  }
+  /// uncommented due not in use currently maybe for later use on async change
+//  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
+//      guard let dlId = dlId else { return }
+//      return await withCheckedContinuation { continuation in
+//          let nsec = UsTime.now.timeInterval - tstart.timeInterval
+//          log("Sending stop of download to server")
+//          self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec) { [weak self] _ in
+//              self?.cleanupOldIssues()
+//              continuation.resume()
+//          }
+//      }
+//  }
 
   
   ///check is new issue was available since popup should be shown (Step1)

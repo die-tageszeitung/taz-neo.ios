@@ -173,7 +173,7 @@ extension BackgroundDownloadService {
     if let storedFeed = feederContext?.defaultFeed,
        tempStorage.publicationDates.count > 0
     {
-      log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)")
+      log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)\nDates: \(tempStorage.publicationDates.map{ $0.date.short }.joined(separator: ", "))")
       for date in tempStorage.publicationDates {
         log("...Persisting \(date.date.short) - \(date.validityDate?.short ?? "-")")
         let spd = StoredPublicationDate.persist(object: date)
@@ -286,11 +286,25 @@ extension BackgroundDownloadService {
       }
 
       let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
+      if storedIssue.payload.downloadStarted == nil {
+        if let startTime = getDownloadData(forDateKey: storedIssue.date.ISO8601)?.startTime {
+          let started = UsTime(startTime).date
+          log("Set downloadStarted for issue \(issue.date.ISO8601) from stored startTime: \(started.dateAndTime)")
+          storedIssue.pr.payload?.downloadStarted = started
+        }
+        else {
+          storedIssue.pr.payload?.downloadStarted = Date()
+          log("Set downloadStarted to now for issue \(issue.date.ISO8601) ...as fallback")
+        }
+      }
 
       // If the issue is complete, update its completion state and perform finalization steps.
       if issue.isComplete {
           storedIssue.isComplete = true // Needed if not persisted between fetch and download complete
           storedIssue.isOvwComplete = true
+          if storedIssue.payload.downloadStopped == nil {
+            storedIssue.pr.payload?.downloadStopped = Date()
+          }
           storedIssue.fixMoTime()
 
           // Preload facsimile if available (triggers lazy loading)
@@ -301,6 +315,7 @@ extension BackgroundDownloadService {
         scheduleBackgroundIssueCheck()
       } else {
         log("Issue \(issue.date.short) is not complete...")
+        storedIssue.isAutodownloading = true
       }
       
       return storedIssue

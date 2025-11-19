@@ -902,6 +902,8 @@ public protocol Issue: ToString, AnyObject {
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
+  /// date when set fully downloaded, needed for cleanup, die optional payload returns wired results
+  var fullDownloadedDate: Date? { get }
   /// date until issue is valid if more then one
   var validityDate: Date? { get }
   /// The date/time of the latest modification

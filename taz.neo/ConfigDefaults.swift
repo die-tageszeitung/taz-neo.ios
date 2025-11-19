@@ -40,16 +40,6 @@ private let configValues = [
   "autoMobileDownloads" : "false",
   // Use facsimile mode if available
   "isFacsimile" : "false",
-  // initial startup
-  "isInitialStartup" : "true",
-  "showHelp" : "true",
-  "helpUsedOnce" : "false",
-  "lastHomeHelpIndex" : "0",
-  "lastSectionHelpIndex" : "0",
-  "lastArticleHelpIndex" : "0",
-  "lastPlayerHelpIndex" : "0",
-  "lastSliderHelpIndex" : "0",
-  "lastPdfHelpIndex" : "0",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out
@@ -60,10 +50,6 @@ private let configValues = [
   "fullPdfOnPageSwitch" : "true",
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
-  // Bookmarks
-  "autoSyncBookmarks" : "false",
-  "requestedSyncBookmarks" : "false",
-  "lastBookmarkSyncDateString" : "",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
   "showBarsOnContentChange" : "false",
@@ -94,6 +80,10 @@ private let configValues = [
   "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
+  // coachmark defaults
+  "showCoachmarks" : Device.isSimulator ? "false" : "true",
+  "cmLastPrio": "1",
+  "cmSessionCount": "0",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -112,7 +102,7 @@ private let configValues = [
 private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
-  "showHelp": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
+  "showCoachmarks": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
   "usageTrackingAllowed" : "false",
   "smartBackFromArticle" : "true",///required for page Article header, otherwise current page is not displayed correctly
 ]
@@ -286,32 +276,43 @@ extension Defaults {
 }
 
 fileprivate extension Defaults {
-  /// Retrieves a Boolean value from UserDefaults for the specified key, or returns a fallback value if the key does not exist.
-  /// handle stored Values like UserDefaults.standard.boolForKey
-  /// - Parameters:
-  ///   - key: The key for the value to retrieve.
-  ///   - fallbackIfNotExists: The default Boolean value to return if no value is found for the key.
-  /// - Returns: A Boolean value corresponding to the stored data in UserDefaults.
-  ///            - For NSNumber values, returns `true` for any non-zero value, otherwise `false`.
-  ///            - For String values, returns `true` if the stored string is "YES", "1", or "true" (case-insensitive), otherwise `false`.
-  ///            - Returns `fallbackIfNotExists` if the key is absent or the value cannot be converted to Boolean.
-  func bool(for key: String, _ fallbackIfNotExists: Bool) -> Bool {
-    guard let storedValue = UserDefaults.standard.object(forKey: key) else {
-      return fallbackIfNotExists
+    /// Retrieves a Boolean value from UserDefaults for the specified key, or returns a fallback value if the key does not exist.
+    /// handle stored Values like UserDefaults.standard.boolForKey
+    /// - Parameters:
+    ///   - key: The key for the value to retrieve.
+    ///   - fallbackIfNotExists: The default Boolean value to return if no value is found for the key.
+    /// - Returns: A Boolean value corresponding to the stored data in UserDefaults.
+    ///            - For NSNumber values, returns `true` for any non-zero value, otherwise `false`.
+    ///            - For String values, returns `true` if the stored string is "YES", "1", or "true" (case-insensitive), otherwise `false`.
+    ///            - Returns `fallbackIfNotExists` if the key is absent or the value cannot be converted to Boolean.
+    func bool(for key: String, _ fallbackIfNotExists: Bool) -> Bool {
+        guard let storedValue = UserDefaults.standard.object(forKey: key) else {
+            return fallbackIfNotExists
+        }
+        
+        // Interpret NSNumber values
+        if let num = storedValue as? NSNumber {
+            return num != 0
+        }
+        
+        // Interpret String values
+        if let str = storedValue as? String {
+            let lowercasedStr = str.lowercased()
+            return lowercasedStr == "1" || lowercasedStr == "yes" || lowercasedStr == "true"
+        }
+        
+        return fallbackIfNotExists
     }
-    
-    // Interpret NSNumber values
-    if let num = storedValue as? NSNumber {
-      return num != 0
-    }
-    
-    // Interpret String values
-    if let str = storedValue as? String {
-      let lowercasedStr = str.lowercased()
-      return lowercasedStr == "1" || lowercasedStr == "yes" || lowercasedStr == "true"
-    }
-    
-    return fallbackIfNotExists
-  }
 }
 
+
+extension Defaults {
+  var currentValues:[String] {
+    let keys = configValues.keys
+    var out:[String] = []
+    for key in keys {
+      out.append("\(key): \(self[key] ?? "-")")
+    }
+    return out
+  }
+}

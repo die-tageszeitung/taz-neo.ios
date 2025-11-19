@@ -513,6 +513,12 @@ open class FeederContext: DoesLog {
   
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
+    ///ensure manual download while automatic download is queued in the background.
+    if issue.isAutodownloading {
+      issue.isDownloading = false
+      issue.isAutodownloading = false
+      return true
+    }
     guard !issue.isDownloading else { return false }
     
     if issue.isReduced, isAuthenticated, !Defaults.expiredAccount {
@@ -535,12 +541,31 @@ open class FeederContext: DoesLog {
   }
   
   func cleanupOldIssues(deleteOlder:Bool = false){
-    if self.dloader.isDownloading { return }
+    log("deleteOlder: \(deleteOlder)")
+    if self.dloader.isDownloading { log("...DO-NOT-CLEANUP, downloader is busy"); return }
+    guard Log.appStartContext == .foregroundUserStarted else {
+      log("...DO-NOT-CLEANUP, not foreground user started app start")
+      return
+    }
     guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
+    migrateFullDownloadedIssuesDatesIfNeeded()
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,
                              keepDownloaded: persistedIssuesCount,
                              deleteOlder: deleteOlder,
                              deleteOrphanFolders: true)
+  }
+  
+  func migrateFullDownloadedIssuesDatesIfNeeded(){
+    guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
+    let faultIssues = StoredIssue.issues(feed: feed, onlyComplete: true, onlyWithoutCompleteDate: true)
+    guard faultIssues.count > 0 else { return }
+    log("WARNING: FIX MISSING COMPLETE DATES for \(faultIssues.count) issues")
+    Usage.track(Usage.event.errorEvent.MissingIssueFiles, name: "Fixed missing complere dates for \(faultIssues.count) issues.")
+    for issue in faultIssues {
+      guard issue.isComplete else { continue }/// unnecessary, but for safety's sake
+      issue.fullDownloadedDate = issue.date
+    }
+    ArticleDB.save()
   }
 } // eof FeederContext
