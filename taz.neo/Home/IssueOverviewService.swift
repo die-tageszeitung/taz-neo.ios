@@ -21,21 +21,6 @@ typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 extension Date { var issueKey : String { short } }
 
 extension Date {
-  func validityDateText(timeZone:String,
-                        feed: StoredFeed,
-                        short:Bool = false,
-                        shorter:Bool = false,
-                        leadingText: String? = "woche, ") -> String {
-    let validityDate = StoredPublicationDate.get(date: self, inFeed: feed).first?.validityDate
-    return validityDateText(validityDate: validityDate,
-                            timeZone:timeZone,
-                            short:short,
-                            shorter:shorter,
-                            leadingText:leadingText)
-  }
-  
-  
-  
   func validityDateText(validityDate: Date?,
                         timeZone:String,
                         short:Bool = false,

@@ -39,14 +39,14 @@ extension BookmarkTVC: UITableViewDataSource {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     if indexPath.row == 0 {
       // Header-Zelle
-      guard let headerCell = tableView.dequeueReusableCell(withIdentifier: BookmarkTableHeaderCell.ReuseIdentifier, for: indexPath) as? BookmarkTableHeaderCell,
-            let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed else { return BookmarkTableHeaderCell() }
+      guard let headerCell = tableView.dequeueReusableCell(withIdentifier: BookmarkTableHeaderCell.ReuseIdentifier, for: indexPath)
+              as? BookmarkTableHeaderCell else { return BookmarkTableHeaderCell() }
       
       let article = article(for: IndexPath(item: 1, section: indexPath.section))
       headerCell.dateLabel.text
       = App.isLMD
       ? article?.issueDate?.stringWith(dateFormat: "MMMM YYYY")
-      : article?.issueDate?.validityDateText(timeZone: GqlFeeder.tz, feed: feed)
+      : article?.validityDateText
       headerCell.image = Bookmarks.lowresMomentImage(for: article)
       return headerCell
     }
@@ -73,6 +73,25 @@ extension BookmarkTVC: UITableViewDataSource {
     let sectionKey = sortedSectionKeys[indexPath.section]
     cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row
     return cell
+  }
+}
+
+extension Article {
+  ///Only use here it uses bookmarkFeed!
+  fileprivate var validityDateText: String? {
+    let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed
+    var validityDate:Date?
+    if let feed = feed,
+       let issueDate = self.issueDate {
+      ///remove the StoredIssue.get to see "more" missing publicationDates Bugs in Bookmarks
+      validityDate
+      = StoredPublicationDate.get(date: issueDate, inFeed: feed).first?.validityDate
+      #warning("ToDo before Release: use fallback to bugfix")
+//      = StoredIssue.get(date: issueDate, inFeed: feed).first?.validityDate
+//      ?? StoredPublicationDate.get(date: issueDate, inFeed: feed).first?.validityDate
+    }
+    return self.issueDate?.validityDateText(validityDate: validityDate,
+                                      timeZone:GqlFeeder.tz)
   }
 }
 
