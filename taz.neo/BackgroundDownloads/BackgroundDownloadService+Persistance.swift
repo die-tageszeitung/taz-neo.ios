@@ -175,6 +175,7 @@ extension BackgroundDownloadService {
     {
       log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)")
       for date in tempStorage.publicationDates {
+        log("...Persisting \(date.date.short) - \(date.validityDate?.short ?? "-")")
         let spd = StoredPublicationDate.persist(object: date)
         storedFeed.pr.addToPublicationDates(spd.pr)
         saveDatabase = true
