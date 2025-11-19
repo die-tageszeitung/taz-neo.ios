@@ -1221,6 +1221,12 @@ public final class StoredArticle: Article, StoredObject {
     return get(request: request)
   }
   
+  public static func get(byMediaSyncId mediaSyncId: Int64) -> StoredArticle? {
+      let request = fetchRequest
+      request.predicate = NSPredicate(format: "serverId == %lld", mediaSyncId)
+    return get(request: request).first
+  }
+  
   public static func get(object: Article) -> StoredArticle? {
     guard let name =  object.html?.name else { return nil }
     let tmp = get(file:name)

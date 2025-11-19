@@ -283,7 +283,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    
+    syncBookmarks()
+    return;
     guard requestedSyncBookmarks == false
     && placeholderView.isHidden else { return }
     
