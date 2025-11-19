@@ -9,6 +9,13 @@
 import UIKit
 import NorthLib
 
+/// Protocol to handle Open and Display an Issue
+protocol PushIssueDelegate {
+  /// delagate back the push of a child VC to prevent multiple pushes
+  func push(_ viewController:UIViewController, issueInfo: IssueDisplayService)
+}
+
+
 class IssueDisplayService: NSObject, IssueInfo, DoesLog {
   var issue: Issue {
     return sissue
