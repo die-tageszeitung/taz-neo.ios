@@ -248,7 +248,10 @@ final class BookmarksSyncBusiness: DoesLog {
       newBookmarked: uploadArticles,
       deletedBookmarks: deleteArticlesForServer
     )
-//    Log.log("ℹ️ Bookmark update results: \(updateResults.count) entries processed")
+    
+    if false {//enable/disable log and warning unused updateResults
+      Log.log("ℹ️ Bookmark update results: \(updateResults.count) entries processed")
+    }
     
     let localDeletesCopy = localDeletes
     

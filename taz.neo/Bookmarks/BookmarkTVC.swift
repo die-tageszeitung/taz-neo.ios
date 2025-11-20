@@ -93,7 +93,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       view.spinner.isHidden = false
       view.syncLabel.hideAnimated()
       view.spinner.startAnimating()
-      self?.syncBookmarks()
+      self?.syncBookmarksIfNeeded(syncReason: .manual)
       self?.autoSyncBookmarks = true
       self?.requestedSyncBookmarks = true
     }
@@ -122,7 +122,13 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     }
   }
   
-  private func syncBookmarks(){
+  enum SyncReason {
+    case manual
+    case bookmarksAppeared
+    case goingBackgroundForeground
+  }
+  
+  private func syncBookmarksIfNeeded(syncReason:SyncReason){
     if TazAppEnvironment.isAuthenticated == false {
       Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
                         actions: UIAlertAction.init( title: "Anmelden",
@@ -131,6 +137,18 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       })
       return
     }
+    
+    let lastSync = BookmarksSyncBusiness.lastBookmarkSyncDate ?? .distantPast
+    
+    if syncReason == .bookmarksAppeared {
+      ///user maybe wants auto-synced bookmarks quite early but not with every tap on bookmarks
+      guard Date() > lastSync.addingTimeInterval(5 * 60) else { return }
+    }
+    else if syncReason == .goingBackgroundForeground {
+      ///twice in a hour auto sync is enought here
+      guard Date() > lastSync.addingTimeInterval(30 * 60) else { return }
+    }
+    ///on manual sync, sync everytime
     
     headerSyncButton.isHidden = false
     headerSyncButton.startRotating()
@@ -222,12 +240,14 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
         title: "Leseliste automatisch synchronisieren"/*,
                                                        image: UIImage(systemName: "clock.arrow.trianglehead.2.counterclockwise.rotate.90")*/) {[weak self] _ in
                                                          self?.autoSyncBookmarks.toggle()
+                                                         guard self?.autoSyncBookmarks == true else { return }
+                                                         self?.syncBookmarksIfNeeded(syncReason: .manual)
                                                        }
       autoSyncAction.state = autoSyncBookmarks ? .on : .off
       let syncAction = UIAction(
         title: "Leseliste jetzt synchronisieren",
         image: UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")) {[weak self] _ in
-          self?.syncBookmarks()
+          self?.syncBookmarksIfNeeded(syncReason: .manual)
         }
       let lastSyncInfo = UIAction(
         title: "Letzte Synchronisierung:\n\(BookmarksSyncBusiness.lastBookmarkSyncAgoString)"){_ in }
@@ -283,15 +303,17 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    syncBookmarks()
-    return;
-    guard requestedSyncBookmarks == false
-    && placeholderView.isHidden else { return }
+    
+    if requestedSyncBookmarks && autoSyncBookmarks {
+      syncBookmarksIfNeeded(syncReason: .bookmarksAppeared)
+    }
+    ///just ask the user once if auto sync should be done
+    if requestedSyncBookmarks == true { return }
     
     let autoSyncAction =  UIAlertAction.init( title: "Automatisch Synchronisieren",
                                           style: .default) {  [weak self] _ in
       self?.autoSyncBookmarks = true
-      self?.syncBookmarks()
+      self?.syncBookmarksIfNeeded(syncReason: .manual)
     }
     
     let cancelAction =  UIAlertAction.init( title: "Nicht Synchronisieren",
@@ -334,6 +356,13 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
+    }
+    
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      self?.syncBookmarksIfNeeded(syncReason: .goingBackgroundForeground)
+    }
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.syncBookmarksIfNeeded(syncReason: .goingBackgroundForeground)
     }
     
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
