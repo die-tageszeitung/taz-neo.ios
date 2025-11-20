@@ -143,9 +143,9 @@ final class BookmarksSyncBusiness: DoesLog {
     
     // 2) On MainActor: mark existing local articles as bookmarked and collect their ids to remove
     let candidateIds = remoteOnlyIdsToFetch // snapshot
-    
-    let idsRemovedFromFetchList: [String] = try await MainActor.run {
-      var removed: [String] = []
+    ///idsRemovedFromFetchList remoteAddedLocal newlocalAvalable bookmarksActivated
+    let localArticlesActivatedIds: [String] = try await MainActor.run {
+      var localArticleIds: [String] = []
       
       for id in candidateIds {
         guard let mediaSyncId = Int64(id) else { continue }
@@ -155,15 +155,15 @@ final class BookmarksSyncBusiness: DoesLog {
         // and schedule its id to be removed from the fetch-list.
         if localArticle.html?.name != nil {
           try localArticle.activateBookmark(remoteBookmarkedDate: remoteBookmarkDatesById[id])
-          removed.append(id)
+          localArticleIds.append(id)
         }
       }
-      return removed
+      return localArticleIds
     }
     
     // 3) Remove those IDs from the fetch list (done outside the await)
-    if !idsRemovedFromFetchList.isEmpty {
-      remoteOnlyIdsToFetch.removeAll { idsRemovedFromFetchList.contains($0) }
+    if !localArticlesActivatedIds.isEmpty {
+      remoteOnlyIdsToFetch.removeAll { localArticlesActivatedIds.contains($0) }
     }
     
     // Now remoteOnlyIdsToFetch contains only IDs that truly need to be fetched from server.
@@ -219,7 +219,7 @@ final class BookmarksSyncBusiness: DoesLog {
       }
     }
     
-    Log.log("⬆️ toUpload: \(toUpload.count)  ⬇️ deleteRemote: \(remoteDeletes.count)  deleteLocal: \(localDeletes.count)")
+    Log.log("toUpload: \(toUpload.count)  deleteRemote: \(remoteDeletes.count)  deleteLocal: \(localDeletes.count) newArticles: \(remoteOnlyIdsToFetch.count)")
 //    Log.log("toUpload: \(toUpload.map { "\($0.serverId ?? -1)" }.joined(separator: ", "))")
 //    Log.log("remoteDeletes: \(remoteDeletes.joined(separator: ", "))")
 //    Log.log("localDeletes: \(localDeletes.map { "\($0.serverId ?? -1)" }.joined(separator: ", "))")
@@ -265,7 +265,7 @@ final class BookmarksSyncBusiness: DoesLog {
       // Local deletes from "server removed"
       for local in localDeletesCopy {
         Log.debug("Deleting local bookmark \(local.title ?? "-") MediaSyncID: \(local.serverId ?? -1) because server removed it.")
-        local.hasBookmark = false
+        try? local.deactivateBookmark()
       }
       
       if !changed.isEmpty {
@@ -284,6 +284,7 @@ final class BookmarksSyncBusiness: DoesLog {
     
     // --- 11) Result ---
     let didChange =
+    !localArticlesActivatedIds.isEmpty ||
     !persistedPulled.isEmpty ||
     !toUpload.isEmpty ||
     !remoteDeletes.isEmpty ||
@@ -333,6 +334,22 @@ fileprivate extension StoredArticle {
     if self.bookmarkedDate == nil {
       self.bookmarkedDate = remoteBookmarkedDate
     }
+  }
+  
+  @MainActor
+  func deactivateBookmark() throws {
+    guard let bookmarkSection = Bookmarks.shared.bookmarkSection else {
+      throw "No Bookmark Section!"
+    }
+    // remove relations
+    self.pr.removeFromSections(bookmarkSection.pr)
+    bookmarkSection.pr.removeFromArticles(self.pr)
+    
+    // Remove the stored article if it no longer belongs to any section
+    if self.pr.sections?.count == 0 {
+      self.delete()
+    }
+    ///No need to appendLocalDeletedBookmarkMediaSyncId ...it comes from remote!
   }
 }
 

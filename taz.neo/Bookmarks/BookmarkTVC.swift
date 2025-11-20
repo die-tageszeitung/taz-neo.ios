@@ -80,7 +80,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   private lazy var placeholderView: BookmarksEmptyStateView = {
     let view = BookmarksEmptyStateView("Sie haben keine Artikel in Ihrer Leseliste.\n\nSpeichern Sie Artikel zum weiterlesen, hören oder erinnern in Ihrer persönlichen Leseliste. Einfach das Sternchen bei den Artikeln aktivieren.",
                                               image: UIImage(named: "star"))
-    view.syncLabel.text = "Leseliste automatisch synchronisieren"
+    view.syncLabel.text = "Leseliste jetzt synchronisieren."
     
     Task {
       var hasRemoteBookmarks = false
@@ -93,9 +93,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       view.spinner.isHidden = false
       view.syncLabel.hideAnimated()
       view.spinner.startAnimating()
-      self?.syncBookmarksIfNeeded(syncReason: .manual)
-      self?.autoSyncBookmarks = true
-      self?.requestedSyncBookmarks = true
+      self?.syncBookmarksIfNeeded(syncReason: .manual, finishNoChangeMessage: "Keine Lesezeichen zum Synchronisieren gefunden.")
     }
     return view
   }()
@@ -128,7 +126,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     case goingBackgroundForeground
   }
   
-  private func syncBookmarksIfNeeded(syncReason:SyncReason){
+  private func syncBookmarksIfNeeded(syncReason:SyncReason, finishNoChangeMessage:String? = nil){
     if TazAppEnvironment.isAuthenticated == false {
       Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
                         actions: UIAlertAction.init( title: "Anmelden",
@@ -163,18 +161,21 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
         print("Error due Sync:", error)
       }
       await MainActor.run {[weak self] in
-        self?.syncBookmarksFinished(hasChanges)
+        self?.syncBookmarksFinished(hasChanges, finishNoChangeMessage: finishNoChangeMessage)
       }
     }
   }
   
-  private func syncBookmarksFinished(_ hasChanges: Bool){
+  private func syncBookmarksFinished(_ hasChanges: Bool, finishNoChangeMessage:String? = nil){
     if hasChanges {
       Bookmarks.shared.reloadBookmarksFromDatabase()
       updateData()
       bookmarksTable.reloadData()
       articleVC?.setup()///re-init delegate!
       updateAudioButton()
+    }
+    else if let msg = finishNoChangeMessage {
+      Toast.show(msg)
     }
     if placeholderView.spinner.isAnimating {
       placeholderView.spinner.stopAnimating()
@@ -303,6 +304,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    
+    placeholderView.syncLabel.isHidden = false
     
     if requestedSyncBookmarks && autoSyncBookmarks {
       syncBookmarksIfNeeded(syncReason: .bookmarksAppeared)
