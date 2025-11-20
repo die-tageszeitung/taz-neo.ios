@@ -95,6 +95,13 @@ extension HomeVC: HelpProviding{
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
                                        targetView: self.viewModeButton)
+      if let img = UIImage(named: "Img-HomeViewMenu"){
+        let view = UIImageView(image: img)
+        view.contentMode = .scaleAspectFit
+        view.pinHeight(190)
+        viewModeItem.contentView = view
+      }
+      
       
       let issueStatus = HelpItem(title:"Symbole in der Ausgabenübersicht",
                                       text: "")
@@ -154,7 +161,7 @@ extension HomeVC: HelpProviding{
       if let img = UIImage(named: "Img-HomeMenu"){
         let view = UIImageView(image: img)
         view.contentMode = .scaleAspectFit
-        view.pinHeight(170)
+        view.pinHeight(200)
         homeMenuItem.contentView = view
       }
       
