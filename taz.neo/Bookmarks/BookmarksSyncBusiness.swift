@@ -265,8 +265,7 @@ final class BookmarksSyncBusiness: DoesLog {
       // Local deletes from "server removed"
       for local in localDeletesCopy {
         Log.debug("Deleting local bookmark \(local.title ?? "-") MediaSyncID: \(local.serverId ?? -1) because server removed it.")
-        local.delete()
-        changed.append(local)
+        local.hasBookmark = false
       }
       
       if !changed.isEmpty {
