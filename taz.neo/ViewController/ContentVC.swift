@@ -132,6 +132,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if autoHideToolbar == false {
       return false
     }
+    if UIAccessibility.isVoiceOverRunning {
+      return false
+    }
     if ArticlePlayer.singleton.isOpen {
       return false
     }
@@ -1041,13 +1044,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     header.leftConstraint?.constant = 8 + (slider?.visibleButtonWidth ?? 0.0)
     ///enable shadow for sliderView
     slider?.sliderView.clipsToBounds = false
-    slider?.onOpen{_ in
+    slider?.onOpen{[weak self] _ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
       Notification.send(Const.NotificationNames.helpProviderChanged)
+      self?.updateAccessibilityElements(postLayoutChanged: true)
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
+      self?.updateAccessibilityElements(postLayoutChanged: true)
     }
   }
   
@@ -1123,6 +1128,30 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
+    updateAccessibilityElements()
+  }
+  
+  func updateAccessibilityElements(postLayoutChanged:Bool = false){
+    var elms: [UIView] = []
+    if slider?.isOpen == true {
+      elms.appendIfPresent(slider?.button)
+      elms.appendIfPresent(contentTable?.headerListenLabel)
+      elms.appendIfPresent(contentTable?.headerCollapseIcon)
+      elms.appendIfPresent(contentTable?.tableView)
+      self.view.accessibilityElements = elms
+    } else {
+      elms.append(header)
+      elms.appendIfPresent(slider?.button)
+      elms.append(leftTapEnEdgeButton)
+      elms.append(rightTapEnEdgeButton)
+      elms.appendIfPresent(collectionView)
+      elms.append(toolBar)
+    }
+    self.view.accessibilityElements = elms
+    if postLayoutChanged {
+      UIAccessibility.post(notification: .layoutChanged,
+                           argument: self.view)
+    }
   }
   
   override public func viewWillDisappear(_ animated: Bool) {

@@ -323,6 +323,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if !isStaticHeader {
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
       header.titletype = index == 0 ? .section0 : .section
+      
+      let issueDateText = issue.issueDateAccessibilityText
+      
+      header.accessibilityLabel
+      = index == 0
+      ? (header.title ?? "") + ", " + issueDateText
+      : header.title
+    }
+    else {
+      header.accessibilityLabel = header.title
     }
     header.show(show: true, animated: true)
     toolBar.show(show:true, animated: true)

@@ -157,6 +157,9 @@ public class NewContentTableVC: UIViewController {
   fileprivate var articlePressedClosure: ((Article)->())?
   fileprivate var imagePressedClosure: (()->())?
   
+  var headerListenLabel: UIView { header.listenLabel }
+  var headerCollapseIcon: UIView { header.collapseIcon }
+  
   fileprivate lazy var header: NewContentTableVcHeader = {
     let h = NewContentTableVcHeader(frame: CGRect(x: 0,
                                                   y: 0,
@@ -470,6 +473,8 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   var collapsed: Bool = false {
     didSet {
       if oldValue == collapsed { return }
+      collapseIcon.accessibilityLabel
+      = collapsed ? "Alle Artikel ausklappen" : "Artikelliste einklappen"
       UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
         UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
           guard let self = self else { return }
@@ -506,6 +511,10 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     self.addSubview(listenLabel)
     self.addSubview(listenIcon)
     self.addSubview(collapseIcon)
+    
+    collapseIcon.isAccessibilityElement = true
+    collapseIcon.accessibilityTraits = .button
+    collapseIcon.accessibilityLabel = "Alle Artikel ausklappen"
     
     listenIcon.contentMode = .scaleAspectFit
     imageView.contentMode = .scaleAspectFit

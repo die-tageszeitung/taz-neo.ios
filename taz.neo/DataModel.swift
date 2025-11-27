@@ -889,8 +889,9 @@ public extension PublicationDate {
   }
   
   var accessibilityText: String {
-    guard let vd = validityDate else { return date.accessibilityLabelText(prefix: "Ausgabe vom") }
-    return date.accessibilityLabelText(prefix: "Wochentaz vom")
+    return validityDate == nil
+    ? date.accessibilityLabelText(prefix: "Ausgabe vom")
+    : date.accessibilityLabelText(prefix: "Wochentaz vom")
   }
 }
 
@@ -963,6 +964,12 @@ public extension Issue {
                                  short: short,
                                  shorter: shorter,
                                  leadingText: leadingText)
+  }
+  
+  var issueDateAccessibilityText:String {
+    return validityDate == nil
+    ? date.accessibilityLabelText(prefix: "Ausgabe vom")
+    : date.accessibilityLabelText(prefix: "Wochentaz vom")
   }
     
   func toString() -> String {

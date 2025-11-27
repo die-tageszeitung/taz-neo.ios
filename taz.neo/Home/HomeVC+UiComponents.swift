@@ -33,7 +33,7 @@ extension HomeVC {
     button.tintColor = Const.Colors.appIconGrey
 
     // Optional: Zugriffshilfe
-    button.accessibilityLabel = "Asugabenübersicht, Darstellungsoptionen anzeigen"
+    button.accessibilityLabel = "Ausgabenübersicht: Darstellungsoptionen anzeigen"
     button.layoutVertically()
     button.pinHeight(42)
     return button

@@ -190,6 +190,11 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     self.addSubview(subTitleLabel)
     self.addSubview(pageNumberLabel)
     
+    titleLabel.isAccessibilityElement = false
+    subTitleLabel.isAccessibilityElement = false
+    pageNumberLabel.isAccessibilityElement = false
+    self.isAccessibilityElement = true
+    
     titleLabel.adjustsFontSizeToFitWidth = true
     
     subTitleLabel.textAlignment = .right

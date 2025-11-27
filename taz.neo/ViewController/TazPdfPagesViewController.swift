@@ -566,6 +566,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     onRightTap {[weak self] in
+      ///No scrolling with voiceover, it did not work!
+      if UIAccessibility.isVoiceOverRunning { return false }
       guard let ziv = self?.currentView as? ZoomedImageView else {
         return false
       }
@@ -590,6 +592,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
     
     onLeftTap {[weak self] in
+      ///No scrolling with voiceover, it did not work!
+      if UIAccessibility.isVoiceOverRunning { return false }
       guard let ziv = self?.currentView as? ZoomedImageView else {
         return false
       }
