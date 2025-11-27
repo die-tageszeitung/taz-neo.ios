@@ -63,6 +63,7 @@ class HelpButton: UIView {
   private lazy var helpLabel: UIView = {
     let wrapper = UIView()
     let lbl = UILabel("Hilfe")
+    lbl.isAccessibilityElement = false
     lbl.contentFont(size: Const.Size.SmallerFontSize)
     lbl.textColor = Const.Colors.appIconGrey
     lbl.textAlignment = .center
@@ -79,9 +80,14 @@ class HelpButton: UIView {
   
   func setupIfNeeded() {
     guard helpIconImageView.superview == nil else { return }
-    self.accessibilityLabel = "Hilfe anzeigen"
     self.addSubview(helpIconImageView)
     self.addSubview(badgeLabel)
+    
+    badgeLabel.isAccessibilityElement = false
+    helpLabel.isAccessibilityElement = false
+    helpIconImageView.isAccessibilityElement = true
+    helpIconImageView.accessibilityLabel = "Hilfe anzeigen"
+    helpIconImageView.accessibilityTraits = .button
     
     let bottomConstraint = pin(helpIconImageView, to: self).bottom
     

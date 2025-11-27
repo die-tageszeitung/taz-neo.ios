@@ -10,15 +10,34 @@ import UIKit
 import NorthLib
 import Foundation
 
-typealias IssueCellData = (key: String,
-                           date: PublicationDate,
-                           issue:StoredIssue?,
-                           image: UIImage?,
-                           downloadState: DownloadStatusIndicatorState)
+struct IssueCellData {
+  let key: String
+  let date: PublicationDate
+  let issue: StoredIssue?
+  let image: UIImage?
+  let publicationCycle: PublicationCycle
+  let downloadState: DownloadStatusIndicatorState
+}
+
 typealias IndexPathMoved = (from: IndexPath, to: IndexPath)
 
 /// using Dates short String Representation for store and find issues for same date, ignore time
 extension Date { var issueKey : String { short } }
+
+extension IssueCellData {
+  func labelText(short:Bool = false,
+                 shorter:Bool = false)->String{
+    if publicationCycle == .monthly { return date.date.gMonthYear(tz: GqlFeeder.tz) }
+    return issue?.validityDateText2(timeZone: GqlFeeder.tz, short: short, shorter: shorter)
+    ?? date.validityDateText(short: short, shorter: shorter)
+  }
+  
+  var accessibilityLabelText: String{
+    if publicationCycle == .monthly { return date.date.gMonthYear(tz: GqlFeeder.tz) }
+    let leadingText = issue?.validityDate == nil ? "Ausgabe vom " : "Wochentaz vom "
+    return date.date.accessibilityLabelText(prefix: leadingText) + ", Status: " + downloadState.statusText
+  }
+}
 
 extension Date {
   func validityDateText(validityDate: Date?,
@@ -44,6 +63,24 @@ extension Date {
     let to = dfTo.string(from: endDate)
     
     return "\(leadingText ?? "")\(from) – \(to)"
+  }
+}
+
+extension Date {
+  func accessibilityLabelText(prefix: String? = nil,
+                              dateStyle: DateFormatter.Style = .full,
+                              timeStyle: DateFormatter.Style = .none) -> String {
+    ///examples for Date
+    ///none, short, medium, long, full "22. November 2025"
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "de_DE")
+    formatter.dateStyle = dateStyle    // ->
+    formatter.timeStyle = timeStyle
+
+    if let prefix = prefix {
+      return formatter.string(from: self).prepend("\(prefix) ")
+    }
+    return formatter.string(from: self)
   }
 }
 
@@ -104,6 +141,7 @@ class IssueOverviewService: NSObject, DoesLog {
                          date: publicationDate,
                          issue: issue,
                          image: img,
+                         publicationCycle: feed.cycle,
                          downloadState: downloadState(for: issue)
     )
   }
@@ -349,6 +387,7 @@ class IssueOverviewService: NSObject, DoesLog {
                              date: pDate,
                              issue: issue,
                              image: img,
+                             publicationCycle: feed.cycle,
                              downloadState: downloadState(for: issue))
     Notification.send(Const.NotificationNames.issueUpdate,
                       content: data)
@@ -837,6 +876,7 @@ extension Issue {
                              date: pubDate,
                              issue: self as? StoredIssue,
                              image: image,
+                             publicationCycle: feed.cycle,
                              downloadState: hasLastRead ? .read : .downloaded)
     Notification.send(Const.NotificationNames.issueUpdate,
                       content: data)

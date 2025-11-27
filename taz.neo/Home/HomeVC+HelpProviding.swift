@@ -91,6 +91,7 @@ extension HomeVC: HelpProviding{
                                        text: "Entdecken Sie die digitale Ausgabe der taz: Blättern Sie durch die Zeitung, speichern Sie Artikel oder lassen Sie sich Texte vorlesen.")
             
       let viewModeItem = HelpItem(title:"Ansichtssache",
+                                  accessibilityLabelTitleInsert: "Schalter: Darstellungsoptionen",
                                        text: "Wechseln Sie zwischen App- und Zeitungsansicht, wählen Sie Karussell- oder Kachel-Layout und springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
@@ -103,8 +104,10 @@ extension HomeVC: HelpProviding{
       }
       
       
-      let issueStatus = HelpItem(title:"Symbole in der Ausgabenübersicht",
-                                      text: "")
+      let issueStatus
+      = HelpItem(title:"Symbole in der Ausgabenübersicht",
+                 text: "",
+                 accessibilityLabelText: "Voiceover gibt den aktuellen Status der Ausgaben an, es werden Symbole wie ein Download-Icon zum herunterladen, das Häckchen für heruntergeladen oder das Weiterlesen Icon angezeigt")
       issueStatus.contentView = self.issueStatusSymbols
       if isHomeTiles == false {
         issueStatus.targetView = self.downloadButton.indicator
@@ -117,14 +120,17 @@ extension HomeVC: HelpProviding{
                                targetView: calenderImageView)
       
       let home = HelpItem(title:"Home",
+                          accessibilityLabelTitleInsert: "Tabbar Item",
                                text: "Wenn Sie hier tippen, gelangen Sie jederzeit zurück zur Startseite. Bei erneutem Tipp springt die Ansicht zur aktuellen Ausgabe.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(0))
       let bookmarks = HelpItem(title:"Leseliste",
+                               accessibilityLabelTitleInsert: "Tabbar Item",
                                text: "Hier finden Sie alle Ihre gespeicherten Artikel.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(1))
       let search = HelpItem(title:"Suche",
+                            accessibilityLabelTitleInsert: "Tabbar Item",
                                text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten, Namen oder Autor:innen.",
                                isCircleCutout: true,
                                targetView: tabbarItems.valueAt(2))

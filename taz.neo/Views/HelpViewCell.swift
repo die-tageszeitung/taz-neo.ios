@@ -29,11 +29,8 @@ final class HelpViewCell: UIView {
     pin(titleLabel, to: wrapper, exclude: .bottom)
     pin(subLabel, to: wrapper, exclude: .top)
     pin(subLabel.top, to: titleLabel.bottom)
-    wrapper.accessibilityLabel = "Hinweis – Schliessen durch Tippen"
     return wrapper
   }()
-  
-
   
   private var textWidthConstraint: NSLayoutConstraint?
   
@@ -55,6 +52,8 @@ final class HelpViewCell: UIView {
     textLayer.centerAxis()
     textLayer.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
     textWidthConstraint = textLayer.pinWidth(UIWindow.size.width * 0.7)
+    titleLabel.isAccessibilityElement = true
+    subLabel.isAccessibilityElement = true
   }
   
   // MARK: - Configure / Reset
@@ -73,21 +72,28 @@ final class HelpViewCell: UIView {
        (item?.text.isEmpty ?? true) == true {
       /// ONLY Content View - no Text
       contentView = cv
+      contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
       pin(cv.top, to: titleLabel.bottom, dist: 22)
-      pin(cv, to: textLayer, exclude: .top)
+      pin(cv.left, to: textLayer.left, priority: .defaultHigh)
+      pin(cv.right, to: textLayer.right, priority: .defaultHigh)
+      pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
     }
     else  if let cv = item?.contentView {
       contentView = cv
+      contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
       pin(cv.top, to: subLabel.bottom, dist: 22)
-      pin(cv, to: textLayer, exclude: .top)
+      pin(cv.left, to: textLayer.left, priority: .defaultHigh)
+      pin(cv.right, to: textLayer.right, priority: .defaultHigh)
+      pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
     }
     
     if let iv = item?.topImageView {
       topImageView = iv
+      topImageView?.isAccessibilityElement = false
       iv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(iv)
       iv.centerX(dist: -10)

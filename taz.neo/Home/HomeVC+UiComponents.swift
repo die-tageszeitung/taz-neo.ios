@@ -33,7 +33,7 @@ extension HomeVC {
     button.tintColor = Const.Colors.appIconGrey
 
     // Optional: Zugriffshilfe
-    button.accessibilityLabel = "Darstellungsoptionen anzeigen"
+    button.accessibilityLabel = "Asugabenübersicht, Darstellungsoptionen anzeigen"
     button.layoutVertically()
     button.pinHeight(42)
     return button
@@ -130,6 +130,9 @@ extension HomeVC {
   private func closeDatePickerOverlay() {
     datePickerOverlay.hideAnimated(completion: {[weak self] in
       self?.datePickerOverlay.removeFromSuperview()
+      onMainAfter {[weak self] in
+        self?.updateAccessibilityOrder()
+      }
     })
   }
   

@@ -320,6 +320,17 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     let home = HomeVC(service: service, feederContext: feederContext)
     home.title = "Home"
+
+    // generate TabBarItem
+    let homeItem = UITabBarItem(
+        title: "Home",
+        image: UIImage(named: "home")?.tabBarSizedIcon(),
+        selectedImage: nil
+    )
+
+    homeItem.accessibilityLabel = "Home"
+    homeItem.accessibilityValue = "Doppelt tippen, um zur aktuellen Ausgabe zu gelangen."
+    home.tabBarItem = homeItem
     home.tabBarItem.image = UIImage(named: "home")?.tabBarSizedIcon()
     
     let homeNc = NavigationController(rootViewController: home)

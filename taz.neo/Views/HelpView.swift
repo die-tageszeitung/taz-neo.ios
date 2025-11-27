@@ -65,6 +65,8 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     lbl.text = "Hilfe für diesen Bereich nicht mehr anzeigen."
 //    lbl.text = "Diese Hilfe nicht mehr anzeigen."
     wrapper.isHidden = true
+    wrapper.isAccessibilityElement = false
+    lbl.isAccessibilityElement = false
     return wrapper
   }()
   
@@ -127,11 +129,13 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
       self?.updateControls(currentPage: idx)
       if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? HelpViewCell {
         self?.updateCustomLayout(view: cv)
+        self?.currentCell = cv
       }
     }
     self.collectionView.viewProvider {[weak self] idx, view in
       let cv = view as? HelpViewCell ?? HelpViewCell()
       cv.item = self?.items.valueAt(idx)
+      if self?.currentCell == nil { self?.currentCell = cv }
       return cv
     }
     layer.addSublayer(line)
@@ -212,6 +216,10 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     prevLabel.pinWidth(75)
     nextLabel.pinWidth(75)
     
+    nextLabel.isAccessibilityElement = true
+    prevLabel.isAccessibilityElement = true
+    pageControl.isAccessibilityElement = false
+    
     pin(prevLabel.left, to: controlsContainer.left)
     pin(pageControl.left, to: prevLabel.right, dist: -15)
     pin(nextLabel.left, to: pageControl.right, dist: -15)
@@ -270,12 +278,40 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
       nextLabel.text = "Weiter"
     }
   }
+  
+  var currentCell: HelpViewCell? {
+    didSet {
+      guard oldValue != currentCell else { return }
+      currentCell?.isAccessibilityElement = true
+      onMainAfter {[weak self] in
+        self?.updateAccessibilityOrder()
+        oldValue?.isAccessibilityElement = false
+      }
+    }
+  }
+  
+  func updateAccessibilityOrder() {
+    var elms:[Any] = []
+    if let cell = currentCell {
+      cell.accessibilityLabel
+      = "\(cell.item?.title ?? "") \(cell.item?.accessibilityLabelTitleInsert ?? ""), \(cell.item?.accessibilityLabelText ?? cell.item?.text ?? "")"
+      elms.append(cell)
+    }
+    if prevLabel.isAccessibilityElement {
+      elms.append(prevLabel)
+    }
+    if nextLabel.isAccessibilityElement {
+      elms.append(nextLabel)
+    }
+    elms.append(closeButton)
+    self.accessibilityElements = elms
+    UIAccessibility.post(notification: .layoutChanged, argument: self)
+  }
 }
 
 
 extension HelpView {
   func updateCustomLayout(view: HelpViewCell) {
-    print("HelpView: updateCustomLayout for \(view.item?.title ?? "-"))")
     line.path = nil
     
     guard let item = view.item,

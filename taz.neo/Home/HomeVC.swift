@@ -140,10 +140,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     calenderImageView.centerY(dist: -4)
     pin(calenderImageView.right, to: dateLabel.left, dist: -16.0)
     v.pinHeight(28)
-    
     dateLabel.onTapping {[weak self] _ in
       self?.showDatePicker()
     }
+    dateLabel.accessibilityLabel = "Ausgabe via Kalender auswählen"
     calenderImageView.onTapping {[weak self] _ in
       self?.showDatePicker()
     }
@@ -203,6 +203,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     self.view.addSubview(datePickerOverlay)
     pin(datePickerOverlay, to: self.view)
     datePickerOverlay.showAnimated()
+    updateAccessibilityOrder()
   }
   
   var centerIndex: Int? {
@@ -310,10 +311,46 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self.view.layoutIfNeeded()
     }
   }
+  
+  
+  // creates the order for accessabillity elements. at first the viewModeButton then visible cells sorted by index path
+  func updateAccessibilityOrder() {
+    ///if date picker is open this is the accessibilityElement
+    if datePickerOverlay.superview != nil {
+      self.view.accessibilityElements = [datePickerOverlay]
+      return
+    }
+    var elements: [Any] = []
+
+    elements.append(viewModeButton as Any)
+    if self.feederContext.isAuthenticated == false{
+      elements.append(loginButton)
+    }
+    
+    if isHomeTiles == false {
+      elements.append(dateLabel)
+    }
+
+    let visibleCells = collectionView.visibleCells
+    let visibleIndexPaths = visibleCells.compactMap { collectionView.indexPath(for: $0) }
+    let sortedIndexPaths = visibleIndexPaths.sorted() // IndexPath Vergleich: section then item
+    
+    for ip in sortedIndexPaths {
+      if let cell = collectionView.cellForItem(at: ip) {
+        elements.append(cell)
+      }
+    }
+    self.view.accessibilityElements = elements
+  }
     
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     openingIssue = nil
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    updateAccessibilityOrder()
   }
   
   override func viewDidLoad() {
@@ -324,6 +361,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
                                  forCellWithReuseIdentifier: Self.reuseCellId)
     self.collectionView.showsHorizontalScrollIndicator = false
     self.collectionView.backgroundColor = Const.SetColor.HomeBackground.color
+    self.collectionView.isAccessibilityElement = false
 
     self.view.insertSubview(blurView, aboveSubview: collectionView)
     self.view.addSubview(blurView)
@@ -509,6 +547,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     guard let centerIndex = centerIndex else { return }
     updateBottomWrapper(for: centerIndex)
     scrollTo(centerIndex)
+    updateAccessibilityOrder()
   }
   
   func scrollTo(_ index: Int, animated:Bool = true){
@@ -520,9 +559,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){
     guard let data = service.cellData(for: cidx) else { return }
-    let isMonthly = service.feed.cycle == .monthly
-    let txt = isMonthly ? data.date.date.gMonthYear(tz: GqlFeeder.tz) :
-                          data.date.validityDateText(short: true)
+    let txt = data.labelText()
     let newKey = data.date.date.issueKey
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState

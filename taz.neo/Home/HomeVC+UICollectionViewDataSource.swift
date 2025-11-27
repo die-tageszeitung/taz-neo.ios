@@ -26,14 +26,18 @@ extension HomeVC  {
           let data = cell.data else { return }
     cell.data = nil
     service.removeFromLoadFromRemote(key: data.key)
+    cell.isAccessibilityElement = false
+    updateAccessibilityOrder()
   }
   
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
     guard let cell = cell as? IssueTilesCvcCell,
           let data = service.cellData(for: indexPath.row) else { return }
     cell.data = data
+    cell.isAccessibilityElement = true
+    updateAccessibilityOrder()
   }
-  
+    
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell
     = collectionView.dequeueReusableCell( withReuseIdentifier: Self.reuseCellId,

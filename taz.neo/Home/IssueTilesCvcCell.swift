@@ -40,6 +40,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
   }
 
   func updateLabel(){
+    self.accessibilityLabel = data?.accessibilityLabelText
     guard let issue = data?.issue else {
       button.label.text = data?.date.validityDateText(short: true,
                                                       shorter: shorter,

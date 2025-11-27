@@ -137,6 +137,8 @@ class HelpBusiness {
         helpView.alpha = 0.0
       }, completion: {(_) in
         helpView.removeFromSuperview()
+        helpView.accessibilityViewIsModal = false
+        UIAccessibility.post(notification: .layoutChanged, argument: mainTabVc.view)
       })
     }
     
@@ -164,6 +166,7 @@ class HelpBusiness {
                    options: UIView.AnimationOptions.curveEaseIn,
                    animations: {
       helpView.alpha = 1.0
+      helpView.accessibilityViewIsModal = true
     }, completion: { (_) in
       if helpView.isTopmost == false {
         window?.bringSubviewToFront(helpView)

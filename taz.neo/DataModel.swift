@@ -887,6 +887,11 @@ public extension PublicationDate {
                                  shorter: shorter,
                                  leadingText: leadingText)
   }
+  
+  var accessibilityText: String {
+    guard let vd = validityDate else { return date.accessibilityLabelText(prefix: "Ausgabe vom") }
+    return date.accessibilityLabelText(prefix: "Wochentaz vom")
+  }
 }
 
 /// One Issue of a Feed
@@ -948,6 +953,18 @@ public protocol Issue: ToString, AnyObject {
 }
 
 public extension Issue {
+  
+  func validityDateText2(timeZone:String,
+                        short:Bool = false,
+                        shorter:Bool = false) -> String {
+    let leadingText = validityDate == nil ? "Ausgabe vom " : "woche, "
+    return date.validityDateText(validityDate: validityDate,
+                                 timeZone: timeZone,
+                                 short: short,
+                                 shorter: shorter,
+                                 leadingText: leadingText)
+  }
+  
   
   func validityDateText(timeZone:String,
                         short:Bool = false,

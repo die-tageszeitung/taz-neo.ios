@@ -25,7 +25,6 @@ class IssueCollectionViewCell: UICollectionViewCell {
   func update(){
     let img = data?.image
     momentView.image = img
-    
     momentView.isActivity = img == nil
     emptyView.isHidden = img != nil
   }
