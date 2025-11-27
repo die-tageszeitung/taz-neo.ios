@@ -55,8 +55,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       button.label.text
       = issue.validityDateText(timeZone: GqlFeeder.tz,
                                short: true,
-                               shorter: shorter,
-                               leadingText: "")
+                               shorter: shorter)
     }
   }
 

@@ -52,8 +52,8 @@ extension HomeVC  {
       cell.button.onTapping { [weak self] _ in
         if cell.button.indicator.downloadState?.canOpen == true,
           let issue = cell.data?.issue {
-          (self as? OpenIssueDelegate)?.openIssue(issue,
-                                                          openLast: true)
+          self?.openIssue(issue,
+                          openLast: true)
           Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromHome")
           return
         }
@@ -72,31 +72,6 @@ extension HomeVC  {
     }
     return cell
   }
-  
-  func collectionView1(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: Self.reuseCellId,
-      for: indexPath)
-    guard let cell = cell as? IssueTilesCvcCell else {
-      return cell
-    }
-    
-
-    
-    if cell.momentView.interactions.isEmpty {
-//      let menuInteraction = UIContextMenuInteraction(delegate: self)
-//      cell.momentView.addInteraction(menuInteraction)
-      cell.backgroundColor = Const.SetColor.HomeBackground.color
-    }
-    return cell
-  }
-
-//  var loadingMoment: MomentView? {
-//    didSet {
-//      loadingMoment?.isActivity = true
-//      oldValue?.isActivity = false
-//    }
-//  }
   
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,

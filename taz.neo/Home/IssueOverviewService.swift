@@ -28,7 +28,7 @@ extension IssueCellData {
   func labelText(short:Bool = false,
                  shorter:Bool = false)->String{
     if publicationCycle == .monthly { return date.date.gMonthYear(tz: GqlFeeder.tz) }
-    return issue?.validityDateText2(timeZone: GqlFeeder.tz, short: short, shorter: shorter)
+    return issue?.validityDateText(timeZone: GqlFeeder.tz, short: short, shorter: shorter)
     ?? date.validityDateText(short: short, shorter: shorter)
   }
   

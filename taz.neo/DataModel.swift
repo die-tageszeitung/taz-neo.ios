@@ -954,7 +954,7 @@ public protocol Issue: ToString, AnyObject {
 
 public extension Issue {
   
-  func validityDateText2(timeZone:String,
+  func validityDateText(timeZone:String,
                         short:Bool = false,
                         shorter:Bool = false) -> String {
     let leadingText = validityDate == nil ? "Ausgabe vom " : "woche, "
@@ -964,19 +964,7 @@ public extension Issue {
                                  shorter: shorter,
                                  leadingText: leadingText)
   }
-  
-  
-  func validityDateText(timeZone:String,
-                        short:Bool = false,
-                        shorter:Bool = false,
-                        leadingText: String? = "woche, ") -> String {
-    return date.validityDateText(validityDate: validityDate,
-                                 timeZone: timeZone,
-                                 short: short,
-                                 shorter: shorter,
-                                 leadingText: leadingText)
-  }
-  
+    
   func toString() -> String {
     var ret = "Issue \(date.isoDate()), key: \(key ?? "[undefined]"), " +
               "status: \(status.toString())"
