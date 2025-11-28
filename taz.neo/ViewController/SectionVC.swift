@@ -205,6 +205,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.updatePlayButton()
       persistReadProgress(sectIdx: secIndex)
       self.firstDisplayed = true
+      self.rightTapEnEdgeButton.accessibilityLabel = secIndex == self.sections.count - 1 ? nil : "Nächstes Ressort: \(self.sections.valueAt(secIndex + 1)?.title ?? "")"
+      self.rightTapEnEdgeButton.isAccessibilityElement = secIndex < self.sections.count - 1
+      self.leftTapEnEdgeButton.accessibilityLabel = secIndex == 0 ? nil :"Vorheriges Ressort: \(self.sections.valueAt(secIndex + -1)?.title ?? "")"
+      self.leftTapEnEdgeButton.isAccessibilityElement = secIndex > 0
     }
     super.showImageGallery = false
     articleVC = ArticleVC(feederContext: feederContext)

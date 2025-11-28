@@ -201,6 +201,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
+      self.rightTapEnEdgeButton.accessibilityLabel = idx == self.articles.count - 1 ? nil : "Nächster Artikel: \(self.articles.valueAt(idx + 1)?.title ?? "")"
+      self.rightTapEnEdgeButton.isAccessibilityElement = idx < self.articles.count - 1
+      self.leftTapEnEdgeButton.accessibilityLabel = idx == 0 ? nil :"Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.title ?? "")"
+      self.leftTapEnEdgeButton.isAccessibilityElement = idx > 0
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
