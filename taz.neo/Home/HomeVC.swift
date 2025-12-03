@@ -172,6 +172,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
   lazy var datePickerOverlay = createDatePickerWrapperView()
+  var datePickerOverlayTitleLabel: UIView?
   
   let datePicker = UIDatePicker()
   
@@ -198,12 +199,16 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   func showDatePicker() {
     guard datePickerOverlay.superview == nil else { return }
     datePickerOverlay.isHidden = true
+    datePickerOverlay.accessibilityViewIsModal = true
     Usage.track(Usage.event.dialog.IssueDatePicker)
     datePicker.date = service.date(at: centerIndex ?? 0)?.date ?? Date()
     self.view.addSubview(datePickerOverlay)
     pin(datePickerOverlay, to: self.view)
-    datePickerOverlay.showAnimated()
-    updateAccessibilityOrder()
+    datePickerOverlay.showAnimated(){[weak self] in
+      self?.updateAccessibilityOrder()
+      guard let target = self?.datePickerOverlayTitleLabel ?? self?.datePickerOverlay else { return }
+      UIAccessibility.post(notification: .layoutChanged, argument: target)
+    }
   }
   
   var centerIndex: Int? {
@@ -326,6 +331,8 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     if self.feederContext.isAuthenticated == false{
       elements.append(loginButton)
     }
+    
+    elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
     
     if isHomeTiles == false {
       elements.append(dateLabel)

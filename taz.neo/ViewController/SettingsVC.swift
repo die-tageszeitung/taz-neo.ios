@@ -704,6 +704,7 @@ extension SettingsVC: UITableViewDataSource, UITableViewDelegate {
     let header = SectionHeader(text:title, collapseable: sectionData.collapseable)
     if section == data.sectionsCount - 1 {
       header.label.accessibilityLabel = "\(title) \(self.extendedSettingsCollapsed ? "zum öffnen doppelt tippen" : "geöffnet")"
+      header.label.accessibilityTraits = .header
     }
     header.collapsed = self.extendedSettingsCollapsed
     header.onTapping { [weak self] _ in

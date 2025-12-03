@@ -123,16 +123,20 @@ extension HomeVC {
 //    datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
     confirmButton.addTarget(self, action: #selector(dateChanged(_:)), for: .touchUpInside)
     cancelButton.addTarget(self, action: #selector(didTapOverlay(_:)), for: .touchUpInside)
-    
+    overlay.accessibilityElements = [titleLabel, cancelButton, confirmButton, datePicker]
+    overlay.isAccessibilityElement = false
+    datePickerOverlayTitleLabel = titleLabel
     return overlay
   }
   
   private func closeDatePickerOverlay() {
     datePickerOverlay.hideAnimated(completion: {[weak self] in
       self?.datePickerOverlay.removeFromSuperview()
-      onMainAfter {[weak self] in
-        self?.updateAccessibilityOrder()
-      }
+      ///bring back focus to home
+      ///hide&remove sets back overlay.accessibilityViewIsModal to false and evaluates order
+      ///now we have
+      self?.updateAccessibilityOrder()
+      UIAccessibility.post(notification: .layoutChanged, argument: self?.viewModeButton)
     })
   }
   

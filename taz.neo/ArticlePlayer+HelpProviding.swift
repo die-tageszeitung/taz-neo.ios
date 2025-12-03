@@ -10,6 +10,7 @@ extension ArticlePlayer: HelpProviding {
   var helpItems: [HelpItem] {
     
     let minimize = HelpItem(title:"Player verkleinern",
+                            accessibilityTitle: "Hilfe für die Wiedergabe, erstes Element: Schalter 'Player verkleinern'. Tipp: Sie können die vollständige Wiedergabesteuerung mit der iOS Mediensteuerung auch auf dem Speerbildschirm nutzen.",
                         text: "Tippen Sie auf den Pfeil, um den Player zu verkleinern. Die Wiedergabe läuft dabei weiter.",
                           isCircleCutout: true,
                             targetView: self.userInterface.minimizeButton)

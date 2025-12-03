@@ -102,8 +102,14 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
     bookmarkButton.isHidden = bbHidden
     
-    if art.hasBookmark { self.bookmarkButton.buttonView.name = "star-fill" }
-    else { self.bookmarkButton.buttonView.name = "star" }
+    if art.hasBookmark {
+      bookmarkButton.buttonView.name = "star-fill"
+      bookmarkButton.accessibilityLabel = "Lesezeichen: gesetzt"
+    }
+    else {
+      bookmarkButton.buttonView.name = "star"
+      bookmarkButton.accessibilityLabel = "Lesezeichen: setzen"
+    }
   }
   
   func updateAudioButton(){
@@ -167,7 +173,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
     }
     
-    onDisplay { [weak self] (idx, _, _) in
+    onDisplay { [weak self] (idx, ov, _) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
         ///prevent crash on search result login on 2nd or later load more results
@@ -182,6 +188,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         textSettingsButton.isHidden = true
         self.setHeader(artIndex: idx)
         self.currentWebView?.baseDir = art.baseURL
+        self.updateAccessibilityElements(currentCell: self.currentWebView)
         return
       }
       #endif
@@ -205,6 +212,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.rightTapEnEdgeButton.isAccessibilityElement = idx < self.articles.count - 1
       self.leftTapEnEdgeButton.accessibilityLabel = idx == 0 ? nil :"Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.title ?? "")"
       self.leftTapEnEdgeButton.isAccessibilityElement = idx > 0
+      self.updateAccessibilityElements(currentCell: self.currentWebView ?? ov?.mainView)
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
@@ -272,10 +280,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     #else
     let tazTomVirtualArticle = App.isTAZ ///false, but supress "Will never be executed" warning 2 lines later
     #endif
-
     if tazTomVirtualArticle {
       header.title = article?.title
       header.pageNumber = nil
+      header.accessibilityLabel = "Karikatur: \(article?.title ?? "")"
     }
     else if adelegate?.issue.isBookmarkIssue == true {
       let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
@@ -283,6 +291,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       header.titletype = .search
       header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
       header.pageNumber = "\(idx+1) von \(articles.count)"
+      header.accessibilityLabel = "Leseliste: \(header.pageNumber ?? "") aus \(header.subTitle ?? "") - \(article?.title ?? "")"
     }
     else if let art = article, let name = art.html?.name {
       if let sections = adelegate?.article2section[name],
@@ -312,6 +321,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           }
           contentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
+          header.accessibilityLabel = "\(art.sectionTitle ?? "") \(i+1)/\(articles.count): \(art.title ?? "")"
         }
       }
       else if art.title != nil,
@@ -319,6 +329,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
               art.sectionTitle == nil {
         header.title = art.title
         header.pageNumber = nil
+        header.accessibilityLabel = art.title
       }
       header.updateFonts()
     }
@@ -447,6 +458,7 @@ extension ArticleVC {
     guard UIDevice.isLandscape else { return }
     guard traitCollection.horizontalSizeClass == .regular else { return }
     guard Self.dialogAlreadyShown == false else { return }
+    guard UIAccessibility.isVoiceOverRunning == false else { return }
     guard multiColumnModeLandscape == false else { return }
     Self.dialogAlreadyShown = true
     showMultiColumnOnboarding()

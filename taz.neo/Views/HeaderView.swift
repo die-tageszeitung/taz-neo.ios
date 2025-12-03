@@ -193,7 +193,10 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     titleLabel.isAccessibilityElement = false
     subTitleLabel.isAccessibilityElement = false
     pageNumberLabel.isAccessibilityElement = false
+    
     self.isAccessibilityElement = true
+    self.accessibilityTraits = .header
+    self.shouldGroupAccessibilityChildren = true
     
     titleLabel.adjustsFontSizeToFitWidth = true
     

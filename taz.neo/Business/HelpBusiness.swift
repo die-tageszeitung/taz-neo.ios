@@ -130,6 +130,7 @@ class HelpBusiness {
     
     let close = {
       Notification.send(Const.NotificationNames.helpProviderChanged)
+      UIAccessibility.post(notification: .layoutChanged, argument: mainTabVc.view)
       UIView.animate(withDuration: 0.5,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
@@ -138,7 +139,6 @@ class HelpBusiness {
       }, completion: {(_) in
         helpView.removeFromSuperview()
         helpView.accessibilityViewIsModal = false
-        UIAccessibility.post(notification: .layoutChanged, argument: mainTabVc.view)
       })
     }
     
@@ -166,11 +166,12 @@ class HelpBusiness {
                    options: UIView.AnimationOptions.curveEaseIn,
                    animations: {
       helpView.alpha = 1.0
-      helpView.accessibilityViewIsModal = true
     }, completion: { (_) in
       if helpView.isTopmost == false {
         window?.bringSubviewToFront(helpView)
       }
+      helpView.accessibilityViewIsModal = true
+      UIAccessibility.post(notification: .layoutChanged, argument: helpView)
     })
     helpView.onClose { close() }
   }
@@ -234,6 +235,15 @@ extension HelpBusiness {
   static var helpButtonAdditionalSheetOffset: Double? {
     get { mainTabVc?.helpButtonAdditionalSheetOffset }
     set { if let newValue = newValue { mainTabVc?.helpButtonAdditionalSheetOffset = newValue } }
+  }
+  
+  /// returns help button if currently visible for voiveover
+  static var accessibileHelpButton: UIView? {
+    get {
+      guard let btn = mainTabVc?.helpButton else { return nil }
+      if !btn.isHidden { return btn }
+      return nil
+    }
   }
 }
 

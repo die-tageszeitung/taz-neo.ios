@@ -131,13 +131,23 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     }
   }
   
+  func toggleXButtonHidden() {
+    /// If VoiceOver is running and the X button is currently visible, do not hide it.
+    /// Otherwise, the VoiceOver focus may jump outside the app.
+    if UIAccessibility.isVoiceOverRunning && xButton.isHidden == false { return }
+    xButton.isHidden.toggle()
+  }
+  
   private func setupImageCollectionVC() {
     ///permanent show close x button!
-    self.xButton.isHidden = true
+    self.xButton.isHidden = UIAccessibility.isVoiceOverRunning == false
+    self.xButton.isAccessibilityElement = true
+    self.xButton.accessibilityLabel = "Bildansicht schließen"
     self.xButton.buttonView.color = Const.SetColor.taz2(.closeX).color
     self.xButton.buttonView.activeColor = Const.SetColor.taz2(.closeX).color.withAlphaComponent(0.5)
-    self.onTap { [weak self] (_,_,_) in self?.xButton.isHidden.toggle() }
-    self.view.onTapping { [weak self] _ in self?.xButton.isHidden.toggle() }//Background Tap
+    self.defaultAccessibilityView = xButton
+    self.onTap { [weak self] (_,_,_) in self?.toggleXButtonHidden() }
+    self.view.onTapping { [weak self] _ in self?.toggleXButtonHidden() }//Background Tap
     self.onX { [weak self] in self?.toCloseClosure?() }
     self.onDisplay { [weak self] (idx, _, _) in
       guard let self = self else { return }

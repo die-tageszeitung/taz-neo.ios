@@ -274,6 +274,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     prevLabel.alpha = (currentPage == 0) ? 0.3 : 1.0
     if currentPage == items.count - 1 {
       nextLabel.text = "Schließen"
+      nextLabel.accessibilityLabel = "Hilfe Schließen"
     } else {
       nextLabel.text = "Weiter"
     }
@@ -294,7 +295,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     var elms:[Any] = []
     if let cell = currentCell {
       cell.accessibilityLabel
-      = "\(cell.item?.title ?? "") \(cell.item?.accessibilityLabelTitleInsert ?? ""), \(cell.item?.accessibilityLabelText ?? cell.item?.text ?? "")"
+      = "\(cell.item?.accessibilityTitle ?? cell.item?.title ?? ""), \(cell.item?.accessibilityLabelText ?? cell.item?.text ?? "")"
       elms.append(cell)
     }
     if prevLabel.isAccessibilityElement {

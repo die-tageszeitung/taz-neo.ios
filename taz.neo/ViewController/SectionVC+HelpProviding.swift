@@ -21,14 +21,18 @@ extension SectionVC: HelpProviding{
   var helpItems: [HelpItem] {
     get {
       let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
+                          accessibilityTitle: "Hilfe für die Ausggabenansicht auf Ressortebene, erstes Element: Schalter 'Inhalt' zum öffnen des Inhaltsverzeichnisses der Ausgabe",
                                text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
                           targetView: slider?.button)
       
       let swiping = HelpItem(title:"Durch Ressorts blättern",
-                                       text: "Wischen Sie nach links oder rechts, um zum vorherigen oder nächsten Ressort zu wechseln.")
+                             text: "Wischen Sie nach links oder rechts, um zum vorherigen oder nächsten Ressort zu wechseln.",
+                             accessibilityLabelText: " sie mit den Tasten: nächstes und vorheriges Ressort.")
       
       let toolbarBack = HelpItem(title:"Zurück",
-                         text: "Hier geht es zurück zum Startbildschirm.", isCircleCutout: true, targetView: backButton)
+                         text: "Hier geht es zurück zum Startbildschirm.",
+                                 accessibilityLabelText: "Hier geht es zurück zum Startbildschirm, Schalter in der Toolbar unten",
+                                 isCircleCutout: true, targetView: backButton)
       
       if let img = UIImage(named: "phone-hands-swipe"){
         let iv = UIImageView(image: img)

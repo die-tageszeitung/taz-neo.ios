@@ -329,7 +329,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       header.titletype = index == 0 ? .section0 : .section
       
       let issueDateText = issue.issueDateAccessibilityText
-      
+      header.shouldGroupAccessibilityChildren = true
       header.accessibilityLabel
       = index == 0
       ? (header.title ?? "") + ", " + issueDateText

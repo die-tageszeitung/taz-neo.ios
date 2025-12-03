@@ -276,7 +276,7 @@ class ArticlePlayerUI: UIView {
   var isPlaying: Bool = false {
     didSet {
       toggleButton.buttonView.name = isPlaying ? "pause" : "play"
-      toggleButton.accessibilityLabel = isPlaying ? "Pause" : "Abspielen"
+      toggleButton.accessibilityLabel = isPlaying ? "Wiedergabe Pausieren" : "Wiedergabe Abspielen"
     }
   }
   
@@ -458,6 +458,9 @@ class ArticlePlayerUI: UIView {
     imageConstrains = pin(imageView, to: wrapper)
     imageConstrains?.right.isActive = false
     imageConstrains?.bottom.isActive = false
+    
+    closeButton.isAccessibilityElement = true
+    toggleButton.isAccessibilityElement = true
     
     imageSizeConstrains_Mini = imageView.pinSize(CGSize(width: 32, height: 32))
     imageSizeConstrains_Mini?.height.isActive = false

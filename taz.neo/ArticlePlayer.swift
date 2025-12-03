@@ -401,7 +401,15 @@ class ArticlePlayer: DoesLog {
     self.aplayer.currentTime = CMTime(seconds: seconds, preferredTimescale: 600)
   }
   
+  public static var accessibilityToggleButtonIfPresent: UIView? {
+    guard _singleton?.userInterface.superview != nil else { return nil }
+    return _singleton?.userInterface.toggleButton
+  }
   
+  public static var accessibilityCloseButtonIfPresent: UIView? {
+    guard _singleton?.userInterface.superview != nil else { return nil }
+    return _singleton?.userInterface.closeButton
+  }
   
   @objc private func  seekForewardButtonTouchUpInsideAction(sender: Any) {
     var seconds: Double = 0.0
