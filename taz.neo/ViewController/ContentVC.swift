@@ -383,7 +383,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     guard isMultiColumnMode else {
       let isNotAtEnd = super.handleRightTap()
       if hideOnScroll { toolBar.show(show: !isNotAtEnd, animated: true) }
-      (self as? HelpProviding)?.hideHelpButton()
+      isNotAtEnd
+      ? (self as? HelpProviding)?.hideHelpButton()
+      : (self as? HelpProviding)?.showHelpButton()
       return isNotAtEnd
     }
     guard let sv = self.currentWebView?.scrollView  else { return false }
@@ -880,6 +882,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     shareButton.isAccessibilityElement = true
     playButton.isAccessibilityElement = true
     bookmarkButton.isAccessibilityElement = true
+    backButton.accessibilityTraits = .button
+    homeButton.accessibilityTraits = .button
+    shareButton.accessibilityTraits = .button
+    playButton.accessibilityTraits = .button
+    bookmarkButton.accessibilityTraits = .button
     backButton.accessibilityLabel = "zurück"
     homeButton.accessibilityLabel = "Ausgabenübersicht"
     shareButton.accessibilityLabel = "Teilen"
