@@ -93,6 +93,9 @@ final class BookmarksSyncBusiness: DoesLog {
     guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else {
       return false
     }
+    guard TazAppEnvironment.sharedInstance.feederContext?.isAuthenticated == true else {
+      return false
+    }
     return try await gqlFeeder.loadBookmarks().count > 0
   }
   
