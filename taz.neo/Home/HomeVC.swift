@@ -270,9 +270,17 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   var collectionViewLayoutInitialized = false
+  private var lastKnownSize:CGSize = .zero
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    /// fixes layout when returning to home after resizing/rotating app in a pushed child vc
+    if collectionViewLayoutInitialized
+        && !isHomeTiles
+        && lastKnownSize != view.frame.size {
+      updateCarouselSize(view.frame.size)
+    }
+    
     guard collectionViewLayoutInitialized == false else { return }
     collectionViewLayoutInitialized = true
     let s = view.frame.size
@@ -673,8 +681,8 @@ extension HomeVC {
     = UIEdgeInsets.zero
   }
   
-  
   private func updateCarouselSize(_ size:CGSize, horizontalSizeClass:UIUserInterfaceSizeClass? = nil){
+    lastKnownSize = size
     let horizontalSizeClass = horizontalSizeClass ?? self.traitCollection.horizontalSizeClass
     let defaultPageRatio:CGFloat = 0.670219
     log("updateCarouselSize: \(size)")
