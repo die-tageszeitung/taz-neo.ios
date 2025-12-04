@@ -582,12 +582,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   func applyLayout(){
     UIView.animate(withDuration: 0.3) {[weak self] in
       guard let self = self else { return }
-      collectionView.setCollectionViewLayout(currentLayout, animated: true)
-    }completion: {[weak self] _ in
-      guard let self = self, !isHomeTiles, let targetIp = centerIndexPath(returnFirstItemIfVisible: true) else { return }
-      collectionView.scrollToItem(at: targetIp,
-                                  at: .centeredHorizontally,
-                                  animated: true)
+      self.collectionView.setCollectionViewLayout(self.currentLayout, animated: true)
     }
   }
   
