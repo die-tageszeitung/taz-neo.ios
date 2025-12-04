@@ -13,6 +13,8 @@ import NorthLib
 /// Self-contained: no need for a view controller.
 class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
+  static let cellYoffset: CGFloat = -40.0
+  
   var pageControllBottomOffset: CGFloat = -80.0 {
     didSet {
       pageControllBottomOffsetConstraint?.constant = pageControllBottomOffset
@@ -341,7 +343,9 @@ extension HelpView {
     let linePath = UIBezierPath()
     linePath.move(to: tFrame.center)
     linePath.addLine(to: view.textLayer.center)
-    linePath.addLine(to: self.center)
+    var center = self.center
+    center.y += HelpView.cellYoffset
+    linePath.addLine(to: center)
     
     let lineMaskPath = CGMutablePath()
     lineMaskPath.addRect(bounds)

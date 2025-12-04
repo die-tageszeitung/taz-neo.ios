@@ -49,7 +49,8 @@ final class HelpViewCell: UIView {
   
   private func setup() {
     addSubview(textLayer)
-    textLayer.centerAxis()
+    textLayer.centerX()
+    textLayer.centerY(dist: HelpView.cellYoffset) 
     textLayer.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
     textWidthConstraint = textLayer.pinWidth(UIWindow.size.width * 0.7)
     titleLabel.isAccessibilityElement = true
