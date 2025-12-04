@@ -62,7 +62,9 @@ extension Date {
     let from = dfFrom.string(from: self)
     let to = dfTo.string(from: endDate)
     
-    return "\(leadingText ?? "")\(from) – \(to)"
+    return short || shorter
+    ? "\(from) – \(to)"
+    : "\(leadingText ?? "")\(from) – \(to)"
   }
 }
 
