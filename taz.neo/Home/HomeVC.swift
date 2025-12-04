@@ -418,7 +418,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     $isHomeTiles.onChange{[weak self] _ in
       self?.log("isHomeTiles: \(String(describing: self?.isHomeTiles))")
       self?.updateCollectionViewLayout()
-      self?.applyLayout()
+      onMainAfter(0.05) {[weak self] in self?.applyLayout() }
       self?.updateButtonMenu()
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
     }
