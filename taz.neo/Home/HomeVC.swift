@@ -465,7 +465,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
     ///Handle reachability changes: show offline status
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
-      self?.statusHeader.currentStatus = .none
+      self?.statusHeader.currentStatus = .online
     }
     
     Notification.receive(Const.NotificationNames.newAutolIssueLoaded) {[weak self] _ in
@@ -474,8 +474,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       _ = self?.service.reloadPublicationDates(refresh: nil, verticalCv: false)
       self?.collectionView.reloadData()
       self?.onHome()
+      let newHeaderStatus: FetchNewStatusHeader.status
+      = self?.feederContext.isConnected == true ? .online : .offline
       Notification.send(Const.NotificationNames.checkForNewIssues,
-                        content: FetchNewStatusHeader.status.none,
+                        content: newHeaderStatus,
                         error: nil,
                         sender: self?.service)
       if self?.isHomeTiles == true { return }

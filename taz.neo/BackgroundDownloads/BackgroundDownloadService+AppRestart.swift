@@ -87,7 +87,7 @@ extension BackgroundDownloadService {
         }
       }
       let openDl = backgroundSession.hasOpenDownloads ///issue, audio and resources downloads
-      notifyHome(openDl ? .loadIssue : .none)
+      notifyHome(openDl ? .loadIssue : feederContext.isConnected ? .online : .offline)
       handlePendingTasks()
       if openDl { backgroundSession.resume(archived: true, priority: 1.0)}
     }
