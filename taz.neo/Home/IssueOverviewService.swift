@@ -104,7 +104,7 @@ class IssueOverviewService: NSObject, DoesLog {
   func issue(at date: Date) -> StoredIssue? {
     return issues[date.issueKey]
   }
-  
+  ///Warning currently using issues[date.issueKey]may change to: issues[date.ISO8601]
   private var issues: [String:StoredIssue]
   ///in hard tests due massive parallel write and read (timer, scrolling on Home, whatever) the app crashed with a own async DispatchQueue
   ///thats why this is moved to main thread now, since then no more chrashes
