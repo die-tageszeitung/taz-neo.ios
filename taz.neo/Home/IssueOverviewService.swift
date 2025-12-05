@@ -506,6 +506,9 @@ class IssueOverviewService: NSObject, DoesLog {
     (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     } ?? [:]
+    if (feed.publicationDates?.count ?? -1) > self.publicationDates.count {
+      _ = reloadPublicationDates(refresh: nil, verticalCv: false)
+    }
   }
     
   /// Initialize with FeederContext
