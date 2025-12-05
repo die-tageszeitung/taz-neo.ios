@@ -80,10 +80,7 @@ private let configValues = [
   "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
-  // coachmark defaults
-  "showCoachmarks" : Device.isSimulator ? "false" : "true",
-  "cmLastPrio": "1",
-  "cmSessionCount": "0",
+  "showHelp": "true",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",
@@ -102,7 +99,7 @@ private let configValues = [
 private let configValuesLMD = [
   // Use facsimile mode for LMD
   "isFacsimile" : "true",
-  "showCoachmarks": "false",///only first level would be available due "Logic" and LMd has no PDF switch Button
+  "showHelp": "true",
   "usageTrackingAllowed" : "false",
   "smartBackFromArticle" : "true",///required for page Article header, otherwise current page is not displayed correctly
 ]
