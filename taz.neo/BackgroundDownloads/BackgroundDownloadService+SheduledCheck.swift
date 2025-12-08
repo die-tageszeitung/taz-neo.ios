@@ -1,5 +1,5 @@
 //
-//  BackgroundDownloadServiceSheduledCheck.swift
+//  BackgroundDownloadService+SheduledCheck.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 02.05.25.
