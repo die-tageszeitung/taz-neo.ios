@@ -126,12 +126,18 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     case goingBackgroundForeground
   }
   
+  var showRequiredLoginForSyncAlert:Bool = false
+  
   private func syncBookmarksIfNeeded(syncReason:SyncReason, finishNoChangeMessage:String? = nil){
     if TazAppEnvironment.isAuthenticated == false {
+      if showRequiredLoginForSyncAlert { return }
+      showRequiredLoginForSyncAlert = true
       Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
-                        actions: UIAlertAction.init( title: "Anmelden",
+                        actions: [UIAlertAction.init( title: "Anmelden",
                                                      style: .default ){_ in
         TazAppEnvironment.sharedInstance.feederContext?.authenticate()
+      }],  completion: {[weak self] in
+        self?.showRequiredLoginForSyncAlert = false
       })
       return
     }
