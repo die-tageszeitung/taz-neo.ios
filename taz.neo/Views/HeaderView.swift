@@ -181,6 +181,9 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     self.titleLabel.onTap { [weak self] _ in
       self?.onTitleClosure?(self?.title ?? "")
     }
+    self.pageNumberLabel.onTap { [weak self] _ in
+      self?.onTitleClosure?(self?.title ?? "")
+    }
   }
   
   private func setup() {
