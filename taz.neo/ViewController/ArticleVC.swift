@@ -419,6 +419,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     UIMenuController.shared.menuItems = [suche]
     showMultiColumnOnboardingIfNeeded()
     ///ensure article is perstisted, also on recall same article after art>sect>art
+    guard delegate != nil else { return }
     issue.setLastRead(pageIndex: nil, articleIndex: index, sectionIndex: nil, scrollPosition: nil)
   }
   
