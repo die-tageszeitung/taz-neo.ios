@@ -395,6 +395,9 @@ class IssueOverviewService: NSObject, DoesLog {
                       content: data)
   }
   
+  
+  private var isReloadingPublicationDates = false
+  
   /// refresh data model, reloads active collectionView
   /// - Parameters:
   ///   - collectionView: cv to reload animated
@@ -402,6 +405,9 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Returns: true if new issues available and reload, false if not
   func reloadPublicationDates(refresh collectionView: UICollectionView?,
                               verticalCv: Bool) -> Bool {
+    guard !isReloadingPublicationDates else { return false }
+    isReloadingPublicationDates = true
+    defer { isReloadingPublicationDates = false }
     guard let newPubDates = feed.publicationDates else { return false }
     
     guard let collectionView = collectionView else {
@@ -487,9 +493,9 @@ class IssueOverviewService: NSObject, DoesLog {
       for pair in movedIp {
         collectionView.moveItem(at: pair.from, to: pair.to)
       }
+    }, completion: {[weak self] _ in
       ///updateData
-      publicationDates = newPubDates
-    }, completion: {_ in
+      self?.publicationDates = newPubDates
       collectionView.contentOffset
       = verticalCv
       ? CGPointMake(0, collectionView.contentSize.height - offset)
