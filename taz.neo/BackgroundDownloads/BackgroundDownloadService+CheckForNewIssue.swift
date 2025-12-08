@@ -104,9 +104,11 @@ fileprivate extension BackgroundDownloadService {
     
     do {
       // MARK: - Logging context
-      
       ///remember current localResources, after fetch its updated but not downloaded here
-      let localResources = StoredResources.latest()
+      // fetch localResources on the MainActor and return it
+      let localResources: StoredResources? = await MainActor.run {
+        StoredResources.latest()
+      }
       
       log("""
           ...checkForNewIssue 
