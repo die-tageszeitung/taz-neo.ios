@@ -405,22 +405,31 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Returns: true if new issues available and reload, false if not
   func reloadPublicationDates(refresh collectionView: UICollectionView?,
                               verticalCv: Bool) -> Bool {
+    #if DEBUG
+    precondition(Thread.isMainThread, "reloadPublicationDates must be called from the main thread.")
+    #else
+    if !Thread.isMainThread {
+        log("reloadPublicationDates must be called from the main thread.", logLevel: .Error)
+        return false
+    }
+    #endif
     guard !isReloadingPublicationDates else { return false }
     isReloadingPublicationDates = true
     defer { isReloadingPublicationDates = false }
+    
     guard let newPubDates = feed.publicationDates else { return false }
     
+    // if no cv given, only refresh model
     guard let collectionView = collectionView else {
-      ///Skip Reload if home is still not presended
       if newPubDates.count > self.publicationDates.count {
         self.publicationDates = newPubDates
       }
       return false
     }
     
-    
     debug("before: \(publicationDates.count) after: \(newPubDates.count)")
-  
+    
+    // inform ui activity indicator on home for update
     if publicationDates.count != newPubDates.count {
       Notification.send(Const.NotificationNames.checkForNewIssues,
                         content: FetchNewStatusHeader.status.loadPreview,
@@ -428,82 +437,101 @@ class IssueOverviewService: NSObject, DoesLog {
                         sender: self)
     }
     
+    // too many updated items > full reload cv
     if abs(newPubDates.count - publicationDates.count) > 10 {
       publicationDates = newPubDates
       collectionView.reloadData()
       return true
     }
     
-    ///Warning Work with Issue Keys not with PublicationDates for performance reasons
-    ///insert/update 4 of 3770 Publication Datees took < 50s in Debugging on intel mac
-    ///with String Keys only 4s
-    let newDates = newPubDates.map{ $0.date.issueKey }
-    let oldDates = publicationDates.map{ $0.date.issueKey }
+    // MARK: - prepare update, only work with copies
+    // to ensure publicationDates stay stable during calculations
+    /// Warning Work with Issue Keys not with PublicationDates for performance reasons
+    /// insert/update 4 of 3770 Publication Datees took < 50s in Debugging on intel mac
+    /// with String Keys only 4s
+    let newDates = newPubDates.map { $0.date.issueKey }
+    let oldDates = publicationDates.map { $0.date.issueKey }
     
     var insertIp: [IndexPath] = []
     var movedIp: [IndexPathMoved] = []
+    var deletedIp: [IndexPath] = []
     var usedOld: [String] = []
     
-    ///find added and move items indexPaths
-    for (nIdx, newElm) in newDates.enumerated() {///SLOW IN DEBUG! 15s on iPadA2
+    // MARK: - Added + moved
+    for (nIdx, newElm) in newDates.enumerated() {
       var found = false
       for (oIdx, oldElm) in oldDates.enumerated() {
         if newElm == oldElm {
           if nIdx != oIdx {
-            movedIp.append(IndexPathMoved(from:IndexPath(row: oIdx, section: 0),
-                                          to:IndexPath(row: nIdx, section: 0)))
+            movedIp.append(IndexPathMoved(
+              from: IndexPath(row: oIdx, section: 0),
+              to:   IndexPath(row: nIdx, section: 0)
+            ))
           }
           usedOld.append(oldElm)
-          found = true;
-          break;
+          found = true
+          break
         }
       }
-      if found == false {
+      if !found {
         insertIp.append(IndexPath(row: nIdx, section: 0))
       }
     }
     
-    ///find removed items indexPaths
-    var deletedIp: [IndexPath] = []
+    // MARK: - Deleted
     for (idx, oldElm) in oldDates.enumerated() {
-      if usedOld.contains(oldElm) == false {
+      if !usedOld.contains(oldElm) {
         deletedIp.append(IndexPath(row: idx, section: 0))
       }
     }
     
-    if insertIp.count == 0, movedIp.count == 0, deletedIp.count == 0 {
+    if insertIp.isEmpty && movedIp.isEmpty && deletedIp.isEmpty {
       return false
     }
     
-    let offset
-    = verticalCv
+    // MARK: - save scroll offset
+    let offset =
+    verticalCv
     ? collectionView.contentSize.height - collectionView.contentOffset.y
     : collectionView.contentSize.width - collectionView.contentOffset.x
-    debug(">>>performBatchUpdates on collectionView counts (imd): \(insertIp.count),\(movedIp.count),\(deletedIp.count)")
-    ///Update Issue Carousel
+    
+    debug(">>>performBatchUpdates counts: \(insertIp.count),\(movedIp.count),\(deletedIp.count)")
+    
+    // MARK: - Perform Updates
     CATransaction.begin()
     CATransaction.setDisableActions(true)
+    
     collectionView.performBatchUpdates({
-      if insertIp.count > 0 {
-        collectionView.insertItems(at: insertIp)
-      }
-      if deletedIp.count > 0 {
+      
+      // order is important: delete > insert > move
+      if !deletedIp.isEmpty {
         collectionView.deleteItems(at: deletedIp)
       }
+      
+      if !insertIp.isEmpty {
+        collectionView.insertItems(at: insertIp)
+      }
+      
       for pair in movedIp {
         collectionView.moveItem(at: pair.from, to: pair.to)
       }
-    }, completion: {[weak self] _ in
-      ///updateData
-      self?.publicationDates = newPubDates
-      collectionView.contentOffset
-      = verticalCv
-      ? CGPointMake(0, collectionView.contentSize.height - offset)
-      : CGPointMake(collectionView.contentSize.width - offset, 0)
+      
+    }, completion: { [weak self] _ in
+      guard let self = self else { return }
+      
+      // now we can set the real datamodell
+      self.publicationDates = newPubDates
+      
+      // restore offset
+      collectionView.contentOffset =
+      verticalCv
+      ? CGPoint(x: 0, y: collectionView.contentSize.height - offset)
+      : CGPoint(x: collectionView.contentSize.width - offset, y: 0)
+      
       CATransaction.commit()
     })
-    ///inform sender to refresh other collectionView
-    debug(">>>performBatchUpdates on collectionView done")
+    
+    debug(">>>performBatchUpdates done")
     return true
   }
     
