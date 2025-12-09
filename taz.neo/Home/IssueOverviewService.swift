@@ -405,31 +405,44 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Returns: true if new issues available and reload, false if not
   func reloadPublicationDates(refresh collectionView: UICollectionView?,
                               verticalCv: Bool) -> Bool {
+    // MAIN THREAD CHECK: crash in DEBUG, log+return in RELEASE
     #if DEBUG
     precondition(Thread.isMainThread, "reloadPublicationDates must be called from the main thread.")
     #else
     if !Thread.isMainThread {
-        log("reloadPublicationDates must be called from the main thread.", logLevel: .Error)
-        return false
+      log("reloadPublicationDates must be called from the main thread.", logLevel: .Error)
+      return false
     }
     #endif
-    guard !isReloadingPublicationDates else { return false }
+    
+    // guard reentry
+    guard !isReloadingPublicationDates else {
+      debug("reloadPublicationDates: already reloading -> skip")
+      return false
+    }
     isReloadingPublicationDates = true
-    defer { isReloadingPublicationDates = false }
     
-    guard let newPubDates = feed.publicationDates else { return false }
+    // ensure we always clear the flag on all exit paths (except when completion will clear it)
+    func finishAndReturn(_ result: Bool) -> Bool {
+      isReloadingPublicationDates = false
+      return result
+    }
     
-    // if no cv given, only refresh model
+    guard let newPubDates = feed.publicationDates else {
+      return finishAndReturn(false)
+    }
+    
+    // if no collectionView present, update model only if count increased
     guard let collectionView = collectionView else {
       if newPubDates.count > self.publicationDates.count {
         self.publicationDates = newPubDates
       }
-      return false
+      return finishAndReturn(false)
     }
     
-    debug("before: \(publicationDates.count) after: \(newPubDates.count)")
+    debug("reloadPublicationDates before: \(publicationDates.count) after: \(newPubDates.count)")
     
-    // inform ui activity indicator on home for update
+    // notify header (only UI indicator)
     if publicationDates.count != newPubDates.count {
       Notification.send(Const.NotificationNames.checkForNewIssues,
                         content: FetchNewStatusHeader.status.loadPreview,
@@ -437,101 +450,129 @@ class IssueOverviewService: NSObject, DoesLog {
                         sender: self)
     }
     
-    // too many updated items > full reload cv
+    // large delta -> full reload (safe, simple)
     if abs(newPubDates.count - publicationDates.count) > 10 {
       publicationDates = newPubDates
       collectionView.reloadData()
-      return true
+      return finishAndReturn(true)
     }
     
-    // MARK: - prepare update, only work with copies
-    // to ensure publicationDates stay stable during calculations
-    /// Warning Work with Issue Keys not with PublicationDates for performance reasons
-    /// insert/update 4 of 3770 Publication Datees took < 50s in Debugging on intel mac
-    /// with String Keys only 4s
-    let newDates = newPubDates.map { $0.date.issueKey }
-    let oldDates = publicationDates.map { $0.date.issueKey }
+    // --- Build maps for fast lookup (O(n)) ---
+    let oldKeys = publicationDates.map { $0.date.issueKey }
+    let newKeys = newPubDates.map { $0.date.issueKey }
     
+    // Quick sanity: no duplicates allowed in keys — if duplicates, fallback to reload
+    let oldSet = Set(oldKeys)
+    let newSet = Set(newKeys)
+    if oldSet.count != oldKeys.count || newSet.count != newKeys.count {
+      debug("reloadPublicationDates: duplicate keys detected -> fallback reload")
+      publicationDates = newPubDates
+      collectionView.reloadData()
+      return finishAndReturn(true)
+    }
+    
+    var oldIndexByKey: [String: Int] = [:]
+    for (i, k) in oldKeys.enumerated() { oldIndexByKey[k] = i }
+    
+    var newIndexByKey: [String: Int] = [:]
+    for (i, k) in newKeys.enumerated() { newIndexByKey[k] = i }
+    
+    // compute deletes (old keys not in new), inserts (new keys not in old), moves (same key different index)
     var insertIp: [IndexPath] = []
-    var movedIp: [IndexPathMoved] = []
     var deletedIp: [IndexPath] = []
-    var usedOld: [String] = []
+    var movedIp: [IndexPathMoved] = []
     
-    // MARK: - Added + moved
-    for (nIdx, newElm) in newDates.enumerated() {
-      var found = false
-      for (oIdx, oldElm) in oldDates.enumerated() {
-        if newElm == oldElm {
-          if nIdx != oIdx {
-            movedIp.append(IndexPathMoved(
-              from: IndexPath(row: oIdx, section: 0),
-              to:   IndexPath(row: nIdx, section: 0)
-            ))
-          }
-          usedOld.append(oldElm)
-          found = true
-          break
+    for (nIdx, newKey) in newKeys.enumerated() {
+      if let oIdx = oldIndexByKey[newKey] {
+        if oIdx != nIdx {
+          movedIp.append((from: IndexPath(row: oIdx, section: 0),
+                          to:   IndexPath(row: nIdx, section: 0)))
         }
-      }
-      if !found {
+      } else {
         insertIp.append(IndexPath(row: nIdx, section: 0))
       }
     }
     
-    // MARK: - Deleted
-    for (idx, oldElm) in oldDates.enumerated() {
-      if !usedOld.contains(oldElm) {
-        deletedIp.append(IndexPath(row: idx, section: 0))
+    for (oIdx, oldKey) in oldKeys.enumerated() {
+      if newIndexByKey[oldKey] == nil {
+        deletedIp.append(IndexPath(row: oIdx, section: 0))
       }
     }
     
     if insertIp.isEmpty && movedIp.isEmpty && deletedIp.isEmpty {
-      return false
+      return finishAndReturn(false)
     }
     
-    // MARK: - save scroll offset
-    let offset =
-    verticalCv
-    ? collectionView.contentSize.height - collectionView.contentOffset.y
-    : collectionView.contentSize.width - collectionView.contentOffset.x
+    // validate collectionView current state matches publicationDates (old state)
+    let currentCVCount = collectionView.numberOfItems(inSection: 0)
+    if currentCVCount != publicationDates.count {
+      debug("reloadPublicationDates: collectionView count mismatch (cv:\(currentCVCount) vs model:\(publicationDates.count)) -> fallback reload")
+      publicationDates = newPubDates
+      collectionView.reloadData()
+      return finishAndReturn(true)
+    }
     
-    debug(">>>performBatchUpdates counts: \(insertIp.count),\(movedIp.count),\(deletedIp.count)")
+    // Validate index paths are in-bounds (conservative)
+    let newCount = newPubDates.count
+    insertIp = insertIp.filter { $0.row >= 0 && $0.row <= newCount } // insert allowed at end
+    deletedIp = deletedIp.filter { $0.row >= 0 && $0.row < currentCVCount }
+    movedIp = movedIp.filter { $0.from.row >= 0 && $0.from.row < currentCVCount && $0.to.row >= 0 && $0.to.row <= newCount }
     
-    // MARK: - Perform Updates
+    // If validation removed all operations, fallback to reload
+    if insertIp.isEmpty && movedIp.isEmpty && deletedIp.isEmpty {
+      publicationDates = newPubDates
+      collectionView.reloadData()
+      return finishAndReturn(true)
+    }
+    
+    // Keep scroll offset and compute before we change contentSize by updating model
+    let offset = verticalCv
+    ? (collectionView.contentSize.height - collectionView.contentOffset.y)
+    : (collectionView.contentSize.width - collectionView.contentOffset.x)
+    
+    debug("reloadPublicationDates performing batch updates insert:\(insertIp.count) delete:\(deletedIp.count) move:\(movedIp.count)")
+    
+    // IMPORTANT: Update the model first so dataSource reflects the post-update state when inserts/deletes are applied.
+    // Keep isReloadingPublicationDates = true so reentrant calls are ignored while animations are running.
+    self.publicationDates = newPubDates
+    
+    // Perform batch updates in correct order: deletes -> inserts -> moves
     CATransaction.begin()
     CATransaction.setDisableActions(true)
     
     collectionView.performBatchUpdates({
-      
-      // order is important: delete > insert > move
       if !deletedIp.isEmpty {
         collectionView.deleteItems(at: deletedIp)
       }
-      
       if !insertIp.isEmpty {
         collectionView.insertItems(at: insertIp)
       }
-      
       for pair in movedIp {
         collectionView.moveItem(at: pair.from, to: pair.to)
       }
+    }, completion: { [weak self, weak collectionView] _ in
+      guard let self = self else {
+        CATransaction.commit()
+        return
+      }
       
-    }, completion: { [weak self] _ in
-      guard let self = self else { return }
-      
-      // now we can set the real datamodell
-      self.publicationDates = newPubDates
-      
-      // restore offset
-      collectionView.contentOffset =
-      verticalCv
-      ? CGPoint(x: 0, y: collectionView.contentSize.height - offset)
-      : CGPoint(x: collectionView.contentSize.width - offset, y: 0)
+      // restore offset defensively (ensure non-negative)
+      if let cv = collectionView {
+        if verticalCv {
+          let newOffsetY = max(0, cv.contentSize.height - offset)
+          cv.setContentOffset(CGPoint(x: 0, y: newOffsetY), animated: false)
+        } else {
+          let newOffsetX = max(0, cv.contentSize.width - offset)
+          cv.setContentOffset(CGPoint(x: newOffsetX, y: 0), animated: false)
+        }
+      }
       
       CATransaction.commit()
+      
+      // allow future reloads
+      self.isReloadingPublicationDates = false
     })
     
-    debug(">>>performBatchUpdates done")
     return true
   }
     
