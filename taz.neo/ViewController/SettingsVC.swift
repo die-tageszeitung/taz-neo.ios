@@ -114,6 +114,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("debuggingSwitchOne")
   public var debuggingSwitchOne: Bool
   
+  @Default("openLinksInApp")
+  public var openLinksInApp: Bool
+  
   @Default("doubleTapToZoomPdf")
   public var doubleTapToZoomPdf: Bool
   
@@ -435,6 +438,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: debuggingSwitchOne,
                   onChange: {[weak self] newValue in
     self?.debuggingSwitchOne = newValue
+  })
+  lazy var openLinksInAppCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Links in der App öffnen",
+                  detailText: "Artikel-Links zu taz.de nach Möglichkeit in der App statt im Browser öffnen.",
+                  initialValue: openLinksInApp,
+                  onChange: {[weak self] newValue in
+    self?.openLinksInApp = newValue
   })
   lazy var multiColumnFixedScrollingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
@@ -952,6 +962,7 @@ extension SettingsVC {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
       voiceoverControlsCell,
+      openLinksInAppCell,
       memoryUsageCell,
       deleteDatabaseCell,
       resetAppCell

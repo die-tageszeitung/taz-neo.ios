@@ -85,7 +85,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
-      else if let index = index { avc.index = index }
+      else if let index = index {
+        if animated, let cv = avc.collectionView, cv.isInitialized {
+          /// ensure collectionView is initialized otherwise scrolling did not work!
+          cv.scrollto(index, animated: true)
+        }
+        else {
+          avc.index = index
+        }
+      }
       if let nvc = navigationController {
         if avc != nvc.topViewController {
           avc.view.doLayout()
@@ -230,12 +238,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           so this is currently the most effective solution
        **/
       if self?.suppressLinkPressedNotification == true { return }
-      if UIApplication.shared.applicationState != .active { return }
       if self?.navigationController?.topViewController != self {
         self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
         return
       }
-      self?.linkPressed(from: from, to: to)
+      LinkBusiness.handleLinkPressed(from: from, to: to,
+                                     with: self)
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {

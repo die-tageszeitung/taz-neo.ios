@@ -215,15 +215,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.updateAccessibilityElements(currentCell: self.currentWebView ?? ov?.mainView)
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
-      /** FIX wrong Article shown (most errors on iPad, some also on Phone)
-          after re-enter app due wired Scroll Pos change
-          @see:  https://developer.apple.com/forums/thread/47100
-          unfortunately is our behaviour quite complex, a simple return in viewWillTransition...
-          destroys the layout or raise other errors
-          so this is currently the most effective solution
-       **/
-      if UIApplication.shared.applicationState != .active { return }
-      self?.adelegate?.linkPressed(from: from, to: to)
+      LinkBusiness.handleLinkPressed(from: from, to: to,
+                                     with: self?.adelegate)
     }
     whenLoaded { _ in
       Notification.send(Const.NotificationNames.articleLoaded)
