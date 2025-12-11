@@ -111,6 +111,9 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
+  @Default("debuggingSwitchOne")
+  public var debuggingSwitchOne: Bool
+  
   @Default("doubleTapToZoomPdf")
   public var doubleTapToZoomPdf: Bool
   
@@ -425,6 +428,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: multiColumnSnap,
                   onChange: {[weak self] newValue in
     self?.multiColumnSnap = newValue
+  })
+  lazy var debuggingSwitchOneCell: XSettingsCell
+  = XSettingsCell(toggleWithText: "Debugging (intern)",
+                  detailText: "Aktiviert einzelne experimentelle oder zu testende Umgebungsvariablen in Releasebuld. Aktuell: Bugfix in IPv4 Rechabillity funktioniert nicht",
+                  initialValue: debuggingSwitchOne,
+                  onChange: {[weak self] newValue in
+    self?.debuggingSwitchOne = newValue
   })
   lazy var multiColumnFixedScrollingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
@@ -963,6 +973,7 @@ extension SettingsVC {
     }
     
     if isSpecialSettingAvailable {
+      cells.append(debuggingSwitchOneCell)
       cells.append(sendFailureRequestCell)
       cells.append(deleteSearchResultsFolder)
       cells.append(contentChangeSettingCellALPHA)
