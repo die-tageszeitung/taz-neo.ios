@@ -171,7 +171,7 @@ class SearchResultsCell: UITableViewCell {
   
   var content : GqlSearchHit? { didSet{ updateContent() }   }
   
-  private var contentServerId: Int?
+  private var contentServerId: Int64?
   
   private func updateContent(){
     contentServerId = content?.article.serverId

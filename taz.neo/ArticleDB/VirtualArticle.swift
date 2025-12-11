@@ -21,7 +21,7 @@ public class VirtualArticle: Article {
   
   public var articleType: ArticleType?
   
-  public var serverId: Int?
+  public var serverId: Int64?
   
   public var readingDuration: Int?
   

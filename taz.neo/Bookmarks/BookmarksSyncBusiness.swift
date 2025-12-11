@@ -14,17 +14,17 @@ final class BookmarksSyncBusiness: DoesLog {
   @Default("localDeletedBookmarks")
   static var localDeletedBookmarksString: String   // "id:ts,id:ts"
 
-  static var localDeletedBookmarks: [Int: TimeInterval] {
+  static var localDeletedBookmarks: [Int64: TimeInterval] {
       get {
           guard !localDeletedBookmarksString.isEmpty else { return [:] }
 
           let pairs = localDeletedBookmarksString.split(separator: ",")
-          var map: [Int: TimeInterval] = [:]
+          var map: [Int64: TimeInterval] = [:]
 
           for pair in pairs {
               let parts = pair.split(separator: ":")
               if parts.count == 2,
-                 let id = Int(parts[0]),
+                 let id = Int64(parts[0]),
                  let ts = TimeInterval(parts[1]) {
                   map[id] = ts
               }
@@ -40,7 +40,7 @@ final class BookmarksSyncBusiness: DoesLog {
   }
 
   /// Merkt lokale Löschung eines Bookmarks
-  static func appendLocalDeletedBookmarkMediaSyncId(_ mediaSyncId: Int?) {
+  static func appendLocalDeletedBookmarkMediaSyncId(_ mediaSyncId: Int64?) {
       guard let id = mediaSyncId else { return }
 
       var map = localDeletedBookmarks
@@ -135,7 +135,7 @@ final class BookmarksSyncBusiness: DoesLog {
       
       // Skip if tombstone says "deleted after last sync"
       if let last = Self.lastBookmarkSyncDate,
-         let delTs = deletedMap[Int(id) ?? -1] {
+         let delTs = deletedMap[Int64(id) ?? -1] {
         let deletedAt = Date(timeIntervalSince1970: delTs)
         if deletedAt > last { return nil }
       }
@@ -242,7 +242,7 @@ final class BookmarksSyncBusiness: DoesLog {
       BookmarkArticle(issueDate: local.bookmarkedDate, serverId: local.serverId)
     }
     let deleteArticlesForServer = remoteDeletes.compactMap { idStr -> BookmarkArticle? in
-      guard let sid = Int(idStr) else { return nil }
+      guard let sid = Int64(idStr) else { return nil }
       return BookmarkArticle(issueDate: nil, serverId: sid)
     }
     

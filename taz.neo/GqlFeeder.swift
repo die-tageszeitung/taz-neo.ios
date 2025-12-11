@@ -320,7 +320,7 @@ class GqlArticle: Article, GQLObject {
   /// List of authors
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
-  var serverId: Int?
+  var serverId: Int64?
   var readingDuration: Int?
 
   static var fields = """

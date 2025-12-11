@@ -109,7 +109,7 @@ extension Bookmarks {
   }
   
   ///ignoring pending deletions
-  private func bookmarkArticle(forArticleWith serverId: Int, in list: Section? = nil) -> StoredArticle? {
+  private func bookmarkArticle(forArticleWith serverId: Int64, in list: Section? = nil) -> StoredArticle? {
     // Retrieve the specified section or the shared bookmark section
     let section = list as? StoredSection ?? bookmarkSection
     // Find the matching article by its server ID

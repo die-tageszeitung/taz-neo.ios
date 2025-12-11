@@ -224,7 +224,7 @@ extension IssueDisplayService {
 }
 
 extension Issue {
-  func indexOfArticle(with id: Int) -> Int? {
+  func indexOfArticle(with id: Int64) -> Int? {
     return allArticles.firstIndex(where: { art in art.serverId == id })
   }
   

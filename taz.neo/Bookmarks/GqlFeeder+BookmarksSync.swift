@@ -133,7 +133,7 @@ extension GqlFeeder {
 
 struct BookmarkArticle {
   var issueDate: Date?
-  var serverId: Int?
+  var serverId: Int64?
 }
 
 extension GqlFeeder {

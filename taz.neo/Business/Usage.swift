@@ -896,7 +896,7 @@ extension URL {
   /// - Parameters:
   ///   - path: relative path
   ///   - params: additional params
-  public init?(path: String, id: Int? = nil){
+  public init?(path: String, id: Int64? = nil){
     let str = id == nil ? path : "\(path)?id=\(id ?? -1)"
     self.init(string:"\(AppDomain.id)/\(str)")
   }

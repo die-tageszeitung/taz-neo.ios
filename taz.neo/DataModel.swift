@@ -516,7 +516,7 @@ public protocol Article: Content, ToString {
   /// Teaser of article
   var articleType: ArticleType? { get }
   /// Server side article ID
-  var serverId: Int? { get }
+  var serverId: Int64? { get }
   /// Aprox. reading duration in minutes
   var readingDuration: Int? { get }
 } // Article

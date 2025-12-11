@@ -1078,14 +1078,9 @@ public final class StoredArticle: Article, StoredObject {
     set { pr.teaser = newValue }
   }
   
-  public var serverId: Int? {
-    get { return pr.serverId != 0 ? Int(pr.serverId) : nil }
-    set {
-      if let id = newValue {
-        pr.serverId = Int64(id)
-      }
-      else { pr.serverId = 0 }
-    }
+  public var serverId: Int64? {
+      get { pr.serverId != 0 ? pr.serverId : nil }
+      set { pr.serverId = newValue ?? 0 }
   }
   public var readingDuration: Int? {
     get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
