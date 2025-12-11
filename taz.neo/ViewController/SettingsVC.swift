@@ -36,9 +36,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("autoloadNotifications")
   var autoloadNotifications: Bool
   
-  @Default("voiceoverControls")
-  var voiceoverControls: Bool
-  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
@@ -249,13 +246,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   initialValue: autoloadNotifications,
                   onChange: {[weak self] newValue in
     self?.autoloadNotifications = newValue })
-  
-  lazy var voiceoverControlsCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Voiceover Steuerung",
-                  detailText: "Alternative Steuerelemente für Ausgabenauswahl bei aktiviertem Voiceover verwenden",
-                  initialValue: voiceoverControls,
-                  onChange: {[weak self] newValue in
-    self?.voiceoverControls = newValue })
   
   lazy var reopenHintSettingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Weiterlesen anzeigen",
@@ -961,7 +951,6 @@ extension SettingsVC {
   var extendedSettingsCells:[XSettingsCell] {
     (edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = edgeTapToNavigate
     var cells =  [
-      voiceoverControlsCell,
       openLinksInAppCell,
       memoryUsageCell,
       deleteDatabaseCell,
