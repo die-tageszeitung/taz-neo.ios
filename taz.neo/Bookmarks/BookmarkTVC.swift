@@ -142,6 +142,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       return
     }
     
+    if syncReason != .manual && autoSyncBookmarks == false { return }
+    
     let lastSync = BookmarksSyncBusiness.lastBookmarkSyncDate ?? .distantPast
     
     if syncReason == .bookmarksAppeared {
