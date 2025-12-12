@@ -431,7 +431,8 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   })
   lazy var openLinksInAppCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Links in der App öffnen",
-                  detailText: "Artikel-Links zu taz.de nach Möglichkeit in der App statt im Browser öffnen.",
+                  detailText: "Artikel-Links zu taz.de in der App öffnen, sofern der entsprechende Inhalt lokal verfügbar ist.",
+                  ///später, wenn laden implementiert: Artikel-Links zu taz.de nach Möglichkeit in der App statt im Browser öffnen.
                   initialValue: openLinksInApp,
                   onChange: {[weak self] newValue in
     self?.openLinksInApp = newValue

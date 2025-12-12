@@ -33,20 +33,18 @@ class LinkBusiness {
       return
     }
     else if let localArticle = StoredArticle.get(byMediaSyncId: msid),
-            let issue = localArticle.primaryIssue,
+            let issueDate = localArticle.issueDate,
             let url = localArticle.fileUrl {
-      let data = ArticleLinkOpen(articleUrl: url, issueDate: issue.date)
-      Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data)
-      //Version#2 local popup with request Browser/in App
-//      let message = "Artikel \(localArticle.title ?? "") in der \(issue.issueDateAccessibilityText) oder auf taz.de im Browser öffnen?"
-//      let openInIssueAction = Alert.action("In Ausgabe") {_ in
-//        let data = ArticleLinkOpen(articleUrl: url, issueDate: issue.date)
-//        Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data)
-//      }
-//      let openInBrowserAction = Alert.action("Im Browser") {_ in
-//        adelegate?.linkPressed(from: from, to: to)
-//      }
-//      Alert.actionSheet(message: message, actions: [openInIssueAction, openInBrowserAction])
+      let issueText = localArticle.primaryIssue?.issueDateAccessibilityText ?? issueDate.accessibilityLabelText(prefix: "Ausgabe vom")
+      let message = "Artikel \"\(localArticle.title ?? "")\" in der \(issueText) oder auf taz.de im Browser öffnen?"
+      let openInIssueAction = Alert.action("In Ausgabe") {_ in
+        let data = ArticleLinkOpen(articleUrl: url, issueDate: issueDate)
+        Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data)
+      }
+      let openInBrowserAction = Alert.action("Im Browser") {_ in
+        adelegate?.linkPressed(from: from, to: to)
+      }
+      Alert.actionSheet(message: message, actions: [openInIssueAction, openInBrowserAction])
       return
     }
     adelegate?.linkPressed(from: from, to: to)
