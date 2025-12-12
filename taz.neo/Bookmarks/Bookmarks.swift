@@ -218,6 +218,11 @@ extension Bookmarks {
         if storedArticle.pr.issueDate == nil {
           storedArticle.pr.issueDate = issue.date
         }
+        if storedArticle.pr.sectionTitle == nil {
+          /// preserve also the original section title in case the parent issue is deleted or reduced later
+          /// and `sectionTitle` is no longer accessible
+          storedArticle.pr.sectionTitle = storedArticle.sectionTitle
+        }
         storedArticle.baseURL = issue.baseUrl
       }
       return storedArticle

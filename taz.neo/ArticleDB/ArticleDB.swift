@@ -946,7 +946,11 @@ extension PersistentSection {
     for art in articlesCopy {
         art.removeFromSections(self)
       if (art.sections?.count ?? 0) == 0 { art.delete() }
-//      else if art.sectionTitle == nil {  art.sectionTitle = self.title }
+      /// else if art.sectionTitle == nil {  art.sectionTitle = self.title }
+      /// NOTE: Accessing `self.title` here does not work.
+      /// By the time `prepareForDeletion()` runs, Core Data has already marked
+      /// this object as deleted and may have invalidated or cleared simple properties.
+      /// As a result, values like `title` can already be nil.
     }
   }
 }
