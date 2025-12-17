@@ -138,7 +138,7 @@ extension HomeVC: HelpProviding{
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
       
       let helpItem = HelpItem(title:"Hilfe!",
-                                       text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um die Funktionen des aktuellen Bildschirms erklärt zu bekommen.\nProbieren Sie die Hilfe auch auf anderen Bildschirmen aus.",
+                                       text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um die Funktionen des aktuellen Bildschirms erklärt zu bekommen.\nProbieren Sie die Hilfe auch auf anderen Bildschirmen aus.\n\nZum Deaktivieren der Hilfe einfach das Fragezeichen etwas länger gedrückt halten...",
                                    isCircleCutout: true,
                                    circleCutoutInsetAdjustment: 0,
                               targetView: helpButton?.helpIconImageView)
@@ -158,7 +158,7 @@ extension HomeVC: HelpProviding{
         wrapper.addSubview(view)
         pin(view.top, to: wrapper.top, dist: 18)
         pin(view.bottom, to: wrapper.bottom)
-        view.centerX(dist: 20)
+        view.centerX()
         scrollItem.contentView = wrapper
       }
       

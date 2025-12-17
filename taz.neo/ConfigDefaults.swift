@@ -81,6 +81,7 @@ private let configValues = [
   /**======**/
   "edgeTapToNavigateVisible2" : "false",
   "showHelp": "true",
+  "helpUsedOnce": "false",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
   "columnCountLandscape": "3",

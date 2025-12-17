@@ -486,7 +486,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
       HelpBusiness.shared.resetHelp()
       Toast.show("Hilfe zurückgesetzt!")
     }
-                  })
+  })
   
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung",
@@ -599,6 +599,10 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     $reopenAutomaticSetting.onChange{[weak self] _ in
       guard let self = self else { return }
       (self.reopenAutomaticSettingCell.customAccessoryView as? UISwitch)?.isOn = self.reopenAutomaticSetting
+    }
+    $showHelp.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.showHelpCell.customAccessoryView as? UISwitch)?.isOn = self.showHelp
     }
   }
   
@@ -1209,6 +1213,7 @@ extension SettingsVC {
       Defaults.singleton.setDefaults(values: ConfigDefaults,
                                      isNotify: false,
                                      forceWrite: true)
+      HelpBusiness.shared.resetHelp()
       TazAppEnvironment.sharedInstance.deleteAll()
     } ) )
     

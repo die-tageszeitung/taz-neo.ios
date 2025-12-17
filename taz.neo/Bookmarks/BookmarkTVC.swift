@@ -302,7 +302,6 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }()
   
   var headerPlayButtonContextMenu: ContextMenu?
-  var headerMoreButtonContextMenu: ContextMenu?
   
   public var menu: MenuActions? {
     return Bookmarks.shared.bookmarkIssue?._contextMenu(group: 0)

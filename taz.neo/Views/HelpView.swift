@@ -63,7 +63,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     wrapper.addSubview(lbl)
     pin(lbl, to: wrapper, exclude: .bottom)
     pin(lbl.bottom, to: wrapper.bottom, dist: -10.0)
-    lbl.contentFont(size: Const.Size.MiniPageNumberFontSize).white().centerText()
+    lbl.contentFont(size: 13.5).white().centerText()
     lbl.text = "Hilfe für diesen Bereich nicht mehr anzeigen."
 //    lbl.text = "Diese Hilfe nicht mehr anzeigen."
     wrapper.isHidden = true
@@ -201,12 +201,12 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     prevLabel.text = "Zurück"
     prevLabel.isUserInteractionEnabled = true
     prevLabel.onTapping { [weak self] _ in self?.goToPrevious() }
-    prevLabel.contentFont(size: 12.0).white().textAlignment = .center
+    prevLabel.contentFont(size: 13.5).white().textAlignment = .center
     
     nextLabel.text = "Weiter"
     nextLabel.isUserInteractionEnabled = true
     nextLabel.onTapping { [weak self] _ in self?.goToNextOrClose() }
-    nextLabel.contentFont(size: 12.0).white().textAlignment = .center
+    nextLabel.contentFont(size: 13.5).white().textAlignment = .center
     
     pin(pageControl.top, to: controlsContainer.top, dist: 2)
     pin(pageControl.bottom, to: controlsContainer.bottom, dist: -2)

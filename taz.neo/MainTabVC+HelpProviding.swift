@@ -23,7 +23,8 @@ extension MainTabVC {
     pin(helpButton.right,
         to: view.rightGuide(),
         dist: -Const.Dist2.m15)
-    helpButton.onTapHelp {[weak self] in self?.helpTapped()}
+    helpButton.onTapHelp { HelpBusiness.shared.openHelp()}
+    helpButton.onDisableCurrentHelp { HelpBusiness.shared.disableCurrentHelp()}
     Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] _ in
       self?.helpProviderChanged()
     })
@@ -54,10 +55,6 @@ extension MainTabVC {
       - self.helpButtonToolbarOffset
       - self.helpButtonAdditionalSheetOffset
     }
-  }
-  
-  private func helpTapped() {
-    HelpBusiness.shared.openHelp()
   }
 }
 

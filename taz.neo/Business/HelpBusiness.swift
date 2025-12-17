@@ -111,6 +111,12 @@ class HelpBusiness {
     lastPdfHelpIndex = 0
   }
   
+  func disableCurrentHelp(){
+    guard let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
+    var helpProvider = mainTabVc.currentHelpProvider else { return }
+    helpProvider.doNotShowHelpInThisAreaAnymore = true
+    Notification.send(Const.NotificationNames.helpProviderChanged)
+  }
   
   func openHelp(){
     guard let window = UIApplication.shared.delegate?.window,

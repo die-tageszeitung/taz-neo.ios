@@ -76,9 +76,10 @@ final class HelpViewCell: UIView {
       contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
+      pin(cv.width, to: self.width, priority: .defaultHigh)
       pin(cv.top, to: titleLabel.bottom, dist: 22)
-      pin(cv.left, to: textLayer.left, priority: .defaultHigh)
-      pin(cv.right, to: textLayer.right, priority: .defaultHigh)
+      pin(cv.left, to: textLayer.left, dist: -30, priority: .defaultHigh)
+      pin(cv.right, to: textLayer.right, priority: .defaultLow)
       pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
     }
     else  if let cv = item?.contentView {
@@ -86,9 +87,10 @@ final class HelpViewCell: UIView {
       contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
+      pin(cv.width, to: self.width, priority: .defaultHigh)
       pin(cv.top, to: subLabel.bottom, dist: 22)
-      pin(cv.left, to: textLayer.left, priority: .defaultHigh)
-      pin(cv.right, to: textLayer.right, priority: .defaultHigh)
+      pin(cv.left, to: textLayer.left, dist: -30, priority: .defaultHigh)
+      pin(cv.right, to: textLayer.right, priority: .defaultLow)
       pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
     }
     

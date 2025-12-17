@@ -44,10 +44,19 @@ class HelpButton: UIView {
     self.onTapHelpHandler = closure
   }
   
+  private var onDisableCurrentHelpClosure: (() -> ())?
+  
+  // MARK: - onClose/onCloseHandler
+  public func onDisableCurrentHelp(closure: (() -> ())?) {
+    self.onDisableCurrentHelpClosure = closure
+  }
+  
   func handleTap() {
     helpUsedOnce = true
     onTapHelpHandler?()
   }
+  
+  var buttonContextMenu: ContextMenu?
   
   lazy var helpIconImageView: UIImageView = {
     let iv = UIImageView(image: UIImage(named: "tooltip"))
@@ -57,6 +66,14 @@ class HelpButton: UIView {
     iv.backgroundColor = Const.Colors.darkPrimaryBG
     iv.layer.cornerRadius = 16.0
     iv.onTapping { [weak self] _ in self?.handleTap() }
+    buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
+    buttonContextMenu?.addMenuItem(title: "Hilfe in diesem Bereich ausblenden", icon: "", closure: {[weak self] _ in
+      self?.onDisableCurrentHelpClosure?()
+    })
+    buttonContextMenu?.addMenuItem(title: "Hilfe überall ausblenden", icon: "", closure: { [weak self] _ in
+      self?.showHelp = false
+      Notification.send(Const.NotificationNames.helpProviderChanged)
+    })
     return iv
   }()
   
