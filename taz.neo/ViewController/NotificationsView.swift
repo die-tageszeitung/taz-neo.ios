@@ -25,7 +25,7 @@ class NotificationsView: InfoToasterView {
     lbl.contentFont()
     lbl.textAlignment = .center
     lbl.textColor = Const.SetColor.CTArticle.color
-    lbl.addBorderView(.gray, edge: UIRectEdge.bottom)
+    lbl.addBorderView(Const.SetColor.CTArticle.color, edge: UIRectEdge.bottom)
     let wrapper = Padded.View()
     wrapper.addSubview(lbl)
     //Allow label to shink if wrapper shrinks, not alow to grow more than needed

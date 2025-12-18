@@ -28,7 +28,7 @@ final class HelpViewCell: UIView {
     wrapper.addSubview(subLabel)
     pin(titleLabel, to: wrapper, exclude: .bottom)
     pin(subLabel, to: wrapper, exclude: .top)
-    pin(subLabel.top, to: titleLabel.bottom)
+    pin(subLabel.top, to: titleLabel.bottom, dist: 5.0)
     return wrapper
   }()
   
@@ -76,22 +76,20 @@ final class HelpViewCell: UIView {
       contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
-      pin(cv.width, to: self.width, priority: .defaultHigh)
       pin(cv.top, to: titleLabel.bottom, dist: 22)
-      pin(cv.left, to: textLayer.left, dist: -30, priority: .defaultHigh)
-      pin(cv.right, to: textLayer.right, priority: .defaultLow)
-      pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
+      pin(cv.left, to: self.left)
+      pin(cv.right, to: self.right)
+      pin(cv.bottom, to: textLayer.bottom)
     }
     else  if let cv = item?.contentView {
       contentView = cv
       contentView?.isAccessibilityElement = false
       cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
-      pin(cv.width, to: self.width, priority: .defaultHigh)
       pin(cv.top, to: subLabel.bottom, dist: 22)
-      pin(cv.left, to: textLayer.left, dist: -30, priority: .defaultHigh)
-      pin(cv.right, to: textLayer.right, priority: .defaultLow)
-      pin(cv.bottom, to: textLayer.bottom, priority: .defaultHigh)
+      pin(cv.left, to: self.left)
+      pin(cv.right, to: self.right)
+      pin(cv.bottom, to: textLayer.bottom)
     }
     
     if let iv = item?.topImageView {

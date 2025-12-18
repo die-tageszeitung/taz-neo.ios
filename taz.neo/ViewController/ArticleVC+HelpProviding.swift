@@ -128,7 +128,6 @@ extension ArticleVC: HelpProviding{
         iv.contentMode = .scaleAspectFit
         wrapper.addSubview(iv)
         let sides = pin(iv, to: wrapper)
-        sides.left.constant = 35
         sides.top.constant = -15
         wrapper.pinHeight(130)
         search.contentView = wrapper
