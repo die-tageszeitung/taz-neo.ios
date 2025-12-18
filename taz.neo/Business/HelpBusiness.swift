@@ -159,6 +159,8 @@ class HelpBusiness {
           close()
           Notification.send(Const.NotificationNames.helpProviderChanged)
         }
+      } else {
+        helpView.doNotShowHelpInThisAreaAnymore.isHidden = true
       }
     }
     

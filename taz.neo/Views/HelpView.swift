@@ -13,9 +13,10 @@ import NorthLib
 /// Self-contained: no need for a view controller.
 class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
-  static let cellYoffset: CGFloat = -40.0
+  static let cellYoffset: CGFloat = UIWindow.keyWindow?.isTinyHeight ?? false ? -20.0 : -40.0
   
-  var pageControllBottomOffset: CGFloat = -80.0 {
+  var pageControllBottomOffset: CGFloat
+  = UIWindow.keyWindow?.isTinyHeight ?? false ? -50.0 : -70.0 {
     didSet {
       pageControllBottomOffsetConstraint?.constant = pageControllBottomOffset
     }
@@ -393,5 +394,18 @@ extension CGRect {
     let originX = origin.x + (width  - side) / 2
     let originY = origin.y + (height - side) / 2
     return CGRect(x: originX, y: originY, width: side, height: side)
+  }
+}
+
+
+extension UIWindow {
+    var availableHeight: CGFloat {
+        bounds.height
+        - safeAreaInsets.top
+        - safeAreaInsets.bottom
+    }
+  
+  var isTinyHeight: Bool {
+    availableHeight < 740.0
   }
 }

@@ -66,7 +66,7 @@ extension HomeVC: HelpProviding{
     pin(icon2.top, to: label2.top)
     pin(icon3.top, to: label3.top)
     pin(icon4.top, to: label4.top)
-    wrapper.pinWidth(340.0)
+    wrapper.pinWidth(min(350.0, UIWindow.keyWindow?.frame.size.width ?? 350.0) - 10.0)
     
     let outerWrapper = UIView()
     outerWrapper.addSubview(wrapper)

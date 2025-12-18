@@ -66,7 +66,22 @@ final class HelpViewCell: UIView {
     contentView?.removeFromSuperview()
     self.targetView = item?.targetView
     
-    titleLabel.text = item?.title
+    if let title = item?.title, #available(iOS 15.0, *) {
+      let p = NSMutableParagraphStyle()
+      p.hyphenationFactor = 1.0
+      p.lineBreakMode = .byWordWrapping
+      p.alignment = .center
+      titleLabel.attributedText = NSAttributedString(
+        string: title,
+        attributes: [
+          .paragraphStyle: p,
+          .languageIdentifier: "de"
+        ]
+      )
+    }
+    else {
+      titleLabel.text = item?.title
+    }
     subLabel.text = item?.text
 
     if let cv = item?.contentView,
