@@ -137,7 +137,7 @@ extension HomeVC: HelpProviding{
                                targetView: tabbarItems.valueAt(1))
       let search = HelpItem(title:"Suche",
                             accessibilityTitle: "Suche, Tabbar Item",
-                            text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten, Namen oder Autor:innen.",
+                            text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten oder den Namen der Autor:innen.",
                             isCircleCutout: true,
                             targetView: tabbarItems.valueAt(2))
       
