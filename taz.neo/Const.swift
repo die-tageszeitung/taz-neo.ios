@@ -316,7 +316,7 @@ public struct Const {
         case .CTBackground:
           return (UIColor.white, Const.Colors.darkSecondaryBG,nil,nil)
         case .CTArticle:
-          return (UIColor.darkGray, UIColor.rgb(0xacace0),nil,nil)
+          return (UIColor.darkGray, UIColor.gray,nil,nil)
         case .HBackground:
           return (UIColor.white,UIColor.black,nil,nil)
         case .HText:
