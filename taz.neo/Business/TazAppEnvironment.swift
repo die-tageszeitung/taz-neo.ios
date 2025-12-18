@@ -532,6 +532,7 @@ class TazAppEnvironment: NSObject, DoesLog {
                                 for: .normal)
       let appearance = UIToolbarAppearance()
       appearance.configureWithOpaqueBackground()  // macht den Hintergrund undurchsichtig
+      appearance.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
 //      appearance.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
       UIToolbar.appearance().standardAppearance = appearance
       if #available(iOS 15.0, *) {

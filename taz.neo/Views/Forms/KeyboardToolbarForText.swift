@@ -39,8 +39,16 @@ public extension KeyboardToolbarForText where Self: UIResponder{
   func createToolbar() -> UIToolbar{
     /// setting toolbar width fixes the h Autolayout issue, unfortunatly not the v one no matter which height
     let toolbar =  UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
-    toolbar.barStyle = .default
-    toolbar.isTranslucent = true
+    let appearance = UIToolbarAppearance()
+    appearance.configureWithDefaultBackground()
+    appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterialLight)
+    appearance.backgroundColor = nil
+    toolbar.standardAppearance = appearance
+    if #available(iOS 15.0, *) {
+      toolbar.scrollEdgeAppearance = appearance
+    }
+    toolbar.compactAppearance = appearance
+    toolbar.overrideUserInterfaceStyle = .light
     toolbar.sizeToFit()
     
     /// Info: Issue with Autolayout
