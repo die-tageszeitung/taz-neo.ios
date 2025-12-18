@@ -164,7 +164,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     return v
   }()
   
-  private var dataPolicyToast: NewInfoToast?
+  var dataPolicyToast: NewInfoToast?
   
   // Mark: from UIComponents
   let topPadding = 5.0//UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 80.0 : 5.0
@@ -176,17 +176,9 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   let datePicker = UIDatePicker()
   
-  //  FrostGradientView, SoftFrostView
   lazy var blurView: UIView = {
     let view = UIView()
     view.backgroundColor = UIColor.black.withAlphaComponent(0.84)
-    return view
-  }()
-  
-  lazy var blurView2: FrostGradientView = {
-    let view = FrostGradientView(effect: UIBlurEffect(style: .systemMaterial))
-    view.fadeHeight = 8.0;
-    view.alpha = 0.97
     return view
   }()
   
@@ -366,6 +358,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     updateAccessibilityOrder()
+    showRequestTrackingIfNeeded()
   }
   
   override func viewDidLoad() {
