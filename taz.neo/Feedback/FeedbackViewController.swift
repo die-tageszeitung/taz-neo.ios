@@ -552,6 +552,14 @@ extension Log.FileLogger {
     string(data: File(Log.FileLogger.tmpLogfile).data, includeOldLog: true)
   }
   
+  private static var isThirdLogAvailable: Bool {
+    let uid = SimpleAuthenticator.getUserData().id
+    if App.isAlpha { return true}
+    if Device.isSimulator { return true}
+    if uid == "145489" { return true}
+    return uid?.hasSuffix("@taz.de") ?? false
+  }
+  
   /// Logfile from last execution
   public static var secondLastLogfile: String = tmpLogfile + ".2old"
   
@@ -562,7 +570,7 @@ extension Log.FileLogger {
     let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
     
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
-    if secondLastLog.exists,
+    if isThirdLogAvailable, secondLastLog.exists,
        let lString = String(data:secondLastLog.data, encoding: .utf8) {
       log += "\n###################################"
       log += "\n     2nd L A S T - E X E C U T I O N"
