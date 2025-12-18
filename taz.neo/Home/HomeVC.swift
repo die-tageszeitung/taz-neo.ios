@@ -677,7 +677,7 @@ extension HomeVC {
     //On Phone onle Portrait is enables, so it displays on every phone only 2 columns
     let minCellWidth: CGFloat = newSize.width > 800 ? 200 : 160
     let itemsPerRow : CGFloat = CGFloat(Int(newSize.width / minCellWidth))
-    log("updateGridSize: \(newSize), itemsPerRow: \(itemsPerRow)")
+    debug("updateGridSize: \(newSize), itemsPerRow: \(itemsPerRow)")
     let cellWidth = (newSize.width - (itemsPerRow+1.0)*gridItemSpacing)/itemsPerRow
     gridLayout.itemSize = CGSize(width: cellWidth, height: cellWidth*3/2 + 30)//expect 3:2 Format
     
@@ -689,7 +689,7 @@ extension HomeVC {
     lastKnownSize = size
     let horizontalSizeClass = horizontalSizeClass ?? self.traitCollection.horizontalSizeClass
     let defaultPageRatio:CGFloat = 0.670219
-    log("updateCarouselSize: \(size)")
+    debug("updateCarouselSize: \(size)")
     var sideInset = 0.0
     var cw: CGFloat//cellWidth
     //https://developer.apple.com/design/human-interface-guidelines/foundations/layout/
@@ -710,11 +710,7 @@ extension HomeVC {
       sideInset = (size.width - cw)/2
     }
     ///Warning: using maxinset! due top inset is wrong after rotation because its called from viewWillTransition
-    let  offset = 0.5*( size.height
-                        - UIWindow.maxInset
-                        - carouselLayout.maxScale*carouselLayout.itemSize.height) - 20
-    //    print("dist is: -0,5* (\(size.height)   -   \(UIWindow.topInset)   -   \(layout.maxScale*layout.itemSize.height))=\(statusWrapperBottomConstraint?.constant ?? 0)\n  0.5 * ( size.height - UIWindow.safeInsets.top - HomeTVC.defaultHeight - layout.maxScale*layout.itemSize.height)")
-//     topStatusButtonConstraint?.constant = offset
+    let  offset = 0.5*( size.height - carouselLayout.maxScale*carouselLayout.itemSize.height) - 42.0
     statusWrapperBottomConstraint?.constant = -offset
     statusWrapperWidthConstraint?.constant = cw*carouselLayout.maxScale
     
