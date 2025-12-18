@@ -412,6 +412,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       guard let self = self else { return }
       let indexPaths = collectionView.indexPathsForVisibleItems
       collectionView.reloadItems(at: indexPaths)
+      trackScreen()
       updateButtonMenu()
     }
     
@@ -419,6 +420,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.log("isHomeTiles: \(String(describing: self?.isHomeTiles))")
       self?.updateCollectionViewLayout()
       onMainAfter(0.05) {[weak self] in self?.applyLayout() }
+      self?.trackScreen()
       self?.updateButtonMenu()
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
     }

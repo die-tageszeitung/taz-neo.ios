@@ -295,7 +295,7 @@ extension Usage: NavigationDelegate {
 
 // MARK: - extension UINavigationControllerDelegate: magic tracking on VC show
 extension Usage  {
-public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+  public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
     guard let usageVc = viewController as? ScreenTracking else {
       debug("track::NOT track Screen: current visible vc: \(viewController) is not prepared for tracking!")
       return
