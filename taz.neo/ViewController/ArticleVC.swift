@@ -375,10 +375,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
     
   public override func viewWillAppear(_ animated: Bool) {
+    ///fix ugly UI Bug after iPad Roation
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    else if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
+    ///Set Content Table if needed
+    if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
     else if self.contentTable == nil {
       self.contentTable = NewContentTableVC()
