@@ -167,6 +167,7 @@ extension HomeVC: UIGestureRecognizerDelegate {
 // MARK: - ShowPDF Info Toast
 extension HomeVC {
   func showRequestTrackingIfNeeded() {
+    guard Defaults.usageTrackingAllowed == nil else { return   }
     guard let image = UIImage(named: "BundledResources/UsagePopover.png")else {
       log("Bundled UsagePopover.png not found!")
       return
