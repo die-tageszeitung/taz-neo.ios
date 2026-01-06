@@ -86,8 +86,6 @@ public class LoginView : FormView{
   = Padded.Button(type: .outline, title: Localized("login_trial_subscription_button_text"))
   var switchButton
   = Padded.Button(type: .outline, title: Localized("login_switch_print2digi_button_text"))
-  var extendButton
-  = Padded.Button(type: .outline, title: Localized("login_switch_print2digi_button_text"))
   
   override public func updateCustomConstraints() {
     super.updateCustomConstraints()

@@ -201,9 +201,7 @@ Falls Sie keine E-Mail empfangen haben, Sie die bei uns zu Ihrem Abo hinterlegte
 /* Header tazID ohne Abo ID */
 "unconnected_taz_id_header" = "Bisher ist kein Abo mit Ihrer E-Mail-Adresse %@ verknüpft.\n\nMöchten Sie die digitale Ausgabe der taz 6 Wochen kostenlos und unverbindlich testen?";
 
-"unconnected_taz_id_contact1" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit dem nachfolgenden Formular Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
-
-"unconnected_taz_id_contact" = "Falls Sie bereits ein Print-Abo der taz haben, können Sie mit den nachfolgenden Formularen Kontakt zur Abo-Abteilung aufnehmen, um Ihr bestehendes Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
+"unconnected_taz_id_contact" = "Falls Sie bereits Abo der taz haben, können Sie mit dem nachfolgendem Formular Kontakt zur Abo-Abteilung aufnehmen, um Ihr Abo mit der E-Mail-Adresse: %@ zu verknüpfen.";
 
 /* aboId mit taz Id Verknüfpen */
 "send_button" = "Abschicken";

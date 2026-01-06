@@ -23,7 +23,6 @@ class LoginController: FormsController {
     ui.loginButton.touch(self, action: #selector(handleLogin))
     ui.registerButton.touch(self, action: #selector(handleTrial))
     ui.trialSubscriptionButton.touch(self, action: #selector(handleTrial))
-    ui.extendButton.touch(self, action: #selector(handleExtend))
     ui.switchButton.touch(self, action: #selector(handleSwitch))
     
     ui.passForgottButton.onTapping {   [weak self] _ in self?.handlePwForgot() }
@@ -56,12 +55,7 @@ class LoginController: FormsController {
     }
     modalFromBottom(ctrl)
   }
-  
-  @IBAction func handleExtend(_ sender: UIButton) {
-    modalFromBottom(SubscriptionFormController(formType: .printPlusDigi,
-                                         auth: self.auth))
-  }
-  
+    
   @IBAction func handleSwitch(_ sender: UIButton) {
       modalFromBottom(SubscriptionFormController(formType: .print2Digi,
                                            auth: self.auth))
@@ -205,10 +199,8 @@ class AskForTrial_Controller: FormsController {
                    paddingTop: 30,
                    paddingBottom: 30
                   ),
-      Padded.Button(title: "Print-Abo in Digital Abo umwandeln",
-                    target: self, action: #selector(handlePrint2Digi)),
-      Padded.Button(title: "Digital Abo zum Print-Abo aktivieren",
-                    target: self, action: #selector(handlePrintPlusDigi))
+      Padded.Button(title: Localized("login_switch_print2digi_button_text"),
+                    target: self, action: #selector(handlePrint2Digi))
     ]
   }
   
@@ -221,13 +213,10 @@ class AskForTrial_Controller: FormsController {
     let child = SubscriptionFormController(formType: .print2Digi,
                                            auth: self.auth)
     child.ui.mailInput.text = self.tazId
-    modalFromBottom(child)
-  }
-  @IBAction func handlePrintPlusDigi(_ sender: UIButton) {
-    let child = SubscriptionFormController(formType: .printPlusDigi,
-                                           auth: self.auth)
-    child.ui.mailInput.text = self.tazId
-    modalFromBottom(child)
+    child.ui.message.text = "Bitte verknüpfen Sie meine oben genannte, bereits bei taz.de registrierte E-Mail-Adresse mit meinem Abonnement."
+    child.ui.message.placeholder = ""
+    child.ui.aboIdInput.placeholder = "Abo-Nummer"
+    modalFromBottom(child){ child.ui.message.topMessage = "Ihre Nachricht" }
   }
   
   @IBAction func handleTrialSubscription(_ sender: UIButton) {
