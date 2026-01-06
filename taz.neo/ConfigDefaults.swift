@@ -78,9 +78,10 @@ private let configValues = [
   "autoloadPublicationType" : nil,
   "updatedResourcesLocalPath" : nil,
   "BackgroundSessionDownloadTasks" : nil,//Key from BackgroundSession
-  /**======**/
+  /**======*/
   "edgeTapToNavigateVisible2" : "false",
   "showHelp": "true",
+  "isHomeTiles": "false",
   "helpUsedOnce": "false",
   "multiColumnModeLandscape": "false",
   "multiColumnModePortrait": "false",
