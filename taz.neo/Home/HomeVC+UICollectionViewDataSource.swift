@@ -94,6 +94,7 @@ extension HomeVC  {
 
 extension HomeVC {
   func openIssue(_ issue: StoredIssue, openLast: Bool = false) {
+    let openLast = openLast || Defaults.reopenAutomaticSetting
     ///How to prevent multiple open?
     ///already pushed => no problem
     ///3 downloads in Progress => first downloaded? n/ last clicked?

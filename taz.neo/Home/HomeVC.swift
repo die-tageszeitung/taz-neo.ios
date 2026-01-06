@@ -15,13 +15,6 @@ protocol OpenIssueDelegate {
   func openIssue(_ issue:StoredIssue, openLast: Bool)
 }
 
-extension OpenIssueDelegate {
-  /// open a Issue, shortcut with openLast == false as default
-  func openIssue(_ issue:StoredIssue, openLast: Bool = false){
-    openIssue(issue, openLast: openLast || Defaults.reopenAutomaticSetting)
-  }
-}
-
 class HomeVC: UICollectionViewController, OpenIssueDelegate {
   /// Are we in facsimile mode
   @Default("isFacsimile")
