@@ -58,14 +58,20 @@ class HelpButton: UIView {
   
   var buttonContextMenu: ContextMenu?
   
-  lazy var helpIconImageView: UIImageView = {
-    let iv = UIImageView(image: UIImage(named: "tooltip"))
-    iv.pinSize(CGSize(width: 32, height: 32))
+  lazy var helpIconImageView: UIView = {
+    let wrapper = UIView()
+    wrapper.pinSize(CGSize(width: 48, height: 48))
+    wrapper.layer.cornerRadius = 24.0
+    wrapper.backgroundColor = Const.Colors.fabBackground
+    let iv = UIImageView(image: UIImage(named: "tooltip2"))
+    iv.pinSize(CGSize(width: 17, height: 17))
     iv.contentMode = .scaleAspectFit
     iv.tintColor = Const.Colors.appIconGrey
-    iv.backgroundColor = Const.Colors.darkPrimaryBG
-    iv.layer.cornerRadius = 16.0
-    iv.onTapping { [weak self] _ in self?.handleTap() }
+
+    wrapper.addSubview(iv)
+    iv.centerX()
+    iv.centerY(dist: -4.0)
+    wrapper.onTapping { [weak self] _ in self?.handleTap() }
     buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
     buttonContextMenu?.addMenuItem(title: "Hilfe in diesem Bereich ausblenden", icon: "", closure: {[weak self] _ in
       self?.onDisableCurrentHelpClosure?()
@@ -74,25 +80,16 @@ class HelpButton: UIView {
       self?.showHelp = false
       Notification.send(Const.NotificationNames.helpProviderChanged)
     })
-    return iv
+    return wrapper
   }()
   
   private lazy var helpLabel: UIView = {
-    let wrapper = UIView()
     let lbl = UILabel("Hilfe")
     lbl.isAccessibilityElement = false
-    lbl.contentFont(size: Const.Size.SmallerFontSize)
+    lbl.contentFont(size: 10.5)
     lbl.textColor = Const.Colors.appIconGrey
     lbl.textAlignment = .center
-    wrapper.backgroundColor = Const.Colors.darkPrimaryBG
-    wrapper.layer.cornerRadius = 4.0
-    wrapper.addSubview(lbl)
-    pin(lbl.top, to: wrapper.top, dist: 0.0)
-    pin(lbl.right, to: wrapper.right, dist: -4.0)
-    pin(lbl.left, to: wrapper.left, dist: 4.0)
-    pin(lbl.bottom, to: wrapper.bottom, dist: 0.0)
-    wrapper.onTapping { [weak self] _ in self?.handleTap() }
-    return wrapper
+    return lbl
   }()
   
   func setupIfNeeded() {
@@ -112,7 +109,7 @@ class HelpButton: UIView {
       bottomConstraint.constant = -20.0//helpLabelWrapperHeight+dist
       self.addSubview(helpLabel)
       helpLabel.centerX()
-      pin(helpLabel.top, to: helpIconImageView.bottom, dist: 2.0)
+      pin(helpLabel.bottom, to: helpIconImageView.bottom, dist: -3.0)
       onMainAfter(2.0) {[weak self] in
         self?.helpIconImageView.animateFocus()
       }
@@ -121,8 +118,8 @@ class HelpButton: UIView {
         self?.helpIconImageView.animateFocus()
       }
     }
-    pin(badgeLabel.top, to: self.top, dist: -7.0)
-    pin(badgeLabel.right, to: self.right, dist: 7.0)
+    pin(badgeLabel.top, to: self.top, dist: 0.0)
+    pin(badgeLabel.right, to: self.right, dist: -0.0)
   }
   
   override func willMove(toSuperview newSuperview: UIView?) {
