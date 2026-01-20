@@ -57,20 +57,21 @@ class HelpButton: UIView {
   }
   
   var buttonContextMenu: ContextMenu?
+  var helpIconYConstraint: NSLayoutConstraint?
   
   lazy var helpIconImageView: UIView = {
     let wrapper = UIView()
     wrapper.pinSize(CGSize(width: 48, height: 48))
     wrapper.layer.cornerRadius = 24.0
-    wrapper.backgroundColor = Const.Colors.fabBackground
-    let iv = UIImageView(image: UIImage(named: "tooltip2"))
-    iv.pinSize(CGSize(width: 17, height: 17))
+    wrapper.backgroundColor = Const.Colors.fabBackgroundNew
+    let iv = UIImageView(image: UIImage(named: "tooltip"))
+    iv.pinSize(CGSize(width: 28, height: 28))
     iv.contentMode = .scaleAspectFit
     iv.tintColor = Const.Colors.appIconGrey
 
     wrapper.addSubview(iv)
     iv.centerX()
-    iv.centerY(dist: -4.0)
+    helpIconYConstraint = iv.centerY(dist: 0.0)
     wrapper.onTapping { [weak self] _ in self?.handleTap() }
     buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
     buttonContextMenu?.addMenuItem(title: "Hilfe in diesem Bereich ausblenden", icon: "", closure: {[weak self] _ in
@@ -93,7 +94,13 @@ class HelpButton: UIView {
   }()
   
   func setupIfNeeded() {
-    guard helpIconImageView.superview == nil else { return }
+    guard helpIconImageView.superview == nil else {
+      if helpLabel.superview == nil { return }
+      if helpUsedOnce == false { return }
+      helpLabel.removeFromSuperview()
+      helpIconYConstraint?.constant = 0.0
+      return
+    }
     self.addSubview(helpIconImageView)
     self.addSubview(badgeLabel)
     
@@ -103,13 +110,13 @@ class HelpButton: UIView {
     helpIconImageView.accessibilityLabel = "Hilfe anzeigen"
     helpIconImageView.accessibilityTraits = .button
     
-    let bottomConstraint = pin(helpIconImageView, to: self).bottom
+    pin(helpIconImageView, to: self)
     
     if helpUsedOnce == false {
-      bottomConstraint.constant = -20.0//helpLabelWrapperHeight+dist
+      helpIconYConstraint?.constant = -3.0
       self.addSubview(helpLabel)
       helpLabel.centerX()
-      pin(helpLabel.bottom, to: helpIconImageView.bottom, dist: -3.0)
+      pin(helpLabel.bottom, to: helpIconImageView.bottom, dist: -2.0)
       onMainAfter(2.0) {[weak self] in
         self?.helpIconImageView.animateFocus()
       }
@@ -118,8 +125,8 @@ class HelpButton: UIView {
         self?.helpIconImageView.animateFocus()
       }
     }
-    pin(badgeLabel.top, to: self.top, dist: 0.0)
-    pin(badgeLabel.right, to: self.right, dist: -0.0)
+    pin(badgeLabel.top, to: self.top, dist: -1.0)
+    pin(badgeLabel.right, to: self.right, dist: 1.0)
   }
   
   override func willMove(toSuperview newSuperview: UIView?) {

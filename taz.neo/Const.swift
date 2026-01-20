@@ -78,7 +78,7 @@ public struct Const {
   /// Various color values
   struct Colors {
     
-    static let fabBackground: UIColor = UIColor.rgb(0x363636).withAlphaComponent(0.8)
+    static let fabBackground: UIColor = UIColor.rgb(0x242424).withAlphaComponent(0.8)
     
     ///Variable Colors, depending light/darkmode
     static var opacityBackground: UIColor { Const.SetColor.CTBackground.color.withAlphaComponent(0.9) }
