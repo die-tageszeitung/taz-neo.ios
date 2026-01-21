@@ -189,8 +189,8 @@ open class FeederContext: DoesLog {
   /// Do we need reinitialization?
   func needsReInit() -> Bool {
     if let storedFeeder = self.storedFeeder,
-       let sfeed = storedFeeder.feeds.first,
-       let gfeed = gqlFeeder.feeds.first {
+       let sfeed = storedFeeder.feeds.first(where: {$0.name == self.feedName}),
+       let gfeed = gqlFeeder.feeds.first(where: {$0.name == self.feedName}) {
       return !(sfeed.cycle == gfeed.cycle)
     }
     return false
