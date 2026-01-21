@@ -13,7 +13,7 @@ extension ArticleVC: HelpProviding{
     
   var helpItems: [HelpItem] {
     get {
-      let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
+      let menu = HelpItem(title:"Inhaltsverzeichnis\nöffnen",
                           accessibilityTitle: "Hilfe für die Ausggabenansicht in der Artikelansicht, erstes Element: Schalter 'Inhalt' zum öffnen des Inhaltsverzeichnisses der Ausgabe",
                           text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
                           targetView: slider?.button)
@@ -66,6 +66,7 @@ extension ArticleVC: HelpProviding{
       let toolbarBack = HelpItem(title:"Zurück",
                          text: backText,
                                  isCircleCutout: true,
+                                 circleCutoutInsetAdjustment: -5.0,
                                  targetView: backButton)
       
       var items = [swiping]
@@ -87,6 +88,7 @@ extension ArticleVC: HelpProviding{
                  ? "Tippen Sie auf den gefüllten Stern, um den Artikel von Ihrer Leseliste zu entfernen."
                  :"Tippen Sie auf das Stern Symbol, um den Artikel in Ihrer Leseliste zu speichern. Die Leseliste erreichen Sie über den Startbildschirm.",
                  isCircleCutout: true,
+                 circleCutoutInsetAdjustment: -5.0,
                  targetView: bookmarkButton)
       
       
@@ -94,16 +96,16 @@ extension ArticleVC: HelpProviding{
       
       if article?.isShareable == true {
         items.append(HelpItem(title:"Artikel teilen",
-                              text: "Tippen Sie auf das Teilen-Symbol, um den Artikel an andere weiterzuleiten.", isCircleCutout: true, targetView: shareButton))
+                              text: "Tippen Sie auf das Teilen-Symbol, um den Artikel an andere weiterzuleiten.", isCircleCutout: true, circleCutoutInsetAdjustment: -5.0, targetView: shareButton))
       }
       
       if article?.canPlayAudio == true {
         items.append(HelpItem(title:"Artikel anhören",
-                              text: "Tippen Sie auf das Lautsprecher-Symbol, um sich den Artikel vorlesen zu lassen.", isCircleCutout: true, targetView: playButton))
+                              text: "Tippen Sie auf das Lautsprecher-Symbol, um sich den Artikel vorlesen zu lassen.", isCircleCutout: true, circleCutoutInsetAdjustment: -5.0, targetView: playButton))
       }
         
       items.append(HelpItem(title:"Schriftgröße anpassen",
-                            text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", isCircleCutout: true, targetView: textSettingsButton))
+                            text: "Passen Sie hier die Schriftgröße nach Ihren Bedürfnissen an.", isCircleCutout: true, circleCutoutInsetAdjustment: -5.0, targetView: textSettingsButton))
       
       if isRegularIssue {
         if self is ArticleVcWithPdfInSlider {
@@ -113,14 +115,14 @@ extension ArticleVC: HelpProviding{
                                 targetView: header.labelsHelpTarget))
         }
         else {
-          items.append(HelpItem(title:"Ressortübersicht öffnen",
+          items.append(HelpItem(title:"Ressortübersicht\nöffnen",
                                 text: "Tippen Sie auf den Ressortnamen, um direkt zur Übersicht dieses Ressorts zu gelangen.",
-                                isCircleCutout: true,
+                                isCircleCutout: false,
                                 targetView: header.titleLabel))
         }
       }
       
-      let search = HelpItem(title:"Archivsuche – leicht gemacht!",
+      let search = HelpItem(title:"Archivsuche\nleicht gemacht!",
                             text: "Halten Sie ein Wort im Artikel gedrückt, um es zu markieren.\nÜber das Kontextmenü können Sie es kopieren oder direkt im taz-Archiv danach suchen.")
       if let img = UIImage(named: "Img-SearchMenu"){
         let wrapper = UIView()

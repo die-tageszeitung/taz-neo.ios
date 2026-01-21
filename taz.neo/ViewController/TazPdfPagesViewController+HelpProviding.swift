@@ -12,7 +12,7 @@ extension TazPdfPagesViewController: HelpProviding{
     
   var helpItems: [HelpItem] {
     get {
-      let menu = HelpItem(title:"Inhaltsverzeichnis öffnen",
+      let menu = HelpItem(title:"Inhaltsverzeichnis\nöffnen",
                           accessibilityTitle: "Hilfe für die Ausggabenansicht in der Zeitungsansicht, erstes Element: Schalter 'Inhalt' zum öffnen des Inhaltsverzeichnisses der Ausgabe",
                           text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
                           targetView: slider?.button)

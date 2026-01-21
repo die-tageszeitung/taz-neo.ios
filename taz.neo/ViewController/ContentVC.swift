@@ -1052,7 +1052,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.setImage( UIImage(named: logo),
                       menuImage: UIImage(named: "BurgerMenu")?.withTintColor(.white, renderingMode: .alwaysOriginal),
                       closeImage: UIImage(named: "closeX")?.withTintColor(.white, renderingMode: .alwaysOriginal))
-    slider?.button.accessibilityLabel = "Inhaltsverzeichniss öffnen"
+    slider?.button.accessibilityLabel = "Inhaltsverzeichnis öffnen"
     slider?.button.backgroundColor = Const.SetColor.CIColor.color
     slider?.buttonAlpha = 1.0
     slider?.closedBottonImageOffsetX = 0.0
@@ -1063,13 +1063,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
       Notification.send(Const.NotificationNames.helpProviderChanged)
       self?.updateAccessibilityElements(postLayoutChanged: true)
-      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichniss geöffnet, erneut drücken zum schließen"
+      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis geöffnet, erneut drücken zum schließen"
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
       self?.updateAccessibilityElements(postLayoutChanged: true)
-      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichniss öffnen"
+      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis öffnen"
     }
   }
   

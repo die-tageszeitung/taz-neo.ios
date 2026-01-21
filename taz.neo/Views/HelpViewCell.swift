@@ -33,6 +33,7 @@ final class HelpViewCell: UIView {
   }()
   
   private var textWidthConstraint: NSLayoutConstraint?
+  private var yContraint: NSLayoutConstraint?
   
   // MARK: - Init
   
@@ -50,7 +51,7 @@ final class HelpViewCell: UIView {
   private func setup() {
     addSubview(textLayer)
     textLayer.centerX()
-    textLayer.centerY(dist: HelpView.cellYoffset) 
+    yContraint = textLayer.centerY(dist: HelpView.cellYoffset)
     textLayer.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
     textWidthConstraint = textLayer.pinWidth(UIWindow.size.width * 0.7)
     titleLabel.isAccessibilityElement = true
@@ -62,6 +63,7 @@ final class HelpViewCell: UIView {
   func configure() {
     topImageView?.removeFromSuperview()
     topImageView = nil
+    yContraint?.constant = HelpView.cellYoffset
     
     contentView?.removeFromSuperview()
     self.targetView = item?.targetView
@@ -89,7 +91,7 @@ final class HelpViewCell: UIView {
       /// ONLY Content View - no Text
       contentView = cv
       contentView?.isAccessibilityElement = false
-      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
+//      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
       pin(cv.top, to: titleLabel.bottom, dist: 22)
       pin(cv.left, to: self.left)
@@ -99,7 +101,7 @@ final class HelpViewCell: UIView {
     else  if let cv = item?.contentView {
       contentView = cv
       contentView?.isAccessibilityElement = false
-      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
+//      cv.transform = CGAffineTransform(rotationAngle: -8 * .pi/180)
       addSubview(cv)
       pin(cv.top, to: subLabel.bottom, dist: 22)
       pin(cv.left, to: self.left)
@@ -114,6 +116,7 @@ final class HelpViewCell: UIView {
       addSubview(iv)
       iv.centerX(dist: -10)
       pin(iv.bottom, to: textLayer.top, dist: -12)
+      yContraint?.constant = HelpView.cellYoffset + (iv.frame.height / 2)
     }
   }
   

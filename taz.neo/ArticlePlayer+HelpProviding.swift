@@ -28,7 +28,7 @@ extension ArticlePlayer: HelpProviding {
                         text: "Bewegen Sie den weißen Punkt, um im Text vor- oder zurückzuspringen. Links sehen Sie die vergangene, rechts die verbleibende Zeit.",
                             targetView: self.userInterface.slider)
     
-    let skipBack = HelpItem(title:"Zum Anfang des Artikels",
+    let skipBack = HelpItem(title:"Zum Anfang\ndes Artikels",
                         text: "Tippen Sie hier, um zum Anfang des Artikels zu springen.",
                             isCircleCutout: true,
                             targetView: self.userInterface.backButton)
@@ -42,7 +42,7 @@ extension ArticlePlayer: HelpProviding {
                         text: "Tippen Sie hier, um zum Anfang des aktuellen Satzes zu springen.",
                             isCircleCutout: true,
                             targetView: self.userInterface.seekBackwardButton)
-    let playPause = HelpItem(title:"Abspielen oder pausieren",
+    let playPause = HelpItem(title:"Abspielen\noder pausieren",
                         text: "Starten oder pausieren Sie die Wiedergabe jederzeit.",
                              isCircleCutout: true,
                             targetView: self.userInterface.toggleButton)

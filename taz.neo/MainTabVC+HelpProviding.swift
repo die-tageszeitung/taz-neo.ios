@@ -22,7 +22,7 @@ extension MainTabVC {
           dist: -helpButtonDefaultBottomDistance)
     pin(helpButton.right,
         to: view.rightGuide(),
-        dist: -Const.Dist2.m15)
+        dist: -7.0) //Const.Dist2.s5 m15???
     helpButton.onTapHelp { HelpBusiness.shared.openHelp()}
     helpButton.onDisableCurrentHelp { HelpBusiness.shared.disableCurrentHelp()}
     Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] _ in

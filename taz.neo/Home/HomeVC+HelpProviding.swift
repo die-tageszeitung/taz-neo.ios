@@ -96,8 +96,9 @@ extension HomeVC: HelpProviding{
       let wellcomeItem = HelpItem(title:"Willkommen in der taz App!",
                                        text: "Entdecken Sie die digitale Ausgabe der taz: Blättern Sie durch die Zeitung, speichern Sie Artikel oder lassen Sie sich Texte vorlesen.")
             
-      let viewModeItem = HelpItem(title:"Ansichtssache",
+      let viewModeItem = HelpItem(title:"Darstellung anpassen",
                                   accessibilityTitle: "Hilfe für den Home Screen, erstes Element: Schalter, Darstellungsoptionen",
+                                  //text: "Hier können Sie zwischen Zeitungsansicht (PDF) und mobiler Ansicht wechseln. Ausgaben lassen sich entweder als Kacheln oder im Karussell zum Wischen darstellen.
                                        text: "Wechseln Sie zwischen App- und Zeitungsansicht, wählen Sie Karussell- oder Kachel-Layout und springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
@@ -140,6 +141,11 @@ extension HomeVC: HelpProviding{
                             text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten in Text oder Titel sowie nach Autor:innen.",
                             isCircleCutout: true,
                             targetView: tabbarItems.valueAt(2))
+      let settings = HelpItem(title:"Einstellungen",
+                            accessibilityTitle: "Einstellungen, Tabbar Item",
+                            text: "Hier können Sie die App an Ihre Bedürfnisse anpassen, z.B. Schriftgröße, automatischer Download oder Dark Mode.",
+                            isCircleCutout: true,
+                            targetView: tabbarItems.valueAt(3))
       
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton
       
@@ -151,21 +157,20 @@ extension HomeVC: HelpProviding{
 
       let scrollItem = HelpItem(title:"Ausgaben durchstöbern",
                                        text: "Wischen Sie auf den Ausgaben nach rechts und links um zu älteren oder neueren Ausgaben zu kommen.")
-      if let img = UIImage(name: "arrowshape.left.arrowshape.right"){
-        let wrapper = UIView()
-        let view = UIImageView(image: img)
-        if isHomeTiles {
-          view.transform = CGAffineTransform(rotationAngle: .pi / 2)
-          scrollItem.text = "Wischen Sie auf den Ausgaben von unten nach oben um zu älteren Ausgaben zu kommen."
-        }
-        view.tintColor = .white
-        view.contentMode = .center
-        view.pinWidth(80)
-        wrapper.addSubview(view)
-        pin(view.top, to: wrapper.top, dist: 18)
-        pin(view.bottom, to: wrapper.bottom)
-        view.centerX()
-        scrollItem.contentView = wrapper
+      if isHomeTiles == false, let img = UIImage(named: "phone-hands-swipe"){
+        let iv = UIImageView(image: img)
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        scrollItem.topImageView = iv
+      }
+      else if isHomeTiles, let img = UIImage(named: "phone-hands-swipe-vertical") {
+        let iv = UIImageView(image: img)
+        scrollItem.text = "Wischen Sie auf den Ausgaben von unten nach oben um zu älteren Ausgaben zu kommen."
+        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        scrollItem.topImageView = iv
       }
       
       let homeMenuItem = HelpItem(title:"Für Profis: das Kontextmenü",
@@ -177,8 +182,7 @@ extension HomeVC: HelpProviding{
         homeMenuItem.contentView = view
       }
       
-      
-      var items = [viewModeItem, issueStatus, scrollItem, home, bookmarks, search, helpItem, homeMenuItem]
+      var items = [viewModeItem, issueStatus, scrollItem, home, bookmarks, search, settings, helpItem, homeMenuItem]
       
       if isHomeTiles == false {
         items.insert(calendar, at: 2)///after issueStatus

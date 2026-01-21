@@ -587,42 +587,42 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   func configureMenu(for button: UIButton) {
     // Gruppe 1: Ansicht
     let appViewAction = UIAction(
-      title: "App-Ansicht",
-      image: UIImage(systemName: "iphone.gen3"),
+      title: "Mobile Ansicht",
+      image: UIImage(named: "mobile-device"),
       state: isFacsimile ? .off : .on
     ) {[weak self] _ in self?.isFacsimile.toggle()  }
     
     let newspaperAction = UIAction(
       title: "Zeitungsansicht",
-      image: UIImage(systemName: "newspaper"),
+      image: UIImage(named: "newspaper"),
       state: isFacsimile ? .on : .off
     ) {[weak self] _ in self?.isFacsimile.toggle()  }
-    
+    //Ansicht, Anzeige, Lesemodus
     let viewGroup = UIMenu(title: "Ansicht", options: .displayInline, children: [appViewAction, newspaperAction])
     
     // Gruppe 2: Darstellung
     let tileAction = UIAction(
-      title: "Kachelansicht",
-      image: UIImage(systemName: "square.grid.2x2"),
+      title: "Kacheln",
+      image: UIImage(named: "tiles"),
       state: isHomeTiles ? .on : .off
     ) {[weak self] _ in self?.isHomeTiles.toggle()  }
     
     let carouselAction = UIAction(
       title: "Karussell",
-      image: UIImage(systemName: "rectangle.split.3x1"),
+      image: UIImage(named: "carousel"),
       state: isHomeTiles ? .off : .on
     ) {[weak self] _ in self?.isHomeTiles.toggle()  }
-    
-    let layoutGroup = UIMenu(title: "Layout", options: .displayInline, children: [tileAction, carouselAction])
+    // Anordnung, Darstellungsform
+    let layoutGroup = UIMenu(title: "Anordnung", options: .displayInline, children: [carouselAction, tileAction])
     
     // Gruppe 3: Archiv
     let archiveAction = UIAction(
       title: "Gehe zu Ausgabe",
-      image: UIImage(systemName: "calendar")) {[weak self] _ in
+      image: UIImage(named: "calendar")) {[weak self] _ in
         guard let self = self else { return }
         showDatePicker()
       }
-    let archiveGroup = UIMenu(title: "Ausgaben Archiv", options: .displayInline, children: [archiveAction])
+    let archiveGroup = UIMenu(title: "Ausgabenarchiv", options: .displayInline, children: [archiveAction])
     
     // Komplettes Menü zuweisen
     if #available(iOS 14.0, *) {
