@@ -23,9 +23,9 @@ class HelpButton: UIView {
     lbl.layer.cornerRadius = 8.0
     lbl.clipsToBounds = true
     lbl.contentFont(size: 8.5)
-    lbl.textColor = .white
+    lbl.textColor = .black
     lbl.textAlignment = .center
-    lbl.backgroundColor = .systemRed
+    lbl.backgroundColor = Const.Colors.appIconGrey
     lbl.isHidden = true
     return lbl
   }()
@@ -57,23 +57,22 @@ class HelpButton: UIView {
   }
   
   var buttonContextMenu: ContextMenu?
-  var helpIconYConstraint: NSLayoutConstraint?
   
-  lazy var helpIconImageView: UIView = {
+ 
+  lazy var helpIconImageWrapper: UIView = {
     let wrapper = UIView()
-    wrapper.pinSize(CGSize(width: 48, height: 48))
-    wrapper.layer.cornerRadius = 24.0
-    wrapper.backgroundColor = Const.Colors.fabBackgroundNew
+    wrapper.pinSize(CGSize(width: 50, height: 50))
+    wrapper.backgroundColor = Const.Colors.fabBackground.withAlphaComponent(0.8)
     let iv = UIImageView(image: UIImage(named: "tooltip"))
     iv.pinSize(CGSize(width: 28, height: 28))
-    iv.contentMode = .scaleAspectFit
+    iv.layer.cornerRadius = 14.0
+    iv.contentMode = .scaleAspectFill
     iv.tintColor = Const.Colors.appIconGrey
-
     wrapper.addSubview(iv)
-    iv.centerX()
-    helpIconYConstraint = iv.centerY(dist: 0.0)
+    wrapper.layer.cornerRadius = 25.0
+    iv.centerAxis()
     wrapper.onTapping { [weak self] _ in self?.handleTap() }
-    buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
+    buttonContextMenu = ContextMenu(view: wrapper, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
     buttonContextMenu?.addMenuItem(title: "Hilfe in diesem Bereich ausblenden", icon: "", closure: {[weak self] _ in
       self?.onDisableCurrentHelpClosure?()
     })
@@ -84,49 +83,43 @@ class HelpButton: UIView {
     return wrapper
   }()
   
+  
   private lazy var helpLabel: UIView = {
     let lbl = UILabel("Hilfe")
     lbl.isAccessibilityElement = false
-    lbl.contentFont(size: 10.5)
+    lbl.contentFont(size: 9.5)
     lbl.textColor = Const.Colors.appIconGrey
     lbl.textAlignment = .center
     return lbl
   }()
   
   func setupIfNeeded() {
-    guard helpIconImageView.superview == nil else {
-      if helpLabel.superview == nil { return }
-      if helpUsedOnce == false { return }
-      helpLabel.removeFromSuperview()
-      helpIconYConstraint?.constant = 0.0
-      return
-    }
-    self.addSubview(helpIconImageView)
+    guard helpIconImageWrapper.superview == nil else { return }
+    self.addSubview(helpIconImageWrapper)
     self.addSubview(badgeLabel)
     
     badgeLabel.isAccessibilityElement = false
     helpLabel.isAccessibilityElement = false
-    helpIconImageView.isAccessibilityElement = true
-    helpIconImageView.accessibilityLabel = "Hilfe anzeigen"
-    helpIconImageView.accessibilityTraits = .button
+    helpIconImageWrapper.isAccessibilityElement = true
+    helpIconImageWrapper.accessibilityLabel = "Hilfe anzeigen"
+    helpIconImageWrapper.accessibilityTraits = .button
     
-    pin(helpIconImageView, to: self)
+    pin(helpIconImageWrapper, to: self)
     
     if helpUsedOnce == false {
-      helpIconYConstraint?.constant = -3.0
       self.addSubview(helpLabel)
       helpLabel.centerX()
-      pin(helpLabel.bottom, to: helpIconImageView.bottom, dist: -2.0)
+      pin(helpLabel.bottom, to: helpIconImageWrapper.bottom, dist: -0.5)
       onMainAfter(2.0) {[weak self] in
-        self?.helpIconImageView.animateFocus()
+        self?.helpIconImageWrapper.animateFocus()
       }
       onMainAfter(8.0) {[weak self] in
         guard self?.helpUsedOnce == false else { return }
-        self?.helpIconImageView.animateFocus()
+        self?.helpIconImageWrapper.animateFocus()
       }
     }
-    pin(badgeLabel.top, to: self.top, dist: -1.0)
-    pin(badgeLabel.right, to: self.right, dist: 1.0)
+    pin(badgeLabel.top, to: self.top, dist: 1.0)
+    pin(badgeLabel.right, to: self.right, dist: -1.0)
   }
   
   override func willMove(toSuperview newSuperview: UIView?) {
