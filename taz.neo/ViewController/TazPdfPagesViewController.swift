@@ -478,6 +478,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     articleVC.delegate = self
     articleVC.reopenArticleDocName = name
     articleVC.reopenArticleScrollPos = reopenArticleScrollPos
+    let artFile = File(dir: path, fname: name)
+    ///check if article file exists, otherwise log and return => do not open wrong article
+    guard artFile.exists else {
+      log("article file \(name) did not exist in \(path.lastPathComponent)")
+      return
+    }
     articleVC.gotoUrl(path: path, file: name)
     #if LMD
     articleSliderContentController.header.imageView.onTapping{[weak self] _ in
