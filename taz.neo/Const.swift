@@ -608,14 +608,18 @@ public struct Const {
   
   /// Adjusted Sizes for tiny Displays (iPhone 5s/SE1, iPod 7G)
   struct ASize {
-    static let TextViewPadding = UIWindow.size.width < 370 ? CGFloat(8) : CGFloat(10.0)
-    static let MiniPageNumberFontSize = UIWindow.size.width < 370 ? CGFloat(11) : CGFloat(12)
-    static let DefaultFontSize = UIWindow.size.width < 370 ? CGFloat(14) : CGFloat(16)
-    static let LargeTitleFontSize = UIWindow.size.width < 370 ? CGFloat(30) : CGFloat(34)
-    static let SmallTitleFontSize = UIWindow.size.width < 370 ? CGFloat(18) : CGFloat(20)
+    static let TextViewPadding = isNarrowLayout ? CGFloat(8) : CGFloat(10.0)
+    static let MiniPageNumberFontSize = isNarrowLayout ? CGFloat(11) : CGFloat(12)
+    static let SmallerFontSize = isVeryNarrowLayout ? CGFloat(12) : isNarrowLayout ? CGFloat(13) : CGFloat(14)
+    static let DefaultFontSize = isNarrowLayout ? CGFloat(14) : CGFloat(16)
+    static let LargeTitleFontSize = isNarrowLayout ? CGFloat(30) : CGFloat(34)
+    static let SmallTitleFontSize = isNarrowLayout ? CGFloat(18) : CGFloat(20)
     static let DottedLineHeight = CGFloat(2.4)
-    static let DefaultPadding = UIWindow.size.width < 370 ? CGFloat(13.0) : CGFloat(15.0)
-    static let TextFieldPadding = UIWindow.size.width < 370 ? CGFloat(9.0) : CGFloat(10.0)
+    static let DefaultPadding = isNarrowLayout ? CGFloat(13.0) : CGFloat(15.0)
+    static let TextFieldPadding = isNarrowLayout ? CGFloat(9.0) : CGFloat(10.0)
+    
+    static let isNarrowLayout = UIWindow.size.width < 370
+    static let isVeryNarrowLayout = UIWindow.size.width < 330
   }
   
   /// Various Shadow values

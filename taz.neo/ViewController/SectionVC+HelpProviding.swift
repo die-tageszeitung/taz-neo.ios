@@ -20,7 +20,7 @@ import UIKit
 extension SectionVC: HelpProviding{
   var helpItems: [HelpItem] {
     get {
-      let menu = HelpItem(title:"Inhaltsverzeichnis\nöffnen",
+      let menu = HelpItem(title:"Inhalts-\nverzeichnis öffnen",
                           accessibilityTitle: "Hilfe für die Ausggabenansicht auf Ressortebene, erstes Element: Schalter 'Inhalt' zum öffnen des Inhaltsverzeichnisses der Ausgabe",
                                text: "Tippen Sie hier, um das vollständige Inhaltsverzeichnis der Ausgabe zu sehen.",
                           targetView: slider?.button)

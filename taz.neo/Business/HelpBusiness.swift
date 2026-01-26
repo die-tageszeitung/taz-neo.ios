@@ -13,6 +13,7 @@ protocol HelpProviding {
   /// called when the global help button is tapped
   var helpItems: [HelpItem] { get }
   var newItemsCount: Int { get }
+  var viewName: String { get }
 }
 
 extension HelpProviding {
@@ -24,6 +25,25 @@ extension HelpProviding {
   }
   func isSameType(as other: HelpProviding) -> Bool {
     self.typeName == other.typeName
+  }
+  
+  var viewName: String {
+    switch self {
+      case is HomeVC:
+        return "für Home"
+      case is SectionVC:
+        return "in der Ressortübersicht"
+      case is ArticleVC:
+        return "in der Artikelansicht"
+      case is TazPdfPagesViewController:
+        return "in der Zeitungsansicht"
+      case is ArticlePlayer:
+        return "für den Player"
+      case is NewContentTableVC:
+        return "für das Inhaltsverzeichnis"
+      default:
+        return "für diesen Bereich"
+    }
   }
   
   var lastIndex: Int? {
@@ -133,6 +153,9 @@ class HelpBusiness {
     if helpProvider is ArticlePlayer {
       helpView.pageControllBottomOffset = -250
     }
+    
+    helpView.doNotShowHelpInThisAreaAnymoreLabel.text =
+    "Hilfe \(helpProvider.viewName) nicht mehr anzeigen."
     
     let close = {
       Notification.send(Const.NotificationNames.helpProviderChanged)
