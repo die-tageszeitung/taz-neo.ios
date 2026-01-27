@@ -153,7 +153,7 @@ extension HomeVC: HelpProviding{
                                        text: "In vielen Bereichen finden Sie das Fragezeichen-Symbol. Tippen Sie darauf, um die Funktionen des aktuellen Bildschirms erklärt zu bekommen.\nProbieren Sie die Hilfe auch auf anderen Bildschirmen aus.\n\nZum Deaktivieren der Hilfe einfach das Fragezeichen etwas länger gedrückt halten...",
                                    isCircleCutout: true,
                                    circleCutoutInsetAdjustment: 0,
-                              targetView: helpButton?.helpIconImageWrapper)
+                              targetView: helpButton?.helpIconImageView)
 
       let scrollItem = HelpItem(title:"Ausgaben durchstöbern",
                                        text: "Wischen Sie auf den Ausgaben nach rechts und links um zu älteren oder neueren Ausgaben zu kommen.")
