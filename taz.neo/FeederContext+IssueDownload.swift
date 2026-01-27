@@ -88,7 +88,7 @@ extension FeederContext {
       return
     }
     if self.isConnected {
-      gqlFeeder.issues(feed: issue.feed, 
+      gqlFeeder.issues(feed: issue.feed,///in future may use masterFeed
                        date: issue.date,
                        key: issue.key,
                        count: 1,
