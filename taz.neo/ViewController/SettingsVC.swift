@@ -1168,8 +1168,10 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
                                          handler:  { [weak self] _ in
-      guard let storedFeeder = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder,
-            let storedFeed = storedFeeder.storedFeeds.first else {
+      guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
+            let storedFeeder = feederContext.storedFeeder,
+            let storedFeed = storedFeeder.storedFeeds.first(where: {$0.name == feederContext.feedName})  else {
+        /// CR-Feeds: Warning: delete all issues need to be fixed for multiple feeds
         return
       }
       if isDownloading {

@@ -33,7 +33,7 @@ extension BackgroundDownloadService {
       throw BackgroundDownloadError("FEHLER: 'feedRequest' not found in saved response.")
     }
     
-    guard let feed = frqResponse.feeds.first else {
+    guard let feed = frqResponse.feeds.first(where: {$0.name == feederContext.feedName}) else {
       throw BackgroundDownloadError("FEHLER: No feed found in saved response.")
     }
     

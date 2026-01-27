@@ -222,7 +222,7 @@ class TazAppEnvironment: NSObject, DoesLog {
   /// Warning in some unknown cases a weekend login did not fire resetApp(.cycleChangeWithLogin) then
   /// it may fired immediately on update an weekday issue
   public func resetApp(_ reason: resetAppReason) {
-    let weeklyLogin = self.feederContext?.gqlFeeder.feeds.first?.cycle == .weekly
+    let weeklyLogin = self.feederContext?.gqlFeeder.feeds.first(where: {$0.name == self.feederContext?.feedName})?.cycle == .weekly
     var message: String
     switch (reason, weeklyLogin) {
       case (.cycleChangeWithLogin, _):

@@ -177,6 +177,7 @@ class TestController: PageCollectionVC {
       let storedFeeder = fctx.storedFeeder else { return }
       self.feederContext = fctx
       self.debug(fctx.storedFeeder?.toString())
+      ///WARNING NEVER USE THIS IN PRODUCTION
       self.feed = StoredFeed.get(name: "taz", inFeeder: storedFeeder)[0]
       self.testSingleOverview { ok in
         if ok { 

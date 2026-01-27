@@ -96,10 +96,8 @@ extension FeederContext {
                        withAudio: withAudio) { (res, _) in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
-          #warning("Not needed, not used currently")
-          //Notification.send("gqlIssue", result: .success(dissue), sender: issue)
           if issue.date != dissue.date {
-            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") feeders cycle: \(self.gqlFeeder.feeds.first?.cycle.toString() ?? "-")")
+            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") \(issue.feed.cycle.toString())")
             let unexpectedResult : Result<[Issue], Error>
               = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
             Notification.send("issueStructure", result: unexpectedResult, sender: issue)

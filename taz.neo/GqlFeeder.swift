@@ -1,4 +1,3 @@
-//
 //  GqlFeeder.swift
 //
 //  Created by Norbert Thies on 12.09.19.
@@ -838,9 +837,13 @@ class GqlFeederStatus: GQLObject {
   var globalBaseUrl: String
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
-  
-  static var fields: String { Self.fields() }
-  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil) -> String {
+  static var fields: String {
+    ///What's best? Crash / default == taz? / empty
+    ///=> crash this must be found in qa and future development
+    fatalError("Do not use this without default name!")
+    //Self.fields(feedName: "taz")
+  }
+  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil, feedName: String) -> String {
     
     var feedFields = ""
     if let pubDate = latestKnownPublicationDate {
@@ -849,14 +852,13 @@ class GqlFeederStatus: GQLObject {
     else {
       feedFields = GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)
     }
-    
     return """
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
       resourceBaseUrl
       resourceZipName: resourceZip,
       globalBaseUrl
-      feeds: feedList { \(feedFields) }
+      feeds: feedList(name:"\(feedName)") { \(feedFields) }
     """
   }
   
@@ -981,11 +983,11 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   //ToDo: Ensure this is just done once not on every net status Change
-  public func updateStatus(loadAllPublicationDates:Bool = false, closure: @escaping(Result<Feeder,Error>)->()){
+  public func updateStatus(loadAllPublicationDates:Bool = false, feedName: String, closure: @escaping(Result<Feeder,Error>)->()){
     log("updateStatus loadAllPublicationDates:\(loadAllPublicationDates)")
     isUpdating = true
     let wasAuthenticated: Bool = authToken != nil
-    feederStatus(loadAllPublicationDates:loadAllPublicationDates) { [weak self] (res) in
+    feederStatus(loadAllPublicationDates:loadAllPublicationDates, feedName: feedName) { [weak self] (res) in
       guard let self = self else {
         print("...deallocated!")
         let userInfo
@@ -1187,13 +1189,13 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(loadAllPublicationDates:Bool = false, loadAllPublicationDates closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+  func feederStatus(loadAllPublicationDates:Bool = false, feedName: String, closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     let request = """
       feederStatus: product {
-        \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates))
+        \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates, feedName: feedName))
     }
     """
     log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
@@ -1350,7 +1352,7 @@ open class GqlFeeder: Feeder, DoesLog {
           if isBackGround == false {
             self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
           }
-          if let issues = frqResponse.feeds[0].issues, issues.count > 0 {
+          if let issues = frqResponse.feeds.first(where: {$0.name == feed.name})?.issues, issues.count > 0 {
             for issue in issues {
               issue.feed = feed
               if isOverview {
@@ -1412,7 +1414,7 @@ open class GqlFeeder: Feeder, DoesLog {
           if isBackGround == false {
             self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
           }
-          if let feedResponse = frqResponse.feeds.first {
+          if let feedResponse = frqResponse.feeds.first(where: {$0.name == feed.name}) {
             feedResponse.gqlFeeder = self
             for issue in feedResponse.issues ?? [] {
               issue.feed = feed

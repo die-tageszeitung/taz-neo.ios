@@ -2568,9 +2568,13 @@ public final class StoredFeed: Feed, StoredObject {
     self.lastIssue = object.lastIssue
     self.lastIssueRead = object.lastIssueRead
     self.lastUpdated = object.lastUpdated
+    /// CR-Feeds: Warning: what should we do? only add issues to primary feed?
+    /// CR-Feeds: Warning Issue>Feed Relation is currently **to one** need to be changed or add just issues to master feed?
+    /// wochentaz login => default filter to wochentaz > no more db reset required > no more time consuming qa...legacy code...
     if let iss = object.issues {
       for issue in iss {
         let sissue = StoredIssue.persist(object: issue)
+        ///CR-Feeds: adding multiple feeds?
         sissue.pr.feed = pr
         pr.addToIssues(sissue.pr)
       }
@@ -2597,7 +2601,6 @@ public final class StoredFeed: Feed, StoredObject {
       ///    Saving 3770 PublicationDates took 5.487667918205261s
       log("Saving \(pubDates.count) PublicationDates took \(abs(start.timeIntervalSinceNow))s")
     }
-    
   }
   
   /// Return stored Issue with given name in Feeder
@@ -2610,8 +2613,12 @@ public final class StoredFeed: Feed, StoredObject {
   
   public static func get(object: Feed, inFeeder feeder: StoredFeeder) -> StoredFeed? {
     let feeds = get(name: object.name, inFeeder: feeder)
-    if feeds.count > 0 { return feeds[0] }
-    else { return nil }
+    if feeds.count > 1 {///Problematisch? Es sollte keine 2 Feeds mit gleichem Namen geben.
+      Usage.track(Usage.event.errorEvent.UnexpectedFeedCountInDatabase,
+                  name: "expected: 1, found: \(feeds.count) for feedName: \(object.name)")
+      Log.log("ERROR:: Unexpected Feed Count In Database: expected: 1, found: \(feeds.count) for feedName: \(object.name)", logLevel: Log.LogLevel.Error)
+    }
+    return feeds.first
   }
   
   public static func get(object: Feed) -> StoredFeed? {

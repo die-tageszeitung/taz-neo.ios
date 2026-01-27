@@ -47,7 +47,7 @@ import NorthLib
      when database has been initialized
    - feederReachable(FeederContext)
      network connectivity changed, feeder is reachable
-   - feederUneachable(FeederContext)
+   - feederUnreachable(FeederContext)
      network connectivity changed, feeder is not reachable
    - feederReady(FeederContext)
      Feeder data is available (if not reachable then data is from DB)
@@ -222,7 +222,7 @@ open class FeederContext: DoesLog {
         return
       }
       log("No stored Feeder found, update Feeder caLLED FROM INIT")
-      updateFeeder()
+      updateFeeder(feedName: feedName)
       return
     }
     
@@ -233,7 +233,7 @@ open class FeederContext: DoesLog {
     cleanupOldIssues(deleteOlder: true)//requires inited bookmarks
     checkAppUpdate()
     if needUpdate {
-      updateFeeder(loadAllPublicationDates: loadAll)
+      updateFeeder(loadAllPublicationDates: loadAll, feedName: feedName)
     }
     onMainAfter(2.0){[weak self] in  self?.handleUnfinshedDownloads() }
   }
@@ -249,11 +249,11 @@ open class FeederContext: DoesLog {
       self.notifyNetStatus(isConnected: netAvailability.isConnected)
     }
     else {
-        updateFeeder()
+        updateFeeder(feedName: feedName)
     }
   }
 #warning("maybe do not use this in BG Download Stuff!!!")
-  private func updateFeeder(loadAllPublicationDates:Bool = false){
+  private func updateFeeder(loadAllPublicationDates:Bool = false, feedName: String){
     if loadAllPublicationDates == false && gqlFeeder.isUpdating {
       debug("...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
       return
@@ -271,7 +271,7 @@ open class FeederContext: DoesLog {
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
                       sender: self)
-    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates) {
+    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates, feedName: feedName) {
       [weak self] res in
       guard let self = self else { return }
       let needInit = self.storedFeeder == nil
@@ -282,9 +282,9 @@ open class FeederContext: DoesLog {
           ///remember old data due on set storedFeeder  old reference is overwritten
           let publicationDatesChanged
           = self.storedFeeder != nil
-          && self.gqlFeeder?.feeds.first?.publicationDates?.count != 1
-          && self.storedFeeder.feeds.first?.publicationDates?.count
-          != self.gqlFeeder?.feeds.first?.publicationDates?.count
+          && self.gqlFeeder?.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count != 1
+          && self.storedFeeder.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count
+          != self.gqlFeeder?.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
           if publicationDatesChanged {
             ArticleDB.save()
@@ -338,12 +338,12 @@ open class FeederContext: DoesLog {
       log("storedFeeder not initialized yet!")
       return true
     }
-    guard let feed = storedFeeder.feeds.first else {
-      log("No Stored Feed => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+    guard let feed = storedFeeder.feeds.first(where: {$0.name == self.feedName}) else {
+      log("No Stored Feed => load all Publication Dates... for feed: \(self.feedName)")
       return true
     }
-    guard let pubDates = storedFeeder.feeds.first?.publicationDates else {
-      log("No Publication Dates => load all Publication Dates... for feed: \(storedFeeder.feeds.first?.name ?? "-")")
+    guard let pubDates = feed.publicationDates else {
+      log("No Publication Dates => load all Publication Dates... for feed: \(feed.name)")
       return true
     }
     
@@ -377,7 +377,7 @@ open class FeederContext: DoesLog {
     log("NET STATUS CHANGED isConnected: \(isConnected)")
     if isConnected,
        BackgroundDownloadService.shared.executeScheduledCheckIfNeeded() == false {
-      updateFeeder()
+      updateFeeder(feedName: feedName)
     }
     notifyNetStatus(isConnected: isConnected)
   }
@@ -458,7 +458,7 @@ open class FeederContext: DoesLog {
     }
     else {
       log("Enter Foreground, updateFeeder")
-      updateFeeder()
+      updateFeeder(feedName: feedName)
     }
     BackgroundDownloadService.shared.handleEnterForeground()
   }
@@ -547,7 +547,7 @@ open class FeederContext: DoesLog {
       log("...DO-NOT-CLEANUP, not foreground user started app start")
       return
     }
-    guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
+    guard let feed = self.storedFeeder?.feeds.first(where: {$0.name == self.feedName}) as? StoredFeed else { return }
     migrateFullDownloadedIssuesDatesIfNeeded()
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
     StoredIssue.removeOldest(feed: feed,
@@ -557,7 +557,7 @@ open class FeederContext: DoesLog {
   }
   
   func migrateFullDownloadedIssuesDatesIfNeeded(){
-    guard let feed = self.storedFeeder?.feeds[0] as? StoredFeed else { return }
+    guard let feed = self.storedFeeder?.feeds.first(where: {$0.name == self.feedName}) as? StoredFeed else { return }
     let faultIssues = StoredIssue.issues(feed: feed, onlyComplete: true, onlyWithoutCompleteDate: true)
     guard faultIssues.count > 0 else { return }
     log("WARNING: FIX MISSING COMPLETE DATES for \(faultIssues.count) issues")

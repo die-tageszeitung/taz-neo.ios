@@ -424,6 +424,7 @@ extension Usage {
     enum errorEvent: String, TrackingEvent {
       var category: String { "Error Event" }
       case MissingIssueFiles = "Missing files in complete issue"
+      case UnexpectedFeedCountInDatabase = "Unexpected Feed Count in Database"
     }
     enum bookmarks: String, TrackingEvent {
       var category: String { "Bookmarks" }

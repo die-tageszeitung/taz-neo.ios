@@ -82,6 +82,7 @@ extension BackgroundDownloadService {
   /// via protocol types.
   static var jsonDataFilename: String { "issue-tmp-data.json" }
   
+  /// updates auto download intervall/properties based on the provided feed
   func updateFeed(_ feed: StoredFeed) {
     if feed.name == FeedName.LMd.rawValue {
       autoloadPublicationType = PublicationSchedule.lmd.rawValue
@@ -93,7 +94,6 @@ extension BackgroundDownloadService {
       autoloadPublicationType = PublicationSchedule.taz.rawValue
     }
     updatePublicationtype()
-    log ("Update updateLatestIssueDownloadDate...")
     if let lastIssue = StoredIssue.lastComplete(feed: feed,
                                                  isPages: autoloadPdf,
                                                  withAudio: autoloadAudio) {
