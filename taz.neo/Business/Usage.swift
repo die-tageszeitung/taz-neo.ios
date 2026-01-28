@@ -534,7 +534,7 @@ extension Usage {
            NavigationBack = "Navigation Back"
     }
     enum tapEdge: String, TrackingEvent {
-      var category: String { "Tap am Rand" }
+      var category: String { "Tippen am Rand" }
       case state = "Status",
            visibility = "Sichtbarkeit",
            foreward = "Vor",

@@ -398,7 +398,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   ///erweitert
   lazy var edgeTapToNavigateCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Tap am Rand",
+  = XSettingsCell(toggleWithText: "Tippen am Rand",
                   detailText: "Tap am unteren Rand einer Seite oder eines Artikels, um zu scrollen oder zum nächsten Element zu gelangen.",
                   initialValue: edgeTapToNavigate,
                   onChange: {[weak self] newValue in
@@ -407,8 +407,8 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     (self?.edgeTapToNavigateVisibleCell.customAccessoryView as? UISwitch)?.isEnabled = newValue
   })
   lazy var edgeTapToNavigateVisibleCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Tap am Rand sichtbar",
-                  detailText: "Bereich für \"Tap am Rand\" sichtbar (Alpha Feature)",
+  = XSettingsCell(toggleWithText: "Tippen am Rand sichtbar",
+                  detailText: "Bereich für \"Tippen am Rand\" sichtbar (Alpha Feature)",
                   initialValue: edgeTapToNavigateVisible2,
                   onChange: {[weak self] newValue in
     self?.edgeTapToNavigateVisible2 = newValue
@@ -439,7 +439,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   })
   lazy var multiColumnFixedScrollingCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Mehrspaltigkeit gleichmäßiges Scrollen",
-                  detailText: "In der mehrspaltigen Ansicht bei 'Tap am Rand' immer die gleiche Anzahl von Spalten weiterscrollen.\nDies wirkt sich nur beim 'vorwärts Tap' auf dem letzten Bildschirmbereich (Seite) aus und kann dazu führen, dass dort nur eine dicke Linie zu sehen ist.",
+                  detailText: "In der mehrspaltigen Ansicht bei 'Tippen am Rand' immer die gleiche Anzahl von Spalten weiterscrollen.\nDies wirkt sich nur beim 'vorwärts Tap' auf dem letzten Bildschirmbereich (Seite) aus und kann dazu führen, dass dort nur eine dicke Linie zu sehen ist.",
                   initialValue: multiColumnFixedScrolling,
                   onChange: {[weak self] newValue in
     self?.multiColumnFixedScrolling = newValue
