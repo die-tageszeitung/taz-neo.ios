@@ -102,27 +102,35 @@ public final class GraphQlSession: HttpSession {
           result = .success(dict["data"]!)
         }
         catch let DecodingError.dataCorrupted(context) {
-          print(context)
+          Log.log("dataCorrupted: \(context.debugDescription)", logLevel: Log.LogLevel.Error)
+          Log.log("codingPath: \(context.codingPath)", logLevel: Log.LogLevel.Error)
           result = .failure(self.fatal("JSON decoding error"))
         } catch let DecodingError.keyNotFound(key, context) {
-          print("Key '\(key)' not found:", context.debugDescription)
-          print("codingPath:", context.codingPath)
+          Log.log("Key '\(key)' not found: \(context.debugDescription)", logLevel: Log.LogLevel.Error)
+          Log.log("codingPath: \(context.codingPath)", logLevel: Log.LogLevel.Error)
           result = .failure(self.fatal("JSON decoding error"))
         } catch let DecodingError.valueNotFound(value, context) {
-          print("Value '\(value)' not found:", context.debugDescription)
-          print("codingPath:", context.codingPath)
+          Log.log("Value '\(value)' not found: \(context.debugDescription)", logLevel: Log.LogLevel.Error)
+          Log.log("codingPath: \(context.codingPath)", logLevel: Log.LogLevel.Error)
           result = .failure(self.fatal("JSON decoding error"))
         } catch let DecodingError.typeMismatch(type, context)  {
-          print("Type '\(type)' mismatch:", context.debugDescription)
-          print("codingPath:", context.codingPath)
+          Log.log("Type '\(type)' mismatch: \(context.debugDescription)", logLevel: Log.LogLevel.Error)
+          Log.log("codingPath: \(context.codingPath)", logLevel: Log.LogLevel.Error)
           result = .failure(self.fatal("JSON decoding error"))
         } catch {
-          print("error: ", error)
+          Log.log("error: \(error)", logLevel: Log.LogLevel.Error)
           result = .failure(self.fatal("JSON decoding error"))
         }
       }
     }
-    else { result = .failure(self.fatal("No data from GraphQL server")) }
+    else {/// no data
+      result = .failure(self.fatal("No data from GraphQL server"))
+    }
+    
+    if case .failure = result {
+      Log.log("Response on type: \(type)", logLevel: Log.LogLevel.Error)
+      Log.log("graphql Request was: \(graphql)", logLevel: Log.LogLevel.Error)
+    }
     return result
   }
   
