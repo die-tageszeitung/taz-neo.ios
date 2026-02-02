@@ -117,16 +117,33 @@ extension TazAppEnvironment {
       }
       
       mail.setSubject("\(subject) \"\(App.name)\" (iOS)\(tazIdText)")
-      mail.setMessageBody("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n\n...\n",
-        isHTML: false)
+      
+      
+      let msg = """
+      Betreff: Schwerwiegender interner Fehler der iOS App
+        
+      Bitte per E-Mail an: app@taz.de
+          
+      Bitte ergänzen Sie, falls bekannt, wie der Fehler entstanden ist.
+      
+      Technische Informationen:
+      Abgelaufen: \(Defaults.expiredAccount)
+      Angemeldet: \(isAuthenticated)
+      Konto: \(DefaultAuthenticator.getUserData().id ?? "-")
+      deviceName: \(Utsname.machineModel)
+      appVersion: \(App.name) \(App.bundleVersion)-\(App.buildNumber)
+      deviceOS: iOS \(UIDevice.current.systemVersion)
+      installationId: \(App.installationId)
+      """
+      mail.setMessageBody(msg, isHTML: false)
       if addScreenshot, let screenshot = screenshot {
         mail.addAttachmentData(screenshot, mimeType: "image/jpeg",
                                fileName: "taz.neo-screenshot.jpg")
       }
       if let logData = logData {
+        let dateId = Date().ddMMyy_HHmmss
         mail.addAttachmentData(logData, mimeType: "text/plain",
-                               fileName: "taz.neo-logfile.txt")
+                               fileName: "Protokoll_\(dateId).txt")
       }
       UIViewController.top()?.topmostModalVc.present(mail, animated: true){
         completion?()
