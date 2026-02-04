@@ -125,26 +125,26 @@ extension HomeVC: HelpProviding{
                                text: "Hier können Sie Ausgaben bis 2011 nach Datum aufrufen. Artikel aus noch älteren Ausgaben finden Sie über die Suche.",
                                isCircleCutout: true,
                                targetView: calenderImageView)
-      
+      let narrowDeviceWidth = UIWindow.keyWindow?.traitCollection.horizontalSizeClass != .regular
       let home = HelpItem(title:"Home",
                           accessibilityTitle: "Home, Tabbar Item",
                           text: "Wenn Sie hier tippen, gelangen Sie jederzeit zurück zur Startseite. Bei erneutem Tipp springt die Ansicht zur aktuellen Ausgabe.",
-                          isCircleCutout: true,
+                          isCircleCutout: narrowDeviceWidth,
                           targetView: tabbarItems.valueAt(0))
       let bookmarks = HelpItem(title:"Leseliste",
                                accessibilityTitle: "Leseliste, Tabbar Item",
                                text: "Hier finden Sie alle Ihre gespeicherten Artikel.",
-                               isCircleCutout: true,
+                               isCircleCutout: narrowDeviceWidth,
                                targetView: tabbarItems.valueAt(1))
       let search = HelpItem(title:"Suche",
                             accessibilityTitle: "Suche, Tabbar Item",
                             text: "Durchsuchen Sie alle Ausgaben der taz von 1981 bis heute – nach Stichworten in Text oder Titel sowie nach Autor:innen.",
-                            isCircleCutout: true,
+                            isCircleCutout: narrowDeviceWidth,
                             targetView: tabbarItems.valueAt(2))
       let settings = HelpItem(title:"Einstellungen",
                             accessibilityTitle: "Einstellungen, Tabbar Item",
                             text: "Hier können Sie die App an Ihre Bedürfnisse anpassen, z.B. Schriftgröße, automatischer Download oder Dark Mode.",
-                            isCircleCutout: true,
+                              isCircleCutout: narrowDeviceWidth,
                             targetView: tabbarItems.valueAt(3))
       
       let helpButton = (navigationController?.parent as? MainTabVC)?.helpButton

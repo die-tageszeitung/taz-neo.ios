@@ -76,6 +76,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   var openingIssue: Issue?
   
   let downloadButton = DownloadStatusButton()
+  let downloadButtonTapArea = UIView()
   let dateLabel = CrossfadeLabel()
   
   lazy var calenderImageView: UIImageView = {
@@ -141,7 +142,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.showDatePicker()
     }
     
-    downloadButton.onTapping { [weak self] _ in
+    downloadButtonTapArea.onTapping { [weak self] _ in
       guard let idx = self?.centerIndex,
             let data = self?.service.cellData(for: idx) else { return }
       
@@ -370,7 +371,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     self.view.addSubview(viewModeButton)
     self.view.addSubview(loginButton)
     self.view.addSubview(bottomItemsWrapper)
+    self.view.addSubview(downloadButtonTapArea)
 
+    downloadButtonTapArea.pinSize(CGSize(width: 60.0, height: 60.0))
+    downloadButtonTapArea.layer.cornerRadius = 30.0
+    
     self.overrideUserInterfaceStyle = .dark
     pin(blurView, to: view, exclude: .bottom)
     pin(blurView.bottom, to: viewModeButton.bottom, dist: Const.Dist2.s10)
@@ -409,11 +414,14 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.trackScreen()
       self?.updateButtonMenu()
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
+      self?.downloadButtonTapArea.isHidden = (self?.isHomeTiles ?? true)
     }
-    
 
     bottomItemsWrapper.isHidden = isHomeTiles
+    downloadButtonTapArea.isHidden = isHomeTiles
     bottomItemsWrapper.centerX()
+    pin(downloadButtonTapArea.centerX, to: downloadButton.centerX)
+    pin(downloadButtonTapArea.centerY, to: downloadButton.centerY)
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     
     Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in

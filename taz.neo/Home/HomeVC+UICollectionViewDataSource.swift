@@ -49,7 +49,7 @@ extension HomeVC  {
     if cell.interactions.isEmpty {
       let menuInteraction = UIContextMenuInteraction(delegate: self)
       cell.addInteraction(menuInteraction)
-      cell.button.onTapping { [weak self] _ in
+      cell.statusIndicatorTapArea.onTapping { [weak self] _ in
         if cell.button.indicator.downloadState?.canOpen == true,
           let issue = cell.data?.issue {
           self?.openIssue(issue,
@@ -81,7 +81,7 @@ extension HomeVC  {
       error("Issue not available try later")
       return
     }
-    if isHomeTiles {
+    if isHomeTiles && data.downloadState == .notStarted {
       Notification.send("issueProgress", content: "waiting", sender: issue)
     }
     else if data.downloadState == .notStarted {

@@ -28,6 +28,16 @@ extension ArticleVC: HelpProviding{
         swiping.topImageView = iv
       }
       
+      let tapOnEdge = HelpItem(title:"Tippen statt scrollen",
+                                       text: "Tippen Sie am rechten Bildschirmrand, um automatisch weiter nach unten zu springen oder am Ende des Artikels zum nächsten Artikel zu wechseln. Tippen Sie am linken Rand, um nach oben oder zum vorherigen Artikel zu gelangen.")
+      if let img = UIImage(named: "phone-tap-edge"){
+        let iv = UIImageView(image: img)
+//        iv.tintColor = .white
+        iv.contentMode = .scaleAspectFit
+        iv.pinSize(CGSize(width: 170, height: 170))
+        tapOnEdge.topImageView = iv
+      }
+      
       let galleryZoom = HelpItem(title:"Bild vergrößern",
                                        text: "Tippen Sie auf ein Bild, um es im Vollbildmodus zu öffnen. Dort können Sie mit zwei Fingern hineinzoomen.")
       if let img = UIImage(named: "phone-hands-pinch"){
@@ -74,6 +84,7 @@ extension ArticleVC: HelpProviding{
 
       ///Not for Bookmark and Search!
       if isRegularIssue { items.insert(menu, at: 0) }
+      if edgeTapToNavigate { items.append(tapOnEdge) }
       
       if article is VirtualArticle {//TOM's!
         items.append(toolbarBack)

@@ -12,6 +12,7 @@ import NorthLib
 class IssueTilesCvcCell : IssueCollectionViewCell {
   
   public let button = DownloadStatusButton()
+  public let statusIndicatorTapArea = UIView()
   let buttonHeight:CGFloat = 30.0
   let buttonOffset:CGFloat = 0.0
   
@@ -99,6 +100,14 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     pin(button.topGuide(), to: momentView.bottomGuide(), dist: buttonOffset, priority: .fittingSizeLevel)
     button.label.font = Const.Fonts.contentFont(size: 15.0)
     button.color = Const.SetColor.HomeText.color
+    
+
+    statusIndicatorTapArea.pinSize(CGSize(width: 90.0, height: 90.0))
+    statusIndicatorTapArea.layer.cornerRadius = 45.0
+    
+    contentView.addSubview(statusIndicatorTapArea)
+    pin(statusIndicatorTapArea.centerX, to: button.indicator.centerX)
+    pin(statusIndicatorTapArea.centerY, to: button.indicator.centerY)
     
     $isHomeTiles.onChange{[weak self] _ in self?.updateButtonVisibillity() }
     updateButtonVisibillity()
