@@ -158,6 +158,11 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
     self.bottomSheet?.open()
   }
   
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    cleanup()
+  }
+  
   override func didMove(toParent parent: UIViewController?) {
     super.didMove(toParent: parent)
     if let sv = view.superview{
