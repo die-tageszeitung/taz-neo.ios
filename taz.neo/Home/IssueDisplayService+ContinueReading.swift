@@ -245,7 +245,7 @@ extension IssueDisplayService {
     let pdfVC = TazPdfPagesViewController(issueInfo: self)
     pushDelegate.push(pdfVC, issueInfo: self)
     
-    if issue.status == .reduced {
+    if issue.status == .reduced && issue.pages?.count ?? 0 < 5 {
       authenticate()
       return
     }

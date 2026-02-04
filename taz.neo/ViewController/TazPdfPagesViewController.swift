@@ -480,7 +480,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     articleVC.reopenArticleScrollPos = reopenArticleScrollPos
     let artFile = File(dir: path, fname: name)
     ///check if article file exists, otherwise log and return => do not open wrong article
-    guard artFile.exists else {
+    guard artFile.exists || File(dir: path, fname: name.replacingOccurrences(of: ".html", with: ".public.html")).exists else {
       log("article file \(name) did not exist in \(path.lastPathComponent)")
       return
     }
