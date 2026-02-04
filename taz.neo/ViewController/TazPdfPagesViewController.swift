@@ -399,11 +399,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     hidesBottomBarWhenPushed = true
     
-    #if LMD
     sliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
-    #else
-    sliderContentController = createTazSliderChildController(pdfModel: pdfModel)
-    #endif
     
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
@@ -466,11 +462,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.collectionView?.scrollto(pageIdx,animated: true)
       return
     }
-    #if LMD
     let articleSliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
-    #else
-    let articleSliderContentController = createTazSliderChildController(pdfModel: pdfModel)
-    #endif
+//    #else
+//    let articleSliderContentController = createTazSliderChildController(pdfModel: pdfModel)
+//    #endif
        
     let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
                                              sliderContent: articleSliderContentController)
@@ -485,7 +480,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       return
     }
     articleVC.gotoUrl(path: path, file: name)
-    #if LMD
     articleSliderContentController.header.imageView.onTapping{[weak self] _ in
       self?.childArticleVC?.slider?.close()
       self?.navigationController?.popViewController(animated: true)
@@ -498,26 +492,26 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self?.childArticleVC?.slider?.close()
       self?.navigationController?.popToRootViewController(animated: true)
     }
-    #else
-    articleVC.header.onTitle { [weak self] _ in
-      self?.debug("*** Action: Header back to Page pressed")
-      if  let art = articleVC.article,
-      let idx = pdfModel.pageIndexForArticle(art) {
-        self?.index = idx
-      }
-      articleVC.navigationController?.popViewController(animated: true)
-    }
-    
-    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
-      Usage.track(Usage.event.drawer.action_tap.Page)
-      if let newIndex = pdfModel?.index {
-        self?.collectionView?.index = newIndex
-      }
-      articleVC.slider?.close(animated: true) { [weak self] _ in
-        self?.navigationController?.popViewController(animated: true)
-      }
-    }
-    #endif
+//    #else
+//    articleVC.header.onTitle { [weak self] _ in
+//      self?.debug("*** Action: Header back to Page pressed")
+//      if  let art = articleVC.article,
+//      let idx = pdfModel.pageIndexForArticle(art) {
+//        self?.index = idx
+//      }
+//      articleVC.navigationController?.popViewController(animated: true)
+//    }
+//    
+//    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
+//      Usage.track(Usage.event.drawer.action_tap.Page)
+//      if let newIndex = pdfModel?.index {
+//        self?.collectionView?.index = newIndex
+//      }
+//      articleVC.slider?.close(animated: true) { [weak self] _ in
+//        self?.navigationController?.popViewController(animated: true)
+//      }
+//    }
+//    #endif
     
     self.navigationController?.pushViewController(articleVC, animated: true)
     self.childArticleVC = articleVC
@@ -990,7 +984,6 @@ extension TazPdfPagesViewController {
   }
   
   
-  #if LMD
   func createLmdSliderChildController(issueInfo: IssueInfo) -> LMdSliderContentVC {
     let ctrl = LMdSliderContentVC()
     ctrl.dataSource
@@ -1024,11 +1017,10 @@ extension TazPdfPagesViewController {
         }
         return
       }
-      self?.openArticle(name: article.html?.name, path: article.primaryIssue?.dir.path)
+      self?.openArticle(name: article.html?.name, path: article.primaryIssue?.dir.path, reopenArticleScrollPos: nil)
     }
     return ctrl
   }
-  #endif
 }
 
 extension TazPdfPagesViewController: ScreenTracking {
@@ -1080,7 +1072,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     if let sContent = self.sliderContent {
       slider = MyButtonSlider(slider: sContent, into: self)
     }
-    #if LMD
     if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
       lmdSliderContentVc.onArticlePress{[weak self] article in
         self?.collectionView?.index = article.index
@@ -1097,7 +1088,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
         }
       }
     }
-    #endif
     super.setupSlider()
     applyStyles()
   }
@@ -1205,11 +1195,9 @@ fileprivate extension CGSize {
   }
 }
 
-#if LMD
 extension Article {
   var index: Int? {
     return self.primaryIssue?.allArticles.firstIndex(where: { art in art.isEqualTo(otherArticle: self) })
   }
   
 }
-#endif

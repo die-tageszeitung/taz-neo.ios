@@ -37,7 +37,11 @@ public class VirtualArticle: Article {
   
   public var primaryIssue: Issue?
   
+  #if TAZ
   public var dir: Dir { Dir.tomsDir }
+  #else
+  public var dir: Dir { Dir.documents }
+  #endif
   
   /// Overrides `StoredArticle`'s `baseURL` getter.
   /// The base implementation falls back to `primaryIssue?.baseUrl` if the DB value is not set,

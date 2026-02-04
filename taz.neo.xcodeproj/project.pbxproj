@@ -113,6 +113,15 @@
 		777DF43F2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */; };
 		777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
 		777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
+		778174FB2F3111E500688AC3 /* LMdSliderContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */; };
+		778174FC2F3111F100688AC3 /* LMdSliderDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */; };
+		778174FD2F3111FD00688AC3 /* LMdSliderCVFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */; };
+		778174FE2F31121A00688AC3 /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
+		778174FF2F31122C00688AC3 /* _LMdSliderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */; };
+		778175002F31123C00688AC3 /* LMdPageImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */; };
+		778175012F31124A00688AC3 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
+		778175022F31125500688AC3 /* LMdSliderHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */; };
+		778175032F3114E200688AC3 /* VirtualArticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27452BA05BA800835BB9 /* VirtualArticle.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
 		778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
@@ -1468,6 +1477,7 @@
 				AE5131CE2AFBCADB002289E8 /* GqlFeeder.swift in Sources */,
 				7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */,
 				AE5131CF2AFBCADB002289E8 /* SearchResultArticleVc.swift in Sources */,
+				778175032F3114E200688AC3 /* VirtualArticle.swift in Sources */,
 				AE5131D02AFBCADB002289E8 /* TextSettingsVC.swift in Sources */,
 				AE5131D12AFBCADB002289E8 /* IssueInfoProtocol.swift in Sources */,
 				AE5131D22AFBCADB002289E8 /* FeedbackView.swift in Sources */,
@@ -1505,15 +1515,18 @@
 				774C27482BA05C4500835BB9 /* HelpViewCell.swift in Sources */,
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
+				778174FD2F3111FD00688AC3 /* LMdSliderCVFlowLayout.swift in Sources */,
 				77E6E9A32CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				773500B72A1C0AEA00678647 /* IssueCollectionViewCell.swift in Sources */,
 				776746092E9D08D000A60883 /* ArticlePlayer+HelpProviding.swift in Sources */,
 				77E6E9B52CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
+				778174FF2F31122C00688AC3 /* _LMdSliderCell.swift in Sources */,
 				4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */,
 				77E6E99A2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
+				778175012F31124A00688AC3 /* CvSeperator.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
 				77FABFA22A4DD56500FB9EB1 /* ArticlePlayerUI.swift in Sources */,
 				77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */,
@@ -1522,6 +1535,7 @@
 				77E6E9AF2CF8814100430B83 /* Bookmarks+ModelExtensions.swift in Sources */,
 				77D434002CE694A100AC992A /* Bookmarks.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
+				778175022F31125500688AC3 /* LMdSliderHeader.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				777DF43E2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,
@@ -1535,6 +1549,7 @@
 				7717EF5A2EA29C7B00CB9646 /* GqlFeeder+UserData.swift in Sources */,
 				7767460B2E9D292500A60883 /* NewContentTableVC+HelpProviding.swift in Sources */,
 				4D308EE72834057200529592 /* SearchSettingsView.swift in Sources */,
+				778174FE2F31121A00688AC3 /* LMdPageArticleCell.swift in Sources */,
 				4D308EEC283405A900529592 /* MainTabVC.swift in Sources */,
 				4D308EEA2834057200529592 /* SearchController.swift in Sources */,
 				AE44F8E424815AF4009DA152 /* ContentImageVC.swift in Sources */,
@@ -1565,6 +1580,7 @@
 				0015B73A24DD87DA0037A8D6 /* DefaultAuthenticator.swift in Sources */,
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77CB2D262A814B1400021804 /* FeederContext+Notifications.swift in Sources */,
+				778174FC2F3111F100688AC3 /* LMdSliderDataModel.swift in Sources */,
 				773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */,
 				77E6E9B22CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				773500B52A1C0A7C00678647 /* IssueCarouselFlowLayout.swift in Sources */,
@@ -1589,6 +1605,7 @@
 				77499E142EA582CC00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift in Sources */,
 				77EF789C2E8537A5009B8655 /* HomeVC+UICollectionViewDataSource.swift in Sources */,
 				77EF789E2E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */,
+				778174FB2F3111E500688AC3 /* LMdSliderContentVC.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
@@ -1596,6 +1613,7 @@
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
 				4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */,
 				4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */,
+				778175002F31123C00688AC3 /* LMdPageImageCell.swift in Sources */,
 				77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
 				AECCE11823FBD006007C2276 /* ArticleVC.swift in Sources */,
 				777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */,

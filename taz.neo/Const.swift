@@ -506,7 +506,7 @@ public struct Const {
     /// The font to use for content
     static func contentFont(size: CGFloat = 30.0) -> UIFont
     { return font(name: contentFontName, size: size) }
-    
+    #if TAZ
     static func knileRegularFont(size: CGFloat) -> UIFont
     { return font(name: knileRegularFontName, size: size) }
     
@@ -518,7 +518,7 @@ public struct Const {
     
     static func knileBoldFont(size: CGFloat) -> UIFont
     { return font(name: knileBoldFontName, size: size) }
-    
+    #endif
     /// The font to use in titles
     static func titleFont(size: CGFloat) -> UIFont
     { return font(name: titleFontName, size: size) }
