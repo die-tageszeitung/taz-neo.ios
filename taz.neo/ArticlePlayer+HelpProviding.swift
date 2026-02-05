@@ -33,7 +33,7 @@ extension ArticlePlayer: HelpProviding {
                             isCircleCutout: true,
                             targetView: self.userInterface.backButton)
     
-    let skipForward = HelpItem(title:"Zum nächsten Artikel",
+    let skipForward = HelpItem(title:"Zum nächsten\nArtikel",
                         text: "Tippen Sie hier, um den nächsten Artikel der Ausgabe oder Leseliste zu starten.",
                                isCircleCutout: true,
                             targetView: self.userInterface.forwardButton)
@@ -53,7 +53,7 @@ extension ArticlePlayer: HelpProviding {
 
     let proTip = HelpItem(title:"Tipp: Steuerung via iOS Kontrollzentrum",
                                      text: "Sie können zur Wiedergabesteuerung – Abspielen, Pausieren, vorheriger oder nächster Artikel – auch das iOS Kontrollzentrum verwenden, ohne die App zu öffnen. So funktioniert die Steuerung auch mit Bluetooth-Geräten, Apple Watch oder CarPlay.\n\n\n\n\n\n\n")
-    return [minimize, openArticle, readSpeed, slider, skipBack, skipForward, seekBack, playPause, seekForeward, proTip]
+    return [minimize, openArticle, readSpeed, slider, skipBack, seekBack, playPause, seekForeward, skipForward, proTip]
   }
   
 }

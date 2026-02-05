@@ -99,7 +99,7 @@ extension HomeVC: HelpProviding{
       let viewModeItem = HelpItem(title:"Darstellung anpassen",
                                   accessibilityTitle: "Hilfe für den Home Screen, erstes Element: Schalter, Darstellungsoptionen",
                                   //text: "Hier können Sie zwischen Zeitungsansicht (PDF) und mobiler Ansicht wechseln. Ausgaben lassen sich entweder als Kacheln oder im Karussell zum Wischen darstellen.
-                                       text: "Wechseln Sie zwischen App- und Zeitungsansicht, wählen Sie Karussell- oder Kachel-Layout und springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
+                                       text: "Wechseln Sie zwischen mobiler- und Zeitungsansicht, wählen Sie Karussell- oder Kachel-Anordnung und springen Sie direkt zu Ausgaben bis zurück ins Jahr 2011.",
                                        isCircleCutout: true,
                                        circleCutoutInsetAdjustment: -14.0,
                                        targetView: self.viewModeButton)
@@ -173,7 +173,7 @@ extension HomeVC: HelpProviding{
         scrollItem.topImageView = iv
       }
       
-      let homeMenuItem = HelpItem(title:"Für Profis: das Kontextmenü",
+      let homeMenuItem = HelpItem(title:"Für Profis: das\nKontextmenü",
                                        text: "Tippen Sie länger auf eine Ausgabe, um das Kontextmenü mit weiteren nützlichen Funktionen zu öffnen.")
       if let img = UIImage(named: "Img-HomeMenu"){
         let view = UIImageView(image: img)
