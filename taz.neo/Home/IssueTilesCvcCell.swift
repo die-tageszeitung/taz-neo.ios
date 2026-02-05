@@ -130,9 +130,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
           }
           else {
             self.button.indicator.downloadState
-            = self.data?.issue?.hasLastReadForCurrentMode == true
-            ? .read
-            : .downloaded
+            = self.data?.issue?.downloadState
           }
           self.button.indicator.percent = percent
         }

@@ -898,6 +898,15 @@ extension Issue {
         && lastPage != nil { return nil }
     return lastArticle
   }
+  
+  var downloadState: DownloadStatusIndicatorState {
+    if hasLastReadForCurrentMode { return .read }
+    let env = TazAppEnvironment.sharedInstance
+    let isFacsimile = env.service?.isFacsimile ?? false
+    let needUpdate = env.feederContext?.needsUpdate(issue: self, toShowPdf: isFacsimile) ?? false
+    return  needUpdate ? .notStarted : .downloaded
+  }
+  
     
   var hasLastReadForCurrentMode: Bool {
     if TazAppEnvironment.sharedInstance.service?.isFacsimile == false {

@@ -405,6 +405,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       collectionView.reloadItems(at: indexPaths)
       trackScreen()
       updateButtonMenu()
+      if isHomeTiles { return }
+      guard let centerIndex = self.centerIndex else { return }
+      ///update wrapper for carousel
+      updateBottomWrapper(for: centerIndex, force: true)
     }
     
     $isHomeTiles.onChange{[weak self] _ in
@@ -732,9 +736,7 @@ extension HomeVC {
           }
           else {
             self?.downloadButton.indicator.downloadState
-            = issue.hasLastReadForCurrentMode == true
-            ? .read
-            : .downloaded
+            = issue.downloadState
           }
           self?.downloadButton.indicator.percent = percent
         }
