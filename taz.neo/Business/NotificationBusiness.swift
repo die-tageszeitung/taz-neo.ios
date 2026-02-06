@@ -155,6 +155,7 @@ extension NotificationBusiness {
   /// - Parameter newIssueAvailableSince: A timestamp indicating when a new issue became available.
   func showPopupIfNeeded(newIssueAvailableSince: TimeInterval) {
     guard !showingNotificationsPopup else { return }
+    guard !UIAccessibility.isVoiceOverRunning else { return }
     
     // If the notification status is not determined, recheck later
     if self.systemNotificationsStatus == .notDetermined {
@@ -208,5 +209,14 @@ extension NotificationBusiness {
     }
     toast.show()
     Usage.track(Usage.event.dialog.AllowNotificationsInfo)
+    NotificationCenter.default.addObserver(
+      forName: UIAccessibility.voiceOverStatusDidChangeNotification,
+      object: nil,
+      queue: .main
+    ) { _ in
+      if UIAccessibility.isVoiceOverRunning {
+        toast.dismiss()
+      }
+    }
   }
 }
