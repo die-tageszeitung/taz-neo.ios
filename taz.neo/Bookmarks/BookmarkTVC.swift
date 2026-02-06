@@ -116,6 +116,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     Alert.confirm(message: "Alle Lesezeichen löschen?", okText: "Löschen", isDestructive: true) {[weak self] choice in
       guard choice == true else { return }
       Bookmarks.shared.removeAllBookmarks()
+      self?.updateData()
       self?.bookmarksTable.reloadData()
     }
   }
