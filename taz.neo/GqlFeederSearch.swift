@@ -69,7 +69,11 @@ public enum GqlSearchFilter: String {
     }
   }
 
-  static let allItems : [GqlSearchFilter] = [.all, .taz, .LMd, .Kontext, .weekend]
+  static let allItems : [GqlSearchFilter] = {
+    return TazAppEnvironment.sharedInstance.feederContext?.defaultFeed.cycle == .weekly
+    ? [.all, .taz, .Kontext, .weekend]
+    : [.all, .taz, .LMd, .Kontext, .weekend]
+   }()
 }
 
 public enum SearchRangeOption: String {
