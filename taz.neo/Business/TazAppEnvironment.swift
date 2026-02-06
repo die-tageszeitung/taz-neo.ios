@@ -166,6 +166,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     SharedTazFont.register(Const.Fonts.tazFont())
     showHome()
     feederContext?.updateResources(toVersion: -1)
+    ///initially setup can register otherwise the first login call did not has register form even if possible
+    onMainAfter { [weak self] in self?.log("can register? \(StoreBusiness.canRegister)") }
   }
   
   func goingBackground() {

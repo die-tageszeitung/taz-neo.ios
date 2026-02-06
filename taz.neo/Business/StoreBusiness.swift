@@ -193,11 +193,11 @@ class StoreBusiness: DoesLog {
     let euCountries = regionCode.length == 3 ? euCountriesAlpha3 : euCountriesAlpha2
     
     if euCountries.contains(regionCode) {
-      debug("Region \(regionCode) is in the EU. Registration is allowed.")
+      log("Region \(regionCode) is in the EU. Registration is allowed.")
       canRegisterEvaluationResult = RegisterEvaluationResult.allowed.rawValue
       return true
     } else {
-      debug("Region \(regionCode) is not in the EU. Registration is forbidden.")
+      log("Region \(regionCode) is not in the EU. Registration is forbidden.")
       canRegisterEvaluationResult = RegisterEvaluationResult.forbidden.rawValue
       return false
     }
