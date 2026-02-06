@@ -178,6 +178,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.onPlay { _ in
         section.toggleAudio()
       }
+      updateAudioButton()///set correct state of play button
     }
     else {
       self.playButton.isHidden = true

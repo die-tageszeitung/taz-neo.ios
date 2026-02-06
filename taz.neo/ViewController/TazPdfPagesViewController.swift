@@ -432,6 +432,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     == self.issue.date.issueKey
   }
   
+  func updateAllAudioButtons(){
+    audioButton?.buttonView.name = playingCurrentSection ? "audio-active" : "audio"
+    updateMenuAudioButton()
+    updateArticleVcMenuAudioButton()
+  }
+  
   private func updateMenuAudioButton(){
     guard let cell = (sliderContentController as? PdfOverviewCollectionVC)?.titleCell else { return }
     let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
@@ -553,6 +559,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         issue.setLastRead(pageIndex: idx, articleIndex: nil, sectionIndex: nil, scrollPosition: nil)
       }
       self?.updateSlider(index: idx)
+      self?.updateAllAudioButtons()
     }
     
     setupToolbar()
@@ -564,11 +571,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     registerForStyleUpdates()
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.audioButton?.buttonView.name
-      = self?.playingCurrentSection ?? false
-      ? "audio-active" : "audio"
-      self?.updateMenuAudioButton()
-      self?.updateArticleVcMenuAudioButton()
+      self?.updateAllAudioButtons()
     }
     
     onRightTap {[weak self] in
