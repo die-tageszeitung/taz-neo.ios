@@ -32,37 +32,36 @@ open class Javascript {
     return try? await wv.evaluateJavaScript(javaScriptString)
   }
   
-  private static func createWebView(_ jsFile:URL?=nil) -> WebView{
+  private static func createWebView(_ jsFile: URL? = nil) -> WebView {
     let wv = WebView()
     
-    if let file = jsFile{
+    var jsSource = ""
+    
+    if let file = jsFile {
       let resourcesUrl = file.deletingLastPathComponent()
-      wv.loadFileURL(file, allowingReadAccessTo: resourcesUrl)
       wv.baseDir = resourcesUrl.path
+      
+      // JS synchron laden
+      jsSource = (try? String(contentsOf: file, encoding: .utf8)) ?? ""
     }
     
-    let scriptTag
-    = """
-            <script type="text/javascript" src="\(jsFile?.lastPathComponent ?? "tazPasswordSpec.js")"></script>
-         """
-    
     let html = """
-     <!DOCTYPE html>
-     <html lang="de">
-       <head>
-         <meta charset="utf-8">
-         \(scriptTag)
-         <title>Webview2EvalJS</title>
-       </head>
-       <body>
-       </body>
-     </html>
-     """
+      <!DOCTYPE html>
+      <html lang="de">
+        <head>
+          <meta charset="utf-8">
+          <script type="text/javascript">
+          \(jsSource)
+          </script>
+          <title>Webview2EvalJS</title>
+        </head>
+        <body></body>
+      </html>
+      """
     
     wv.load(html: html)
     return wv
   }
-  
   
   /// constructor
   /// - Parameter jsFileUrl: optional passed js fileUrl with js code e.g. libs
@@ -125,8 +124,22 @@ class PasswordValidator: DoesLog {
   /// - Returns: test result with triple contain: valid:Bool, errormessage:String?, strength: PasswordStrengthLevel
   func check(password: String, mail: String?) async -> passwordQuality {
       do {
-        let jsCall = "tazPasswordSpec.checkLocal('\(password)', '\(mail ?? "")');"
+        let payload: [String: String] = [
+            "password": password,
+            "mail": mail ?? ""
+        ]
+
+        let json = try JSONSerialization.data(withJSONObject: payload)
+        let jsonString = String(data: json, encoding: .utf8)!
+
+        let jsCall = """
+        (() => {
+          const args = \(jsonString);
+          return tazPasswordSpec.checkLocal(args.password, args.mail);
+        })()
+        """
         let result = try await js.evaluate(jsCall)
+        
         //throw "error" //uncomment to test js error and fallback evaluation
         if let dict = result as? [String: Any],
            let valid = dict["valid"] as? Bool {
