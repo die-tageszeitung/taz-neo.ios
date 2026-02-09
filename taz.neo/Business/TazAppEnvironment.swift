@@ -59,24 +59,22 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   var shouldShowNotifications = true
   
-  public private(set) lazy var rootViewController : UIViewController = {
+  public private(set) lazy var rootViewController: UIViewController = {
     // Startup Splash Screen!
-    return Spinner()
-  }()  {
+    Spinner()
+  }() {
     didSet {
-//      return;//Simulate Connect Errors
-      guard let window = UIApplication.shared.delegate?.window else { return }
-      window?.hideAnimated() {[weak self] in
-        guard
-          let self = self,
-          let window = UIApplication.shared.delegate?.window as? UIWindow
-        else { return }
+      //return;//Simulate Connect Errors
+      guard let window = UIApplication.shared.activeKeyWindow else { return }
+      window.hideAnimated { [weak self] in
+        guard let self = self else { return }
         window.rootViewController = self.rootViewController
         window.showAnimated()
         self.setupTopMenus(targetWindow: window)
       }
     }
   }
+  
   
   public static let sharedInstance = TazAppEnvironment()
   ///shared startup info
@@ -918,4 +916,14 @@ extension UIDevice.BatteryState {
       @unknown default: return "unknown future state"
     }
   }
+}
+
+
+extension UIApplication {
+    var activeKeyWindow: UIWindow? {
+        connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+    }
 }

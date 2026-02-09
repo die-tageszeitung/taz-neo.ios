@@ -205,6 +205,10 @@ open class FeederContext: DoesLog {
                                  token: DefaultAuthenticator.token)
     }
     
+    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+      self?.handleEnterForeground()
+    }
+    
     let needUpdate = self.storedFeeder == nil
     
     if needUpdate {
@@ -440,10 +444,6 @@ open class FeederContext: DoesLog {
     }
     if self.simulateNewVersion {
       self.currentVersion = Version("0.8.15")      
-    }
-
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
-      self?.handleEnterForeground()
     }
     openDB(name: name)
   }

@@ -14,8 +14,7 @@ public class SimpleAuthenticator: Authenticator {
   public var feeder: GqlFeeder
   /// Root view controller
   private lazy var rootVC: UIViewController? = {
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    return appDelegate.window?.rootViewController
+    return TazAppEnvironment.sharedInstance.rootViewController
   }()
   
   /// Closure to call when polling of suscription status is required

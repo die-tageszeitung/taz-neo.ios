@@ -12,13 +12,11 @@ import Darwin
 @UIApplicationMain
 class AppDelegate: NotifiedDelegate {
 
-  var window: UIWindow?
-  
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
-    
+//    _ = TazAppEnvironment.sharedInstance //configure Logging
     log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data
@@ -26,8 +24,7 @@ class AppDelegate: NotifiedDelegate {
       TazAppEnvironment.openedFromNotificationCenter
       = response.notification.request.content.userInfo.articlePushData
     }
-    self.window = UIWindow(frame: UIScreen.main.bounds)
-    self.window?.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
+    
     //FileLogger is available now!
     if let keys = launchOptions?.keys.map({ $0.rawValue }) {
       log("started with \(keys.count) launchOptions: \(keys)")
@@ -42,26 +39,6 @@ class AppDelegate: NotifiedDelegate {
     }else {
       Log.appStartContext = .unknown
     }
-//    self.window?.rootViewController =  TmpTestController()
-//    let res = SearchResultsTVC()
-//    res.searchResponse = GqlFeeder.test()
-//    self.window?.rootViewController = res
-    
-//    self.window?.rootViewController = TestController()
-//    self.window?.rootViewController = NavController()
-//    self.window?.rootViewController = ContentVC()
-//    self.window?.rootViewController = UITests()
-//    self.window?.rootViewController = CarouselVC()
-//    self.window?.rootViewController = WebViewTests()
-//    self.window?.rootViewController = SliderTest()
-//    self.window?.rootViewController = ColorTests()
-//    self.window?.rootViewController = OverlayTest()
-//    self.window?.rootViewController = TazPdfPagesViewController()
-//    self.window?.rootViewController = KeychainTest()
-    
-    self.window?.makeKeyAndVisible()
-    UIWindow.keyWindow?.overrideUserInterfaceStyle
-    = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
     return true
   }
 
