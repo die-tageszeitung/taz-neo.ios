@@ -26,38 +26,33 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     applyInterfaceStyle()
     self.window = window
     
-//    // Push / DeepLink / Shortcut
-//    if let notification = connectionOptions.notificationResponse {
-//      Log.appStartContext = .handlePushNotification
-//      TazAppEnvironment.openedFromNotificationCenter =
-//      notification.notification.request.content.userInfo.articlePushData
-//    } else {
-//      Log.appStartContext = .foregroundUserStarted
-//    }
-//    ///NEW??
-//    if let response = connectionOptions.notificationResponse {
-////    NotifiedDelegate.singleton?.notifier.handleOpenFromNotification(
-////        center: UNUserNotificationCenter.current(),
-////        response: response
-////    )
-//}
+    // handle Push if any
+    if let notification = connectionOptions.notificationResponse {
+      Log.appStartContext = .handlePushNotification
+      TazAppEnvironment.openedFromNotificationCenter =
+      notification.notification.request.content.userInfo.articlePushData
+    } else {
+      Log.appStartContext = .foregroundUserStarted
+    }
+    
+    // handle Shortcut if any
+    if let shortcutItem = connectionOptions.shortcutItem {
+        TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
+    }
+  }
+  
+  func windowScene(
+    _ windowScene: UIWindowScene,
+    performActionFor shortcutItem: UIApplicationShortcutItem,
+    completionHandler: @escaping (Bool) -> Void
+  ) {
+      TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
+      completionHandler(true)
   }
   
   private func applyInterfaceStyle() {
     window?.overrideUserInterfaceStyle
     = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
-    /**
-     on change may change also:
-     func applyInterfaceStyleGlobally() {
-         UIApplication.shared.connectedScenes
-             .compactMap { $0 as? UIWindowScene }
-             .flatMap { $0.windows }
-             .forEach {
-                 $0.overrideUserInterfaceStyle =
-                     Defaults.singleton["colorMode"] == "dark" ? .dark : .light
-             }
-     }
-     */
   }
   
   func scene(

@@ -209,6 +209,11 @@ open class FeederContext: DoesLog {
       self?.handleEnterForeground()
     }
     
+    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+      UIApplication.shared.shortcutItems = Shortcuts.currentItems()
+      self?.log("applicationWillResignActive: \(UIApplication.shared.stateDescription)")
+    }
+    
     let needUpdate = self.storedFeeder == nil
     
     if needUpdate {

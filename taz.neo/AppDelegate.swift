@@ -17,7 +17,7 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
 //    _ = TazAppEnvironment.sharedInstance //configure Logging
-    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
+//    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data
     onOpenApplicationFromNotification {center, response, handler in
@@ -25,12 +25,13 @@ class AppDelegate: NotifiedDelegate {
       = response.notification.request.content.userInfo.articlePushData
     }
     
-    //FileLogger is available now!
-    if let keys = launchOptions?.keys.map({ $0.rawValue }) {
-      log("started with \(keys.count) launchOptions: \(keys)")
-    }else {
-      log("started with \(launchOptions?.count ?? 0) launchOptions")
-    }
+    /// FileLogger is available now! - not available anymore due
+    /// TazAppEnvironment.sharedInstance not inited
+//    if let keys = launchOptions?.keys.map({ $0.rawValue }) {
+//      log("started with \(keys.count) launchOptions: \(keys)")
+//    }else {
+//      log("started with \(launchOptions?.count ?? 0) launchOptions")
+//    }
     
     if launchOptions?[.remoteNotification] != nil {
       Log.appStartContext = .handlePushNotification
@@ -42,18 +43,6 @@ class AppDelegate: NotifiedDelegate {
     return true
   }
 
-  #if TAZ
-  /// Update App Icon Menu
-  public func applicationWillResignActive(_ application: UIApplication) {
-    application.shortcutItems = Shortcuts.currentItems()
-    log("applicationWillResignActive: \(application.stateDescription)")
-  }
-
-  func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-    TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
-  }
-  #endif
-  
   // Store background download completion handler
   func application(_ application: UIApplication,
                    handleEventsForBackgroundURLSession identifier: String,
