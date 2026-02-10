@@ -23,7 +23,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let window = UIWindow(windowScene: windowScene)
     window.rootViewController = TazAppEnvironment.sharedInstance.rootViewController
     window.makeKeyAndVisible()
-    applyInterfaceStyle()
+    applyInterfaceStyleGlobally()
     self.window = window
     
     // handle Push if any
@@ -50,9 +50,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       completionHandler(true)
   }
   
-  private func applyInterfaceStyle() {
-    window?.overrideUserInterfaceStyle
-    = Defaults.singleton["colorMode"] == "dark" ? .dark : .light
+  func applyInterfaceStyleGlobally() {
+      UIApplication.shared.connectedScenes
+          .compactMap { $0 as? UIWindowScene }
+          .flatMap { $0.windows }
+          .forEach {
+              $0.overrideUserInterfaceStyle =
+                  Defaults.singleton["colorMode"] == "dark" ? .dark : .light
+          }
   }
   
   func scene(
