@@ -161,7 +161,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     
     Notification.receive(Const.NotificationNames.viewSizeTransition) {[weak self] _ in
       onMainAfter {[weak self] in
-        self?.frame = UIApplication.shared.delegate?.window??.bounds ?? .zero
+        self?.frame = UIApplication.shared.activeKeyWindow?.bounds ?? .zero
         self?.collectionView.collectionViewLayout.invalidateLayout()
         self?.collectionView.layoutIfNeeded()
         self?.layoutIfNeeded()

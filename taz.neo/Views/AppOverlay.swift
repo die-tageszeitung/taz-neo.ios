@@ -17,10 +17,8 @@ public class WaitingAppOverlay {
   ///   - alpha: alpha of black gackground layer
   ///   - showSpinner: show spinner or not
   /// - Returns: true|false, true if added false if not
-  public static func show(alpha:CGFloat = 0.8, backbround:UIView?=nil, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String?=nil, dismissNotification:String) {
-    let appDelegate = UIApplication.shared.delegate
-    let window = appDelegate?.window
-    if window == nil { return }
+  public static func show(alpha:CGFloat = 0.8, backbround:UIView? = nil, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String? = nil, dismissNotification:String) {
+    guard UIApplication.shared.activeKeyWindow != nil else { return }
     
     ///show layer
     onMain {
@@ -67,7 +65,8 @@ public class WaitingAppOverlay {
       
       layer.backgroundColor = UIColor(white: 0, alpha: alpha)
       layer.alpha = 0.0
-      window!?.addSubview(layer)
+      guard let window = UIApplication.shared.activeKeyWindow else { return }
+      window.addSubview(layer)
       UIView.animate(withDuration: 0.7,
                      delay: 0,
                      options: UIView.AnimationOptions.curveEaseInOut,
@@ -75,7 +74,7 @@ public class WaitingAppOverlay {
                       layer.alpha = 1.0
                      }, completion: { (_) in
                       if layer.isTopmost == false {
-                        window!?.bringSubviewToFront(layer)
+                        window.bringSubviewToFront(layer)
                       }
                      })
       

@@ -139,7 +139,7 @@ class HelpBusiness {
   }
   
   func openHelp(){
-    guard let window = UIApplication.shared.delegate?.window,
+    guard let window = UIApplication.shared.activeKeyWindow,
           let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
     var helpProvider = mainTabVc.currentHelpProvider else { return }
     let helpItemsCount = helpProvider.helpItems.count
@@ -188,9 +188,9 @@ class HelpBusiness {
     }
     
     helpView.items = helpProvider.helpItems
-    helpView.frame = window?.bounds ?? .zero // oder mit Auto Layout Constraints
+    helpView.frame = window.bounds
     helpView.alpha = 0.0
-    window?.addSubview(helpView)
+    window.addSubview(helpView)
     helpView.setLastMaxIndex(idx: lastIndex)
     UIView.animate(withDuration: 0.2,
                    delay: 0,
@@ -199,7 +199,7 @@ class HelpBusiness {
       helpView.alpha = 1.0
     }, completion: { (_) in
       if helpView.isTopmost == false {
-        window?.bringSubviewToFront(helpView)
+        window.bringSubviewToFront(helpView)
       }
       helpView.accessibilityViewIsModal = true
       UIAccessibility.post(notification: .layoutChanged, argument: helpView)

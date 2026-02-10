@@ -21,8 +21,7 @@ public class InfoToast : UIView {
   ///   - dismissHandler: handler to be called after toast dismissed
   public static func showWith(lottieUrl : URL, title : String?, text : String?, buttonText:String = "OK", hasCloseX : Bool = true, autoDisappearAfter : Float? = nil, dismissHandler : (()->())? = nil) {
     onMain {
-      guard let delegate = UIApplication.shared.delegate,
-            let window = delegate.window as? UIWindow else {  return }
+      guard let window = UIApplication.shared.activeKeyWindow else { return }
       let toast = InfoToast(lottieUrl: lottieUrl,
                             title: title,
                             text: text,

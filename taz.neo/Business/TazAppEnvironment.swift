@@ -415,11 +415,11 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   static func checkcDevMenu() {
-    guard let win = UIApplication.shared.delegate?.window else { return }
+    guard let window = UIApplication.shared.activeKeyWindow else { return }
     let env = TazAppEnvironment.sharedInstance
-    if env.isTazUser() { env.addThreeFingerMenu(targetWindow: win) }
+    if env.isTazUser() { env.addThreeFingerMenu(targetWindow: window) }
     else if let recog = env.devGestureRecognizer, !App.isAlpha {
-      win?.removeGestureRecognizer(recog)
+      window.removeGestureRecognizer(recog)
       env.devGestureRecognizer = nil
     }
   }

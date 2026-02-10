@@ -118,8 +118,7 @@ extension InfoToasterView {
     }
     ensureMain { [weak self] in
       guard let self = self,
-            let delegate = UIApplication.shared.delegate,
-            let window = delegate.window as? UIWindow else {
+            let window = UIApplication.shared.activeKeyWindow else {
         self?.error("cannot show, either no app \(String(describing: UIApplication.shared.delegate)) or self already gone: \(String(describing: self))")
         return
       }

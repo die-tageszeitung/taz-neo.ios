@@ -297,8 +297,8 @@ public class DefaultAuthenticator: Authenticator {
       /// Add TapOn Background like in popup presentation
       if Device.isIphone { return }
       //Only iPad
-      if let window = UIApplication.shared.delegate?.window {
-        for view in window?.subviews ?? []{
+      if let window = UIApplication.shared.activeKeyWindow {
+        for view in window.subviews {
           if view.typeName == "UITransitionView" {
             for v in view.subviews {
               if v.typeName == "UIDimmingView" {
