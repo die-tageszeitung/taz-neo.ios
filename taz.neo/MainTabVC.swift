@@ -74,7 +74,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
           Device.isIpad else { return }
     // Update the current size class to display original design
     traitOverrides.horizontalSizeClass = .unspecified
-    if let original = UIWindow.keyWindow?.traitCollection.horizontalSizeClass {
+    if let original = UIWindow.activeKeyWindow?.traitCollection.horizontalSizeClass {
       // Updates every tab with the window size class
       viewControllers?.forEach { $0.traitOverrides.horizontalSizeClass = original }
       // restore Tabbar's size class: if enought space name left of icon
@@ -184,7 +184,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   func showLoadingOverlayIfNeeded(data: PushNotification.Payload.ArticlePushData){
     if isLoadingIssueInBackground { return }
     isLoadingIssueInBackground = true
-    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
@@ -460,7 +460,7 @@ extension MainTabVC {
       return
     }
     
-    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
     
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,

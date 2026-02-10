@@ -144,12 +144,12 @@ class FormsResultController: UIViewController {
   
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
     super.traitCollectionDidChange(previousTraitCollection)
-    updateWidth(UIApplication.shared.windows.first?.bounds.size.width)
+    updateWidth(UIApplication.shared.activeKeyWindow?.bounds.size.width)
   }
   
   override var preferredContentSize: CGSize {
     get{
-      let windowSize = UIApplication.shared.windows.first?.bounds.size ?? UIScreen.main.bounds.size
+      let windowSize = UIApplication.shared.activeKeyWindow?.bounds.size ?? UIScreen.main.bounds.size
       updateWidth(windowSize.width)
       ui.doLayout()
       let h = min(ui.container.frame.size.height, windowSize.height)

@@ -57,8 +57,8 @@ class InfoToasterView: UIView{
   
   // MARK: - Default Params
   var maxWidth: CGFloat
-  = UIWindow.keyWindow?.traitCollection.horizontalSizeClass == .compact
-  ? UIWindow.keyWindow?.frame.size.width ?? 380
+  = UIWindow.activeKeyWindow?.traitCollection.horizontalSizeClass == .compact
+  ? UIWindow.activeKeyWindow?.frame.size.width ?? 380
   : 380
 
   // MARK: - LayoutConstrains
@@ -250,7 +250,7 @@ fileprivate extension InfoToasterView {
       self.pinBottom = traitCollection.horizontalSizeClass == .compact
       self.doLayout()
     }
-    self.pinBottom = UIWindow.keyWindow?.traitCollection.horizontalSizeClass == .compact
+    self.pinBottom = UIWindow.activeKeyWindow?.traitCollection.horizontalSizeClass == .compact
   }
 
   

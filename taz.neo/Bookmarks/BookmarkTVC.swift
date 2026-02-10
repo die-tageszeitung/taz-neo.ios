@@ -448,7 +448,7 @@ extension BookmarkTVC {
         self?.navigationController?.pushViewController(avc, animated: true)
       }
     }
-    let snap = UIWindow.keyWindow?.snapshotView(afterScreenUpdates: false)
+    let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,

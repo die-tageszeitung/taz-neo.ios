@@ -917,13 +917,3 @@ extension UIDevice.BatteryState {
     }
   }
 }
-
-
-extension UIApplication {
-    var activeKeyWindow: UIWindow? {
-        connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
-    }
-}

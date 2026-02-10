@@ -195,8 +195,8 @@ public class NewInfoToast : UIView {
       onMain {[weak self] in self?.show()}
       return
     }
-    guard let delegate = UIApplication.shared.delegate,
-          let window = delegate.window as? UIWindow else {  return }
+    
+    guard let window = UIApplication.shared.activeKeyWindow else {  return }
     
     self.shadeView.alpha = 0.0
     self.isHidden = true

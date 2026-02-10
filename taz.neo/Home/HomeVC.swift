@@ -161,7 +161,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   var dataPolicyToast: NewInfoToast?
   
   // Mark: from UIComponents
-  let topPadding = 5.0//UIWindow.keyWindow?.screen.bounds.height ?? 601 > 600 ? 80.0 : 5.0
+  let topPadding = 5.0//UIWindow.activeKeyWindow?.screen.bounds.height ?? 601 > 600 ? 80.0 : 5.0
   
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
@@ -290,7 +290,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   private func headerTopDist(hidden: Bool) -> CGFloat{
-    let isBigScreen = UIWindow.keyWindow?.screen.bounds.height ?? 0 > 990
+    let isBigScreen = UIWindow.activeKeyWindow?.screen.bounds.height ?? 0 > 990
     if isBigScreen {
       return hidden ? -10.0 : 20.0
     }

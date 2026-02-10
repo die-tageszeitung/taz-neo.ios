@@ -66,7 +66,7 @@ extension HomeVC: HelpProviding{
     pin(icon2.top, to: label2.top)
     pin(icon3.top, to: label3.top)
     pin(icon4.top, to: label4.top)
-    wrapper.pinWidth(min(350.0, UIWindow.keyWindow?.frame.size.width ?? 350.0) - 10.0)
+    wrapper.pinWidth(min(350.0, UIWindow.activeKeyWindow?.frame.size.width ?? 350.0) - 10.0)
     
     let outerWrapper = UIView()
     outerWrapper.addSubview(wrapper)
@@ -125,7 +125,7 @@ extension HomeVC: HelpProviding{
                                text: "Hier können Sie Ausgaben bis 2011 nach Datum aufrufen. Artikel aus noch älteren Ausgaben finden Sie über die Suche.",
                                isCircleCutout: true,
                                targetView: calenderImageView)
-      let narrowDeviceWidth = UIWindow.keyWindow?.traitCollection.horizontalSizeClass != .regular
+      let narrowDeviceWidth = UIWindow.activeKeyWindow?.traitCollection.horizontalSizeClass != .regular
       let home = HelpItem(title:"Home",
                           accessibilityTitle: "Home, Tabbar Item",
                           text: "Wenn Sie hier tippen, gelangen Sie jederzeit zurück zur Startseite. Bei erneutem Tipp springt die Ansicht zur aktuellen Ausgabe.",

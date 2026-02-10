@@ -110,7 +110,7 @@ class PdfGenerationService: DoesLog {
     webView = WebView()
     if let webView = webView {
       webView.isHidden = true
-      UIWindow.keyWindow?.addSubview(webView)
+      UIWindow.activeKeyWindow?.addSubview(webView)
       webView.frame = CGRect(x: 0, y: 0, width: 600, height: 900)
     }
       

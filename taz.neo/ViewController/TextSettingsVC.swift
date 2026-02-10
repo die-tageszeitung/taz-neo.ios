@@ -629,7 +629,7 @@ class TextSettingsView: UIView {
     sizeStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     lineLengthStack.backgroundColor = Const.SetColor.taz(.primaryForeground).color
     let horizontalSizeClass: UIUserInterfaceSizeClass
-    = UIWindow.keyWindow?.traitCollection.horizontalSizeClass
+    = UIWindow.activeKeyWindow?.traitCollection.horizontalSizeClass
     ?? self.traitCollection.horizontalSizeClass
     self.updateViews(for: horizontalSizeClass)
   }

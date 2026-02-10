@@ -26,7 +26,7 @@ extension Defaults{
       Defaults.singleton["colorMode"] = newValue ? "dark" : nil
       //      Defaults.singleton.
       //Use Trait Collection for Change
-      UIWindow.keyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
+      UIWindow.activeKeyWindow?.overrideUserInterfaceStyle = newValue ? .dark : .light
       /// Some (Article/HTML/CSS) iOS 13+ need also this Info
       Notification.send(globalStylesChangedNotification)
     }

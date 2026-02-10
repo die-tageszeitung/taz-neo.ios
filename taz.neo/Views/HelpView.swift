@@ -13,10 +13,10 @@ import NorthLib
 /// Self-contained: no need for a view controller.
 class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
-  static let cellYoffset: CGFloat = UIWindow.keyWindow?.isTinyHeight ?? false ? -20.0 : -40.0
+  static let cellYoffset: CGFloat = UIWindow.activeKeyWindow?.isTinyHeight ?? false ? -20.0 : -40.0
   
   var pageControllBottomOffset: CGFloat
-  = UIWindow.keyWindow?.isTinyHeight ?? false ? -50.0 : -70.0 {
+  = UIWindow.activeKeyWindow?.isTinyHeight ?? false ? -50.0 : -70.0 {
     didSet {
       pageControllBottomOffsetConstraint?.constant = pageControllBottomOffset
     }
@@ -366,7 +366,7 @@ extension HelpView {
   private func targetFrame(tv: UIView?, isCircleCutout: Bool = false, circleCutoutInsetAdjustment: CGFloat? = nil) -> CGRect? {
     guard let tv = tv,
           tv.superview != nil,
-          let window = UIWindow.keyWindow else { return nil }
+          let window = UIWindow.activeKeyWindow else { return nil }
     guard tv.isDescendant(of: window) else { return nil }
     
     let inset = circleCutoutInsetAdjustment ?? -8.0

@@ -111,7 +111,7 @@ class Rating: NSObject, DoesLog{
     if valueableActionFinished == false { return }
     if canRate == false { return }
     if #available(iOS 14.0, *),
-       let windowScene = UIWindow.keyWindow?.windowScene {
+       let windowScene = UIWindow.activeKeyWindow?.windowScene {
       SKStoreReviewController.requestReview(in: windowScene)
     }
     else {
