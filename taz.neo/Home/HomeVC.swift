@@ -53,9 +53,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     if reload { collectionView.reloadData() }
   }
   
+  var carouselCenterIssueIndex:Int?
+  var restoreCarouselCenterIssueIndex:Int?
   var centerIssueDateKey:String?
+  var isRotating = false
   
-  var scrollLastCenterIndex: Int = 0
   
   private var pullToLoadMoreHandler: (()->())?
   static let reuseCellId = "issueCollectionViewCell"
@@ -255,25 +257,21 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     return range.contains(index)
   }
   
-  var collectionViewLayoutInitialized = false
   private var lastKnownSize:CGSize = .zero
   
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    /// fixes layout when returning to home after resizing/rotating app in a pushed child vc
-    if collectionViewLayoutInitialized
-        && !isHomeTiles
-        && lastKnownSize != view.frame.size {
-      updateCarouselSize(view.frame.size)
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    let newSize = view.bounds.size
+    guard lastKnownSize != newSize else { return }
+    lastKnownSize = newSize
+    updateCollectionViewLayout(newSize)
+    guard !isHomeTiles else { return }
+    guard let idx = carouselCenterIssueIndex else { return }
+    ///do not make big jumps
+    if let cidx = centerIndex,
+       abs(cidx - idx) > 2 { return
     }
-    
-    guard collectionViewLayoutInitialized == false else { return }
-    collectionViewLayoutInitialized = true
-    let s = view.frame.size
-    //initially update the not displayed one
-    isHomeTiles ? updateCarouselSize(s) : updateGridSize(s)
-    //initially update the currently displayed one
-    updateCollectionViewLayout()
+    scrollTo(idx, animated: true)
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
@@ -283,10 +281,25 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     super.willTransition(to: newCollection, with: coordinator)
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+      super.traitCollectionDidChange(previousTraitCollection)
+      if traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass {
+        updateCollectionViewLayout(view.bounds.size)
+      }
+  }
+  
   public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     super.viewWillTransition(to: size, with: coordinator)
     updateCollectionViewLayout(size, horizontalSizeClass: nextHorizontalSizeClass)
     nextHorizontalSizeClass = nil
+    
+    restoreCarouselCenterIssueIndex = isHomeTiles ? nil : carouselCenterIssueIndex
+    isRotating = true
+    
+    coordinator.animate(alongsideTransition: nil) { _ in
+        self.isRotating = false
+        self.restoreCenteredIndexIfNeeded()
+    }
   }
   
   private func headerTopDist(hidden: Bool) -> CGFloat{
@@ -542,6 +555,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   private var lastContentOffset: CGFloat = 0
   
   override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    if isRotating { return }
     if isHomeTiles {
       let offsetY = scrollView.contentOffset.y
       guard offsetY > 0 else { return }
@@ -553,9 +567,13 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       lastContentOffset = offsetY
       return
     }
-    guard let i = centerIndex, scrollLastCenterIndex != i else { return }
-    scrollLastCenterIndex = i
+    guard let i = centerIndex else { return }
     updateBottomWrapper(for: i)
+  }
+  
+  private func restoreCenteredIndexIfNeeded() {
+    guard !isHomeTiles, let cidx = restoreCarouselCenterIssueIndex else { return }
+    scrollTo(cidx, animated: true)
   }
      
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -581,6 +599,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     if force || newKey != centerIssueDateKey {
       downloadButton.indicator.downloadState = data.downloadState
       centerIssueDateKey = newKey
+      carouselCenterIssueIndex = cidx
       dateLabel.setText(txt)
     }
   }
@@ -658,18 +677,12 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
 }
 
 extension HomeVC {
-  //  public func collectionView(_ collectionView: UICollectionView,
-  //                             layout collectionViewLayout: UICollectionViewLayout,
-  //                             sizeForItemAt indexPath: IndexPath) -> CGSize {
-  //    return cellSize
-  //  }
-  
   func updateCollectionViewLayout(_ newSize: CGSize? = nil, horizontalSizeClass:UIUserInterfaceSizeClass? = nil){
     isHomeTiles
     ? updateGridSize(newSize ?? view.frame.size)
     : updateCarouselSize(newSize ?? view.frame.size, horizontalSizeClass: horizontalSizeClass)
   }
-  
+
   private func updateGridSize(_ newSize:CGSize){
     //Calculate Cell Sizes...display 2...6 columns depending on device and Orientation
     //On Phone onle Portrait is enables, so it displays on every phone only 2 columns
@@ -684,7 +697,6 @@ extension HomeVC {
   }
   
   private func updateCarouselSize(_ size:CGSize, horizontalSizeClass:UIUserInterfaceSizeClass? = nil){
-    lastKnownSize = size
     let horizontalSizeClass = horizontalSizeClass ?? self.traitCollection.horizontalSizeClass
     let defaultPageRatio:CGFloat = 0.670219
     debug("updateCarouselSize: \(size)")
