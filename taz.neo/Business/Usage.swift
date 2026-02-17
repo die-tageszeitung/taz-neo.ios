@@ -545,6 +545,10 @@ extension Usage {
       case Login = "Login",
            Logout = "Logout"
     }
+    enum advertisement: String, TrackingEvent {
+      var category: String { "Advertisement" }
+      case sectionAdShown = "Section Ad Shown"
+    }
     enum various: String, TrackingEvent {
       var category: String { "Various" }
       case ImageGalery = "Image Galery"

@@ -561,7 +561,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
-
+    
+    self.bridge?.addfunc("sectionAdShown") { [weak self] jscall in
+      guard self != nil else { return NSNull() }
+      if let args = jscall.args, args.count > 0,
+         let adIdentifier = args[0] as? String {
+        let issueDate = self?.issue.date.ISO8601 ?? "-"
+        let sectionTitle
+        = self?.header.title
+        ?? self?.contents.valueAt(self?.index ?? -1)?.title
+        ?? "-"
+        Usage.track(Usage.event.advertisement.sectionAdShown
+                   , name: "\(issueDate)/\(sectionTitle)/\(adIdentifier)")
+      }
+      return NSNull()
+    }
+    
     self.bridge?.addfunc("setBookmark") { [weak self] jscall in
       guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 1,
@@ -657,6 +672,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     };
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);
+    };
+    tazApi.sectionAdShown = function(addIdentifier) {
+      tazApi.call("sectionAdShown", undefined, addIdentifier);
     };
     tazApi.gotoIssue = function (issueDate) {
       tazApi.call("gotoIssue", undefined, issueDate);

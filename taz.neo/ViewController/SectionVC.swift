@@ -198,6 +198,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
                       sectionIndex: sectIdx ?? index,
                       scrollPosition: nil)
   }
+  /// onDisplay is sometomes called before Webview is created/ready activate webview for ad tracking later
+  var inactivatedWebViewIndex: Int? = nil
+  
+  let activateWebViewJs = """
+      if (typeof activateWebView === "function") {
+        activateWebView();
+      }
+    """
+  
   func setup() {
     guard let delegate = self.delegate else { return }
     self.sections = delegate.issue.sections ?? []
@@ -206,11 +215,24 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.setup(contents: contents, isLargeHeader: true)
     article2section = issue.article2section
     article2sectionHtml = issue.article2sectionHtml
+    whenLoaded {[weak self] in
+      guard let self = self else { return }
+      guard self.inactivatedWebViewIndex == self.index else { return }
+      guard let wv = self.currentWebView else { return }
+      Task { try? await wv.jsexec(self.activateWebViewJs) }
+    }
+    
     onDisplay { [weak self] (secIndex, webview, _) in
       guard let self = self else { return }
       self.contentTable?.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex) webview: \(webview.debugDescription)")
       self.setHeader(secIndex: secIndex)
+      if let wv = webview?.mainView as? WebView{
+        Task { try? await wv.jsexec(self.activateWebViewJs) }
+      }
+      else {
+        self.inactivatedWebViewIndex = secIndex
+      }
       self.updatePlayButton()
       persistReadProgress(sectIdx: secIndex)
       self.firstDisplayed = true
