@@ -120,9 +120,12 @@ class HelpBusiness {
   public var lastPdfHelpIndex: Int
   @Default("helpUsedOnce")
   public var helpUsedOnce: Bool
+  @Default("isInitialStartup")
+  public var isInitialStartup: Bool
   
   func resetHelp(){
     helpUsedOnce = false
+    isInitialStartup = true
     lastHomeHelpIndex = 0
     lastSectionHelpIndex = 0
     lastArticleHelpIndex = 0
@@ -142,7 +145,8 @@ class HelpBusiness {
     guard let window = UIApplication.shared.activeKeyWindow,
           let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
     var helpProvider = mainTabVc.currentHelpProvider else { return }
-    let helpItemsCount = helpProvider.helpItems.count
+    let helpItems = helpProvider.helpItems
+    let helpItemsCount = helpItems.count
     
     if let cvc = helpProvider as? ContentVC {
       cvc.toolBar.show(show: true, animated: false)
@@ -153,6 +157,17 @@ class HelpBusiness {
     if helpProvider is ArticlePlayer {
       helpView.pageControllBottomOffset = -250
     }
+    
+//    switch helpProvider {
+//      case is ArticlePlayer:
+//        helpView.pageControllBottomOffset = -250
+//      case is HomeVC:
+//        break
+//      default:
+//        break //no defaults here
+//    }
+    
+    (helpProvider as? HomeVC)?.isInitialStartup = false
     
     helpView.doNotShowHelpInThisAreaAnymoreLabel.text =
     "Hilfe \(helpProvider.viewName) nicht mehr anzeigen."
@@ -187,7 +202,7 @@ class HelpBusiness {
       }
     }
     
-    helpView.items = helpProvider.helpItems
+    helpView.items = helpItems
     helpView.frame = window.bounds
     helpView.alpha = 0.0
     window.addSubview(helpView)

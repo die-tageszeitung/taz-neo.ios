@@ -94,7 +94,7 @@ extension HomeVC: HelpProviding{
       let tabbarItems = self.tabbarItems
       
       let wellcomeItem = HelpItem(title:"Willkommen in der taz App!",
-                                       text: "Entdecken Sie die digitale Ausgabe der taz: Blättern Sie durch die Zeitung, speichern Sie Artikel oder lassen Sie sich Texte vorlesen.")
+                                       text: "Entdecken Sie die digitale Ausgabe der taz:\nBlättern Sie durch die Zeitung, speichern Sie Artikel oder lassen Sie sich Texte vorlesen.")
             
       let viewModeItem = HelpItem(title:"Darstellung anpassen",
                                   accessibilityTitle: "Hilfe für den Home Screen, erstes Element: Schalter, Darstellungsoptionen",
@@ -189,7 +189,6 @@ extension HomeVC: HelpProviding{
       }
       
       if isInitialStartup {
-        isInitialStartup = false
         items.insert(wellcomeItem, at: 0)
       }
       return items

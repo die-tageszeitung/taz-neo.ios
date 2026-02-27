@@ -40,6 +40,8 @@ private let configValues = [
   "autoMobileDownloads" : "false",
   // Use facsimile mode if available
   "isFacsimile" : "false",
+  // Used to show welcome slide within help
+  "isInitialStartup" : "true",
   // Tap in PDF open ArticleView
   "articleFromPdf" : "true",
   // double Tap in PDF zoom in/out
