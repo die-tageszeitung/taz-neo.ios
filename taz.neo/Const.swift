@@ -59,6 +59,7 @@ public struct Const {
     static let expiredAccountDateChanged = "NotificationName.expiredAccountDateChanged"
     static let logoutUserDataDeleted = "NotificationName.LogoutUserDataDeleted"
     static let authenticationSucceeded = "Const.NotificationNames.authenticationSucceeded"
+    static let dismissExpiredForm = "Const.NotificationNames.dismissExpiredForm"
     static let bookmarkChanged = "Const.NotificationNames.bookmarkChanged"
     static let helpProviderChanged = "Const.NotificationNames.helpProviderChanged"
     static let bookmarksLoaded = "Const.NotificationNames.bookmarksLoaded"

@@ -96,6 +96,9 @@ class SubscriptionFormController : FormsController {
     Notification.receive(Const.NotificationNames.removeLoginRefreshDataOverlay) {_ in
       onMainAfter(1.7) {[weak self] in self?.dismiss() }
     }
+    Notification.receive(Const.NotificationNames.dismissExpiredForm) {[weak self] _ in
+      self?.dismiss()
+    }
   }
     
   required init(formType: SubscriptionFormDataType,

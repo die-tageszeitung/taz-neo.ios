@@ -450,7 +450,9 @@ extension MainTabVC {
     }
     if reloadTargets.count == 0 {
       if let alertMessage = alertMessage {
-        Alert.message(message: alertMessage)
+        Alert.message(message: alertMessage){
+          Notification.send(Const.NotificationNames.dismissExpiredForm)
+        }
       }
       return
     }
