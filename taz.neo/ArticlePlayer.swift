@@ -529,12 +529,15 @@ class ArticlePlayer: DoesLog {
     if let localFile = content?.localAudioPathIfExist {
       return localFile
     }
+    ///Remote Section Audio
     if let section = content as? Section,
        let baseUrl = section.primaryIssue?.baseUrl,
        let afn = section.audioItem?.file?.fileName {
       return "\(baseUrl)/\(afn)"
     }
+
     /// **WARNING:** (article as? SearchArticle)?.baseURL **!=** article.baseURL
+    /// Remote Article Audio
     guard let article = content as? Article,
           let baseUrl = (article as? SearchArticle)?.baseURL 
             ?? article.baseURL 
@@ -843,11 +846,19 @@ fileprivate extension Content{
   }
   
   var localAudioPathIfExist:String?{
-    guard let fileName = self.audioItem?.file?.name else { return nil }
-    let localFilePath = self.dir.path + "/" + fileName
-    let file = File(localFilePath)
-    if file.exists {
-      return localFilePath
+    if let file = audioItem?.file {
+      var localFilePath:String
+      switch file.storageType {
+        case .global:
+          localFilePath = self.dir.path + "/global/" + file.name
+        case .issue:
+          localFilePath = self.dir.path + "/" + file.name
+        case .resource:
+          localFilePath = self.dir.path + "/resources/" + file.name
+        default:
+          localFilePath = self.dir.path + "/" + file.name
+      }
+      if File(localFilePath).exists { return localFilePath }
     }
     return nil
   }
