@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import WebKit
 import NorthLib
 
 // A ContentUrl provides a WebView URL for Articles and Sections
@@ -321,7 +322,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         }    
       }
     """
-    URLCache.shared.removeAllCachedResponses()
+    URLCache.shared.removeAllCachedResponses()///did not remove old css in tazApi.css
+    let types = WKWebsiteDataStore.allWebsiteDataTypes()
+    let date = Date(timeIntervalSince1970: 0)
+    WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: date) {
+    }
+    
     File.open(path: tazApiCss.path, mode: "w") { f in f.writeline(cssContent)
       callback?()
     }
@@ -404,6 +410,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       x = min(maxX, x)
     }
     (self as? HelpProviding)?.hideHelpButton()
+    //debug(">>> scroll from \(sv.contentOffset.x) right to xoffset: \(x) ")
     sv.setContentOffset(CGPoint(x: x, y: 0), animated: true)
     sv.flashScrollIndicators()
     return true
@@ -443,8 +450,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     multiColumnGap = padding
     let hFix = Int(128 + UIWindow.bottomInset)
     let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
-      
-    debug("#> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
+    //debug("#>>> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
         * content paddings&margins increase column gap
@@ -1108,12 +1114,15 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return Defaults.darkMode ?  .lightContent : .default
   }
   
-  func updateWebwiews(){
+  func updateWebwiews(_ callback: (()->())? = nil){
     if isImageOverlay { return }
+    //log(">>> before reloading webViews with rowWidth: \(rowWidth)")
     writeTazApiCss {[weak self] in
       self?.reloadLoaded = true
+      //self?.log(">>> reloading webViews with rowWidth: \(self?.rowWidth ?? 0)")
       self?.reloadAllWebViews()
       self?.reloadLoaded = false
+      callback?()
     }
   }
   

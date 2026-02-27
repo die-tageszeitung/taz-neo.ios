@@ -393,7 +393,14 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.invalidateLayoutNeededOnViewWillAppear = false
       self.collectionView?.collectionViewLayout.invalidateLayout()
       self.collectionView?.fixScrollPosition()
-      self.collectionView?.showAnimated()
+      updateWebwiews {[weak self] in
+        self?.collectionView?.showAnimated()
+        guard Defaults.multiColumnMode,
+              let self = self,
+              let sv =  self.currentWebView?.scrollView else { return }
+        let nextRow = sv.contentOffset.x/CGFloat(self.rowWidth)
+        self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
+      }
     }
     super.viewDidAppear(animated)
     onShare { [weak self] _ in
