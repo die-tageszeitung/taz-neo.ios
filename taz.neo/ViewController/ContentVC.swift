@@ -153,6 +153,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var multiColumnWidth: CGFloat = 0.0
   var screenColumnsCount: Int = 1
   
+  private var lastTrackingName: String?
+  
   @Default("showBarsOnContentChange")
   var showBarsOnContentChange: Bool
   
@@ -568,10 +570,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     
-    self.bridge?.addfunc("sectionAdShown") { [weak self] jscall in
+    self.bridge?.addfunc("trackAdIfNeeded") { [weak self] jscall in
       guard self != nil else { return NSNull() }
       if let args = jscall.args, args.count > 0,
-         let adIdentifier = args[0] as? String {
+         let adIdentifier = args[0] as? String,
+         let htmlName = args[1] as? String,
+         self?.lastTrackingName != htmlName,
+         htmlName == self?.currentWebView?.url?.lastPathComponent {
         let issueDate = self?.issue.date.ISO8601 ?? "-"
         let sectionTitle
         = self?.header.title
@@ -579,6 +584,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         ?? "-"
         Usage.track(Usage.event.advertisement.sectionAdShown
                    , name: "\(issueDate)/\(sectionTitle)/\(adIdentifier)")
+        self?.lastTrackingName = htmlName
+        onMain(after: 5.0) {[weak self] in
+          ///reset after a few seconds to prevent double trackings in edge cases
+          self?.lastTrackingName = nil
+        }
       }
       return NSNull()
     }
@@ -679,8 +689,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     tazApi.shareArticle = function (artName) {
       tazApi.call("shareArticle", undefined, artName);
     };
-    tazApi.sectionAdShown = function(addIdentifier) {
-      tazApi.call("sectionAdShown", undefined, addIdentifier);
+    tazApi.trackAdIfNeeded = function(adIdentifier, htmlFilename) {
+      tazApi.call("trackAdIfNeeded", undefined, adIdentifier, htmlFilename);
     };
     tazApi.gotoIssue = function (issueDate) {
       tazApi.call("gotoIssue", undefined, issueDate);

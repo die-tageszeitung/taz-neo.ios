@@ -58,7 +58,7 @@ extension IssueDisplayService {
     guard lastSectionIndex ?? 0 > 0 || lastArticle != nil else { return }
     resumeReadHandled = false
     
-    sectionVC.whenLoaded { [weak self] in
+    sectionVC.whenLoaded { [weak self] _ in
       guard self?.resumeReadHandled == false else {
         ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
         self?.continueReadingCtrl?.handleDismiss()
