@@ -549,13 +549,17 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         Usage.track(Usage.event.various.ImageGalery,
                     name: "open",
                     dimensions: current.customDimensions)
-        self.imageOverlay?.open(animated: true, fromBottom: true)
+        self.imageOverlay?.open(animated: true, fromBottom: true){[weak self] in
+          self?.imageOverlay?.overlayVC.view.accessibilityViewIsModal = true
+          self?.updateAccessibilityElements(postLayoutChanged: true)
+        }
         // Inform Application to re-evaluate Orientation for current ViewController
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
         (self as? HelpProviding)?.hideHelpButton()
         self.imageOverlay?.onClose {[weak self] in
           (self as? HelpProviding)?.showHelpButton()
+          self?.imageOverlay?.overlayVC.view.accessibilityViewIsModal = false
           self?.imageOverlay = nil///former we had a delayed set nil
           self?.updateAccessibilityElements(postLayoutChanged: true, currentCell: self?.currentWebView)
           guard Device.isIphone else { return }
@@ -1096,12 +1100,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.onOpen{[weak self] _ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
       Notification.send(Const.NotificationNames.helpProviderChanged)
+      self?.contentTable?.accessibilityViewIsModal = true
       self?.updateAccessibilityElements(postLayoutChanged: true)
       self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis geöffnet, erneut drücken zum schließen"
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
+      self?.contentTable?.accessibilityViewIsModal = false
       self?.updateAccessibilityElements(postLayoutChanged: true)
       self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis öffnen"
     }
@@ -1194,6 +1200,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
       elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
       elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+      self.view.accessibilityElements = elms
+      UIAccessibility.post(notification: .screenChanged, argument: imgVC.view)
     }
     else if slider?.isOpen == true {
       elms.appendIfPresent(slider?.button)
@@ -1203,7 +1211,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
       elms.appendIfPresent(contentTable?.headerCollapseIcon)
       elms.appendIfPresent(contentTable?.tableView)
+      self.view.accessibilityElementsHidden = true
       self.view.accessibilityElements = elms
+      contentTable?.isAccessibilityElement = true
+      UIAccessibility.post(notification: .screenChanged, argument: contentTable)
     } else {
       elms.append(header)
       elms.append(toolBar)
@@ -1214,11 +1225,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       elms.append(leftTapEnEdgeButton)
       elms.append(rightTapEnEdgeButton)
       elms.appendIfPresent(currentCell ?? collectionView)
-    }
-    self.view.accessibilityElements = elms
-    if postLayoutChanged {
-      UIAccessibility.post(notification: .layoutChanged,
-                           argument: self.view)
+      self.view.accessibilityElementsHidden = false
+      self.view.accessibilityElements = elms
+      UIAccessibility.post(notification: .screenChanged, argument: self.view)
     }
   }
   

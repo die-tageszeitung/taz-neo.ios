@@ -285,6 +285,7 @@ extension NewContentTableVC {
         self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
       }
     }
+    view.accessibilityViewIsModal = true
   }
 }
 
