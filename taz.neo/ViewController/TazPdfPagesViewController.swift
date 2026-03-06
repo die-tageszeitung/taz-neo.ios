@@ -282,7 +282,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     else {
       self.debug("Calling application for: \(to.absoluteString)")
       if UIApplication.shared.canOpenURL(to) {
-        UIApplication.shared.open(to, options: [:], completionHandler: nil)
+        to.openLinkAndTrackAdIfNeeded()
       }
       else {
         error("No application or no permission for: \(to.absoluteString)")
@@ -465,7 +465,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     guard let path = path else { return }
     
     if let url = URL(string: name), UIApplication.shared.canOpenURL(url) {
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      url.openLinkAndTrackAdIfNeeded()
       return
     }
     else if let pageIdx = pdfModel.pageIndexForLink(name) {
@@ -557,6 +557,16 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     onDisplay { [weak self]  (idx, _, isFromScroll) in
       if let issue = self?.issue, idx > 0 || isFromScroll {
         issue.setLastRead(pageIndex: idx, articleIndex: nil, sectionIndex: nil, scrollPosition: nil)
+      }
+      if let pi = self?.pdfModel?.item(atIndex:idx) as? ZoomedPdfPageImage,
+         let issueDate = self?.issue.date.ISO8601,
+         let page = pi.pageReference,
+         let adIdList = page.adIdList {
+        for adIdentifier in adIdList {
+          Usage.track(Usage.event.advertisement.pageAdShown
+                      , name: "\(issueDate)/Seite \(page.pagina ?? "\(idx)")/\(adIdentifier)")
+
+        }
       }
       self?.updateSlider(index: idx)
       self?.updateAllAudioButtons()

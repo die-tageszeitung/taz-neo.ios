@@ -706,7 +706,9 @@ public protocol Page: ToString {
   var type: PageType { get }
   /// Frames in page
   var frames: [Frame]? { get }
-} // Page  
+  /// List of ads in page
+  var adIdList: [String]? { get }
+} // Page
 
 public extension Page {
   

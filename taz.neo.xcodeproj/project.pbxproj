@@ -104,6 +104,8 @@
 		7772D5632DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */; };
 		7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */; };
 		7772D5662DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */; };
+		7775449E2F5AEFD4002C024C /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7775449D2F5AEFCD002C024C /* URL+Extension.swift */; };
+		7775449F2F5AEFD4002C024C /* URL+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7775449D2F5AEFCD002C024C /* URL+Extension.swift */; };
 		777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607E92CE64FC70023D3EF /* StoreBusiness.swift */; };
 		777607ED2CE6503D0023D3EF /* CustomUIActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */; };
 		777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */; };
@@ -448,6 +450,7 @@
 		77705A482D6F7E9900F3A631 /* BundledResourcesLMd */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResourcesLMd; sourceTree = "<group>"; };
 		7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+FinishedCallback.swift"; sourceTree = "<group>"; };
 		7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+CheckForNewIssue.swift"; sourceTree = "<group>"; };
+		7775449D2F5AEFCD002C024C /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
 		777607E92CE64FC70023D3EF /* StoreBusiness.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreBusiness.swift; sourceTree = "<group>"; };
 		777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIActivity.swift; sourceTree = "<group>"; };
 		777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArticleExportDialogue.swift; sourceTree = "<group>"; };
@@ -739,6 +742,7 @@
 				77ECD87B2A814E9C00DFBBB6 /* PushNotification.Payload+Extension.swift */,
 				77ECD87D2A814ED100DFBBB6 /* LocalNotifications+Extension.swift */,
 				77E6E9AB2CF880FD00430B83 /* String+Extension.swift */,
+				7775449D2F5AEFCD002C024C /* URL+Extension.swift */,
 				77D1B4FA2CF9C2BE004CF5FC /* UIViewController+Active.swift */,
 			);
 			path = Helper;
@@ -1389,6 +1393,7 @@
 				AE51319D2AFBCADB002289E8 /* LoadingView.swift in Sources */,
 				77459FD62D0A4FC200129592 /* ArticleDB+SaveErrorhandling.swift in Sources */,
 				AE51319E2AFBCADB002289E8 /* BuildConst.swift in Sources */,
+				7775449F2F5AEFD4002C024C /* URL+Extension.swift in Sources */,
 				AE51319F2AFBCADB002289E8 /* Downloader.swift in Sources */,
 				77E6E9AD2CF880FD00430B83 /* String+Extension.swift in Sources */,
 				AE5131A02AFBCADB002289E8 /* FeedbackViewController.swift in Sources */,
@@ -1650,6 +1655,7 @@
 				AE0A4D0323F429D800C44625 /* HeaderView.swift in Sources */,
 				77E6E9A62CF8745100430B83 /* Bookmarks+Helper.swift in Sources */,
 				774C27462BA05BA800835BB9 /* VirtualArticle.swift in Sources */,
+				7775449E2F5AEFD4002C024C /* URL+Extension.swift in Sources */,
 				AEEC919A282E964300F91A2D /* ArticleDBVersionChanges.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

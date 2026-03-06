@@ -157,7 +157,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else {
         self.debug("Calling application for: \(to.absoluteString)")
         if UIApplication.shared.canOpenURL(to) {
-          UIApplication.shared.open(to, options: [:], completionHandler: nil)
+          to.openLinkAndTrackAdIfNeeded()
         }
         else {
           error("No application or no permission for: \(to.absoluteString)")

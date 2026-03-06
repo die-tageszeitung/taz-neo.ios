@@ -547,7 +547,9 @@ extension Usage {
     }
     enum advertisement: String, TrackingEvent {
       var category: String { "Advertisement" }
-      case sectionAdShown = "Section Ad Shown"
+      case sectionAdShown = "Section ad shown"
+      case pageAdShown = "Page ad shown"
+      case adTapped = "ad tapped"
     }
     enum various: String, TrackingEvent {
       var category: String { "Various" }

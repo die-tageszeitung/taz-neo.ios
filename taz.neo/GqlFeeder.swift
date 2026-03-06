@@ -424,6 +424,7 @@ class GqlPage: Page, GQLObject {
   var pagina: String?
   /// Type of page
   var type: PageType
+  var adIdList: [String]?
   /// Frames in page
   var frameList: [GqlFrame]?
   var frames: [Frame]? { return frameList }
@@ -437,6 +438,7 @@ class GqlPage: Page, GQLObject {
   pagina
   type
   frameList { \(GqlFrame.fields) }
+  adIdList
   """
 } // GqlPage
 

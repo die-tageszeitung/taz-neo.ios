@@ -1375,6 +1375,7 @@ public final class StoredPage: Page, StoredObject {
       persistedRecord.page = pr
     }
   }
+  
   public var facsimile: ImageEntry? {
     get {
       createFacsimile()
@@ -1389,6 +1390,7 @@ public final class StoredPage: Page, StoredObject {
       else { pr.facsimile = nil }
     }
   }
+  
   public var audioItem: Audio? {
     get {
       guard let audio = pr.audioItem else { return nil }
@@ -1404,10 +1406,17 @@ public final class StoredPage: Page, StoredObject {
       pr.audioItem?.addToPage(self.pr)
     }
   }
+  
   public var type: PageType {
     get { return PageType(pr.type ?? "") ?? .unknown }
     set { pr.type = newValue.representation }
   }
+  
+  public var adIdList: [String]? {
+    get { return pr.adIdList as? [String] }
+    set { pr.adIdList = newValue as? NSArray }
+  }
+  
   public var frames: [Frame]? { StoredFrame.framesInPage(page: self) }
   
   public required init(persistent: PersistentPage) { self.pr = persistent }
@@ -1454,6 +1463,7 @@ public final class StoredPage: Page, StoredObject {
     self.audioItem = object.audioItem
     self.type = object.type
     self.pagina = object.pagina
+    self.adIdList = object.adIdList
     self.pr.frames = nil
     var order: Int32 = 0
     if let frames = object.frames {
