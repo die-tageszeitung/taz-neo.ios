@@ -617,9 +617,8 @@ public extension Section {
     return ret
   }
   
-  
-  /// articleHtml returns an array of filenames with article HTML
-  var articleHtml: [String] {
+  /// articleFilenames returns an array of filenames with article HTML
+  var articleFilenames: [String] {
     var ret: [String] = []
     if let arts = articles, arts.count > 0 {
       for art in arts {
@@ -1138,11 +1137,11 @@ public extension Issue {
     return ret
   }
   
-  /// articleHtml returns an array of file names with article content
-  var articleHtml: [String] {
+  /// articleFilenames returns an array of file names with article content
+  var articleFilenames: [String] {
     var ret: [String] = []
     if let sects = sections, sects.count > 0 {
-      for sect in sects { ret.append(contentsOf: sect.articleHtml) }
+      for sect in sects { ret.append(contentsOf: sect.articleFilenames) }
     }
     return ret
   }
