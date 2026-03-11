@@ -14,7 +14,6 @@ class GqlSingleArticle: GQLObject, DoesLog {
   var gqlArticle: GqlArticle
   /// Name of section
   var sectionTitle: String?
-  var articleHtml: String?
   /// date of original issue
   var sIssueDate: String
   var issueDate: Date { return UsTime(iso: sIssueDate, tz: GqlFeeder.tz).date }
@@ -23,8 +22,7 @@ class GqlSingleArticle: GQLObject, DoesLog {
   enum CodingKeys: String, CodingKey {
     case gqlArticle
     case sectionTitle
-    case articleHtml
-    case sDate
+    case sIssueDate
     case baseUrl
   }
   
@@ -32,23 +30,14 @@ class GqlSingleArticle: GQLObject, DoesLog {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     gqlArticle = try container.decode(GqlArticle.self, forKey: .gqlArticle)
     sectionTitle = try container.decodeIfPresent(String.self, forKey: .sectionTitle)
-    articleHtml = try container.decodeIfPresent(String.self, forKey: .articleHtml)
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
-    sIssueDate = try container.decode(String.self, forKey: .sDate)
+    sIssueDate = try container.decode(String.self, forKey: .sIssueDate)
   }
   
   static var fields = """
-    gqlArticle:article { \(GqlArticle.fields) }
-    sectionTitle
-    articleHtml
-    sIssueDate: date
-    baseUrl
-  """
-  
-  static var fieldsMinimum = """
     gqlArticle:article { \(GqlArticle.fieldsMinimum) }
     sectionTitle
-    sDate: date
+    sIssueDate: date
     baseUrl
   """
   
@@ -56,7 +45,6 @@ class GqlSingleArticle: GQLObject, DoesLog {
     """
       gqlArticle:  \(gqlArticle.toString())
       sectionTitle:  \(sectionTitle ?? "-")
-      articleHtml:  \(articleHtml?.prefix(150) ?? "-")
       date: \(issueDate.short)
       baseUrl:   \(baseUrl)
     """
@@ -117,7 +105,7 @@ extension GqlFeeder {
         """
         articleLoading: getArticlesByMediaSyncId(mediaSyncIds: "\(mediaSyncIds.joined(separator: ", "))") {
           authInfo { \(GqlAuthInfo.fields) }
-          articleList { \(GqlSingleArticle.fieldsMinimum) }
+          articleList { \(GqlSingleArticle.fields) }
         }
         """
       }
