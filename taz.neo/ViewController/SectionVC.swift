@@ -446,6 +446,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewDidAppear(animated)
     self.header.isHidden = false
     self.collectionView?.isHidden = false
+    guard let wv = currentWebView else { return }
+    self.activateWebview(webView: wv)
   }
   
   open override func didMove(toParent parent: UIViewController?) {
