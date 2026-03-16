@@ -195,12 +195,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  var slider:MyButtonSlider? {
-    didSet {
-      guard slider == nil else { return }
-      log("BAM!")
-    }
-  }
+  ///optional slider configured by SectionVC, PDF but not by Search/Bookmarks
+  var slider:MyButtonSlider?
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -1070,6 +1066,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public func setupSlider() {
+    guard slider != nil else { return }
     updateSliderWidth(newParentWidth: UIScreen.shortSide)
     let logo = App.isTAZ ? "logo" : "logoLMD"
     slider?.setImage( UIImage(named: logo),

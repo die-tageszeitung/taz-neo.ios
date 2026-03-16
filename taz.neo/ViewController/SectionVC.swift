@@ -288,6 +288,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self?.index = sIdx
       self?.articleVC?.navigationController?.popViewController(animated: true)
     }
+    if let avc = articleVC {
+      avc.slider
+      = MyButtonSlider(slider: avc.contentTablePlaceholder, into: avc)
+      avc.setupSlider()
+    }
+
+    
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change

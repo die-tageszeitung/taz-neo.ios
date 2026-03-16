@@ -356,12 +356,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     self.playButtonContextMenu = nil
     super.cleanup()
   }
-  
-  public override func viewDidLoad() {
-    super.viewDidLoad()
-    slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
-    setupSlider()
-  }
     
   public override func viewWillAppear(_ animated: Bool) {
     ///fix ugly UI Bug after iPad Roation
