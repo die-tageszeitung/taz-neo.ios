@@ -1170,7 +1170,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
         thumbCtrl.clickCallback = nil
       }
       NotificationCenter.default.removeObserver(self)
-      contentTable = nil
       sliderContent = nil
       delegate = nil
       self.slider = nil

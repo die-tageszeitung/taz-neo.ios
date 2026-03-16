@@ -40,6 +40,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   @Default("animateArticleSectionChange")
   var animateArticleSectionChange: Bool
   
+  lazy var contentTablePlaceholder = UIViewController()
+  
   var needValidAboToShareText: String {
     if feederContext.isAuthenticated == false {
       return "Sie müssen angemeldet sein, um Texte zu teilen!"
@@ -313,7 +315,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           else {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
-          contentTable?.setActive(row: i,
+          sectionVCsContentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
           header.accessibilityLabel = "\(art.sectionTitle ?? "") \(i+1)/\(articles.count): \(art.title ?? "")"
         }
@@ -334,39 +336,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     guard let art = self.article else { return }
     export(article: art)
   }
-  
-  public override func setupSlider() {
-    super.setupSlider()
-    contentTable?.onArticlePress{[weak self] article in
-      guard let self = self else { return }
-      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
-      self.adelegate?.linkPressed(from: nil, to: url)
-      self.slider?.close()
-    }
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self, let adelegate = self.adelegate else { return }
-      if sectionIndex >= adelegate.sections.count {
-        self.debug("*** Action: Impressum pressed")
-      }
-      else {
-        self.debug("*** Action: Section \(sectionIndex) " +
-          "(delegate.sections[sectionIndex])) in Slider pressed")
-      }
-      self.adelegate?.displaySection(index: sectionIndex)
-      self.slider?.close()
-      self.navigationController?.popViewController(animated: false)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      let issueDate = self?.issue.date
-      self?.adelegate?.closeIssue()
-      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
-    }
-  }
-  
   open override func releaseOnDisappear(){
-    contentTable = nil
     articles = []
     (delegate as? IssueDisplayService)?.continueReadingCtrl = nil
     (adelegate as? IssueDisplayService)?.continueReadingCtrl = nil
@@ -376,19 +346,38 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     self.playButtonContextMenu = nil
     super.releaseOnDisappear()
   }
+  
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
+    setupSlider()
+  }
     
   public override func viewWillAppear(_ animated: Bool) {
     ///fix ugly UI Bug after iPad Roation
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.collectionView?.isHidden = true
     }
-    ///Set Content Table if needed
-    if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
-    else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
-    else if self.contentTable == nil {
-      self.contentTable = NewContentTableVC()
+    /// Set Content Table if needed
+    /// if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
+    /// else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
+    ///
+    /// **exchange  Content Table from SectionVC**
+    if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
+      self.slider?.exchangeSliderContent(from: sectionSlider)
     }
     super.viewWillAppear(animated)
+  }
+  
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
+      self.slider?.exchangeSliderContent(from: sectionSlider)
+    }
+  }
+  
+  private var sectionVCsContentTable: NewContentTableVC? {
+    return (self.adelegate as? SectionVC)?.contentTable
   }
   
   public override func viewDidAppear(_ animated: Bool) {

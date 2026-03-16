@@ -105,26 +105,25 @@ public class NewContentTableVC: UIViewController {
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
   ///for ArticleVC the highlighted Cell
-  var activeItem:IndexPath? {
-    didSet {
-      guard let activeItem = activeItem else { return }
-        expandedSections = [activeItem.section]
-    }
-  }
+  var activeItem:IndexPath?
   
   func setActive(row: Int?, section: Int?){
+    let collapseOthers = expandedSections.count <= 2
+    
     if let row = row, let sect = section {
       activeItem = IndexPath(row: row, section: sect)
+      collapseOthers ? expandedSections = [sect] : nil
+      sectIndex = sect
     }
     else if let sect = section {
       sectIndex = section
-      collapseAll(expect: sect)
+      collapseOthers ? collapseAll(expect: sect) : nil
       activeItem = nil
     }
-    else {
+    else {//not in use?
       sectIndex = nil
       activeItem = nil
-      collapseAll()
+      collapseOthers ? collapseAll()  : nil
     }
   }
   
@@ -371,7 +370,6 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       self?.sectionPressedClosure?(_header.tag)
       _header.active = true
       _header.collapsed = false
-      self?.collapseAll(expect: _header.tag)
       Usage.track(isImprint ? Usage.event.drawer.action_tap.Imprint : Usage.event.drawer.action_tap.Section)
     }
     

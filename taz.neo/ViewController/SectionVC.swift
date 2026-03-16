@@ -24,6 +24,46 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   public private(set) var articleVC: ArticleVC?
+  
+  ///ButtonSlider Content, shared with ArticleVC
+  public lazy var contentTable: NewContentTableVC = {
+    let ct = NewContentTableVC()
+    ct.feeder = feeder
+    ct.issue = issue
+    ct.image = feeder.momentImage(issue: issue)
+    
+    ct.onArticlePress{[weak self] article in
+      guard let self = self else { return }
+      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      self.linkPressed(from: nil, to: url)
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+    }
+    ct.onSectionPress { [weak self] sectionIndex in
+      guard let self = self else { return }
+      if sectionIndex < self.sections.count {
+        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
+      }
+      else {
+        self.debug("*** Action: \"Impressum\" in Slider pressed")
+      }
+      self.slider?.close()
+      self.articleVC?.slider?.close()
+      self.articleVC?.navigationController?.popViewController(animated: true)
+      self.displaySection(index: sectionIndex)
+    }
+    ct.onImagePress { [weak self] in
+      self?.debug("*** Action: Moment in Slider pressed")
+      self?.slider?.close()
+      let issueDate = self?.issue.date
+      self?.closeIssue()
+      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
+    }
+    
+    return ct
+  }()
+
+  
   private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
@@ -223,7 +263,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     }
     onDisplay { [weak self] (secIndex, optionalView, _) in
       guard let self = self else { return }
-      self.contentTable?.setActive(row: nil, section: secIndex)
+      self.contentTable.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex) webview: \(optionalView.debugDescription)")
       self.setHeader(secIndex: secIndex)
       self.updatePlayButton()
@@ -374,41 +414,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewWillTransition(to: size, with: coordinator)
     articleVC?.invalidateLayoutNeededOnViewWillAppear = true
   }
-  
-  public override func setupSlider() {
-    super.setupSlider()
-    contentTable?.onArticlePress{[weak self] article in
-      guard let self = self else { return }
-      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
-      self.linkPressed(from: nil, to: url)
-      self.slider?.close()
-      self.articleVC?.slider?.close()
-    }
-    contentTable?.onSectionPress { [weak self] sectionIndex in
-      guard let self = self else { return }
-      if sectionIndex < self.sections.count {
-        self.debug("*** Action: Section \(sectionIndex) (\(self.sections[sectionIndex])) in Slider pressed")
-      }
-      else {
-        self.debug("*** Action: \"Impressum\" in Slider pressed")
-      }
-      self.slider?.close()
-      self.articleVC?.slider?.close()
-      self.articleVC?.navigationController?.popViewController(animated: true)
-      self.displaySection(index: sectionIndex)
-    }
-    contentTable?.onImagePress { [weak self] in
-      self?.debug("*** Action: Moment in Slider pressed")
-      self?.slider?.close()
-      let issueDate = self?.issue.date
-      self?.closeIssue()
-      Notification.send(Const.NotificationNames.gotoIssue, content: issueDate , sender: self)
-    }
-  }
-  
+    
   override public func viewDidLoad() {
     super.viewDidLoad()
-    contentTable = NewContentTableVC()
+    slider = MyButtonSlider(slider: contentTable, into: self)
+    setupSlider()
+
     self.showImageGallery = false
     self.index = initialSection ?? 0
     

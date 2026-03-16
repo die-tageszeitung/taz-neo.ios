@@ -190,16 +190,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 
   public var feederContext: FeederContext  
   public weak var delegate: IssueInfo!
-  public var contentTable: NewContentTableVC? {
-    didSet {
-      guard let contentTable = contentTable else { return }
-      contentTable.feeder = feeder
-      contentTable.issue = issue
-      contentTable.image = feeder.momentImage(issue: issue)
-      slider = MyButtonSlider(slider: contentTable, into: self)
-      setupSlider()
-    }
-  }
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
   public var issue: Issue { delegate.issue }
@@ -1071,7 +1061,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   func persistReadProgress() {}///overwrite in Subclass
   
   func updateSliderWidth(newParentWidth: CGFloat? = nil){
-    guard contentTable != nil else { return }
     let maxWidth = Const.Size.ContentSliderMaxWidth
     slider?.ocoverage
     = min(maxWidth, (newParentWidth ?? maxWidth + 28.0) - 28.0 )
@@ -1193,6 +1182,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
     }
     else if slider?.isOpen == true {
+      let contentTable = (self as? SectionVC)?.contentTable
       elms.appendIfPresent(slider?.button)
       elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
       elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
