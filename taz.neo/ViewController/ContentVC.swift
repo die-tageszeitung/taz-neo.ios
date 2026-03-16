@@ -195,7 +195,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public var issue: Issue { delegate.issue }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
-  var slider:MyButtonSlider?
+  var slider:MyButtonSlider? {
+    didSet {
+      guard slider == nil else { return }
+      log("BAM!")
+    }
+  }
   /// Whether to show all content images in a gallery
   public var showImageGallery = true
   public var toolBar = ContentToolbar()
@@ -247,14 +252,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     return ContentVC._tazApiJs!
   }
   
-  open override func releaseOnDisappear(){
-    //Circular reference with: onImagePress, onSectionPress
+  func cleanup(){
     settingsBottomSheet = nil
     mcoBottomSheet = nil
     slider = nil
     textSettingsVC = nil
     header.onTitle { _ in }
-    super.releaseOnDisappear()
   }
 
   public func resetIssueList() {

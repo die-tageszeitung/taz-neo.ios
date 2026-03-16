@@ -336,7 +336,17 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     guard let art = self.article else { return }
     export(article: art)
   }
-  open override func releaseOnDisappear(){
+  
+  /// Releases resources when the parent view controller is about to be dismissed.
+  ///
+  /// This is required for flows where the parent controller is not reused
+  /// (e.g. when opened from SectionVC or PDF), to avoid keeping unnecessary
+  /// references or resources alive.
+  ///
+  /// In cases like "Leseliste" or "Search", cleanup is not required because
+  /// theese parent controllers are root controllers of the TabBarController
+  /// and remain in memory for reuse.
+  override func cleanup() {
     articles = []
     (delegate as? IssueDisplayService)?.continueReadingCtrl = nil
     (adelegate as? IssueDisplayService)?.continueReadingCtrl = nil
@@ -344,7 +354,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     adelegate = nil
     playButtonContextMenu?.itemPrivider = nil
     self.playButtonContextMenu = nil
-    super.releaseOnDisappear()
+    super.cleanup()
   }
   
   public override func viewDidLoad() {

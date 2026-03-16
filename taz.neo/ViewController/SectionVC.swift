@@ -463,8 +463,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
   open override func releaseOnDisappear() {
-    articleVC?.releaseOnDisappear()
+    articleVC?.cleanup()
     articleVC = nil
+    cleanup()
     super.releaseOnDisappear()
   }
    

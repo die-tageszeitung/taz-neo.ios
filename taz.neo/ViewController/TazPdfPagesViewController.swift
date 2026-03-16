@@ -263,7 +263,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   ///reference to pushed child vc, if any
-  var childArticleVC: ArticleVcWithPdfInSlider?
+  var childArticleVC: ArticleVcWithPdfInSlider? { didSet { oldValue?.cleanup() }}
   
   public var article2section: [String : [Section]]
   public func displaySection(index: Int) { log("displaySection not implemented")}
