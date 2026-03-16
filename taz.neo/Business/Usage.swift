@@ -32,6 +32,8 @@ public class Usage: NSObject, DoesLog{
   fileprivate lazy var matomoTracker = MatomoTracker(siteId: Device.isSimulator ? "116" : "113",
                                     baseURL: URL(string: "https://gazpacho.taz.de/matomo.php")!)
   
+  var visitorId: String? { return usageTrackingAllowed ? matomoTracker.visitorId : nil }
+  
   static let shared = Usage()
   
   fileprivate var enterBackground: Date?

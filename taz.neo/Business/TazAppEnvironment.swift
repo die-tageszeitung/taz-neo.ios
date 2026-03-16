@@ -165,7 +165,12 @@ class TazAppEnvironment: NSObject, DoesLog {
     showHome()
     feederContext?.updateResources(toVersion: -1)
     ///initially setup can register otherwise the first login call did not has register form even if possible
-    onMainAfter { [weak self] in self?.log("can register? \(StoreBusiness.canRegister)") }
+    onMainAfter { [weak self] in
+      self?.log("can register? \(StoreBusiness.canRegister)")
+      guard let trackingId = Usage.shared.visitorId else { return }
+      guard SettingsVC.isSpecialSettingAvailable || self?.isTazUser() == true else { return }
+      self?.log("Matomo ID for internal Users (alpha-Apps, Simulator and taz.de Users only):\n\(trackingId)")
+    }
   }
   
   func goingBackground() {
@@ -394,8 +399,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     feederContext.setupRemoteNotifications()
   }
   
-  
-  
+  #warning("TODO: unify with DefaultAuthenticator.isTazLogin")
   private func isTazUser() -> Bool {
     let dfl = Defaults.singleton
     let id = dfl["id"]

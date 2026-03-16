@@ -2196,7 +2196,7 @@
 			repositoryURL = "https://github.com/matomo-org/matomo-sdk-ios.git";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 7.6.0;
+				minimumVersion = 7.8.0;
 			};
 		};
 		AE5131692AFBCADB002289E8 /* XCRemoteSwiftPackageReference "NorthLib" */ = {

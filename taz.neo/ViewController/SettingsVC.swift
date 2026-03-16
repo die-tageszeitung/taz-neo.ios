@@ -977,7 +977,7 @@ extension SettingsVC {
       cells.insert(hideToolbarCell, at: 0)
     }
     
-    if isSpecialSettingAvailable {
+    if Self.isSpecialSettingAvailable {
       cells.append(debuggingSwitchOneCell)
       cells.append(sendFailureRequestCell)
       cells.append(deleteSearchResultsFolder)
@@ -987,13 +987,13 @@ extension SettingsVC {
     }
 
     if DefaultAuthenticator.isTazLogin
-    || isSpecialSettingAvailable
+        || Self.isSpecialSettingAvailable
     {
       cells.append(defaultToastsDisabledCell)
     }
     
     if DefaultAuthenticator.isTazLogin
-        || isSpecialSettingAvailable
+        || Self.isSpecialSettingAvailable
         || useTestServer {
       cells.append(testServerCell)
     }
@@ -1051,7 +1051,7 @@ extension SettingsVC {
 
 // MARK: - SettingsVC Extension
 extension SettingsVC {
-  var isSpecialSettingAvailable: Bool {
+  static var isSpecialSettingAvailable: Bool {
     let uid = SimpleAuthenticator.getUserData().id
     if App.isAlpha { return true}
     if Device.isSimulator { return true}
