@@ -368,7 +368,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   open override func releaseOnDisappear(){
     contentTable = nil
     articles = []
+    (delegate as? IssueDisplayService)?.continueReadingCtrl = nil
+    (adelegate as? IssueDisplayService)?.continueReadingCtrl = nil
     delegate = nil
+    adelegate = nil
     playButtonContextMenu?.itemPrivider = nil
     self.playButtonContextMenu = nil
     super.releaseOnDisappear()
@@ -468,6 +471,7 @@ extension ArticleVC {
     showMultiColumnOnboarding()
   }
   private func showMultiColumnOnboarding(){
+    let mcoVc = MultiColumnOnboarding()
     mcoBottomSheet = BottomSheet2(slider:mcoVc , into: self)
     mcoBottomSheet?.handle?.isHidden = true
     mcoBottomSheet?.onX {[weak self] in

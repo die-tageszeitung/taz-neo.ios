@@ -58,21 +58,23 @@ extension IssueDisplayService {
     guard lastSectionIndex ?? 0 > 0 || lastArticle != nil else { return }
     resumeReadHandled = false
     
-    sectionVC.whenLoaded { [weak self] _ in
-      guard self?.resumeReadHandled == false else {
+    sectionVC.whenLoaded {[weak self, weak sectionVC] _ in
+      guard let sectVc = sectionVC,
+            self?.resumeReadHandled == false else {
         ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
         self?.continueReadingCtrl?.handleDismiss()
+        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
         return
       }///prevent multiple open
-      sectionVC.reopenArticleDocName = lastArticle?.html?.name
+      sectVc.reopenArticleDocName = lastArticle?.html?.name
       if let lastPos = self?.issue.lastArticleScrollPos {
-        sectionVC.reopenArticleScrollPos = CGFloat(lastPos)
+        sectVc.reopenArticleScrollPos = CGFloat(lastPos)
       }
       self?.resumeReadHandled = true
-      self?.continueReadingCtrl = ContinueReadingController(lastContent: lastSection ?? lastArticle, targetVc: sectionVC) {[weak self] resume in
+      self?.continueReadingCtrl = ContinueReadingController(lastContent: lastSection ?? lastArticle, targetVc: sectVc) {[weak self] resume in
         if resume == true {
           if let lastArticle = lastArticle {
-            sectionVC.showArticle(lastArticle)
+            sectVc.showArticle(lastArticle)
             Notification.send(Const.NotificationNames.articleLoaded)
           }
           else if let idx = lastSectionIndex{
@@ -82,18 +84,18 @@ extension IssueDisplayService {
             /// sectionVC.suppressLinkPressedNotification = true
             /// sectionVC.collectionView?.scrollto(idx, animated: true)
             /// onMainAfter(1.0) { sectionVC.suppressLinkPressedNotification = false }
-            sectionVC.index = idx
+            sectVc.index = idx
           }
           Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromDialog")
-          self?.resumeReadDidAccepted(sectionVC.articleVC ?? sectionVC)
+          self?.resumeReadDidAccepted(sectVc.articleVC ?? sectVc)
         }
         else {
           Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
           onMainAfter(1.0) {[weak self] in
-            self?.resumeReadDidDismissed(sectionVC)
+            self?.resumeReadDidDismissed(sectVc)
           }
         }
-        self?.continueReadingCtrl = nil
+        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
       }
     }
   }

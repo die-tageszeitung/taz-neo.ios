@@ -450,10 +450,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.activateWebview(webView: wv)
   }
   
-  open override func didMove(toParent parent: UIViewController?) {
-    super.didMove(toParent: parent)
-    if parent == nil { releaseOnDisappear() }
-  }
   ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
   open override func releaseOnDisappear() {
     articleVC?.releaseOnDisappear()

@@ -237,7 +237,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
   
   var mcoBottomSheet:BottomSheet2?
-  var mcoVc = MultiColumnOnboarding()
   
   private var issueObserver: Notification.Observer?
   private var reloadLoaded: Bool = false
@@ -261,12 +260,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   open override func releaseOnDisappear(){
     //Circular reference with: onImagePress, onSectionPress
     settingsBottomSheet = nil
+    mcoBottomSheet = nil
     slider = nil
     textSettingsVC = nil
-    if contentTable != nil {
-      contentTable?.releaseOnDisappear()
-      contentTable = nil
-    }
+    header.onTitle { _ in }
     super.releaseOnDisappear()
   }
 

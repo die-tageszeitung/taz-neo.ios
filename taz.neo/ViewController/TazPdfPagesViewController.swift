@@ -396,7 +396,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
     super.init(data: pdfModel, useTopGradient: App.isTAZ)
-    
     hidesBottomBarWhenPushed = true
     
     #if LMD
@@ -528,7 +527,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.navigationController?.pushViewController(articleVC, animated: true)
     self.childArticleVC = articleVC
   }
-  
   public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
@@ -833,22 +831,18 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   
-  open override func didMove(toParent parent: UIViewController?) {
-    super.didMove(toParent: parent)
-    if parent == nil {
-      if let nModel = self.pdfModel as? NewPdfModel {
-        nModel.images = []
-      }
-      self.pdfModel = nil
-      if let ctrl = sliderContentController as? PdfOverviewCollectionVC {
-        ctrl.onTitleCellChange { _ in }
-        ctrl.titleCell = nil
-      }
-      sliderContentController = nil
-      slider = nil
+  open override func releaseOnDisappear(){
+    childArticleVC = nil
+    if let nModel = self.pdfModel as? NewPdfModel {
+      nModel.images = []
     }
+    self.pdfModel = nil
+    (sliderContentController as? PdfOverviewCollectionVC)?.cleanup()
+    sliderContentController = nil
+    slider = nil
+    super.releaseOnDisappear()
   }
-    
+
   // MARK: - viewDidAppear
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
@@ -1060,15 +1054,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   var sliderContent: UIViewController?
   
-  public init(feederContext: FeederContext, sliderContent:UIViewController) {
-    self.sliderContent = sliderContent
-    super.init(feederContext: feederContext)
-  }
-  
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
   open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
     transitionNextCollection = newCollection
     super.willTransition(to: newCollection, with: coordinator)
@@ -1191,6 +1176,23 @@ class ArticleVcWithPdfInSlider : ArticleVC {
       self.slider = nil
       self.settingsBottomSheet = nil
     }
+  }
+  
+  override func releaseOnDisappear() {
+    super.releaseOnDisappear()
+    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
+    sliderContent = nil
+    slider?.cleanup()
+    slider = nil
+  }
+  
+  public init(feederContext: FeederContext, sliderContent:UIViewController) {
+    self.sliderContent = sliderContent
+    super.init(feederContext: feederContext)
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
 }
 

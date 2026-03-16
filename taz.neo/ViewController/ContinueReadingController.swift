@@ -107,7 +107,9 @@ class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRot
   func cleanup(){
     guard !isClosing else { return }
     isClosing = true
+    bottomSheet?.cleanup()
     bottomSheet?.close()
+    bottomSheet = nil
     removeGestures()
     finishHandler = nil
     HelpBusiness.helpButtonAdditionalSheetOffset = 0.0
