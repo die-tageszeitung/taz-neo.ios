@@ -39,18 +39,25 @@ final class BookmarksSyncBusiness: DoesLog {
       }
   }
 
-  /// Merkt lokale Löschung eines Bookmarks
+  /// remember deleted bookmarks for sync
+  static func appendLocalDeletedBookmarkMediaSyncIds(_ mediaSyncIds: [Int64]?) {
+      guard let ids = mediaSyncIds, !ids.isEmpty else { return }
+      var map = localDeletedBookmarks
+      let now = Date().timeIntervalSince1970
+
+      for id in ids {
+          // Wenn noch nicht markiert → aktuell lokale Löschzeit
+          if map[id] == nil {
+              map[id] = now
+          }
+      }
+      localDeletedBookmarks = map
+  }
+  
+  /// remember deleted bookmark for sync
   static func appendLocalDeletedBookmarkMediaSyncId(_ mediaSyncId: Int64?) {
       guard let id = mediaSyncId else { return }
-
-      var map = localDeletedBookmarks
-
-      // Wenn noch nicht markiert → aktuell lokale Löschzeit
-      if map[id] == nil {
-          map[id] = Date().timeIntervalSince1970
-      }
-
-      localDeletedBookmarks = map
+      appendLocalDeletedBookmarkMediaSyncIds([id])
   }
   
   @Default("lastBookmarkSyncDate")

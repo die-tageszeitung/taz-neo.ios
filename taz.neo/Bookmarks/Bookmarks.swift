@@ -159,8 +159,10 @@ extension Bookmarks {
   
   func removeAllBookmarks(){
     guard let bookmarkSection = bookmarkSection else { return }
+    var deletedBookmarksIds:[Int64] = []
     
     for article in bookmarkSection.articles as? [StoredArticle] ?? [] {
+      deletedBookmarksIds.appendIfPresent(article.serverId)
       article.pr.removeFromSections(bookmarkSection.pr)
       bookmarkSection.pr.removeFromArticles(article.pr)
       // Remove the stored article if it no longer belongs to any section
@@ -169,6 +171,7 @@ extension Bookmarks {
       }
       Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
     }
+    BookmarksSyncBusiness.appendLocalDeletedBookmarkMediaSyncIds(deletedBookmarksIds)
     ArticleDB.save()
     bookmarkedArticles = []
   }
