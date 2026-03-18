@@ -140,6 +140,9 @@ open class FeederContext: DoesLog {
   
   @Default("autoloadPdf")
   var autoloadPdf: Bool
+    
+  @Default("autoloadPdfRequested")
+  var autoloadPdfRequested: Bool
   
   @Default("autoloadNewIssues")
   var autoloadNewIssues: Bool

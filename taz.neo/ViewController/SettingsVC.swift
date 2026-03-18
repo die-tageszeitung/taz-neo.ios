@@ -17,9 +17,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
-  
   @Default("autoloadPdf")
   var autoloadPdf: Bool
+  
+  @Default("autoloadPdfRequested")
+  var autoloadPdfRequested: Bool
+  ///Helper to reset autoloadPdfRequested
+  var autoloadPdfJustChanged: Bool = false
   
   @Default("autoloadNewIssues")
   var autoloadNewIssues: Bool {
@@ -287,7 +291,19 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
                   initialValue: autoloadPdf,
                   onChange: {[weak self] newValue in
-    self?.autoloadPdf = newValue })
+    self?.autoloadPdf = newValue
+    guard self?.autoloadPdfRequested == true else { return }///nothing to do if still default false
+    guard self?.autoloadPdfJustChanged == true else {
+      self?.autoloadPdfJustChanged = true
+      ///reset helper after 5s to prevent unwanted reset of autoloadPdfRequested
+      onMainAfter(5.0) {[weak self] in self?.autoloadPdfJustChanged = true }
+      return
+    }
+    guard newValue == false else { return }
+    self?.autoloadPdfJustChanged = false
+    self?.autoloadPdfRequested = false
+    Toast.show("Zeitungsansicht automatisch mitladen Abfrage zurückgesetzt!")
+  })
   
   lazy var testServerCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Testserver",
