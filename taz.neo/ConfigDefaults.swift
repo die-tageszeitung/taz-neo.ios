@@ -68,6 +68,7 @@ private let configValues = [
   /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
   "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false
   "autoloadPdf" : "false",
+  "autoloadPdfRequested" : "false",///indicates if user was asked to autoload pdf after access pdf and only "app ansicht" is already loaded
   "autoloadAudio" : "false",
   "autoloadNewIssues" : "true",
   "useTestServer" : "false",

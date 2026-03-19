@@ -88,6 +88,13 @@ extension FeederContext {
       return
     }
     if self.isConnected {
+      let requestAutoloadPDF ///Request autodownload pdf if required
+      = isPages == true ///only for PDF Downloads
+      && autoloadPdf == false ///if autoloadPdf is disabled
+      && autoloadPdfRequested == false ///autoloadPdfRequested never answered before
+      && true ///PDF not loaded yet; guard statement above
+      && needsUpdate(issue: issue, toShowPdf: false) == false///"App Ansicht" already downloaded => no update for app ansicht needed
+      
       gqlFeeder.issues(feed: issue.feed,///in future may use masterFeed
                        date: issue.date,
                        key: issue.key,
@@ -125,6 +132,21 @@ extension FeederContext {
             = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
           Notification.send("issueStructure", result: unexpectedResult, sender: issue)
         }
+      }
+      ///Request autodownload pdf if required
+      if requestAutoloadPDF {
+        let alwaysLoadButton = UIAlertAction(title: "Immer mitladen",
+                                             style: .default) { [weak self] _ in
+          self?.autoloadPdf = true
+          self?.autoloadPdfRequested = true
+        }
+        let neverLoadButton = UIAlertAction(title: "Nicht automatisch mitladen",
+                                              style: .default) { [weak self] _ in
+          self?.autoloadPdf = false
+          self?.autoloadPdfRequested = true
+        }
+        let notNowButton = UIAlertAction(title: "Jetzt nicht", style: .cancel)
+        Alert.message(title: "Zeitungsansicht automatisch mitladen?", message: "Die Zeitungsansicht bietet klassisches Lesegefühl, benötigt jedoch zusätzliches Datenvolumen.\nDas automatische Mitladen kann jederzeit in den Einstellungen geändert werden.", actions: [alwaysLoadButton, neverLoadButton, notNowButton])
       }
     }
     else {

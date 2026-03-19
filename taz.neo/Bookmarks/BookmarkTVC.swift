@@ -118,6 +118,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       Bookmarks.shared.removeAllBookmarks()
       self?.updateData()
       self?.bookmarksTable.reloadData()
+      guard self?.autoSyncBookmarks == true else { return }
+      self?.syncBookmarksIfNeeded(syncReason: .manual)
     }
   }
   
