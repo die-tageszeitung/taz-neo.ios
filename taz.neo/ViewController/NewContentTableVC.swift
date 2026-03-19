@@ -11,6 +11,12 @@ import NorthLib
 
 ///handle expanded/collapsed animated
 
+extension NewContentTableVC: AccessibilityTargetsProvider {
+  public var accessibilityViews: [UIView] {
+    return [self.view]
+  }
+}
+
 ///handle expanded/collapsed
 extension NewContentTableVC {
   func expand(section: Int){
@@ -348,6 +354,17 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
       header.chevron.isHidden = unexpandable
       header.dottedLine.isHidden = unexpandable
+      ///Accessibility
+      if expandedSections.contains(section) {
+        header.collapsed = false
+        header.accessibilityTraits = [.button]
+        header.accessibilityValue = "Ressort \(ressort.articles?.count ?? 0) Artikel ausgeklappt"
+      }
+      else {
+        header.collapsed = true
+        header.accessibilityTraits = .button
+        header.accessibilityValue = "eingeklappt"
+      }
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
       header.chevron.isHidden = true
@@ -358,8 +375,6 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       header.dottedLine.isHidden = true
     }
     
-    header.collapsed = !expandedSections.contains(section)
-
     header.tag = section
     header.topSeperator?.isHidden = section == 0
     

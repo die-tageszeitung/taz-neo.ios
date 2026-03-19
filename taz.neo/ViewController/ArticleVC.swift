@@ -190,7 +190,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         textSettingsButton.isHidden = true
         self.setHeader(artIndex: idx)
         self.currentWebView?.baseDir = art.baseURL
-        self.updateAccessibilityElements(currentCell: self.currentWebView)
         return
       }
       #endif
@@ -214,7 +213,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.rightTapEnEdgeButton.isAccessibilityElement = idx < self.articles.count - 1
       self.leftTapEnEdgeButton.accessibilityLabel = idx == 0 ? nil :"Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.title ?? "")"
       self.leftTapEnEdgeButton.isAccessibilityElement = idx > 0
-      self.updateAccessibilityElements(currentCell: self.currentWebView ?? ov?.mainView)
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       LinkBusiness.handleLinkPressed(from: from, to: to,

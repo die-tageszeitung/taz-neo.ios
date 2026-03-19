@@ -112,8 +112,22 @@ extension String {
  A ContentVC is a view controller that displays an array of Articles or Sections 
  in a collection of WebViews
  */
-
-
+extension ContentVC: AccessibilityTargetsProvider {
+  public var accessibilityViews: [UIView] {
+    var elms: [UIView] = []
+    elms.append(header)
+    elms.appendIfPresent(slider?.button)
+    elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+    elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+    elms.append(leftTapEnEdgeButton)
+    elms.append(rightTapEnEdgeButton)
+  //    elms.appendIfPresent(currentCell ?? collectionView)
+    elms.appendIfPresent(collectionView)
+    elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
+    elms.append(toolBar)
+    return elms
+  }
+}
 
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
@@ -543,7 +557,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         self.imageOverlay?.onClose {[weak self] in
           (self as? HelpProviding)?.showHelpButton()
           self?.imageOverlay = nil///former we had a delayed set nil
-          self?.updateAccessibilityElements(postLayoutChanged: true, currentCell: self?.currentWebView)
           guard Device.isIphone else { return }
           /// reset orientation to portrait, really no negative effect on iPad?
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
@@ -1040,8 +1053,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
                        bottom: UIWindow.bottomInset + 30,
                        right: 0)
       }
-      
-      self?.updateAccessibilityElements(currentCell: self?.currentWebView ?? ov?.mainView)
     }
     
     Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
@@ -1072,7 +1083,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.setImage( UIImage(named: logo),
                       menuImage: UIImage(named: "BurgerMenu")?.withTintColor(.white, renderingMode: .alwaysOriginal),
                       closeImage: UIImage(named: "closeX")?.withTintColor(.white, renderingMode: .alwaysOriginal))
-    slider?.button.accessibilityLabel = "Inhaltsverzeichnis öffnen"
+    slider?.button.accessibilityLabel = "Inhalt öffnen"
+    slider?.button.accessibilityHint = "Ressorts und Artikel als Liste"
     slider?.button.backgroundColor = Const.SetColor.CIColor.color
     slider?.buttonAlpha = 1.0
     slider?.closedBottonImageOffsetX = 0.0
@@ -1082,14 +1094,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     slider?.onOpen{[weak self] _ in
       Usage.track(Usage.event.drawer.action_open.Open, name: "Logo Tap")
       Notification.send(Const.NotificationNames.helpProviderChanged)
-      self?.updateAccessibilityElements(postLayoutChanged: true)
-      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis geöffnet, erneut drücken zum schließen"
+      self?.slider?.button.accessibilityLabel = "Inhalt schließen"
+      self?.slider?.button.accessibilityHint = nil
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
-      self?.updateAccessibilityElements(postLayoutChanged: true)
-      self?.slider?.button.accessibilityLabel = "Inhaltsverzeichnis öffnen"
+      self?.slider?.button.accessibilityLabel = "Inhalt öffnen"
+      self?.slider?.button.accessibilityHint = "Ressorts und Artikel als Liste"
     }
   }
   
@@ -1168,45 +1180,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-    collectionView?.isAccessibilityElement = false
-    collectionView?.shouldGroupAccessibilityChildren = false
-    updateAccessibilityElements()
-  }
-  
-  func updateAccessibilityElements(postLayoutChanged:Bool = false, currentCell: UIView? = nil){
-    var elms: [UIView] = []
-    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
-      elms = [imgVC.view, imgVC.xButton]
-      elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-    }
-    else if slider?.isOpen == true {
-      let contentTable = (self as? SectionVC)?.contentTable
-      elms.appendIfPresent(slider?.button)
-      elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-      elms.appendIfPresent(contentTable?.headerListenLabel)
-      elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elms.appendIfPresent(contentTable?.headerCollapseIcon)
-      elms.appendIfPresent(contentTable?.tableView)
-      self.view.accessibilityElements = elms
-    } else {
-      elms.append(header)
-      elms.append(toolBar)
-      elms.appendIfPresent(slider?.button)
-      elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-      elms.append(leftTapEnEdgeButton)
-      elms.append(rightTapEnEdgeButton)
-      elms.appendIfPresent(currentCell ?? collectionView)
-    }
-    self.view.accessibilityElements = elms
-    if postLayoutChanged {
-      UIAccessibility.post(notification: .layoutChanged,
-                           argument: self.view)
-    }
+    self.accessibilityElements = accessibilityViews
   }
   
   override public func viewWillDisappear(_ animated: Bool) {

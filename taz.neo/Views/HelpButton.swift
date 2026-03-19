@@ -103,7 +103,7 @@ class HelpButton: UIView {
     badgeLabel.isAccessibilityElement = false
     helpLabel.isAccessibilityElement = false
     helpIconImageView.isAccessibilityElement = true
-    helpIconImageView.accessibilityLabel = "Hilfe anzeigen"
+    helpIconImageView.accessibilityLabel = "Hilfe aufrufen"
     helpIconImageView.accessibilityTraits = .button
     
     let bottomConstraint = pin(helpIconImageView, to: self).bottom
