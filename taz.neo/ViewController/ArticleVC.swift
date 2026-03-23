@@ -277,6 +277,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       header.title = article?.title
       header.pageNumber = nil
       header.accessibilityLabel = "Karikatur: \(article?.title ?? "")"
+      header.accessibilityHint = nil
+      header.accessibilityValue = nil
     }
     else if adelegate?.issue.isBookmarkIssue == true {
       let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
@@ -286,6 +288,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
       header.pageNumber = "\(idx+1) von \(articles.count)"
       header.accessibilityLabel = "Leseliste: \(header.pageNumber ?? "") aus \(header.subTitle ?? "") - \(article?.title ?? "")"
+      header.accessibilityHint = nil
+      header.accessibilityValue = nil
     }
     else if let art = article, let name = art.html?.name {
       if let sections = adelegate?.article2section[name],
@@ -316,6 +320,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
           sectionVCsContentTable?.setActive(row: i,
                                   section: adelegate?.article2index(art: art))
           header.accessibilityLabel = "\(art.sectionTitle ?? "") \(i+1)/\(articles.count): \(art.title ?? "")"
+          header.accessibilityHint = "Tippen um zur Ressortübersicht \(art.sectionTitle ?? "") zurückzukehren. "
+          header.accessibilityValue = "Artikel \(i+1) von \(issue.allArticles.count)"
         }
       }
       else if art.title != nil,
@@ -324,6 +330,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         header.title = art.title
         header.pageNumber = nil
         header.accessibilityLabel = art.title
+        header.accessibilityHint = nil
+        header.accessibilityValue = nil
       }
       header.updateFonts()
     }

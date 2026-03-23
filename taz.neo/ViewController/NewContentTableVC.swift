@@ -53,8 +53,13 @@ extension NewContentTableVC {
 //    print("visibleRect: \(visibleRect)")
     tv?.beginUpdates()
     
+    let sectHeader
+    = self.tableView.headerView(forSection: section)
+    as? ContentTableHeaderFooterView
+    
     if let idx = expandedSections.firstIndex(of: section) {
       expandedSections.remove(at: idx)
+      sectHeader?.chevron.accessibilityValue = "Eingeklappt"
       tv?.deleteRows(at: changedIdx, with: .top)
       tv?.endUpdates()
 //      tv?.scrollToRow(at: IndexPath(row: NSNotFound, section: section), at: .top, animated: true)
@@ -64,6 +69,7 @@ extension NewContentTableVC {
       return true
     }
     expandedSections.append(section)
+    sectHeader?.chevron.accessibilityValue = "Ausgeklappt"
     tv?.insertRows(at: changedIdx, with: .bottom)
     tv?.endUpdates()
 //    tv?.scrollRectToVisible(visibleRect, animated: true)
@@ -290,6 +296,9 @@ extension NewContentTableVC {
         self?.tableView.scrollToRow(at: IndexPath(row: NSNotFound, section: sectIndex), at: .top, animated: false)
       }
     }
+    header.currentParentHeaderDescription
+    = self.parentViewController is SectionVC ? "Inhalt in Ressortübersicht"
+    : self.parentViewController is ArticleVC ? "Inhalt in Artikelansicht" : ""
   }
 }
 
@@ -358,13 +367,17 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       if expandedSections.contains(section) {
         header.collapsed = false
         header.accessibilityTraits = [.button]
-        header.accessibilityValue = "Ressort \(ressort.articles?.count ?? 0) Artikel ausgeklappt"
+        header.chevron.accessibilityValue
+        = "ausgeklappt"
       }
       else {
         header.collapsed = true
-        header.accessibilityTraits = .button
-        header.accessibilityValue = "eingeklappt"
+        header.chevron.accessibilityValue
+        = "eingeklappt"
       }
+      header.chevron.isAccessibilityElement = true
+      header.chevron.accessibilityTraits = .button
+      header.chevron.accessibilityLabel = "Ressort \(ressort.name) \(ressort.articles?.count ?? 0) Artikel."
     } else if section == issue?.sections?.count ?? 0 {
       header.label.text = issue?.imprint?.title ?? "Impressum"
       header.chevron.isHidden = true
@@ -375,6 +388,7 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       header.dottedLine.isHidden = true
     }
     
+    header.label.accessibilityHint = "Tippen um Ressortübersicht anzuzeigen, Inhalt wird geschlossen"
     header.tag = section
     header.topSeperator?.isHidden = section == 0
     
@@ -440,15 +454,24 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     updateListenIcon()
   }
   
+  var currentParentHeaderDescription: String = "" {
+    didSet{
+      topLabel.accessibilityHint = currentParentHeaderDescription
+    }
+  }
   
   var issue: Issue? {
     didSet {
       topLabel.text
       = "\(issue?.validityDateText(timeZone: GqlFeeder.tz) ?? "")"
         .replacingOccurrences(of: ", ", with: ",\n")
+      topLabel.accessibilityLabel = topLabel.text?.prepend("Ausgabe vom ")
       let hasAudio = issue?.audioFiles.count ?? 0 > 0
       listenIcon.isHidden = !hasAudio
       listenLabel.isHidden = !hasAudio
+      guard let i = issue else { return }
+      collapseIcon.accessibilityHint
+      = "\(i.allArticles.count) Artikel, \(i.sections?.count ?? 0) Ressorts."
     }
   }
   
@@ -487,7 +510,12 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
     didSet {
       if oldValue == collapsed { return }
       collapseIcon.accessibilityLabel
-      = collapsed ? "Alle Artikel ausklappen" : "Artikelliste einklappen"
+      = collapsed ? "eingeklappt" : "ausgeklappt"
+      onMainAfter(1.0) {[weak self] in
+        self?.collapseIcon.accessibilityLabel
+        = self?.collapsed == true ? "Alle Artikel ausklappen" : "Artikelliste einklappen"
+      }
+ 
       UIView.animateKeyframes(withDuration: 0.5, delay: 0.0, animations: {
         UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.5) { [weak self] in
           guard let self = self else { return }
@@ -515,9 +543,7 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
       imageAspectConstraint?.constant = ratio
     }
   }
-  
 
-  
   func setup(){
     self.addSubview(imageView)
     self.addSubview(topLabel)
