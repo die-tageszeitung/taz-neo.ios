@@ -324,6 +324,24 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
   }
   
+  func postAccessibilityScreenAnnouncement(){
+    guard self.navigationController?.viewControllers.count == 1 else { return }
+    let homeDescription = """
+    Sie befinden sich in der Ausgabenübersicht.
+    Hier finden Sie alle Ausgaben nach Datum sortiert.
+    Der Bildschirm ist wie folgt aufgebaut:
+    Oben befinden sich die Darstellungsoptionen und die Hilfe-Schaltfläche.
+    Darunter können Sie über den Kalender ein Ausgabedatum auswählen.
+    Anschließend folgt die Liste aller taz-Ausgaben bis zurück ins Jahr 2011.
+    
+    Im unteren Bereich befindet sich die Tableiste mit den Bereichen Home, Leseliste, Suche und Einstellungen.
+    
+    Ein Doppeltippen auf Home fokussiert die aktuelle Ausgabe.
+    
+    Mit 4 Fingern unten tippen um die Tabbar auszuwählen.
+    """
+    UIAccessibility.post(notification: .announcement, argument: homeDescription)
+  }
   
   // creates the order for accessabillity elements. at first the viewModeButton then visible cells sorted by index path
   func updateAccessibilityOrder() {
@@ -366,6 +384,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     super.viewDidAppear(animated)
     updateAccessibilityOrder()
     showRequestTrackingIfNeeded()
+    onMainAfter(2.0) {[weak self] in self?.postAccessibilityScreenAnnouncement() }
   }
   
   override func viewDidLoad() {

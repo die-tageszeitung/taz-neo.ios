@@ -27,7 +27,7 @@ extension HomeVC  {
     cell.data = nil
     service.removeFromLoadFromRemote(key: data.key)
     cell.isAccessibilityElement = false
-    updateAccessibilityOrder()
+//    updateAccessibilityOrder()
   }
   
   override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -35,7 +35,7 @@ extension HomeVC  {
           let data = service.cellData(for: indexPath.row) else { return }
     cell.data = data
     cell.isAccessibilityElement = true
-    updateAccessibilityOrder()
+//    updateAccessibilityOrder()
   }
     
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
