@@ -124,8 +124,8 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     collectionView.onTapping {[weak self] _ in
       self?.closeButton.animateFocus()
     }
-    collectionView.relativeSpacing = 0.0
-    collectionView.relativePageWidth = 1.0
+//    collectionView.relativeSpacing = 0.0
+//    collectionView.relativePageWidth = 1.0
     collectionView.showsHorizontalScrollIndicator = false
     
     _ = self.collectionView.onDisplay {[weak self] (idx, v, isFromScroll) in

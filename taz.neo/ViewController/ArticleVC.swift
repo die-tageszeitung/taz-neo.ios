@@ -51,9 +51,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
   
   public var articles: [Article] = []
-  public var article: Article? { 
-    if let i = index { return articles.valueAt(i) }
-    return nil
+  public var article: Article? {
+    return articles.valueAt(index)
+//    if let i = index { return articles.valueAt(index) }
+//    return nil
   }
   
   public override var delegate: IssueInfo! {

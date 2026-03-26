@@ -132,10 +132,10 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   }
     
   private func exportImage() {
-    if let img = self.images[self.index!] as? ZoomedImage {
-      let dialogue = ExportDialogue<Any>()
-      dialogue.present(item: img.image!, subject: "Bild")
-    }
+//    if let img = self.images[self.index!] as? ZoomedImage {
+//      let dialogue = ExportDialogue<Any>()
+//      dialogue.present(item: img.image!, subject: "Bild")
+//    }
   }
   
   func toggleXButtonHidden() {
@@ -177,18 +177,18 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
       if showImageGallery {
         let (n,images) = zoomedImages(content: self.content, name: img)
         self.images = images
-        self.index = n
+//        self.index = n
       }
       else {
         if let image = zoomedImage(content: self.content, name: img) {
           self.images = [image]
-          self.index = 0
+//          self.index = 0
         }
       }
     }
     else { 
       self.images = zoomedImages(content: self.content)
-      self.index = 0
+//      self.index = 0
     }
   }
   

@@ -539,7 +539,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
-        let current = self.contents[self.index!]
+        let current = self.contents[self.index]
         let imgVC = ContentImageVC(content: current,
                                    delegate: self,
                                    imageTapped: img,
@@ -1187,14 +1187,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillDisappear(animated)
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
-      if let sidx = svc.index {
+//      if let sidx = svc.index {
         svc.collectionView?.isHidden = true
         svc.collectionView?.collectionViewLayout.invalidateLayout()
         onMainAfter {
-          svc.collectionView?.fixScrollPosition(toIndex: sidx)
+          svc.collectionView?.fixScrollPosition(toIndex: svc.index)
           svc.collectionView?.showAnimated(duration: 0.1)
         }
-      }
+//      }
     }
   }
   

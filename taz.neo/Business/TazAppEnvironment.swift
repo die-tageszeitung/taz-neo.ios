@@ -901,12 +901,12 @@ extension Log {
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
     ///this is the first entry in log after appending fileLoger
-    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(App.bundleIdentifier)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
-        "git-hash: \(BuildConst.hash)\n" +
-        "Path: \(Dir.appSupportPath)\n" +
-        "isTAZ: \(App.isTAZ)")
+//    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
+//        "\(App.bundleIdentifier)\n" +
+//        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
+//        "git-hash: \(BuildConst.hash)\n" +
+//        "Path: \(Dir.appSupportPath)\n" +
+//        "isTAZ: \(App.isTAZ)")
   }
 }
 

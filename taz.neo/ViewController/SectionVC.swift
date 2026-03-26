@@ -67,7 +67,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
-    if let i = index, i < sections.count { return sections[i] }
+    if index < sections.count { return sections[index] }
     return nil
   }
   public var article2section: [String:[Section]] = [:]
@@ -111,7 +111,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public func displaySection(index: Int) {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
-        "\(self.index?.description ?? "[undefined]")" )
+        "\(self.index.description ?? "[undefined]")" )
       if let curr = currentWebView { curr.scrollToTop() }
       self.index = index
     }
@@ -365,7 +365,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public func article2index(art: Article) -> Int {
     if let fileName = art.html?.fileName,
         let sects = article2sectionHtml[fileName] {
-      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
+      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index }
       else {
         let fn = sects[0]
         for i in 0 ..< sections.count {

@@ -252,14 +252,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   public var article: Article? {
     didSet {
-      if smartBackFromArticle == false { return }
-      guard let mod = self.pdfModel as? NewPdfModel else { return }
-      guard let art = article else { return }
-      let i = mod.pageIndexForArticle(art)
-      self.index = i
-      #if LMD
-      childArticleVC?.header.title = "Seite \((i ?? 0) + 1)"
-      #endif
+//      if smartBackFromArticle == false { return }
+//      guard let mod = self.pdfModel as? NewPdfModel else { return }
+//      guard let art = article else { return }
+//      let i = mod.pageIndexForArticle(art)
+//      self.index = i
+//      #if LMD
+//      childArticleVC?.header.title = "Seite \((i ?? 0) + 1)"
+//      #endif
     }
   }
   ///reference to pushed child vc, if any
@@ -508,7 +508,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self?.debug("*** Action: Header back to Page pressed")
       if  let art = articleVC.article,
       let idx = pdfModel.pageIndexForArticle(art) {
-        self?.index = idx
+//        self?.index = idx
       }
       articleVC.navigationController?.popViewController(animated: true)
     }
@@ -871,8 +871,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     let onShare:((ButtonControl)->()) = { [weak self] _ in
       guard let self = self,
-            let i = self.index,
-            let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,
+//            let i = self.index,
+            let pi = self.pdfModel?.item(atIndex:self.index) as? ZoomedPdfPageImage,
             let page = pi.pageReference?.pagina,
             let url = pi.pageReference?.pdfDocument(inIssueDir: self.issue.dir)?.documentURL else { return }
       let filename = "taz_\(self.issue.date.filename)_S-\(page).pdf"
@@ -891,8 +891,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     let onPlay:((ButtonControl)->()) = { [weak self] _ in
       guard let self = self,
-            let i = self.index,
-            let pi = self.pdfModel?.item(atIndex:i) as? ZoomedPdfPageImage,
+//            let i = self.index,
+            let pi = self.pdfModel?.item(atIndex:self.index) as? ZoomedPdfPageImage,
             let sectionAudio = pi.pageReference?.sectionAudio
       else { return }
       sectionAudio.toggleAudio()
@@ -1177,13 +1177,13 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     }
   }
   
-  override func releaseOnDisappear() {
-    super.releaseOnDisappear()
-    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
-    sliderContent = nil
-    slider?.cleanup()
-    slider = nil
-  }
+//  override func releaseOnDisappear() {
+//    super.releaseOnDisappear()
+//    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
+//    sliderContent = nil
+//    slider?.cleanup()
+//    slider = nil
+//  }
   
   public init(feederContext: FeederContext, sliderContent:UIViewController) {
     self.sliderContent = sliderContent
@@ -1201,11 +1201,11 @@ fileprivate extension Page {
 
 fileprivate extension TazPdfPagesViewController {
   func page(_ index: Int? = nil) -> Page?{
-    if let idx = index ?? self.index {
-      return (self.pdfModel?.item(atIndex:idx)
+//    if let idx = index ?? self.index {
+      return (self.pdfModel?.item(atIndex:index ?? self.index)
               as? ZoomedPdfPageImage)?.pageReference
-    }
-    return nil
+//    }
+//    return nil
   }
   func sectionAudio(_ index: Int? = nil) -> Section? {
     return page(index)?.sectionAudio
