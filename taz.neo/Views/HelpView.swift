@@ -86,7 +86,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   func setLastMaxIndex(idx: Int?) {
     guard let idx = idx,
           items.count > idx else { return }
-    collectionView.index = idx
+    collectionView.scrollToIndex(idx)
     collectionView.doLayout()
   }
   
@@ -104,8 +104,8 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   }
   
   var currentCoachmarkView: HelpViewCell? {
-    guard let idx = collectionView.index,
-          let cv = (collectionView.view(at: idx) as? HelpViewCell) else { return nil }
+    let idx = collectionView.currentIndex
+    guard let cv = (collectionView.view(at: idx) as? HelpViewCell) else { return nil }
     return cv
   }
     
@@ -146,7 +146,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     collectionView.isPagingEnabled = true
     addSubview(collectionView)
     pin(collectionView, to: self)
-    collectionView.index = 0
+    collectionView.scrollToIndex(0)
     
     addSubview(closeButtonWrapper)
     pin(closeButtonWrapper.right, to: right, dist: -7.0)
@@ -251,20 +251,20 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     // sicher clampen
     tappedPage = max(0, min(pageControl.numberOfPages - 1, tappedPage))
     print("HelpView: tapped page \(tappedPage) width \(width) at x=\(location.x)")
-    collectionView.scrollto(tappedPage, animated: true)
+    collectionView.scrollToIndex(tappedPage, animated: true)
   }
   
   // MARK: - Navigation
   private func goToPrevious() {
-    guard let idx = collectionView.index,
-            idx > 0 else { return }
-    collectionView.scrollto(idx - 1, animated: true)
+    let idx = collectionView.currentIndex
+    guard idx > 0 else { return }
+    collectionView.scrollToIndex(idx - 1, animated: true)
   }
   
   private func goToNextOrClose() {
-    guard let idx = collectionView.index else { return }
+    let idx = collectionView.currentIndex
     if idx < items.count - 1 {
-      collectionView.scrollto(idx + 1, animated: true)
+      collectionView.scrollToIndex(idx + 1, animated: true)
     }
     else {
       onCloseHandler?()

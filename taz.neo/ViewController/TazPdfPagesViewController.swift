@@ -468,7 +468,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       return
     }
     else if let pageIdx = pdfModel.pageIndexForLink(name) {
-      self.collectionView.scrollto(pageIdx,animated: true)
+      self.collectionView.scrollToIndex(pageIdx,animated: true)
       return
     }
     #if LMD
@@ -516,7 +516,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
-        self?.collectionView.index = newIndex
+        self?.collectionView.scrollToIndex(newIndex)
       }
       articleVC.slider?.close(animated: true) { [weak self] _ in
         self?.navigationController?.popViewController(animated: true)
@@ -547,7 +547,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     (sliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }
-      self.collectionView.index = newIndex
+      self.collectionView.scrollToIndex(newIndex)
       self.slider?.close()
       Usage.track(Usage.event.drawer.action_tap.Page)
     }

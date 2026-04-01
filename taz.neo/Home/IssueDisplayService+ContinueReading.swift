@@ -225,7 +225,7 @@ extension IssueDisplayService {
                       atArticleScrollPos: CGFloat? = nil){
     if let page = atPage {
       if pageAnimated {
-        vc.collectionView.scrollto(page, animated: pageAnimated)
+        vc.collectionView.scrollToIndex(page, animated: pageAnimated)
       }
       else {
         vc.index = page

@@ -128,7 +128,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       else if let index = index {
         if animated /*, avc.collectionView.isInitialized */{
           /// ensure collectionView is initialized otherwise scrolling did not work!
-          avc.collectionView.scrollto(index, animated: true)
+          avc.collectionView.scrollToIndex(index, animated: true)
         }
         else {
           avc.index = index
