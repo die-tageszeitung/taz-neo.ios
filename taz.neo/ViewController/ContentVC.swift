@@ -1191,9 +1191,10 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       //cannot use updateLayout due strange side effects
       if let sidx = svc.index {
         svc.collectionView.isHidden = true
+        svc.collectionView.doLayout()
         svc.collectionView.collectionViewLayout.invalidateLayout()
         onMainAfter {
-//          svc.collectionView.fixScrollPosition(toIndex: sidx)
+          svc.index = sidx
           svc.collectionView.showAnimated(duration: 0.1)
         }
       }

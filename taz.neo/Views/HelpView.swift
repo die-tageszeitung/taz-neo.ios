@@ -103,6 +103,11 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     self.onCloseHandler = closure
   }
   
+  override func willMove(toWindow newWindow: UIWindow?) {
+    super.willMove(toWindow: newWindow)
+    doLayout()
+  }
+  
   var currentCoachmarkView: HelpViewCell? {
     let idx = collectionView.currentIndex
     guard let cv = (collectionView.view(at: idx) as? HelpViewCell) else { return nil }
