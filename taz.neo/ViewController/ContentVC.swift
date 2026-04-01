@@ -345,7 +345,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var multiColumnCss : String {
     let css = getMultiColumnCss()
     isMultiColumnMode = css != nil
-    self.collectionView?.showsHorizontalScrollIndicator = false
+    self.collectionView.showsHorizontalScrollIndicator = false
     return css ?? singleColumnCss
   }
   
@@ -947,7 +947,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     contents.insert(content, at: idx)
     urls.insert(curl, at: idx)
-    collectionView?.insert(at: idx)
+    collectionView.insert(at: idx)
   }
   
   /// Delete content at index
@@ -955,7 +955,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if idx < contents.count { 
       contents.remove(at: idx)
       urls.remove(at: idx)
-      collectionView?.delete(at: idx)
+      collectionView.delete(at: idx)
     }
   }
   
@@ -1038,7 +1038,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         (self as? HelpProviding)?.showHelpButton()
       }
     }
-    onDisplay {[weak self]_, ov, _  in
+    onDisplay {[weak self]_, ov  in
       //Note: use this due onPageChange only fires on link @see WebCollectionView
       if self?.showBarsOnContentChange == true {
         self?.toolBar.show(show:true, animated: true)
@@ -1110,7 +1110,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
     settingsBottomSheet?.xButton.tazX()
-    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
@@ -1151,6 +1151,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if self.view.frame.size != size {
       sizeChanged = true
     }
+    currentWebView?.suppressLinkPressedNotification = true
     updateSliderWidth(newParentWidth: size.width)
     settingsBottomSheet?.updateMaxWidth(for: size.width)
     onMain(after: 0.7) {[weak self] in
@@ -1161,6 +1162,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
       self.slider?.applyImage(open: self.slider?.isOpen ?? false)
+      currentWebView?.suppressLinkPressedNotification = false
     }
   }
   
@@ -1178,7 +1180,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.collectionView?.backgroundColor = Const.SetColor.HBackground.color
+    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.accessibilityElements = accessibilityViews
   }
@@ -1188,11 +1190,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if let svc = self.navigationController?.viewControllers.last as? SectionVC {
       //cannot use updateLayout due strange side effects
       if let sidx = svc.index {
-        svc.collectionView?.isHidden = true
-        svc.collectionView?.collectionViewLayout.invalidateLayout()
+        svc.collectionView.isHidden = true
+        svc.collectionView.collectionViewLayout.invalidateLayout()
         onMainAfter {
-          svc.collectionView?.fixScrollPosition(toIndex: sidx)
-          svc.collectionView?.showAnimated(duration: 0.1)
+//          svc.collectionView.fixScrollPosition(toIndex: sidx)
+          svc.collectionView.showAnimated(duration: 0.1)
         }
       }
     }

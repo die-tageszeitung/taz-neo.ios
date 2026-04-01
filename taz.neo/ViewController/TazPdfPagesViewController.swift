@@ -468,7 +468,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       return
     }
     else if let pageIdx = pdfModel.pageIndexForLink(name) {
-      self.collectionView?.scrollto(pageIdx,animated: true)
+      self.collectionView.scrollto(pageIdx,animated: true)
       return
     }
     #if LMD
@@ -516,7 +516,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
-        self?.collectionView?.index = newIndex
+        self?.collectionView.index = newIndex
       }
       articleVC.slider?.close(animated: true) { [weak self] _ in
         self?.navigationController?.popViewController(animated: true)
@@ -547,12 +547,14 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     (sliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }
-      self.collectionView?.index = newIndex
+      self.collectionView.index = newIndex
       self.slider?.close()
       Usage.track(Usage.event.drawer.action_tap.Page)
     }
     
-    onDisplay { [weak self]  (idx, _, isFromScroll) in
+    onDisplay { [weak self]  (idx, _) in
+      #warning("MISSUNG isFromScroll here!!")
+      let isFromScroll = true
       if let issue = self?.issue, idx > 0 || isFromScroll {
         issue.setLastRead(pageIndex: idx, articleIndex: nil, sectionIndex: nil, scrollPosition: nil)
       }
@@ -575,7 +577,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       setupSlider(sliderContent: sliderContentController)
     }
     self.view.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
-    self.collectionView?.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
+    self.collectionView.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
     registerForStyleUpdates()
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
@@ -738,7 +740,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   // MARK: - setupViewProvider
   open override func setupViewProvider(){
     super.setupViewProvider()
-    onDisplay { [weak self] (idx, optionalView, _) in
+    onDisplay { [weak self] (idx, optionalView) in
       ///sectionAudio e.g. for bundestalk
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
@@ -968,7 +970,7 @@ extension TazPdfPagesViewController {
       cell?.listenLabel.isHidden = false
       cell?.listenIcon.isHidden = false
       
-      if let layout = ctrl.collectionView?.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
+      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
         cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
       }
       cell?.imageWidthConstraint?.isActive = true
@@ -1011,7 +1013,7 @@ extension TazPdfPagesViewController {
       if let index = issueInfo.issue.pages?.firstIndex(where: { p in
         return p.pdf?.name == page.pdf?.name
       }){
-        self?.collectionView?.index = index
+        self?.collectionView.index = index
       }
       
     }
@@ -1027,7 +1029,7 @@ extension TazPdfPagesViewController {
           }
         }
         if let i = pageIndex {
-          self?.collectionView?.index = i
+          self?.collectionView.index = i
         }
         return
       }
@@ -1081,7 +1083,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     #if LMD
     if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
       lmdSliderContentVc.onArticlePress{[weak self] article in
-        self?.collectionView?.index = article.index
+        self?.collectionView.index = article.index
         self?.slider?.close()
       }
       lmdSliderContentVc.onPagePress {[weak self] page in
@@ -1090,7 +1092,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
         if let index = self?.issue.pages?.firstIndex(where: { p in
           return p.pdf?.name == page.pdf?.name
         }){
-          (self?.navigationController?.viewControllers.penultimate as? TazPdfPagesViewController)?.collectionView?.index = index
+          (self?.navigationController?.viewControllers.penultimate as? TazPdfPagesViewController)?.collectionView.index = index
           self?.navigationController?.popViewController(animated: true)
         }
       }

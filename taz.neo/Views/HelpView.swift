@@ -124,11 +124,9 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     collectionView.onTapping {[weak self] _ in
       self?.closeButton.animateFocus()
     }
-    collectionView.relativeSpacing = 0.0
-    collectionView.relativePageWidth = 1.0
     collectionView.showsHorizontalScrollIndicator = false
     
-    _ = self.collectionView.onDisplay {[weak self] (idx, v, isFromScroll) in
+    _ = self.collectionView.onDisplay {[weak self] (idx, v) in
       self?.onDisplayClosure?(idx)
       self?.updateControls(currentPage: idx)
       if let cv = (v?.activeView ?? self?.collectionView.view(at: idx)) as? HelpViewCell {

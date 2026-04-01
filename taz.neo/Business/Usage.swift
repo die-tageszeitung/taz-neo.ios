@@ -51,7 +51,7 @@ public class Usage: NSObject, DoesLog{
         lastPageCollectionVConDisplayClosureKey = nil
       }
       lastPageCollectionVConDisplayClosureKey
-      = lastPageCollectionVC?.onDisplay(closure: { [weak self] idx, _, _ in
+      = lastPageCollectionVC?.onDisplay(closure: { [weak self] idx, _ in
         guard let usageVc = self?.lastPageCollectionVC as? ScreenTracking else { return }
         usageVc.trackScreen()
       })

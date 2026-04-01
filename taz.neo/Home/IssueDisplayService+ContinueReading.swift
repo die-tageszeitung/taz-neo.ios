@@ -82,7 +82,7 @@ extension IssueDisplayService {
             ///but it still looks ugly for jumps > 4 indices
             ///every index would be handled e.g. the sliderButton disappears and re-appears on 'anzeigen'
             /// sectionVC.suppressLinkPressedNotification = true
-            /// sectionVC.collectionView?.scrollto(idx, animated: true)
+            /// sectionVC.collectionView.scrollto(idx, animated: true)
             /// onMainAfter(1.0) { sectionVC.suppressLinkPressedNotification = false }
             sectVc.index = idx
           }
@@ -225,7 +225,7 @@ extension IssueDisplayService {
                       atArticleScrollPos: CGFloat? = nil){
     if let page = atPage {
       if pageAnimated {
-        vc.collectionView?.scrollto(page, animated: pageAnimated)
+        vc.collectionView.scrollto(page, animated: pageAnimated)
       }
       else {
         vc.index = page

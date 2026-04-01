@@ -126,9 +126,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index {
-        if animated, let cv = avc.collectionView, cv.isInitialized {
+        if animated /*, avc.collectionView.isInitialized */{
           /// ensure collectionView is initialized otherwise scrolling did not work!
-          cv.scrollto(index, animated: true)
+          avc.collectionView.scrollto(index, animated: true)
         }
         else {
           avc.index = index
@@ -261,7 +261,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       guard wv == self?.currentWebView else { return }
       self?.activateWebview(webView: wv)
     }
-    onDisplay { [weak self] (secIndex, optionalView, _) in
+    onDisplay { [weak self] (secIndex, optionalView) in
       guard let self = self else { return }
       self.contentTable.setActive(row: nil, section: secIndex)
       self.debug("onDisplay: \(secIndex) webview: \(optionalView.debugDescription)")
@@ -453,7 +453,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
       self.header.isHidden = false
-      self.collectionView?.isHidden = true//??
+      self.collectionView.isHidden = true//??
     }
     else {
       toolBar.show(show: true, animated: true)
@@ -463,7 +463,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     self.header.isHidden = false
-    self.collectionView?.isHidden = false
+    self.collectionView.isHidden = false
     guard let wv = currentWebView else { return }
     self.activateWebview(webView: wv)
   }

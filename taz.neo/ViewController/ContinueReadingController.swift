@@ -353,7 +353,7 @@ fileprivate extension UIViewController {
       return cvc.currentWebView ?? cvc.view 
     }
     if let pcvc = self as? PageCollectionVC,
-       let currentView = pcvc.collectionView?.optionalView(at: pcvc.index ?? 0) {
+       let currentView = pcvc.collectionView.optionalView(at: pcvc.index ?? 0) {
       /// pcvc.currentView returns nil if index is not set yet
       return currentView.mainView ?? currentView.waitingView ?? pcvc.view
     }

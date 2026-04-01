@@ -156,7 +156,7 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
     self.onTap { [weak self] (_,_,_) in self?.toggleXButtonHidden() }
     self.view.onTapping { [weak self] _ in self?.toggleXButtonHidden() }//Background Tap
     self.onX { [weak self] in self?.toCloseClosure?() }
-    self.onDisplay { [weak self] (idx, _, _) in
+    self.onDisplay { [weak self] (idx, _) in
       guard let self = self else { return }
       if let zi = self.images.valueAt(idx) as? ZoomedImage {
         if let ziv = self.currentView as? ZoomedImageView, ziv.menu.menu.count == 0 {

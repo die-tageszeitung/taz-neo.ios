@@ -175,7 +175,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       }
     }
     
-    onDisplay { [weak self] (idx, ov, _) in
+    onDisplay { [weak self] (idx, ov) in
       guard let self = self else { return }
       guard let art = self.articles.valueAt(idx) else {
         ///prevent crash on search result login on 2nd or later load more results
@@ -366,8 +366,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public override func viewWillAppear(_ animated: Bool) {
     ///fix ugly UI Bug after iPad Roation
     if self.invalidateLayoutNeededOnViewWillAppear {
-      self.collectionView?.isHidden = true
+      self.collectionView.isHidden = true
     }
+    
     /// Set Content Table if needed
     /// if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     /// else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
@@ -393,10 +394,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public override func viewDidAppear(_ animated: Bool) {
     if self.invalidateLayoutNeededOnViewWillAppear {
       self.invalidateLayoutNeededOnViewWillAppear = false
-      self.collectionView?.collectionViewLayout.invalidateLayout()
-      self.collectionView?.fixScrollPosition()
+      self.collectionView.collectionViewLayout.invalidateLayout()
+//      self.collectionView.fixScrollPosition()
       updateWebwiews {[weak self] in
-        self?.collectionView?.showAnimated()
+        self?.collectionView.showAnimated()
         guard Defaults.multiColumnMode,
               let self = self,
               let sv =  self.currentWebView?.scrollView else { return }
