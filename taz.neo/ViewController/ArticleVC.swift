@@ -268,43 +268,47 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   // Define Header elements
   #warning("ToDo: Refactor get HeaderField with Protocol! (ArticleVC, SectionVC...)")
   func setHeader(artIndex: Int) {
+    guard let nextArticle = articles.valueAt(artIndex) else {
+      header.title = ""
+      return
+    }
     #if TAZ
-    let tazTomVirtualArticle = article is VirtualArticle
+    let tazTomVirtualArticle = nextArticle is VirtualArticle
     #else
     let tazTomVirtualArticle = App.isTAZ ///false, but supress "Will never be executed" warning 2 lines later
     #endif
     if tazTomVirtualArticle {
-      header.title = article?.title
+      header.title = nextArticle.title
       header.pageNumber = nil
-      header.accessibilityLabel = "Karikatur: \(article?.title ?? "")"
+      header.accessibilityLabel = "Karikatur: \(nextArticle.title ?? "")"
       header.accessibilityHint = nil
       header.accessibilityValue = nil
     }
     else if adelegate?.issue.isBookmarkIssue == true {
-      let idx = articles.firstIndex {$0.serverId == article?.serverId } ?? -2
+      let idx = articles.firstIndex {$0.serverId == nextArticle.serverId } ?? -2
       ///ensure old value is overwritten to not show wrong section
-      header.title = article?.sectionTitle ?? "" ///empty placeholder required to prevent jumping header ui
+      header.title = nextArticle.sectionTitle ?? "" ///empty placeholder required to prevent jumping header ui
       header.titletype = .search
-      header.subTitle = "Ausgabe \(article?.issueDate?.short ?? "")"
+      header.subTitle = "Ausgabe \(nextArticle.issueDate?.short ?? "")"
       header.pageNumber = "\(idx+1) von \(articles.count)"
-      header.accessibilityLabel = "Leseliste: \(header.pageNumber ?? "") aus \(header.subTitle ?? "") - \(article?.title ?? "")"
+      header.accessibilityLabel = "Leseliste: \(header.pageNumber ?? "") aus \(header.subTitle ?? "") - \(nextArticle.title ?? "")"
       header.accessibilityHint = nil
       header.accessibilityValue = nil
     }
-    else if let art = article, let name = art.html?.name {
+    else if let name = nextArticle.html?.name {
       if let sections = adelegate?.article2section[name],
          sections.count > 0 {
         let section = sections[0]
         if let title = section.title, let articles = section.articles {
           var i = 0
           for a in articles {
-            if a.html?.name == article?.html?.name { break }
+            if a.html?.name == nextArticle.html?.name { break }
             i += 1
           }
-          if let st = art.sectionTitle { header.title = st }
+          if let st = nextArticle.sectionTitle { header.title = st }
           else { header.title = "\(title)" }
           //Exchange Labels if ArticleVC comes from Facsimile
-          if let page = (adelegate as? TazPdfPagesViewController)?.page(for: art),
+          if let page = (adelegate as? TazPdfPagesViewController)?.page(for: nextArticle),
               let pagina = page.pagina {
             if let i = Int(pagina), i < 10 {
               header.title = String(format: "%02d", i)
@@ -318,18 +322,18 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
             header.pageNumber = "\(i+1)/\(articles.count)"
           }
           sectionVCsContentTable?.setActive(row: i,
-                                  section: adelegate?.article2index(art: art))
-          header.accessibilityLabel = "\(art.sectionTitle ?? "") \(i+1)/\(articles.count): \(art.title ?? "")"
-          header.accessibilityHint = "Tippen um zur Ressortübersicht \(art.sectionTitle ?? "") zurückzukehren. "
+                                  section: adelegate?.article2index(art: nextArticle))
+          header.accessibilityLabel = "\(nextArticle.sectionTitle ?? "") \(i+1)/\(articles.count): \(nextArticle.title ?? "")"
+          header.accessibilityHint = "Tippen um zur Ressortübersicht \(nextArticle.sectionTitle ?? "") zurückzukehren. "
           header.accessibilityValue = "Artikel \(i+1) von \(issue.allArticles.count)"
         }
       }
-      else if art.title != nil,
-              art.html?.isEqualTo(adelegate?.issue.imprint?.html) == true,
-              art.sectionTitle == nil {
-        header.title = art.title
+      else if nextArticle.title != nil,
+              nextArticle.html?.isEqualTo(adelegate?.issue.imprint?.html) == true,
+              nextArticle.sectionTitle == nil {
+        header.title = nextArticle.title
         header.pageNumber = nil
-        header.accessibilityLabel = art.title
+        header.accessibilityLabel = nextArticle.title
         header.accessibilityHint = nil
         header.accessibilityValue = nil
       }
