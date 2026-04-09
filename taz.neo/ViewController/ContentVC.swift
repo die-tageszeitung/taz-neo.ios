@@ -263,6 +263,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func cleanup(){
+    releaseWebviews()
     settingsBottomSheet = nil
     mcoBottomSheet = nil
     slider = nil
