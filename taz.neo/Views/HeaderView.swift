@@ -57,8 +57,8 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   
   var titletype: TitleType? {
     didSet {
-      guard let titletype = titletype else { return }
-      
+      guard let titletype = titletype,
+              oldValue != titletype else { return }
       switch titletype {
         case .bigLeft:
           pageNumberLabel.isHidden = true

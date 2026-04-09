@@ -400,12 +400,12 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     header.title = content?.title ?? ""
     if !isStaticHeader {
       header.subTitle = issue.validityDateText(timeZone: feeder.timeZone)
-      header.titletype = index == 0 ? .section0 : .section
+      header.titletype = secIndex == 0 ? .section0 : .section
       
       let issueDateText = issue.issueDateAccessibilityText
       header.shouldGroupAccessibilityChildren = true
       header.accessibilityLabel
-      = index == 0
+      = secIndex == 0
       ? (header.title ?? "") + ", " + issueDateText
       : header.title
     }
