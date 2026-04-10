@@ -904,6 +904,10 @@ extension SettingsVC {
     return uid.isValidEmail()//All E-Mails, not 12345 Abo-ID's not SpecialLoginForGroups
   }
   
+  var showManageAccountCell: Bool {
+    return (SimpleAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") == false
+  }
+  
   var showDeleteAccountCell: Bool {
     if isAuthenticated == false { return false }
     let uid = SimpleAuthenticator.getUserData().id ?? ""
@@ -934,7 +938,9 @@ extension SettingsVC {
       return cells
     }
     
-    cells.append(manageAccountCell)
+    if showManageAccountCell {
+      cells.append(manageAccountCell)
+    }
     
     if showPasswordCell {
       cells.insert(resetPasswordCell, at: 1)
@@ -1262,8 +1268,18 @@ extension SettingsVC {
   }
   
   func manageAccountOnline(){
-    guard let url = URL(string: "https://portal.taz.de/") else { return }
-    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "portal.taz.de"
+    components.path = "/user/login"
+
+    if let uid = SimpleAuthenticator.getUserData().id,
+       uid.isValidEmail(),
+       let encodedEmail = uid.percentEncodedForURLQuery() {
+        components.percentEncodedQuery = "email=\(encodedEmail)"
+    }
+    guard let url = components.url else { return }
+    UIApplication.shared.open(url)
   }
   
   func showOnboarding(){
