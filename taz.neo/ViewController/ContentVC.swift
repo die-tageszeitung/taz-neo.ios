@@ -107,28 +107,6 @@ extension String {
   }
 }
 
-// MARK: - ContentVC
-/**
- A ContentVC is a view controller that displays an array of Articles or Sections 
- in a collection of WebViews
- */
-extension ContentVC: AccessibilityTargetsProvider {
-  public var accessibilityViews: [UIView] {
-    var elms: [UIView] = []
-    elms.append(header)
-    elms.appendIfPresent(slider?.button)
-    elms.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-    elms.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-    elms.append(leftTapEnEdgeButton)
-    elms.append(rightTapEnEdgeButton)
-  //    elms.appendIfPresent(currentCell ?? collectionView)
-    elms.appendIfPresent(collectionView)
-    elms.appendIfPresent(HelpBusiness.accessibileHelpButton)
-    elms.append(toolBar)
-    return elms
-  }
-}
-
 open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("multiColumnSnap")
@@ -555,9 +533,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         NotificationCenter.default.post(name: UIDevice.orientationDidChangeNotification,
                                         object: nil)
         (self as? HelpProviding)?.hideHelpButton()
+        self.updateAccessibility(postLayoutChanged: true)
         self.imageOverlay?.onClose {[weak self] in
           (self as? HelpProviding)?.showHelpButton()
           self?.imageOverlay = nil///former we had a delayed set nil
+          self?.updateAccessibility(postLayoutChanged: true)
           guard Device.isIphone else { return }
           /// reset orientation to portrait, really no negative effect on iPad?
           UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
@@ -1097,12 +1077,14 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       Notification.send(Const.NotificationNames.helpProviderChanged)
       self?.slider?.button.accessibilityLabel = "Inhalt schließen"
       self?.slider?.button.accessibilityHint = nil
+      self?.updateAccessibility(postLayoutChanged: true)
     }
     slider?.onClose{[weak self] _ in
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
       self?.slider?.button.accessibilityLabel = "Inhalt öffnen"
       self?.slider?.button.accessibilityHint = "Ressorts und Artikel als Liste"
+      self?.updateAccessibility(postLayoutChanged: true)
     }
   }
   
@@ -1259,3 +1241,61 @@ extension Defaults {
   }
 }
 
+// MARK: - ContentVC Accessibility
+/**
+ A ContentVC is a view controller that displays an array of Articles or Sections
+ in a collection of WebViews
+ */
+extension ContentVC {
+  
+  @objc var nextItemAccessibilityLabel: String? { return nil }
+  @objc var prevItemAccessibilityLabel: String? { return nil }
+  
+  @objc override public var accessibilityViews: [UIView] {
+    var elements: [UIView] = [] ///NOT: super.accessibilityViews, different Order here!
+    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
+      elements = [imgVC.view, imgVC.xButton]
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+    }
+    else if slider?.isOpen == true {
+      let contentTable
+      = (self as? SectionVC)?.contentTable
+      ?? ((self as? ArticleVC)?.adelegate as? SectionVC)?.contentTable
+      elements.appendIfPresent(slider?.button)
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+      elements.appendIfPresent(contentTable?.headerListenLabel)
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.appendIfPresent(contentTable?.headerCollapseIcon)
+      elements.appendIfPresent(contentTable?.tableView)
+    } else {
+      elements.append(header)
+      elements.appendIfPresent(slider?.button)
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+      ///Only append next/prev Buttons id label is set
+      leftTapEnEdgeButton.accessibilityLabel = prevItemAccessibilityLabel
+      if leftTapEnEdgeButton.accessibilityLabel != nil {
+        elements.append(leftTapEnEdgeButton)
+      }
+      rightTapEnEdgeButton.accessibilityLabel = nextItemAccessibilityLabel
+      if rightTapEnEdgeButton.accessibilityLabel != nil {
+        elements.append(rightTapEnEdgeButton)
+      }
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.append(toolBar)
+      elements.appendIfPresent(currentView?.activeView)
+    }
+    return elements
+  }
+  
+  func updateAccessibility(postLayoutChanged:Bool){
+    self.view.accessibilityElements = self.accessibilityViews
+    if postLayoutChanged {
+      UIAccessibility.post(notification: .layoutChanged,
+                           argument: self.view)
+    }
+  }
+}

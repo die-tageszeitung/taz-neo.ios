@@ -360,6 +360,12 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     
     if let ressort = issue?.sections?.valueAt(section) {
       header.label.text = ressort.name
+      header.label.accessibilityLabel = ressort.name
+      header.label.isAccessibilityElement = true
+      header.label.accessibilityTraits = .button
+      ///Will be ignored for unknown Reason
+      header.label.accessibilityHint
+      = "Tippen um Ressortübersicht anzuzeigen, Inhalt wird geschlossen"
       let unexpandable = ressort.type == .advertisement || ressort.type == .podcast
       header.chevron.isHidden = unexpandable
       header.dottedLine.isHidden = unexpandable
@@ -387,8 +393,6 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
       header.chevron.isHidden = true
       header.dottedLine.isHidden = true
     }
-    
-    header.label.accessibilityHint = "Tippen um Ressortübersicht anzuzeigen, Inhalt wird geschlossen"
     header.tag = section
     header.topSeperator?.isHidden = section == 0
     

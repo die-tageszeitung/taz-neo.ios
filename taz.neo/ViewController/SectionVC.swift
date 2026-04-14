@@ -269,10 +269,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.updatePlayButton()
       persistReadProgress(sectIdx: secIndex)
       self.firstDisplayed = true
-      self.rightTapEnEdgeButton.accessibilityLabel = secIndex == self.sections.count - 1 ? nil : "Nächstes Ressort: \(self.sections.valueAt(secIndex + 1)?.title ?? "")"
-      self.rightTapEnEdgeButton.isAccessibilityElement = secIndex < self.sections.count - 1
-      self.leftTapEnEdgeButton.accessibilityLabel = secIndex == 0 ? nil :"Vorheriges Ressort: \(self.sections.valueAt(secIndex + -1)?.title ?? "")"
-      self.leftTapEnEdgeButton.isAccessibilityElement = secIndex > 0
       if let wv = optionalView?.mainView as? WebView {
         self.activateWebview(webView: wv)
       }
@@ -503,3 +499,16 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
 
 } // SectionVC
+
+// MARK: - ContentVC Accessibility
+extension SectionVC {
+  @objc override var nextItemAccessibilityLabel: String? {
+    guard let idx = index, idx < self.sections.count else { return nil }
+    return "Nächstes Ressort: \(self.sections.valueAt(idx + 1)?.title ?? "")"
+  }
+  
+  @objc override var prevItemAccessibilityLabel: String? {
+    guard let idx = index, idx > 0 else { return nil }
+    return "Vorheriges Ressort: \(self.sections.valueAt(idx + -1)?.title ?? "")"
+  }
+}

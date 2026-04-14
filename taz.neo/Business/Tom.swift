@@ -14,6 +14,9 @@ class Tom {
     createDirsIfNeeded()
     var arts: [Article] = []
     
+    var tomIndex = 1
+    let tomsCount = tomFiles.count
+    
     for tom in tomFiles {
       let art = VirtualArticle()
       let fe = TmpFileEntry(name: "\(tom).html")
@@ -23,11 +26,14 @@ class Tom {
       art.html = fe
       if tom == "tom_12" {
         art.title = "Das Ende ist da!"
+        art.extendedAccessibilityTitle = "Das Ende ist da! Letzte Tom Karikatur."
       }
       else {
         art.title = "Das Ende ist nah!"
+        art.extendedAccessibilityTitle = "Das Ende ist nah! Tom Karikatur \(tomIndex) von \(tomsCount)."
       }
       arts += art
+      tomIndex += 1
     }
     return arts
   }

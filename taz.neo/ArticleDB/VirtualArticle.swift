@@ -31,6 +31,8 @@ public class VirtualArticle: Article {
   
   public var title: String?
   
+  public var extendedAccessibilityTitle: String?
+  
   public var images: [ImageEntry]?
   
   public var audioItem: Audio?

@@ -209,10 +209,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
       self.debug("on display: \(idx), article \(art.html?.name ?? "-"):\n\(art.title ?? "Unknown Title")")
-      self.rightTapEnEdgeButton.accessibilityLabel = idx == self.articles.count - 1 ? nil : "Nächster Artikel: \(self.articles.valueAt(idx + 1)?.title ?? "")"
-      self.rightTapEnEdgeButton.isAccessibilityElement = idx < self.articles.count - 1
-      self.leftTapEnEdgeButton.accessibilityLabel = idx == 0 ? nil :"Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.title ?? "")"
-      self.leftTapEnEdgeButton.isAccessibilityElement = idx > 0
     } ///eof: onDisplay
     whenLinkPressed { [weak self] (from, to) in
       LinkBusiness.handleLinkPressed(from: from, to: to,
@@ -625,5 +621,18 @@ extension WebView {
   
   private func clamp(_ value: CGFloat) -> CGFloat {
     return min(max(value, 0.0), 1.0)
+  }
+}
+
+// MARK: - ContentVC Accessibility
+extension ArticleVC {
+  @objc override var nextItemAccessibilityLabel: String? {
+    guard let idx = index, idx < self.articles.count - 1 else { return nil }
+    return "Nächster Artikel: \(self.articles.valueAt(idx + 1)?.accessibilityTitle ?? "")"
+  }
+  
+  @objc override var prevItemAccessibilityLabel: String? {
+    guard let idx = index, idx > 0 else { return nil }
+    return "Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.accessibilityTitle ?? "")"
   }
 }

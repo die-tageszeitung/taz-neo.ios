@@ -379,6 +379,10 @@ public protocol Content {
 
 public extension Content {
   
+  var accessibilityTitle: String? {
+    return (self as? VirtualArticle)?.extendedAccessibilityTitle ?? title
+  }
+  
   func toString() -> String {
     var ret = "\(title ?? "[Unknown title]") ("
     if let au = authors, au.count > 0 {

@@ -36,6 +36,7 @@ extension IssueDisplayService {
   
   ///displays sheet to request continue reading if applyable
   private func requestContinueReading(with sectionVC: SectionVC) {
+    if UIAccessibility.isVoiceOverRunning { return }
     if reopenHintSetting == false && reopenAutomaticSetting == false {
       Usage.track(Usage.event.dialog.OpenLastRead, name: "Disabled")
       return

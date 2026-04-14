@@ -31,8 +31,8 @@ public class ZoomedImage: OptionalImage {
   public func onTap(closure: @escaping (Double, Double) -> ()) {}
 }
 
-extension ContentImageVC: AccessibilityTargetsProvider {
-  public var accessibilityViews: [UIView] {
+extension ContentImageVC {
+  override public var accessibilityViews: [UIView] {
     #warning("ToDo No Image Description currently available!")
     return [xButton, view]
   }
