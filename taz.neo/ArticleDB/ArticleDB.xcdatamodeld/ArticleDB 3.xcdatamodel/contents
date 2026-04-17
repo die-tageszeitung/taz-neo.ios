@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25D125" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24837" systemVersion="25E253" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="articleType" optional="YES" attributeType="String"/>
         <attribute name="bookmarkedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -42,6 +42,7 @@
     </entity>
     <entity name="Content" representedClassName="PersistentContent" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <attribute name="baseURL" optional="YES" attributeType="String"/>
+        <attribute name="contentId" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="issueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sectionTitle" optional="YES" attributeType="String"/>
@@ -154,12 +155,15 @@
         <attribute name="needUpdateAudio" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="status" attributeType="String"/>
         <attribute name="validityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="versionLocal" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="versionRemote" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="zipAudioName" optional="YES" attributeType="String"/>
         <attribute name="zipName" optional="YES" attributeType="String"/>
         <attribute name="zipNamePdf" optional="YES" attributeType="String"/>
         <relationship name="articles" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Article" inverseName="issues" inverseEntity="Article"/>
         <relationship name="feed" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Feed" inverseName="issues" inverseEntity="Feed"/>
         <relationship name="imprint" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Article" inverseName="issueImprint" inverseEntity="Article"/>
+        <relationship name="lastContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content"/>
         <relationship name="moment" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="issue" inverseEntity="Moment"/>
         <relationship name="pages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Page" inverseName="issue" inverseEntity="Page"/>
         <relationship name="payload" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Payload" inverseName="issue" inverseEntity="Payload"/>

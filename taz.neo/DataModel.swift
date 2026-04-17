@@ -357,6 +357,8 @@ public protocol Content {
   var html: FileEntry? { get }
   /// Optional title of content
   var title: String? { get }
+  /// server id of an article or section
+  var contentId: Int64 { get }
   /// List of images used in content
   var images: [ImageEntry]? { get }
   ///audio item (podcast, tts)
@@ -900,6 +902,14 @@ public extension PublicationDate {
   }
 }
 
+/// Issue version of a Feed, a part of an issue
+public protocol IssueVersion: ToString, AnyObject {
+  /// Issue date
+  var date: Date { get }
+  /// remote Version number of an issue
+  var versionRemote: Int { get }
+}
+
 /// One Issue of a Feed
 public protocol Issue: ToString, AnyObject {  
   /// Is this Issue currently being downloaded
@@ -913,6 +923,10 @@ public protocol Issue: ToString, AnyObject {
   var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
+  /// locale, downloaded Version number of an issue
+  var versionLocal: Int { get }
+  /// remote Version number of an issue
+  var versionRemote: Int { get }
   /// date when set fully downloaded, needed for cleanup, die optional payload returns wired results
   var fullDownloadedDate: Date? { get }
   /// date until issue is valid if more then one
@@ -943,9 +957,13 @@ public protocol Issue: ToString, AnyObject {
   var sections: [Section]? { get }
   /// List of PDF pages (if any)
   var pages: [Page]? { get }
+  /// Last Content read (if any)
+  var lastContent: Content? { get set }
   /// Last Section read (if any)
+  @available(*, deprecated, message: "use lastContent instead")
   var lastSection: Int? { get set }
   /// Last Article read (if nil, then only use lastSection)
+  @available(*, deprecated, message: "use lastContent instead")
   var lastArticle: Int? { get set }
   /// Last Article read scrollPos
   var lastArticleScrollPos: CGFloat? { get set }
@@ -1240,6 +1258,8 @@ public protocol Feed: ToString {
   var firstSearchableIssue: Date? { get }
   /// Issues availaible in this Feed
   var issues: [Issue]? { get }
+  /// Issue Versions in this Feed (if issue not requested!)
+  var issueVersions: [IssueVersion]? { get }
   /// publicationDates this Feed
   var publicationDates: [PublicationDate]? { get }
   /// Directory where all feed specific data is stored

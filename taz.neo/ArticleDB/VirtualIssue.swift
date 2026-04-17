@@ -25,6 +25,9 @@ public class VirtualIssue: Issue {
   public var baseUrl: String { "" }
   public var status: IssueStatus { .unknown }
   public var minResourceVersion: Int { 0 }
+  public var versionLocal: Int { 0 }
+  public var versionRemote: Int { 0 }
+  public var lastContent: Content?
   public var zipName: String? { nil }
   public var zipNamePdf: String? { nil }
   public var zipAudioName: String? { nil }
@@ -50,6 +53,7 @@ public class VirtualIssue: Issue {
 public class VirtualSection: Section {
   public var audioItem: Audio?
   public var name: String
+  public var contentId: Int64 { 0 }
   public var extendedTitle: String? { name }
   public var type: SectionType { .articles }
   public var articles: [Article]?

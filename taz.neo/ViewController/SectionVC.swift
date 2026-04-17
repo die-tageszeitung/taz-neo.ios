@@ -126,7 +126,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     if let avc = articleVC {
       if let url = url { avc.gotoUrl(url: url) }
       else if let index = index {
-        if animated /*, avc.collectionView.isInitialized */{
+        if animated, avc.collectionView.superview != nil /*, avc.collectionView.isInitialized */{
           /// ensure collectionView is initialized otherwise scrolling did not work!
           avc.collectionView.scrollToIndex(index, animated: true)
         }
@@ -233,10 +233,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     guard firstDisplayed else { return }
     guard force || self.isVisibleVC else { return }
     guard delegate.issue.isBookmarkIssue == false else { return }
-    issue.setLastRead(pageIndex: nil,
-                      articleIndex: nil,
-                      sectionIndex: sectIdx ?? index,
-                      scrollPosition: nil)
+    guard let idx = sectIdx ?? index,
+    let sect = sections.valueAt(idx) else { return }
+    issue.setLastRead(content: sect, pageIndex: nil, scrollPosition: nil)
   }
     
   func activateWebview(webView:WebView){
@@ -284,13 +283,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self?.index = sIdx
       self?.articleVC?.navigationController?.popViewController(animated: true)
     }
-    if let avc = articleVC {
-      avc.slider
-      = MyButtonSlider(slider: avc.contentTablePlaceholder, into: avc)
-      avc.setupSlider()
-    }
-
-    
     whenLinkPressed { [weak self] (from, to) in
       /** FIX wrong Article shown (most errors on iPad, some also on Phone)
           after re-enter app due wired Scroll Pos change

@@ -200,7 +200,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
         self.adelegate?.article = art
       }
       self.setHeader(artIndex: idx)
-      issue.setLastRead(pageIndex: nil, articleIndex: idx, sectionIndex: nil, scrollPosition: nil)
+      issue.setLastRead(content: art, pageIndex: nil, scrollPosition: nil)
       /**Do not persist last Article here anymore,  due it overwrites the scroll Position**/
       //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
@@ -235,11 +235,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   override func persistReadProgress() {
     guard let art = articleForLastRead,
           let wv = self.currentWebView as WebView? else { return }
-    
-    issue.setLastRead(pageIndex: nil,
-                      articleIndex: articles.firstIndex(where: { $0.html?.name == art.html?.name }) ?? 0,
-                      sectionIndex: nil,
-                      scrollPosition: wv.scrollProgress)
+    issue.setLastRead(content: art, pageIndex: nil, scrollPosition: wv.scrollProgress)
   }
   
   func handleAtEndOfContent(isAtEnd: Bool){
@@ -385,6 +381,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
       self.slider?.exchangeSliderContent(from: sectionSlider)
     }
+    persistReadProgress()
   }
   
   private var sectionVCsContentTable: NewContentTableVC? {
@@ -426,13 +423,21 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     showMultiColumnOnboardingIfNeeded()
     ///ensure article is perstisted, also on recall same article after art>sect>art
     guard delegate != nil else { return }
-    issue.setLastRead(pageIndex: nil, articleIndex: index, sectionIndex: nil, scrollPosition: nil)
+    guard let index = index else { return }
+    issue.setLastRead(content: self.articles.valueAt(index), pageIndex: nil, scrollPosition: nil)
   }
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
     UIMenuController.shared.menuItems = nil
   }
+  
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
+    setupSlider()
+  }
+  
 } // ArticleVC
 
 //MARK: - Context Menu Actions
@@ -516,7 +521,9 @@ extension ArticleVC {
 }
 
 class MultiColumnOnboarding: UIViewController {
+  
   lazy var contentView = MultiColumnOnboardingView()
+    
   public override func viewDidLoad() {
     super.viewDidLoad()
     self.view.addSubview(contentView)

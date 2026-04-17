@@ -891,12 +891,40 @@ extension FeederContext {
 }
 
 extension Issue {
+  typealias LastReadData = (articleScrollPos:CGFloat?,
+                            lastPage:Int?,
+                            lastArticleIndex:Int?,
+                            lastSectionIndex:Int?,
+                            lastContent: Content?)
+  var lastReadData: LastReadData {
+    var lastArticleIndex:Int?
+    var lastSectionIndex:Int?
+    if let lastArticle = lastContent as? Article {
+      lastArticleIndex = allArticles.firstIndex(where:{ $0.serverId == lastArticle.serverId })
+    }
+    if let lastSection = lastContent as? Section {
+      lastSectionIndex = sections?.firstIndex(where:{ $0.html?.fileName == lastSection.html?.fileName })
+    }
+    return LastReadData(
+      articleScrollPos: lastArticleScrollPos,
+      lastPage: lastPage,
+      lastArticleIndex: lastArticleIndex,
+      lastSectionIndex: lastSectionIndex,
+      lastContent: lastContent)
+  }
   
   var lastArticleIndexForCurrentMode: Int? {
     if TazAppEnvironment.sharedInstance.service?.isFacsimile == true
         && lastReadWasPage
         && lastPage != nil { return nil }
-    return lastArticle
+    guard let lastContent else { return nil }
+    if let lastArticle = lastContent as? Article {
+      return allArticles.firstIndex(where:{ $0.serverId == lastArticle.serverId })
+    }
+    if let lastSection = lastContent as? Section {
+      return sections?.firstIndex(where:{ $0.html?.fileName == lastSection.html?.fileName })
+    }
+    return nil
   }
   
   var downloadState: DownloadStatusIndicatorState {
@@ -909,13 +937,10 @@ extension Issue {
   
     
   var hasLastReadForCurrentMode: Bool {
-    if TazAppEnvironment.sharedInstance.service?.isFacsimile == false {
-      if lastSection != nil { return lastSection ?? 0 > 0 }
-      return lastArticle ?? 0 > 0
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == true {
+      return lastPage ?? 0 > 0 || lastContent?.isArticle == true
     }
-    if lastArticle ?? 0 > 0 { return true }
-    if lastPage ?? 0 > 0 { return true }
-    return false
+    return lastContent != nil
   }
   
   /// Updates the last read position for the issue.
@@ -924,11 +949,10 @@ extension Issue {
   ///   - articleIndex: The index of the article
   ///   - sectionIndex: The index of the section/ressort
   ///   - scrollPosition: The vertical scroll offset inside the article.
-  func setLastRead(pageIndex: Int?, articleIndex: Int?, sectionIndex: Int?, scrollPosition: CGFloat?) {
+  func setLastRead(content: Content?, pageIndex: Int?, scrollPosition: CGFloat?) {
     // Check if there was already a last read position stored
     let hadLastRead = hasLastReadForCurrentMode
-    
-    Log.debug("SetLastRead for page:\(pageIndex ?? -1) article:\(articleIndex ?? -1) section:\(sectionIndex ?? -1)")
+    Log.debug("SetLastRead for page:\(pageIndex ?? -1) content:\(content?.title ?? "-") \(content?.isArticle == true ? "Artikel" : content?.isSection == true ? "Ressort" : "-") scrollPos: \(scrollPosition ?? -1.0)")
     // Update the last read state with the new values
     if pageIndex != nil {
       lastPage = pageIndex
@@ -938,21 +962,16 @@ extension Issue {
       lastReadWasPage = false
     }
     
-    if articleIndex != nil {
-      lastArticle = articleIndex
-      lastArticleScrollPos = scrollPosition
-      lastSection = nil
-    }
+    let saveContent = content?.isSection == false || Defaults.reopenRessortSetting
     
-    if sectionIndex != nil && Defaults.reopenRessortSetting {
-      lastSection = sectionIndex
+    if saveContent && content != nil {
+      lastContent = content
+      lastArticleScrollPos = scrollPosition//section did not submit scrollPos > uset
     }
     
     let hasLastRead = hasLastReadForCurrentMode
-    
-    guard hadLastRead != hasLastRead else { return }
     // Only notify if the last read state actually changed (from no last read to having one, or vice versa)
-    if pageIndex == nil && articleIndex == nil && sectionIndex == nil { return }
+    guard hadLastRead != hasLastRead else { return }
     
     guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
     
@@ -971,3 +990,10 @@ extension Issue {
                       content: data)
   }
 }
+
+extension Content {
+  var isArticle: Bool { self is Article }
+  var isSection: Bool { self is Section }
+}
+
+

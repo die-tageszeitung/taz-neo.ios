@@ -556,7 +556,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       #warning("MISSUNG isFromScroll here!!")
       let isFromScroll = true
       if let issue = self?.issue, idx > 0 || isFromScroll {
-        issue.setLastRead(pageIndex: idx, articleIndex: nil, sectionIndex: nil, scrollPosition: nil)
+        issue.setLastRead(content: nil, pageIndex: idx, scrollPosition: nil)
       }
       if let pi = self?.pdfModel?.item(atIndex:idx) as? ZoomedPdfPageImage,
          let issueDate = self?.issue.date.ISO8601,

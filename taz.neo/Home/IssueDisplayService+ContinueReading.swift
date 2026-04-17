@@ -43,18 +43,10 @@ extension IssueDisplayService {
     }
     guard reopenHintSetting == true && reopenAutomaticSetting == false else { return }
 
-    var lastSectionIndex: Int?
-    var lastSection: Section?
-    var lastArticle: Article?
-    if let idx = issue.lastSection,
-       let lastSect = issue.sections?.valueAt(idx) {
-      lastSectionIndex = idx
-      lastSection = lastSect
-    }
-    else if let idx = issue.lastArticle,
-       let lastArt = issue.allArticles.valueAt(idx) {
-      lastArticle = lastArt
-    }
+    let lastReadData = issue.lastReadData
+    let lastSectionIndex = lastReadData.lastSectionIndex
+    let lastSection = lastReadData.lastContent as? Section
+    let lastArticle = lastReadData.lastContent as? Article
     
     guard lastSectionIndex ?? 0 > 0 || lastArticle != nil else { return }
     resumeReadHandled = false

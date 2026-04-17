@@ -43,6 +43,7 @@ extension FeederContext {
         if err == nil {
           res = .success(issue)
           issue.isComplete = true
+          issue.versionLocal = issue.versionRemote
           ArticleDB.save()
           self?.didDownload(issue)
           //inform DownloadStatusButton: download finished
@@ -65,8 +66,9 @@ extension FeederContext {
                                isPages: Bool = false,
                                isAutomatically: Bool,
                                force: Bool = false,
-                               withAudio: Bool = false) {
-    /// prevent unexpected Behaviour e.g. with: issue.date != dissue.date 
+                               withAudio: Bool = false,
+                               errorNotificationMessage: String = "issueStructure") {
+    /// prevent unexpected Behaviour e.g. with: issue.date != dissue.date
     if issue.isBookmarkIssue || issue.safeDate == nil { return }
     self.log("isConnected: \(isConnected) isAuth: \(isAuthenticated) issueDate:  \(issue.date.short)")
     Usage.track(isAutomatically ? Usage.event.issue.autoDownload : Usage.event.issue.download,
@@ -99,22 +101,27 @@ extension FeederContext {
                        date: issue.date,
                        key: issue.key,
                        count: 1,
-                       isPages: loadPages, 
+                       isOverview: false,///Full Issue == default
+                       isPages: loadPages,
                        withAudio: withAudio) { (res, _) in
         if let issues = res.value(), issues.count == 1 {
           let dissue = issues[0]
           if issue.date != dissue.date {
+            ///*NOTE:*After Server switch testserver maybe did not have the requested issue!
             self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") \(issue.feed.cycle.toString())")
             let unexpectedResult : Result<[Issue], Error>
               = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
-            Notification.send("issueStructure", result: unexpectedResult, sender: issue)
+            Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
             TazAppEnvironment.sharedInstance.resetApp(.wrongCycleDownloadError)
             return
           }
           issue.update(from: dissue)
+          /// **Set Local Version here because here is the Full Download!**
+          issue.versionLocal = issue.versionRemote
           issue.isAudioComplete = withAudio && res.error() == nil
           ArticleDB.save()
           Notification.receiveOnce("resourcesReady") { _ in
+            ///Not errorNotificationMessage here!
             Notification.send("issueStructure", result: .success(issue), sender: issue)
           }
           self.downloadIssue(issue: issue, isComplete: true, isAutomatically: isAutomatically)
@@ -122,7 +129,7 @@ extension FeederContext {
         else if let err = res.error() {
           let errorResult : Result<[Issue], Error>
             = .failure(DownloadError(handled: false, enclosedError: err))
-          Notification.send("issueStructure",
+          Notification.send(errorNotificationMessage,
                             result: errorResult,
                             sender: issue)
         }
@@ -130,7 +137,7 @@ extension FeederContext {
           //prevent ui deadlock
           let unexpectedResult : Result<[Issue], Error>
             = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
-          Notification.send("issueStructure", result: unexpectedResult, sender: issue)
+          Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
         }
       }
       ///Request autodownload pdf if required
@@ -151,10 +158,13 @@ extension FeederContext {
     }
     else {
       #warning("ToDO AddRetry here its easily possible!")
-      OfflineAlert.show(type: .issueDownload)
+      if errorNotificationMessage != "issue" {
+        ///show offline alert if not first update request, otherwise 2 Alerts will be shown
+        OfflineAlert.show(type: .issueDownload)
+      }
       let res : Result<Any, Error>
         = .failure(DownloadError(message: "no connection", handled: true))
-      Notification.send("issueStructure", result: res, sender: issue)
+      Notification.send(errorNotificationMessage, result: res, sender: issue)
     }
   }
   

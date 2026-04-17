@@ -93,7 +93,53 @@ extension HomeVC  {
 }
 
 extension HomeVC {
+  
   func openIssue(_ issue: StoredIssue, openLast: Bool = false) {
+    _openIssue(issue, openLast: openLast, forceOpen: false)
+  }
+  
+  ///open given issue
+  ///if issue outdated try to update before open
+  private func _openIssue(_ issue: StoredIssue, openLast: Bool = false, forceOpen: Bool) {
+    let skipDownload = forceOpen && issue.versionLocal < issue.versionRemote && issue.isComplete
+    debug("issue: \(issue.date.short) server: \(issue.versionRemote) localVersion: \(issue.versionLocal)")
+    if !forceOpen && issue.versionLocal < issue.versionRemote {
+      ///try silent update
+      ///in case of download errors show popup to request network connection to update or read outdated version
+      Notification.receive("issue"){[weak self] notif in
+        guard let issue = notif.object as? StoredIssue,
+              let observer = notif.userInfo?["observer"] as? Notification.Observer else { return }
+        let error: Error? = notif.userInfo?["error"] as? Error
+        if error == nil {
+          Notification.remove(observer: observer)
+          self?.openIssue(issue, openLast: openLast)///force open not required due issue should be updated
+          return
+        }
+        
+        Alert.confirm(title: "Aktualisierung verfügbar",
+                      message: "Für diese Ausgabe ist eine neuere Version verfügbar.\nSobald Sie online sind, können Sie die aktuelle Version laden.\nMöchten Sie jetzt weiterlesen oder erst aktualisieren?",
+                      okText: "Weiterlesen",
+                      cancelText: "Aktualisieren") {[weak self] (readNow) in
+          if readNow {
+            self?._openIssue(issue, openLast: openLast, forceOpen: true)
+            Notification.remove(observer: observer)
+            return
+          }
+          self?.feederContext.getCompleteIssue(issue: issue,
+                                               isPages: self?.isFacsimile ?? false,
+                                              isAutomatically: false,
+                                              withAudio: issue.isAudioComplete)
+          ///(No isUpdateDownload here to force offline Alert
+        }
+      }///endOf: Notification.receive("issue")
+      self.feederContext.getCompleteIssue(issue: issue,
+                                          isPages: isFacsimile,
+                                          isAutomatically: false,
+                                          withAudio: issue.isAudioComplete,
+                                          errorNotificationMessage: "issue")///Notification.receive("issue") above
+      return
+    }
+    
     let openLast = openLast || Defaults.reopenAutomaticSetting
     ///How to prevent multiple open?
     ///already pushed => no problem
@@ -116,7 +162,7 @@ extension HomeVC {
                          atArticle: openLast ? issue.lastArticleIndexForCurrentMode : nil,
                          atArticleScrollPos: openLast ? issue.lastArticleScrollPos : nil,
                          atSection: openLast ? issue.lastSection : nil,
-                         atPage:openLast ? issue.lastPage : nil)
+                        atPage:openLast ? issue.lastPage : nil, skipDownload: skipDownload)
   }
 }
 

@@ -296,6 +296,8 @@ class GqlArticle: Article, GQLObject {
     get { realPrimaryIssue } 
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
+  /// server id
+  var contentId: Int64
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
@@ -332,6 +334,7 @@ class GqlArticle: Article, GQLObject {
   articleType
   pageNames: pageNameList
   serverId: mediaSyncId
+  contentId: id
   readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
@@ -345,6 +348,7 @@ class GqlArticle: Article, GQLObject {
   onlineLink
   articleType
   serverId: mediaSyncId
+  contentId: id
   readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
@@ -359,6 +363,8 @@ class GqlSection: Section, GQLObject {
     get { realPrimaryIssue } 
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
+  /// server id
+  var contentId: Int64
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry? { return sectionHtml }
@@ -385,6 +391,7 @@ class GqlSection: Section, GQLObject {
   static var fields = """
   sectionHtml { \(GqlFile.fields) }
   name: title
+  contentId: id
   extendedTitle
   type
   gqlAudio: podcast { \(GqlAudio.fields) }
@@ -590,6 +597,12 @@ class GqlIssue: Issue, GQLObject {
   var baseUrl: String
   /// Issue status
   var status: IssueStatus
+  /// remote Version number of an issue
+  var versionRemote: Int
+  /// local Version number of an issue, 0 by default
+  var versionLocal: Int { 0 }
+  /// last content for "weiterlesen"
+  var lastContent: Content?
   /// Minimal resource version for this issue
   var minResourceVersion: Int
   /// Name of zip file with all data minus PDF
@@ -648,6 +661,7 @@ class GqlIssue: Issue, GQLObject {
     case key
     case baseUrl
     case status
+    case versionRemote
     case minResourceVersion
     case zipName
     case zipNamePdf
@@ -668,6 +682,7 @@ class GqlIssue: Issue, GQLObject {
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
     status = try container.decode(IssueStatus.self, forKey: .status)
     minResourceVersion = try container.decode(Int.self, forKey: .minResourceVersion)
+    versionRemote = try container.decode(Int.self, forKey: .versionRemote)
     zipName = try container.decodeIfPresent(String.self, forKey: .zipName)
     zipNamePdf = try container.decodeIfPresent(String.self, forKey: .zipNamePdf)
     zipAudioName = try container.decodeIfPresent(String.self, forKey: .zipAudioName)
@@ -683,6 +698,7 @@ class GqlIssue: Issue, GQLObject {
 
   static var ovwFields = """
   sDate: date
+  versionRemote: version
   sValidityDate: validityDate
   sMoTime: moTime
   sIsWeekend: isWeekend
@@ -704,6 +720,29 @@ class GqlIssue: Issue, GQLObject {
   """
 } // GqlIssue
 
+
+class GqlIssueVersion: IssueVersion, GQLObject {
+  var sDate: String
+  var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
+  var versionRemote: Int
+  /// local Version number of an issue, 0 by default
+  enum CodingKeys: String, CodingKey {
+    case sDate
+    case versionRemote
+  }
+
+  required init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    sDate = try container.decode(String.self, forKey: .sDate)
+    versionRemote = try container.decode(Int.self, forKey: .versionRemote)
+  }
+  
+  static var fields = """
+    sDate: date, versionRemote: version
+  """
+    
+  func toString() -> String { "Issue: \(date.short) Version: \(versionRemote)"}
+} // GqlIssue
 
 
 /// A Feed of publication issues and articles
@@ -730,10 +769,13 @@ class GqlFeed: Feed, GQLObject {
   /// The Issues requested of this Feed
   var gqlIssues: [GqlIssue]?
   var issues: [Issue]? { return gqlIssues }
+  /// The maybe updated issue Versions Issues requested of this Feed
+  var gqlIssueVersions: [GqlIssueVersion]?
+  var issueVersions: [IssueVersion]? { return gqlIssueVersions }
   var publicationDates: [PublicationDate]?
 
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlValidityDates, gqlPublicationDates
+    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlIssueVersions, gqlValidityDates, gqlPublicationDates
   }
 
   required init(from decoder: Decoder) throws {
@@ -746,7 +788,7 @@ class GqlFeed: Feed, GQLObject {
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
-    
+    gqlIssueVersions = try container.decodeIfPresent([GqlIssueVersion].self, forKey: .gqlIssueVersions)
     
     ///Encode gqlPublicationDates and gqlValidityDates and generate PublicationDates for persist in DB
     let gqlPublicationDates
@@ -860,9 +902,12 @@ class GqlFeederStatus: GQLObject {
       resourceBaseUrl
       resourceZipName: resourceZip,
       globalBaseUrl
-      feeds: feedList(name:"\(feedName)") { \(feedFields) }
+      feeds: feedList(name:"\(feedName)") { 
+        \(feedFields)
+        gqlIssueVersions: issueList(limit: 20){\(GqlIssueVersion.fields)}
+      }
     """
-  }
+  }//
   
   func toString() -> String {
     var ret = """

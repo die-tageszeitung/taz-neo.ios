@@ -1086,6 +1086,10 @@ public final class StoredArticle: Article, StoredObject {
       get { pr.serverId != 0 ? pr.serverId : nil }
       set { pr.serverId = newValue ?? 0 }
   }
+  public var contentId: Int64 {
+    get { return pr.contentId }
+    set { pr.contentId = newValue }
+  }
   public var readingDuration: Int? {
     get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
     set {
@@ -1555,6 +1559,10 @@ public final class StoredSection: Section, StoredObject {
     get { return pr.name! }
     set { pr.name = newValue }
   }
+  public var contentId: Int64 {
+    get { return pr.contentId }
+    set { pr.contentId = newValue }
+  }
   public var extendedTitle: String? {
     get { return pr.extendedTitle }
     set { pr.extendedTitle = newValue }
@@ -1673,10 +1681,16 @@ public final class StoredSection: Section, StoredObject {
         order += 1
       }
       // Remove unneeded articles
-      for art in articles as! [StoredArticle] {
+      for case let art as StoredArticle in articles ?? [] {
         if !arts.contains(where: { $0.html?.name == art.html?.name }) {
-          debug("deleting \(art)")
-          art.delete()
+          if art.hasBookmark {
+            art.pr.removeFromSections(self.pr)
+            debug(">>> remove \(art)")
+          }
+          else {
+            debug(">>> deleting \(art)")
+            art.delete()
+          }
         }
       }
     }
@@ -1931,6 +1945,14 @@ public final class StoredIssue: Issue, StoredObject {
     get { return Int(pr.minResourceVersion) }
     set { pr.minResourceVersion = Int32(newValue) }
   }
+  public var versionLocal: Int {
+    get { return Int(pr.versionLocal) }
+    set { pr.versionLocal = Int32(newValue) }
+  }
+  public var versionRemote: Int {
+    get { return Int(pr.versionRemote) }
+    set { pr.versionRemote = Int32(newValue) }
+  }
   public var zipName: String? {
     get { return pr.zipName }
     set { pr.zipName = newValue }
@@ -1959,6 +1981,29 @@ public final class StoredIssue: Issue, StoredObject {
         pr.imprint?.issueImprint = self.pr
       }
       else { pr.imprint = nil }
+    }
+  }
+  
+  public var lastContent: Content? {
+    get {
+      if let pArt = pr.lastContent as? PersistentArticle {
+        return StoredArticle(persistent: pArt)
+      }
+      else if let pSect = pr.lastContent as? PersistentSection {
+        return StoredSection(persistent: pSect)
+      }
+      return nil
+    }
+    set {
+      if let sArt = newValue as? StoredArticle {
+        pr.lastContent = sArt.pr
+      }
+      else if let sSect = newValue as? StoredSection {
+        pr.lastContent = sSect.pr
+      }
+      else {
+        pr.lastContent = nil
+      }
     }
   }
   public var lastArticle: Int? {
@@ -2032,6 +2077,8 @@ public final class StoredIssue: Issue, StoredObject {
     self.isAutodownloading = object.isAutodownloading
     self.isDownloading = object.isDownloading
     self.moTime = object.moTime
+    ///Set **only** remote version here and **localVersion after Download!**
+    self.versionRemote = object.versionRemote
     self.isWeekend = object.isWeekend
     self.moment = object.moment
     self.key = object.key
@@ -2539,6 +2586,7 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedIssues: [StoredIssue] { StoredIssue.issuesInFeed(feed: self) }
   public var issues: [Issue]? { storedIssues }
   
+  public var issueVersions: [IssueVersion]? { nil }
   
   public var storedPublicationDates: [StoredPublicationDate] {
     let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
@@ -2578,6 +2626,14 @@ public final class StoredFeed: Feed, StoredObject {
     self.lastIssue = object.lastIssue
     self.lastIssueRead = object.lastIssueRead
     self.lastUpdated = object.lastUpdated
+    if let issueVersions = object.issueVersions {
+      for version in issueVersions {
+        let si = StoredIssue.get(date: version.date, inFeed: self).first
+        if si?.versionRemote == version.versionRemote { continue }
+        debug("update Issue \(version.date.short) remote from>to: \(si?.versionRemote ?? -1)>\(version.versionRemote)")
+        si?.versionRemote = version.versionRemote
+      }
+    }
     /// CR-Feeds: Warning: what should we do? only add issues to primary feed?
     /// CR-Feeds: Warning Issue>Feed Relation is currently **to one** need to be changed or add just issues to master feed?
     /// wochentaz login => default filter to wochentaz > no more db reset required > no more time consuming qa...legacy code...

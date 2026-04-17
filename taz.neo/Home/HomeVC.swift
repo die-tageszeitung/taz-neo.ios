@@ -63,7 +63,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   static let reuseCellId = "issueCollectionViewCell"
   
   var loadingIssueInfos:[IssueDisplayService] = []
-  var issueInfo:IssueDisplayService?
+  var issueInfo:IssueDisplayService?///NEEDED?
   var feederContext:FeederContext
   var service: IssueOverviewService
   
