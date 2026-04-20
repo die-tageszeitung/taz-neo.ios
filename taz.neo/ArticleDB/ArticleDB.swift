@@ -1184,6 +1184,7 @@ public final class StoredArticle: Article, StoredObject {
     self.pageNames = object.pageNames
     self.teaser = object.teaser
     self.serverId = object.serverId
+    self.contentId = object.contentId
     self.readingDuration = object.readingDuration
     if let imgs = object.images {
       var order: Int32 = 0
@@ -1652,6 +1653,7 @@ public final class StoredSection: Section, StoredObject {
     self.extendedTitle = object.extendedTitle
     self.type = object.type
     self.html = object.html
+    self.contentId = object.contentId
     self.audioItem = object.audioItem
     self.navButton = object.navButton
     if let imgs = object.images {
