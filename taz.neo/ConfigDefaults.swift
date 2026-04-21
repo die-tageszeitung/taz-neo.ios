@@ -64,6 +64,7 @@ private let configValues = [
   "simulateNewVersion" : "false",
   "autoPlayNext" : "true",
   "playbackRate": "1.0",
+  "audioDisclosurePlayCount": "0",
   "edgeTapToNavigate" : "true",
   /**===AUTODOWNLOAD SETTINGS FOR RESET===**/
   "autoloadOnlyInWLAN2" : "true",//renamed due previous value was false

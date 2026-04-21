@@ -15,6 +15,9 @@ enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast/*, enqueu
 /// The ArticlePlayer plays one or more Articles as audio streams
 class ArticlePlayer: DoesLog {
   
+  @Default("audioDisclosurePlayCount")
+  private var audioDisclosurePlayCount: Int
+  
   @Default("playbackRate")
   public var playbackRate: Double
   
@@ -151,6 +154,7 @@ class ArticlePlayer: DoesLog {
   
   private func playDisclaimer(){
     if TazAppEnvironment.sharedInstance.audioDisclaimerPlayed == true { return }
+    guard audioDisclosurePlayCount < 3 else { return }
     if isDisclaimer {
       self.pause()
       let cc = currentContent
@@ -176,6 +180,7 @@ class ArticlePlayer: DoesLog {
     aplayer.artist = "vertonung@taz.de"
     userInterface.authorLabel.text = "vertonung@taz.de"
     aplayer.play()
+    audioDisclosurePlayCount += 1
     userInterface.updateUI()
     updatePlaying()
   }
