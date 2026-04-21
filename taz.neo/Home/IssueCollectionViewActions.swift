@@ -25,7 +25,7 @@ extension IssueCollectionViewActions {
       return
     }
     
-    Log.debug("Delete Issue: \(issue.date.short)")
+    Log.log("Delete Issue: \(issue.date.short) manually")
     Usage.track(Usage.event.issue.delete,
                 name: issue.date.ISO8601)
     Notification.send("issueDelete", content: issue.date)
@@ -36,6 +36,16 @@ extension IssueCollectionViewActions {
     issue.delete()
     self.collectionView.reloadItems(at: [indexPath])
     self.updateCarouselDownloadButton()
+
+    onMainAfter(1.0) {[weak self] in
+      /// Bugfix: ensure re-load of deleted issue will be executed.
+      /// The item may be removed immediately in
+      /// collectionView(_:didEndDisplaying:),
+      /// which calls removeFromLoadFromRemote(key:).
+      /// This can’t be prevented, so we re-add the item to the load queue
+      /// to ensure reload.
+      _ = self?.service.cellData(for: indexPath.row)
+    }
   }
   
   func resetIssue(issue: StoredIssue,
