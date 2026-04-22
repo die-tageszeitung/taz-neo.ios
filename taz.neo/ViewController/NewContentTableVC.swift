@@ -433,8 +433,11 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     = tableView.dequeueReusableCell(withIdentifier: NewContentTableVcCell.ReuseIdentifier,
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
-    cell.article = issue?.sections?.valueAt(indexPath.section)?.articles?.valueAt(indexPath.row)
-    cell.image = cell.article?.images?.first?.image(dir: issue?.dir)?.invertedIfNeeded
+    let art = issue?.sections?.valueAt(indexPath.section)?
+      .articles?.valueAt(indexPath.row)
+    cell.article = art
+    let img = art?.largestIcon ?? art?.images?.first
+    cell.image = img?.image(content: art)?.invertedIfNeeded
     cell.active = indexPath == activeItem
     return cell
   }
@@ -650,6 +653,12 @@ class NewContentTableVcCell: UITableViewCell {
       timeString.addAttribute(.foregroundColor, value: Const.Colors.appIconGrey, range: trange)
       timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
       attributedString.append(timeString)
+    }
+    
+    if article?.articleType == .podcast, autors.length > 0 {
+      let intro = NSAttributedString(string: "Podcast von: ",
+                                     attributes: [.font: authorFont])
+      attributedString.insert(intro, at: 0)
     }
     bottomLabel.attributedText = attributedString
     

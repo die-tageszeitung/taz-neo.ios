@@ -318,6 +318,9 @@ class GqlArticle: Article, GQLObject {
   /// List of Images (photos)
   var imageList: [GqlImage]?
   var images: [ImageEntry]? { return imageList }
+  /// List of Icons
+  var iconList: [GqlImage]?
+  var icons: [ImageEntry]? { return iconList }
   /// List of authors
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
@@ -337,6 +340,7 @@ class GqlArticle: Article, GQLObject {
   contentId: id
   readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
+  iconList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
   """
   
@@ -351,6 +355,7 @@ class GqlArticle: Article, GQLObject {
   contentId: id
   readingDuration: readMinutes
   imageList { \(GqlImage.fields) }
+  iconList { \(GqlImage.fields) }
   authorList { \(GqlAuthor.fields) }
   """
 }
