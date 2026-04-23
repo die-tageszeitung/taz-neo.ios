@@ -153,7 +153,7 @@ extension PersistentFileEntry: PersistentObject {
       }
     }
   }
-  
+  var isGlobal: Bool { storageType == FileStorageType.global.rawValue  }
 }
 
 /// A stored FileEntry
@@ -599,6 +599,13 @@ public final class StoredPayload: StoredObject, Payload {
     }
     return fls
   }()
+
+  func updateGlobalFiles(subdir: String) {
+    for case let pfe as PersistentFileEntry in pr.files ?? [] {
+      guard pfe.isGlobal else { continue }
+      pfe.subdir = subdir
+    }
+  }
   
   public var files: [FileEntry] { return storedFiles }
   
@@ -621,6 +628,9 @@ public final class StoredPayload: StoredObject, Payload {
       let fe = StoredFileEntry.persist(object: f)
       fe.pr.order = order
       fe.pr.addToPayloads(pr)
+      ///Warning: this is maybe wrong for f.storageType == .global //!.issue
+      ///seen after bg zip download; problem in file delete
+      ///solved in StoredIssue.update(from issue..) with     storedPayload.updateGlobalFiles(subdir: globalsSubPath)
       fe.pr.subdir = subdir
       order += 1
       pr.addToFiles(fe.pr)
@@ -2184,8 +2194,13 @@ public final class StoredIssue: Issue, StoredObject {
         for p in opgs { p.delete() }
       }
     }
-    pr.payload = StoredPayload.persist(object: object.payload).pr
+    ///Warining in Persist the wrong subdir is set due Payload did not know the globals dir; solution @see below
+    let storedPayload = StoredPayload.persist(object: object.payload)
+    pr.payload = storedPayload.pr
     pr.payload?.issue = pr
+    let globalsPath = feed.feeder.globalDir.path
+    let globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
+    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
     if let p1 = StoredPage.pageOne(issue: self) {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1

@@ -302,6 +302,7 @@ extension BackgroundDownloadService {
       if issue.isComplete {
           storedIssue.isComplete = true // Needed if not persisted between fetch and download complete
           storedIssue.isOvwComplete = true
+          storedIssue.versionLocal = issue.versionRemote
           if storedIssue.payload.downloadStopped == nil {
             storedIssue.pr.payload?.downloadStopped = Date()
           }
@@ -332,6 +333,9 @@ fileprivate extension StoredIssue {
     let globalPath = self.feed.feeder.globalDir.path
     for file in self.files {
       let path = file.storageType == .global ? globalPath : issuePath
+      let subdir = file.storageType == .global
+      ? globalPath.lastPathComponents(3)
+      : issuePath.lastPathComponents(3)
       let f = File(dir: path, fname: file.name)
       guard f.exists else {
         debug("File \(file.name) not exist in \(path)")
@@ -341,6 +345,7 @@ fileprivate extension StoredIssue {
         debug("File \(file.name) size not equal")
         continue
       }
+      (file as? StoredFileEntry)?.pr.subdir = subdir
       ///exist & time is correct: perfect, do nothing
       if f.mTime == file.moTime { continue }
       //fix mTime

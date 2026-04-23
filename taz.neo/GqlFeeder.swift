@@ -1470,9 +1470,7 @@ open class GqlFeeder: Feeder, DoesLog {
             feedResponse.gqlFeeder = self
             for issue in feedResponse.issues ?? [] {
               issue.feed = feed
-              if isOverview {
-                (issue as? GqlIssue)?.isOverview = true
-              }
+              if isOverview { (issue as? GqlIssue)?.isOverview = true }
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages, withAudio: withAudio)
               if let sections = issue.sections as? [GqlSection] {
                 for section in sections {

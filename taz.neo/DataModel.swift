@@ -249,11 +249,19 @@ public extension ImageEntry {
         }
       case .global: dir
         = content?.primaryIssue?.feed.feeder.globalDir
+        ?? subdir
         ?? TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
       case .resource: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir
       case .unknown: break
     }
     return image(dir: dir)
+  }
+  ///PRIVATE! only work here
+  private var subdir: Dir? {
+    guard let sd = (self as? StoredFileEntry)?.subdir else { return nil }
+    let dir = Dir(dir: Database.appDir, fname: sd)
+    if dir.exists { return dir }
+    return nil
   }
 }
 
