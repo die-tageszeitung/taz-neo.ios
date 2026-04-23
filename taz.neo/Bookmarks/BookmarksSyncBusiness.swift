@@ -430,14 +430,12 @@ fileprivate extension GqlSingleArticle {
     
     ///add subdir info to StoredArticle files
     let subdir = String(issueDir.path.dropFirst(Database.appDir.count + 1))
+    #warning("WHAT HAPPEN WITH GLOBAL FILES HERE?")
     for case let f as StoredFileEntry in storedArticle.files {
       f.subdir = subdir
     }
-    
-    /* NOT ONLY:
-     (storedArticle.html as? StoredFileEntry)?.subdir
-     = String(targetDir.path.dropFirst(Database.appDir.count + 1))
-     */
+    #warning("WHAT HAPPEN WITH GLOBAL FILES HERE?")
+    (storedArticle.html as? StoredFileEntry)?.subdir = subdir
     return storedArticle
   }
 }
