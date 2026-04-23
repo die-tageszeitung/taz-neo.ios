@@ -28,8 +28,15 @@ extension BackgroundDownloadService {
     ///** Error Handling
     if let err = err {
       ///since now this only happend after server switch; in case of missing downloads maybe handle later
-      ///after server switch & 
+      ///after server switch &
+      ///happen also, if zip file is not available e.g. on older issues on testserver
       log("⚠️⚠️...Failed to Download for: \(downloadUrl)\n  with err: \(err)")
+      onMainAfter(4.0) {
+        Notification.send(Const.NotificationNames.checkForNewIssues,
+                          content: FetchNewStatusHeader.status.downloadError,
+                          error: nil,
+                          sender: TazAppEnvironment.sharedInstance.service)
+      }
       return
     }
     

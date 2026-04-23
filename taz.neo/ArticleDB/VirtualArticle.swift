@@ -35,6 +35,7 @@ public class VirtualArticle: Article {
   public var extendedAccessibilityTitle: String?
   
   public var images: [ImageEntry]?
+  public var icons: [ImageEntry]?
   
   public var audioItem: Audio?
   

@@ -921,6 +921,11 @@ extension PersistentContent: PersistentObject {
       img.removeFromImageContent(self)
       if (img.imageContent?.count ?? 0) == 0 { img.delete() }
     }
+    let iconsCopy = (self.icons as? Set<PersistentImageEntry>) ?? []
+    for img in iconsCopy {
+      img.removeFromIconContent(self)
+      if (img.imageContent?.count ?? 0) == 0 { img.delete() }
+    }
     if audioItem?.file?.name?.contains("bundestalk") == true {
       #warning("ToDo 1.6.0: Bundestalk is not deleted at the last reference, but  during a later cleanup-folders!")
       ///Maybe this is the better behavior for users who manually delete issues after read,
@@ -1100,6 +1105,14 @@ public final class StoredArticle: Article, StoredObject {
     }
   }
   
+  public var icons: [ImageEntry]? {
+      guard let icons = pr.icons else { return nil }
+      return icons.compactMap {
+          guard let persistent = $0 as? PersistentImageEntry else { return nil }
+          return StoredImageEntry(persistent: persistent)
+      }
+  }
+
   public var images: [ImageEntry]? { StoredImageEntry.imagesInArticle(article: self) }
   public var authors: [Author]? {
     return (pr.authors?.array as? [PersistentAuthor])?
@@ -1184,6 +1197,7 @@ public final class StoredArticle: Article, StoredObject {
     self.pageNames = object.pageNames
     self.teaser = object.teaser
     self.serverId = object.serverId
+    self.contentId = object.contentId
     self.readingDuration = object.readingDuration
     if let imgs = object.images {
       var order: Int32 = 0
@@ -1202,6 +1216,24 @@ public final class StoredArticle: Article, StoredObject {
       }
     }
     else { pr.images = nil }
+    ///Icons
+    if let _icons = object.icons {
+      var order: Int32 = 0
+      for ico in _icons {
+        let imageEntry = StoredImageEntry.persist(object: ico)
+        imageEntry.pr.addToImageContent(pr)
+        imageEntry.pr.order = order
+        pr.addToIcons(imageEntry.pr)
+        order += 1
+      }
+      // Remove unneeded images
+      for ico in icons as! [StoredImageEntry] {
+        if !_icons.contains(where: { $0.name == ico.name }) {
+          pr.removeFromImages(ico.pr)
+        }
+      }
+    }
+    else { pr.icons = nil }
     if let aus = object.authors {
       for au in aus {
         let sau = StoredAuthor.persist(object: au)
@@ -1652,6 +1684,7 @@ public final class StoredSection: Section, StoredObject {
     self.extendedTitle = object.extendedTitle
     self.type = object.type
     self.html = object.html
+    self.contentId = object.contentId
     self.audioItem = object.audioItem
     self.navButton = object.navButton
     if let imgs = object.images {

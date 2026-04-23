@@ -517,7 +517,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
         self?.updateBottomWrapper(for: 0, force: true)
       }
     }
-#warning("ToDo 1.6.0")//????
+    
     Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
       guard self?.isHomeTiles == false,
             let nData = notification.content as? IssueCellData,

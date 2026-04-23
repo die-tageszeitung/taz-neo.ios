@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24837" systemVersion="25E253" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24837" systemVersion="25E246" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="3">
     <entity name="Article" representedClassName="PersistentArticle" parentEntity="Content" versionHashModifier="added Index" syncable="YES" codeGenerationType="class">
         <attribute name="articleType" optional="YES" attributeType="String"/>
         <attribute name="bookmarkedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -50,6 +50,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="audioItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Audio" inverseName="content" inverseEntity="Audio"/>
         <relationship name="html" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="content" inverseEntity="FileEntry"/>
+        <relationship name="icons" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="iconContent" inverseEntity="ImageEntry"/>
         <relationship name="images" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ImageEntry" inverseName="imageContent" inverseEntity="ImageEntry"/>
     </entity>
     <entity name="Descriptor" representedClassName="PersistentDescriptor" syncable="YES" codeGenerationType="class">
@@ -129,6 +130,7 @@
         <attribute name="type" attributeType="String"/>
         <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Author" inverseName="photo" inverseEntity="Author"/>
         <relationship name="file" maxCount="1" deletionRule="Cascade" destinationEntity="FileEntry" inverseName="image" inverseEntity="FileEntry"/>
+        <relationship name="iconContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="icons" inverseEntity="Content"/>
         <relationship name="imageContent" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="images" inverseEntity="Content"/>
         <relationship name="moment" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="images" inverseEntity="Moment"/>
         <relationship name="momentCredit" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Moment" inverseName="creditedImages" inverseEntity="Moment"/>

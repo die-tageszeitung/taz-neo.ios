@@ -202,7 +202,7 @@ public protocol ImageEntry: FileEntry {
   var sharable: Bool { get }
 }
 
-public extension ImageEntry { 
+public extension ImageEntry {
   
   /// Returns the prefix of an image name, ie. the name without resolution
   /// and extension: media.nnn.high.jpg -> media.nnn
@@ -228,12 +228,24 @@ public extension ImageEntry {
     if let alpha = self.alpha { sAlpha = ", alpha=\(alpha)" }
     return "Image \(name) res \(resolution), type \(type) (\(storageType.toString()))\(sAlpha), \(size) bytes, \(UsTime(moTime).toString())\n  SHA256: \(sha256)"
   }
-}
 
-public extension ImageEntry {
   func image(dir: Dir?) -> UIImage? {
     guard let path = dir?.path else { return nil }
     return UIImage(contentsOfFile: "\(path)/\(name)") }
+  
+   
+  func image(content: Content?) -> UIImage? {
+    var dir: Dir?
+    switch storageType {
+      case .issue:  dir = content?.primaryIssue?.dir
+      case .global: dir
+        = content?.primaryIssue?.feed.feeder.globalDir
+        ?? TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
+      case .resource: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir
+      case .unknown: break
+    }
+    return image(dir: dir)
+  }
 }
 
 /**
@@ -425,6 +437,11 @@ public extension Content {
     if let imgs = images, imgs.count > 0 {
       for img in imgs { if img.resolution == .normal { ret += img } }
     }
+    if let art = self as? Article,
+       let icos = art.icons,
+        icos.count > 0 {
+      for ico in icos { if ico.resolution == .normal || ico.resolution == .high { ret += ico } }
+    }
     if let auths = authors, auths.count > 0 {
       for au in auths { if let p = au.photo { ret += p } }
     }
@@ -504,6 +521,7 @@ public enum ArticleType: String, CodableEnum {
   case cartoonLMd = "cartoonLMd" //LMd Comic
   case cartoonBremen = "cartoonBremen" //Kari Bremen
   case publisherHistory = "publisherHistory" //Verlag: Geschichte
+  case podcast = "podcast" //Podcast
   case unknown = "unknown"
 } // ArticleType
 
@@ -515,6 +533,8 @@ public protocol Article: Content, ToString {
   var teaser: String? { get }
   /// Link to online version
   var onlineLink: String? { get }
+  /// List of icons used in content
+  var icons: [ImageEntry]? { get }
   /// File storing content as printable pdf
   var pdf: FileEntry? { get }
   /// List of PDF page (-file) names containing this article
@@ -528,6 +548,20 @@ public protocol Article: Content, ToString {
 } // Article
 
 public extension Article {
+  
+  var largestIcon: ImageEntry? {
+    icons?.max { priority($0.resolution) < priority($1.resolution) }
+  }
+  
+  private func priority(_ res: ImageResolution) -> Int {
+    switch res {
+      case .high: return 3
+      case .unknown: return 2
+      case .normal: return 1
+      case .small: return 0
+    }
+  }
+        
   
   func toString() -> String { "\(hasBookmark ? "Bookmarked " : "")Article \((self as Content).toString()) artType: \(articleType?.toString() ?? "-")" }
   
@@ -828,8 +862,6 @@ public extension Moment {
   var highres: ImageEntry? { highest(images: images) }
 
   /// Image in lowest resolution
-  #warning("BUG? THE FOLLOWING LINE WAS HERE CHANGED!")
-//  var lowres: ImageEntry? { highest(images: images) }
   var lowres: ImageEntry? { lowest(images: images) }
   
   /// Credited image in highest resolution
