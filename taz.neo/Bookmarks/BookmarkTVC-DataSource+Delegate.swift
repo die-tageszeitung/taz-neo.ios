@@ -60,16 +60,7 @@ extension BookmarkTVC: UITableViewDataSource {
     cell.onShare { [weak self] (art, sourceView) in
       self?.shareArticle(article: art, sourceView: sourceView)
     }
-    
-    
-    if let issue = article.primaryIssue {
-      cell.image = cell.article?.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
-    }
-    else if let issueDate = article.issueDate,
-            let dir = Bookmarks.shared.commonIssueDir(for: issueDate) {
-      cell.image = cell.article?.images?.first?.image(dir: dir)?.invertedIfNeeded
-    }
-    
+    cell.image = cell.article?.cellIconImage
     let sectionKey = sortedSectionKeys[indexPath.section]
     cell.dottedLine.isHidden = groupedArticles[sectionKey]?.count == indexPath.row
     return cell

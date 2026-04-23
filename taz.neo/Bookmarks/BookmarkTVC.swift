@@ -413,12 +413,8 @@ extension BookmarkTVC {
   
   func shareArticle(article: Article, sourceView: UIView){
     guard articleVC != nil else { return }
-    var artImage: UIImage?
-    if let issue = article.primaryIssue {
-      artImage = article.images?.first?.image(dir: issue.dir)?.invertedIfNeeded
-    }
     ArticleExportDialogue.show(article: article,
-                               image: artImage,
+                               image: article.cellIconImage,
                                sourceView: sourceView)
   }
   

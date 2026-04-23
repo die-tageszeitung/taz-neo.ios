@@ -433,21 +433,13 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     = tableView.dequeueReusableCell(withIdentifier: NewContentTableVcCell.ReuseIdentifier,
                                     for: indexPath) as? NewContentTableVcCell
     ?? NewContentTableVcCell()
-    let art = issue?.sections?.valueAt(indexPath.section)?
+    cell.article = issue?.sections?.valueAt(indexPath.section)?
       .articles?.valueAt(indexPath.row)
-    cell.article = art
-    if let imgEntry = art?.largestIcon,
-       let img = imgEntry.image(content: art) {
-      cell.image = img.invertedIfNeeded
-    } else if let imgEntry = art?.images?.first,
-              let img = imgEntry.image(content: art) {
-      cell.image = img.invertedIfNeeded
-    }
+    cell.image = cell.article?.cellIconImage
     cell.active = indexPath == activeItem
     return cell
   }
 }
-
 
 fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   func applyStyles() {
@@ -879,13 +871,6 @@ class ContentTableHeaderFooterView: TazHeaderFooterView{
 
 
 extension UIImage {
-  
-  var invertedIfNeeded: UIImage {
-    if self.size.width > 200 || self.size.height > 200 { return self }
-    if !Defaults.darkMode { return self }
-    return inverted
-  }
-  
   var inverted: UIImage {
     guard let cgImage = cgImage else { return self }
     let ciSourceImage = CIImage(cgImage: cgImage)

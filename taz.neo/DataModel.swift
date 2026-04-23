@@ -237,7 +237,16 @@ public extension ImageEntry {
   func image(content: Content?) -> UIImage? {
     var dir: Dir?
     switch storageType {
-      case .issue:  dir = content?.primaryIssue?.dir
+      case .issue:
+        if let issue = content?.primaryIssue {
+          dir = issue.dir
+        }
+        else if let issueDate = (content as? SearchArticle)?.originalIssueDate ?? content?.issueDate,
+                let feederContext = TazAppEnvironment.sharedInstance.feederContext,
+                let feed = feederContext.defaultFeed,
+                let feeder = feederContext.storedFeeder {
+          dir = feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
+        }
       case .global: dir
         = content?.primaryIssue?.feed.feeder.globalDir
         ?? TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
@@ -561,6 +570,17 @@ public protocol Article: Content, ToString {
 } // Article
 
 public extension Article {
+  
+  var cellIconImage: UIImage? {
+    if let imgEntry = largestIcon,
+       let img = imgEntry.image(content: self) {
+      return img
+    } else if let imgEntry = images?.first,
+              let img = imgEntry.image(content: self) {
+      return img
+    }
+    return nil
+  }
   
   var largestIcon: ImageEntry? {
     icons?.max { priority($0.resolution) < priority($1.resolution) }
