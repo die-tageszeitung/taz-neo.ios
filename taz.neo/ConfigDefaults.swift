@@ -34,8 +34,6 @@ private let configValues = [
   "colorMode" : "light",
   // Carousel scroll from left to right
   "carouselScrollFromLeft" : "false",
-  // Automtically download new issues
-  "autoDownload" : "true",
   // Allow automatic download over mobile networks
   "autoMobileDownloads" : "false",
   // Use facsimile mode if available
@@ -71,6 +69,7 @@ private let configValues = [
   "autoloadPdf" : "false",
   "autoloadPdfRequested" : "false",///indicates if user was asked to autoload pdf after access pdf and only "app ansicht" is already loaded
   "autoloadAudio" : "false",
+  // Automtically download new issues
   "autoloadNewIssues" : "true",
   "useTestServer" : "false",
   /**===LastReadBusiness====**/

@@ -1205,7 +1205,9 @@ public final class StoredArticle: Article, StoredObject {
         let imageEntry = StoredImageEntry.persist(object: img)
         imageEntry.pr.addToImageContent(pr)
         imageEntry.pr.order = order
-        pr.addToImages(imageEntry.pr)
+        /// duplicate of: imageEntry.pr.addToImageContent(pr)
+        /// only set one relation is required the other will be established automatically
+        /// pr.addToImages(imageEntry.pr)
         order += 1
       }
       // Remove unneeded images
@@ -1220,10 +1222,9 @@ public final class StoredArticle: Article, StoredObject {
     if let _icons = object.icons {
       var order: Int32 = 0
       for ico in _icons {
-        let imageEntry = StoredImageEntry.persist(object: ico)
-        imageEntry.pr.addToImageContent(pr)
-        imageEntry.pr.order = order
-        pr.addToIcons(imageEntry.pr)
+        let icoEntry = StoredImageEntry.persist(object: ico)
+        icoEntry.pr.addToIconContent(pr)
+        icoEntry.pr.order = order
         order += 1
       }
       // Remove unneeded images

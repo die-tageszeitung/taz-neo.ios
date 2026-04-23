@@ -436,8 +436,13 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
     let art = issue?.sections?.valueAt(indexPath.section)?
       .articles?.valueAt(indexPath.row)
     cell.article = art
-    let img = art?.largestIcon ?? art?.images?.first
-    cell.image = img?.image(content: art)?.invertedIfNeeded
+    if let imgEntry = art?.largestIcon,
+       let img = imgEntry.image(content: art) {
+      cell.image = img.invertedIfNeeded
+    } else if let imgEntry = art?.images?.first,
+              let img = imgEntry.image(content: art) {
+      cell.image = img.invertedIfNeeded
+    }
     cell.active = indexPath == activeItem
     return cell
   }

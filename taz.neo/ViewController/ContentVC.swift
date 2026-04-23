@@ -25,7 +25,8 @@ public class ContentUrl: WebViewUrl, DoesLog {
       guard !_isAvailable else { return true }
       if content.html == nil { return false }
       let path = content.dir.path
-      for f in content.files {
+      ///contentFiles no more files! to show article even if icons missing, icons needed in menu
+      for f in content.contentFiles {
         if !f.fileNameExists(inDir: path) {
           self.loadClosure(self)
           return false

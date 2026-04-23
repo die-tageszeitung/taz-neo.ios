@@ -448,6 +448,19 @@ public extension Content {
     return ret
   }
   
+  /// All files incl. normal res photos, without icons! to show article if icon missing
+  var contentFiles: [FileEntry] {
+    guard let html = html else { return [] }
+    var ret: [FileEntry] = [html]
+    if let imgs = images, imgs.count > 0 {
+      for img in imgs { if img.resolution == .normal { ret += img } }
+    }
+    if let auths = authors, auths.count > 0 {
+      for au in auths { if let p = au.photo { ret += p } }
+    }
+    return ret
+  }
+  
   /// Section files plus all Article files in this section
   var audioFiles: [FileEntry] {
     if let audioFile =  audioItem?.file {
