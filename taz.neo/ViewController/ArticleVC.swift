@@ -434,8 +434,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
-    setupSlider()
+    if !issue.isBookmarkIssue {
+      slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
+      setupSlider()
+    }
   }
   
 } // ArticleVC
