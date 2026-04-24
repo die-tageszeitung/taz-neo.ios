@@ -103,7 +103,7 @@ extension HomeVC {
   private func _openIssue(_ issue: StoredIssue, openLast: Bool = false, forceOpen: Bool) {
     let skipDownload = forceOpen && issue.versionLocal < issue.versionRemote && issue.isComplete
     debug("issue: \(issue.date.short) server: \(issue.versionRemote) localVersion: \(issue.versionLocal)")
-    if !forceOpen && issue.versionLocal < issue.versionRemote {
+    if !forceOpen && issue.isComplete && issue.versionLocal < issue.versionRemote {
       ///try silent update
       ///in case of download errors show popup to request network connection to update or read outdated version
       Notification.receive("issue"){[weak self] notif in
