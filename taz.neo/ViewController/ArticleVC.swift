@@ -366,11 +366,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
     
     /// Set Content Table if needed
-    /// if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
-    /// else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
-    ///
-    /// **exchange  Content Table from SectionVC**
-    if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
+    if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
+    else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
+    else if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
+      /// **exchange  Content Table from SectionVC**
       self.slider?.exchangeSliderContent(from: sectionSlider)
     }
     super.viewWillAppear(animated)
@@ -434,7 +433,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    if !issue.isBookmarkIssue {
+    if self is ArticleVcWithPdfInSlider || issue.isBookmarkIssue {
+      /*NO CONTENT TABLE*/
+    }
+    else {
       slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
       setupSlider()
     }
