@@ -67,18 +67,23 @@ extension Defaults{
     }
     
     @discardableResult
-    static func increase() -> Int { if articleTextSize < 200 { articleTextSize += 10 }
+    static func increase() -> Int {
+      let isIpad = Device.isIpad
+      guard articleTextSize < (isIpad ? 400 : 250) else { return articleTextSize }
+      articleTextSize += articleTextSize < 200 ? 10 : articleTextSize < 250 ? 25 : 50
       return articleTextSize
     }
     
     @discardableResult
-    static func decrease() -> Int { if articleTextSize > 50 { articleTextSize -= 10 }
+    static func decrease() -> Int {
+      guard articleTextSize > 50 else { return articleTextSize }
+      articleTextSize -= articleTextSize <= 200 ? 10 : articleTextSize <= 250 ? 25 : 50
       return articleTextSize
     }
     
     @discardableResult
     static func set(_ newValue: Int? = 100) -> Int {
-      if let val = newValue, 30 < val, val < 200 { articleTextSize = val }
+      if let val = newValue, 30 < val, val < (Device.isIpad ? 400 : 250) { articleTextSize = val }
       return articleTextSize
     }
   }

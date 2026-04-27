@@ -109,11 +109,11 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     textSettings.textSize = articleTextSize
     textSettings.smallAButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize > 50 { self.setSize(self.articleTextSize-10) }
+      self.setSize(Defaults.articleTextSize.decrease())
     }
     textSettings.largeAButton.onPress { [weak self] _ in
       guard let self = self else { return }
-      if self.articleTextSize < 200 { self.setSize(self.articleTextSize+10) }
+      self.setSize(Defaults.articleTextSize.increase())
     }
     textSettings.fontScaleButton.onPress { [weak self] _ in
       guard let self = self else { return }
