@@ -345,7 +345,8 @@ fileprivate extension StoredIssue {
         debug("File \(file.name) size not equal")
         continue
       }
-      (file as? StoredFileEntry)?.pr.subdir = subdir
+      log("not set \(subdir) currently")
+//      (file as? StoredFileEntry)?.pr.subdir = subdir
       ///exist & time is correct: perfect, do nothing
       if f.mTime == file.moTime { continue }
       //fix mTime

@@ -630,7 +630,7 @@ public final class StoredPayload: StoredObject, Payload {
       fe.pr.addToPayloads(pr)
       ///Warning: this is maybe wrong for f.storageType == .global //!.issue
       ///seen after bg zip download; problem in file delete
-      ///solved in StoredIssue.update(from issue..) with     storedPayload.updateGlobalFiles(subdir: globalsSubPath)
+      ///solved in StoredIssue.update(from issue..) with storedPayload.updateGlobalFiles(subdir: globalsSubPath)
       fe.pr.subdir = subdir
       order += 1
       pr.addToFiles(fe.pr)
@@ -2201,7 +2201,7 @@ public final class StoredIssue: Issue, StoredObject {
     let globalsPath = feed.feeder.globalDir.path
     var globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
     globalsSubPath = globalsSubPath.hasSuffix("/") ? String(globalsSubPath.dropLast()) : globalsSubPath
-//    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
+    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
     if let p1 = StoredPage.pageOne(issue: self) {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
