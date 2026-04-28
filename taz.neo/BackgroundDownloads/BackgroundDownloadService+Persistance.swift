@@ -329,24 +329,30 @@ fileprivate extension StoredIssue {
   ///fix moTime for issue
   ///downloaded and extracted file have different moTime then the one in the database
   func fixMoTime() {
-    let issuePath = self.dir.path
-    let globalPath = self.feed.feeder.globalDir.path
+    let appPath = Database.appDir /// appDir is appPath!
+    let issueRelPath = self.dir.path.replacingOccurrences(of: appPath, with: "")
+    let globalRelPath = self.feed.feeder.globalDir.path.replacingOccurrences(of: appPath, with: "")
+    let resourcesRelPath = self.feed.feeder.resourcesDir.path.replacingOccurrences(of: appPath, with: "")
+    log("path:\n \(issueRelPath)\n \(globalRelPath)\n \(resourcesRelPath)")
     for file in self.files {
-      let path = file.storageType == .global ? globalPath : issuePath
-      let subdir = file.storageType == .global
-      ? globalPath.lastPathComponents(3)
-      : issuePath.lastPathComponents(3)
-      let f = File(dir: path, fname: file.name)
+      let relPath: String = {
+        switch file.storageType {
+          case .global: return globalRelPath
+          case .resource: return resourcesRelPath
+          case .unknown: fallthrough
+          case .issue: return issueRelPath
+        }
+      }()
+      let f = File(dir: (appPath + relPath), fname: file.name)
       guard f.exists else {
-        debug("File \(file.name) not exist in \(path)")
+        debug("File \(file.name) not exist in \(relPath)")
         continue
       }
       guard f.size == file.size else {
         debug("File \(file.name) size not equal")
         continue
       }
-      log("not set \(subdir) currently")
-//      (file as? StoredFileEntry)?.pr.subdir = subdir
+      (file as? StoredFileEntry)?.pr.subdir = relPath
       ///exist & time is correct: perfect, do nothing
       if f.mTime == file.moTime { continue }
       //fix mTime
