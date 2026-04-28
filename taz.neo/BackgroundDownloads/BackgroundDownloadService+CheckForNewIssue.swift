@@ -39,7 +39,11 @@ extension BackgroundDownloadService {
       checkForNewIssue(isPush: false, isBackground: false){ res in
         BackgroundDownloadService.shared.log("app FG DL Called from: \(caller)")
         Self.shared.log("...publication dates changed, autodownload status: \(res.message)")
-        if res == .newData {  shared.notifyHome(.loadIssue) }
+        guard res == .newData else { return }
+        let failedDownloadNoWlan
+        = Self.shared.autoloadOnlyInWLAN
+        && TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true
+        shared.notifyHome(failedDownloadNoWlan ? .autoloadErrorNoWlan : .loadIssue)
       }
     }
   }
