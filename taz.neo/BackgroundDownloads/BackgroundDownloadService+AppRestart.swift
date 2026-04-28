@@ -43,10 +43,14 @@ extension BackgroundDownloadService {
       
       ///local var for reuse
       let downloadDateKeys = downloadDateKeys
+
+      let skipDownloadNoWlan
+      = autoloadOnlyInWLAN
+      && TazAppEnvironment.sharedInstance.feederContext?.netAvailability.isMobile == true
       
-      log("BDL: restore Download Data from UserDefaults for: \(downloadDateKeys.count) issue dates and resume all download Tasks")
+      log("BDL: restore Download Data from UserDefaults for: \(downloadDateKeys.count) issue dates and resume all download Tasks skipDownloadNoWlan: \(skipDownloadNoWlan)")
       for issueDateKey in downloadDateKeys { //only issue downloads here
-        notifyHome(.loadIssue)
+        notifyHome(skipDownloadNoWlan ? .autoloadErrorNoWlan : .loadIssue)
         do {
           let feed = try await loadFeedFromJsonFile(feederContext: feederContext,
                                                     feedName: feederContext.defaultFeed.name,
@@ -87,8 +91,9 @@ extension BackgroundDownloadService {
         }
       }
       let openDl = backgroundSession.hasOpenDownloads ///issue, audio and resources downloads
-      notifyHome(openDl ? .loadIssue : feederContext.isConnected ? .online : .offline)
       handlePendingTasks()
+      if skipDownloadNoWlan { return }
+      notifyHome(openDl ? .loadIssue : feederContext.isConnected ? .online : .offline)
       if openDl { backgroundSession.resume(archived: true, priority: 1.0)}
     }
   }
