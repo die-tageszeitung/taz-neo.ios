@@ -2201,7 +2201,7 @@ public final class StoredIssue: Issue, StoredObject {
     let globalsPath = feed.feeder.globalDir.path
     var globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
     globalsSubPath = globalsSubPath.hasSuffix("/") ? String(globalsSubPath.dropLast()) : globalsSubPath
-    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
+//    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
     if let p1 = StoredPage.pageOne(issue: self) {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
