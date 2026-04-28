@@ -321,18 +321,23 @@ extension BackgroundDownloadService {
       
       return storedIssue
   }
-  
 }
 
 fileprivate extension StoredIssue {
+  
+  private func prepareRelativePath(_ orgPath: String, removePart: String) -> String {
+    let path = orgPath.replacingOccurrences(of: removePart, with: "")
+    if path.hasPrefix("/") { return String(path.dropFirst()) }
+    return path
+  }
   
   ///fix moTime for issue
   ///downloaded and extracted file have different moTime then the one in the database
   func fixMoTime() {
     let appPath = Database.appDir /// appDir is appPath!
-    let issueRelPath = self.dir.path.replacingOccurrences(of: appPath, with: "")
-    let globalRelPath = self.feed.feeder.globalDir.path.replacingOccurrences(of: appPath, with: "")
-    let resourcesRelPath = self.feed.feeder.resourcesDir.path.replacingOccurrences(of: appPath, with: "")
+    let issueRelPath = prepareRelativePath(self.dir.path, removePart: appPath)
+    let globalRelPath = prepareRelativePath(self.feed.feeder.globalDir.path, removePart: appPath)
+    let resourcesRelPath = prepareRelativePath(self.feed.feeder.resourcesDir.path, removePart: appPath)
     log("path:\n \(issueRelPath)\n \(globalRelPath)\n \(resourcesRelPath)")
     for file in self.files {
       let relPath: String = {
