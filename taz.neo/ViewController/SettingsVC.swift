@@ -530,11 +530,18 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   })
     
   lazy var deleteSearchResultsFolder: XSettingsCell
-  = XSettingsCell(text: "Lösche Search Results Folder",
+  = XSettingsCell(text: "Lösche Verzeichnisse mit Symlinks",
                   detailText: "ALPHA-App!",
                   isDestructive: true,
                   tapHandler: {[weak self] in
     Dir.searchResults.remove()
+    Dir.tomsDir.remove()
+    guard let fc = TazAppEnvironment.sharedInstance.feederContext,
+          let feed = fc.defaultFeed else { return }
+    let feedDir = fc.storedFeeder.feedDir(feed.name)
+    self?.log("remove: \(feedDir.path)")
+    feedDir.remove()
+    
   })
   
   lazy var contentChangeSettingCellALPHA: XSettingsCell
