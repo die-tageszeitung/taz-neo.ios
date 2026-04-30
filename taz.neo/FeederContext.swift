@@ -150,6 +150,10 @@ open class FeederContext: DoesLog {
   @Default("simulateFailedMinVersion")
   var simulateFailedMinVersion: Bool
   
+  ///Do Not add to ConfigDefaults!
+  @Default("migrationToIssueLastContent")
+  var migrationToIssueLastContent: Bool
+  
   @Default("simulateNewVersion")
   var simulateNewVersion: Bool
   
@@ -414,6 +418,30 @@ open class FeederContext: DoesLog {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
       self?.initFeeder()
+      self?.handleSoftDataUpdatesIfNeeded()
+    }
+  }
+  
+  private func handleSoftDataUpdatesIfNeeded(){
+    /// After Update from old Version migrate everey existing old index to new
+    /// for new installations do this also, but there are no issues so trivial & fast exit
+    if migrationToIssueLastContent == false {
+      log("migrate to last content")
+      var needDBsave = false
+      for issue in StoredIssue.issuesInFeed(feed: defaultFeed) {
+        guard issue.lastContent == nil else { continue }
+        if let i = issue.lastArticle, let art = issue.allArticles.valueAt(i) {
+          issue.lastContent = art
+          needDBsave = true
+        }
+        else if let i = issue.lastSection, let sect = issue.sections?.valueAt(i) {
+          issue.lastContent = sect
+          needDBsave = true
+        }
+      }
+      if needDBsave { ArticleDB.save() }
+      migrationToIssueLastContent = true//Stored in UserDefaults
+      log("migrate to last content, done. Changes: \(needDBsave)")
     }
   }
   
