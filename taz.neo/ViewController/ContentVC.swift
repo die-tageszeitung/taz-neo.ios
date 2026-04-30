@@ -1142,11 +1142,11 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return }
       let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
       let newCoverage = self.bottomSheetDefaultCoverage
+      self.currentWebView?.suppressLinkPressedNotification = false
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
       ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
       self.slider?.applyImage(open: self.slider?.isOpen ?? false)
-      currentWebView?.suppressLinkPressedNotification = false
     }
   }
   
