@@ -1169,21 +1169,22 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     self.accessibilityElements = accessibilityViews
   }
   
-  override public func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(animated)
-    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
-      //cannot use updateLayout due strange side effects
-      if let sidx = svc.index {
-        svc.collectionView.isHidden = true
-        svc.collectionView.doLayout()
-        svc.collectionView.collectionViewLayout.invalidateLayout()
-        onMainAfter {
-          svc.index = sidx
-          svc.collectionView.showAnimated(duration: 0.1)
-        }
-      }
-    }
-  }
+  #warning("IS THIS NEEDED ANYMORE? REMOVED FOR 1.7.0 Release")
+//  override public func viewWillDisappear(_ animated: Bool) {
+//    super.viewWillDisappear(animated)
+//    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
+//      //cannot use updateLayout due strange side effects
+//      if let sidx = svc.index {
+//        svc.collectionView.isHidden = true
+//        svc.collectionView.doLayout()
+//        svc.collectionView.collectionViewLayout.invalidateLayout()
+//        onMainAfter {
+//          //svc.index = sidx//1.7.0 Change DO NOT SET INDEX HERE OTHERWISE Article Header set Index is overwritten!!
+//          svc.collectionView.showAnimated(duration: 0.1)
+//        }
+//      }
+//    }
+//  }
   
   open override func needsReload(webView: WebView) -> Bool {
     return reloadLoaded || webView.waitingView != nil
