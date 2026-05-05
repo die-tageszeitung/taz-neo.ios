@@ -32,7 +32,9 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   // MARK: - Properties: UI Components
   private var _articleVC: ArticleVC? {
-    didSet { if oldValue != nil { oldValue?.releaseOnDisappear() }}
+    didSet { if oldValue != nil {
+//      oldValue?.releaseOnDisappear()
+    }}
   }
   private var articleVC: ArticleVC? {
     if _articleVC == nil,
@@ -430,7 +432,7 @@ extension BookmarkTVC {
       Toast.show("<b>Hinweis:</b> Dieser Eintrag scheint beschädigt zu sein.<br>Bitte löschen Sie ihn und fügen Sie ihn bei Bedarf erneut hinzu.")
     }
     guard let avc = articleVC else { return }
-    avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
+//    avc.index = avc.articles.firstIndex { $0.serverId == article.serverId } ?? 0
     avc.view.doLayout()
     self.navigationController?.pushViewController(avc, animated: true)
   }
@@ -442,7 +444,7 @@ extension BookmarkTVC {
       ///ensure Tabledata is refreshed earlier
       onMainAfter(0.2) {[weak self] in
         guard let avc = self?.articleVC else { return }
-        avc.index = avc.articles.firstIndex { $0.serverId == serverId } ?? 0
+//        avc.index = avc.articles.firstIndex { $0.serverId == serverId } ?? 0
         self?.navigationController?.pushViewController(avc, animated: true)
       }
     }
@@ -496,10 +498,10 @@ extension BookmarkTVC {
     ///do not set compleete array new, this did not add/remove articles if in artVC e.g. when unbookmark and revert e.g.:
     /// articleVC?.articles = (Bookmarks.shared.bookmarkIssue?.allArticles as? [StoredArticle])?.bmSorted() ?? []
     if article.hasBookmark {
-      articleVC?.insert(article: article)
+//      articleVC?.insert(article: article)
     }
     else {
-      articleVC?.delete(article: article)
+//      articleVC?.delete(article: article)
     }
     
     if articleVC?.articles.count == 0 {
@@ -589,7 +591,7 @@ extension BookmarkTVC: ReloadAfterAuthChanged {
     
     if let artVc = self.navigationController?.viewControllers.last as? ArticleVC {
       artVc.navigationController?.popToRootViewController(animated: false)
-      reloadArtIndex = artVc.index
+//      reloadArtIndex = artVc.index
     }
     
     _articleVC = nil///ensure re-init; set articles, content and updateWebwiews() did not worked
@@ -605,7 +607,7 @@ extension BookmarkTVC: ReloadAfterAuthChanged {
       }
       guard let avc = self?.articleVC else { return }
       ///handle exchange event comes in while on articleVC, not in list
-      avc.index = reloadArtIndex
+//      avc.index = reloadArtIndex
       self?.navigationController?.pushViewController(avc, animated: true)
     }
     Bookmarks.shared.loadFullArticlesIfNeeded()

@@ -277,7 +277,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     if let avc = top as? ArticleVC,
       to.isFileURL,
       issue.article2sectionHtml[fn] != nil {
-      avc.gotoUrl(url:to)
+//      avc.gotoUrl(url:to)
     }
     else {
       self.debug("Calling application for: \(to.absoluteString)")
@@ -489,7 +489,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       log("article file \(name) did not exist in \(path.lastPathComponent)")
       return
     }
-    articleVC.gotoUrl(path: path, file: name)
+//    articleVC.gotoUrl(path: path, file: name)
     #if LMD
     articleSliderContentController.header.imageView.onTapping{[weak self] _ in
       self?.childArticleVC?.slider?.close()
@@ -1126,7 +1126,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewDidDisappear(animated)
     if self.parentViewController != nil { return }
     slider?.hideContentAnimated()
-    self.releaseOnDisappear()
+//    self.releaseOnDisappear()
     #if LMD
     (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
     #endif
@@ -1179,13 +1179,13 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     }
   }
   
-  override func releaseOnDisappear() {
-    super.releaseOnDisappear()
-    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
-    sliderContent = nil
-    slider?.cleanup()
-    slider = nil
-  }
+//  override func releaseOnDisappear() {
+//    super.releaseOnDisappear()
+//    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
+//    sliderContent = nil
+//    slider?.cleanup()
+//    slider = nil
+//  }
   
   public init(feederContext: FeederContext, sliderContent:UIViewController) {
     self.sliderContent = sliderContent

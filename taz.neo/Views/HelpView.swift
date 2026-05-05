@@ -109,7 +109,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   }
   
   var currentCoachmarkView: HelpViewCell? {
-    let idx = collectionView.currentIndex
+    let idx = collectionView.lastIndex
     guard let cv = (collectionView.view(at: idx) as? HelpViewCell) else { return nil }
     return cv
   }
@@ -261,13 +261,13 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
   
   // MARK: - Navigation
   private func goToPrevious() {
-    let idx = collectionView.currentIndex
+    let idx = collectionView.lastIndex ?? 0
     guard idx > 0 else { return }
     collectionView.scrollToIndex(idx - 1, animated: true)
   }
   
   private func goToNextOrClose() {
-    let idx = collectionView.currentIndex
+    let idx = collectionView.lastIndex ?? 0
     if idx < items.count - 1 {
       collectionView.scrollToIndex(idx + 1, animated: true)
     }

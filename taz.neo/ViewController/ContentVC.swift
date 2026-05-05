@@ -108,7 +108,7 @@ extension String {
   }
 }
 
-open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
+open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   
   @Default("multiColumnSnap")
   public var multiColumnSnap: Bool
@@ -207,11 +207,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   private var textSettingsClosure: ((ContentVC)->())?
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
-  private var imageOverlay: Overlay? {
-    didSet {
-      currentWebView?.suppressLinkPressedNotification = imageOverlay != nil
-    }
-  }
+  private var imageOverlay: Overlay?
+//  {
+//    didSet {
+////      currentWebView?.suppressLinkPressedNotification = imageOverlay != nil
+//    }
+//  }
   
   var isImageOverlay:Bool{
     return imageOverlay != nil
@@ -242,7 +243,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func cleanup(){
-    releaseWebviews()
+//    releaseWebviews()
     settingsBottomSheet = nil
     mcoBottomSheet = nil
     slider = nil
@@ -325,7 +326,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   var multiColumnCss : String {
     let css = getMultiColumnCss()
     isMultiColumnMode = css != nil
-    self.collectionView.showsHorizontalScrollIndicator = false
+//    self.collectionView.showsHorizontalScrollIndicator = false
     return css ?? singleColumnCss
   }
   
@@ -519,7 +520,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
-        let current = self.contents[self.index!]
+        let current = self.contents[self.index]
         let imgVC = ContentImageVC(content: current,
                                    delegate: self,
                                    imageTapped: img,
@@ -561,7 +562,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         let issueDate = self?.issue.date.ISO8601 ?? "-"
         let sectionTitle
         = self?.header.title
-        ?? self?.contents.valueAt(self?.index ?? -1)?.title
+        ?? self?.contents.valueAt(self?.index ?? 0)?.title
         ?? "-"
         Usage.track(Usage.event.advertisement.sectionAdShown
                    , name: "\(issueDate)/\(sectionTitle)/\(adIdentifier)")
@@ -640,7 +641,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       return NSNull()
     }
     self.bridge?.addfunc("gotoStart") { [weak self] _ in
-      self?.index = 0
+      self?.scrollTo(index: 0)
       Toast.show("Das ist der Anfang!")
       return NSNull()
     }
@@ -928,16 +929,18 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     contents.insert(content, at: idx)
-    urls.insert(curl, at: idx)
-    collectionView.insert(at: idx)
+    pager.urls.insert(curl, at: idx)
+#warning("ToDo: haldle insert")
+//    collectionView.insert(at: idx)
   }
   
   /// Delete content at index
   public func deleteContent(at idx: Int) {
     if idx < contents.count { 
       contents.remove(at: idx)
-      urls.remove(at: idx)
-      collectionView.delete(at: idx)
+      pager.urls.remove(at: idx)
+#warning("ToDo: haldle delete")
+//      collectionView.delete(at: idx)
     }
   }
   
@@ -977,7 +980,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
         }
       }
     }
-    self.urls = curls
+    self.pager.urls = curls
   }
   override public var addtionalBarHeight: CGFloat{
     header.frame.size.height + toolBar.frame.size.height
@@ -987,7 +990,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     CGFloat(Defaults.articleTextSize.articleTextSize/100*Int(Const.Size.DefaultFontSize*1.6))
   }
   
-  // MARK: - viewDidLoad
+//  // MARK: - viewDidLoad
   override public func viewDidLoad() {
     super.viewDidLoad()
     writeTazApiCss()
@@ -1045,8 +1048,6 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
       self?.persistReadProgress()
       ArticleDB.save()
     }
-    
-    displayUrls()
     registerForStyleUpdates()
   }
   
@@ -1094,9 +1095,8 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
     settingsBottomSheet?.xButton.tazX()
-    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-    self.indicatorStyle = Defaults.darkMode ?  .white : .black
+    self.scrollView.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
     slider?.button.shadow()
     updateWebwiews()
@@ -1135,14 +1135,12 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     if self.view.frame.size != size {
       sizeChanged = true
     }
-    currentWebView?.suppressLinkPressedNotification = true
     updateSliderWidth(newParentWidth: size.width)
     settingsBottomSheet?.updateMaxWidth(for: size.width)
     onMain(after: 0.7) {[weak self] in
       guard let self = self else { return }
       let oldCoverage = self.settingsBottomSheet?.coverage ?? 0
       let newCoverage = self.bottomSheetDefaultCoverage
-      self.currentWebView?.suppressLinkPressedNotification = false
       if abs(oldCoverage - newCoverage) < 2 { return }//no rotate
       ///**Tip** If there are update with issues, look in git history former the menu was closed and re-opened to fix this
       self.settingsBottomSheet?.coverage =  newCoverage
@@ -1164,9 +1162,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
+//    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-    self.accessibilityElements = accessibilityViews
+//    self.accessibilityElements = accessibilityViews
   }
   
   #warning("IS THIS NEEDED ANYMORE? REMOVED FOR 1.7.0 Release")
@@ -1186,9 +1184,9 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
 //    }
 //  }
   
-  open override func needsReload(webView: WebView) -> Bool {
-    return reloadLoaded || webView.waitingView != nil
-  }
+//  open override func needsReload(webView: WebView) -> Bool {
+//    return reloadLoaded || webView.waitingView != nil
+//  }
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -1205,7 +1203,7 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
   public func setup(contents: [Content], isLargeHeader: Bool) {
     setContents(contents)
     self.isLargeHeader = isLargeHeader
-    self.baseDir = feeder.baseDir.path
+    self.pager.baseDir = feeder.baseDir.path
     onBack { [weak self] _ in
       self?.debug("*** Action: <Back> pressed")
       self?.navigationController?.popViewController(animated: true)
@@ -1220,13 +1218,13 @@ open class ContentVC: WebViewCollectionVC, IssueInfo, UIStyleChangeDelegate {
     }
     
     issueObserver = Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-      self?.reloadAllWebViews()
+//      self?.reloadAllWebViews()
     }
   }
  
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    super.init()
+    super.init(urls: [], baseDir: nil)
     hidesBottomBarWhenPushed = true
   }  
    
@@ -1253,51 +1251,51 @@ extension ContentVC {
   @objc var nextItemAccessibilityLabel: String? { return nil }
   @objc var prevItemAccessibilityLabel: String? { return nil }
   
-  @objc override public var accessibilityViews: [UIView] {
-    var elements: [UIView] = [] ///NOT: super.accessibilityViews, different Order here!
-    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
-      elements = [imgVC.view, imgVC.xButton]
-      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-    }
-    else if slider?.isOpen == true {
-      let contentTable
-      = (self as? SectionVC)?.contentTable
-      ?? ((self as? ArticleVC)?.adelegate as? SectionVC)?.contentTable
-      elements.appendIfPresent(slider?.button)
-      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-      elements.appendIfPresent(contentTable?.headerListenLabel)
-      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elements.appendIfPresent(contentTable?.headerCollapseIcon)
-      elements.appendIfPresent(contentTable?.tableView)
-    } else {
-      elements.append(header)
-      elements.appendIfPresent(slider?.button)
-      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-      ///Only append next/prev Buttons id label is set
-      leftTapEnEdgeButton.accessibilityLabel = prevItemAccessibilityLabel
-      if leftTapEnEdgeButton.accessibilityLabel != nil {
-        elements.append(leftTapEnEdgeButton)
-      }
-      rightTapEnEdgeButton.accessibilityLabel = nextItemAccessibilityLabel
-      if rightTapEnEdgeButton.accessibilityLabel != nil {
-        elements.append(rightTapEnEdgeButton)
-      }
-      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-      elements.append(toolBar)
-      elements.appendIfPresent(currentView?.activeView)
-    }
-    return elements
-  }
+//  @objc override public var accessibilityViews: [UIView] {
+//    var elements: [UIView] = [] ///NOT: super.accessibilityViews, different Order here!
+//    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
+//      elements = [imgVC.view, imgVC.xButton]
+//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+//    }
+//    else if slider?.isOpen == true {
+//      let contentTable
+//      = (self as? SectionVC)?.contentTable
+//      ?? ((self as? ArticleVC)?.adelegate as? SectionVC)?.contentTable
+//      elements.appendIfPresent(slider?.button)
+//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+//      elements.appendIfPresent(contentTable?.headerListenLabel)
+//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+//      elements.appendIfPresent(contentTable?.headerCollapseIcon)
+//      elements.appendIfPresent(contentTable?.tableView)
+//    } else {
+//      elements.append(header)
+//      elements.appendIfPresent(slider?.button)
+//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+//      ///Only append next/prev Buttons id label is set
+//      leftTapEnEdgeButton.accessibilityLabel = prevItemAccessibilityLabel
+//      if leftTapEnEdgeButton.accessibilityLabel != nil {
+//        elements.append(leftTapEnEdgeButton)
+//      }
+//      rightTapEnEdgeButton.accessibilityLabel = nextItemAccessibilityLabel
+//      if rightTapEnEdgeButton.accessibilityLabel != nil {
+//        elements.append(rightTapEnEdgeButton)
+//      }
+//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+//      elements.append(toolBar)
+//      elements.appendIfPresent(currentView?.activeView)
+//    }
+//    return elements
+//  }
   
   func updateAccessibility(postLayoutChanged:Bool){
-    self.view.accessibilityElements = self.accessibilityViews
-    if postLayoutChanged {
-      UIAccessibility.post(notification: .layoutChanged,
-                           argument: self.view)
-    }
+//    self.view.accessibilityElements = self.accessibilityViews
+//    if postLayoutChanged {
+//      UIAccessibility.post(notification: .layoutChanged,
+//                           argument: self.view)
+//    }
   }
 }

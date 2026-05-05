@@ -418,7 +418,8 @@ open class FeederContext: DoesLog {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
       self?.initFeeder()
-      self?.handleSoftDataUpdatesIfNeeded()
+      #warning("Migration disabled crash after delete new install")
+//      self?.handleSoftDataUpdatesIfNeeded()
     }
   }
   

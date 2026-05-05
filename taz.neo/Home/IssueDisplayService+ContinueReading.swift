@@ -51,46 +51,46 @@ extension IssueDisplayService {
     guard lastSectionIndex ?? 0 > 0 || lastArticle != nil else { return }
     resumeReadHandled = false
     
-    sectionVC.whenLoaded {[weak self, weak sectionVC] _ in
-      guard let sectVc = sectionVC,
-            self?.resumeReadHandled == false else {
-        ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
-        self?.continueReadingCtrl?.handleDismiss()
-        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
-        return
-      }///prevent multiple open
-      sectVc.reopenArticleDocName = lastArticle?.html?.name
-      if let lastPos = self?.issue.lastArticleScrollPos {
-        sectVc.reopenArticleScrollPos = CGFloat(lastPos)
-      }
-      self?.resumeReadHandled = true
-      self?.continueReadingCtrl = ContinueReadingController(lastContent: lastSection ?? lastArticle, targetVc: sectVc) {[weak self] resume in
-        if resume == true {
-          if let lastArticle = lastArticle {
-            sectVc.showArticle(lastArticle)
-            Notification.send(Const.NotificationNames.articleLoaded)
-          }
-          else if let idx = lastSectionIndex{
-            ///This is the way to scroll to certain index in WebCollection VC whitout artefacts,
-            ///but it still looks ugly for jumps > 4 indices
-            ///every index would be handled e.g. the sliderButton disappears and re-appears on 'anzeigen'
-            sectVc.suppressLinkPressedNotification = true
-            sectionVC?.collectionView.scrollToIndex(idx, animated: true)
-            onMainAfter(1.0) { sectionVC?.suppressLinkPressedNotification = false }
-            sectVc.index = idx
-          }
-          Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromDialog")
-          self?.resumeReadDidAccepted(sectVc.articleVC ?? sectVc)
-        }
-        else {
-          Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
-          onMainAfter(1.0) {[weak self] in
-            self?.resumeReadDidDismissed(sectVc)
-          }
-        }
-        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
-      }
-    }
+//    sectionVC.whenLoaded {[weak self, weak sectionVC] _ in
+//      guard let sectVc = sectionVC,
+//            self?.resumeReadHandled == false else {
+//        ///close if Tabbar TextSetting used, due its not covered by activeVc handlers
+//        self?.continueReadingCtrl?.handleDismiss()
+//        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
+//        return
+//      }///prevent multiple open
+//      sectVc.reopenArticleDocName = lastArticle?.html?.name
+//      if let lastPos = self?.issue.lastArticleScrollPos {
+//        sectVc.reopenArticleScrollPos = CGFloat(lastPos)
+//      }
+//      self?.resumeReadHandled = true
+//      self?.continueReadingCtrl = ContinueReadingController(lastContent: lastSection ?? lastArticle, targetVc: sectVc) {[weak self] resume in
+//        if resume == true {
+//          if let lastArticle = lastArticle {
+//            sectVc.showArticle(lastArticle)
+//            Notification.send(Const.NotificationNames.articleLoaded)
+//          }
+//          else if let idx = lastSectionIndex{
+//            ///This is the way to scroll to certain index in WebCollection VC whitout artefacts,
+//            ///but it still looks ugly for jumps > 4 indices
+//            ///every index would be handled e.g. the sliderButton disappears and re-appears on 'anzeigen'
+////            sectVc.suppressLinkPressedNotification = true
+////            sectionVC?.collectionView.scrollToIndex(idx, animated: true)
+////            onMainAfter(1.0) { sectionVC?.suppressLinkPressedNotification = false }
+//            sectVc.index = idx
+//          }
+//          Usage.track(Usage.event.dialog.OpenLastRead, name: "OpenFromDialog")
+//          self?.resumeReadDidAccepted(sectVc.articleVC ?? sectVc)
+//        }
+//        else {
+//          Usage.track(Usage.event.dialog.OpenLastRead, name: "Cancel")
+//          onMainAfter(1.0) {[weak self] in
+//            self?.resumeReadDidDismissed(sectVc)
+//          }
+//        }
+//        onMainAfter {[weak self] in  self?.continueReadingCtrl = nil }
+//      }
+//    }
   }
   
   private func resumeReadDidDismissed(_ vc: UIViewController){

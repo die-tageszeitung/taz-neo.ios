@@ -15,8 +15,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   @Default("tabbarInSection")
   var tabbarInSection: Bool
   
-  var suppressLinkPressedNotification = false
-  
   open var sectionPath:[String]? {
     guard let section = section,
           let sectFileName = section.html?.name else { return nil}
@@ -63,11 +61,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     return ct
   }()
 
-  
+  #warning("Remove no more needed")
   private var lastIndex: Int?
   public var sections: [Section] = []
   public var section: Section? { 
-    if let i = index, i < sections.count { return sections[i] }
+//    if let i = index, i < sections.count { return sections[i] }
     return nil
   }
   public var article2section: [String:[Section]] = [:]
@@ -111,9 +109,9 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public func displaySection(index: Int) {
     if index != self.index {
       debug("Section change to Section #\(index), previous: " +
-        "\(self.index?.description ?? "[undefined]")" )
+        "\(self.index)" )
       if let curr = currentWebView { curr.scrollToTop() }
-      self.index = index
+      self.scrollTo(index: index)
     }
   }
   
@@ -123,26 +121,19 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
-    if let avc = articleVC {
-      if let url = url { avc.gotoUrl(url: url) }
-      else if let index = index {
-        if animated, avc.collectionView.superview != nil /*, avc.collectionView.isInitialized */{
-          /// ensure collectionView is initialized otherwise scrolling did not work!
-          avc.collectionView.scrollToIndex(index, animated: true)
-        }
-        else {
-          avc.index = index
-        }
-      }
-      if let nvc = navigationController {
-        if avc != nvc.topViewController {
-          avc.view.doLayout()
-          avc.writeTazApiCss()
-          avc.toolBar.show(show:true, animated: false)
-          avc.header.show(show: true, animated: false)
-          nvc.pushViewController(avc, animated: animated)
-        }
-      }
+    guard let avc = articleVC else { return }
+    if let url = url { avc.gotoUrl(url: url) }
+    else if let index = index {
+      avc.scrollTo(index: index, animated: animated)
+    }
+    
+    if let nvc = navigationController,
+       avc != nvc.topViewController {
+      avc.view.doLayout()
+      avc.writeTazApiCss()
+      avc.toolBar.show(show:true, animated: false)
+      avc.header.show(show: true, animated: false)
+      nvc.pushViewController(avc, animated: animated)
     }
   }
   
@@ -159,6 +150,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func linkPressed(from: URL?, to: URL?) {
     guard let to = to else { return }
+    
     if to.isFileURL == false, let section = sectionIfAudio(atIndex: index) {
       ArticlePlayer.singleton.play(sectionAudio: section)
       return
@@ -208,8 +200,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
-    self.articleVC?.releaseOnDisappear()
-    self.releaseOnDisappear()
+//    self.articleVC?.releaseOnDisappear()
+//    self.releaseOnDisappear()
   }
   
   func updatePlayButton(){
@@ -233,8 +225,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     guard firstDisplayed else { return }
     guard force || self.isVisibleVC else { return }
     guard delegate.issue.isBookmarkIssue == false else { return }
-    guard let idx = sectIdx ?? index,
-    let sect = sections.valueAt(idx) else { return }
+    guard let sect = sections.valueAt(sectIdx ?? index) else { return }
     issue.setLastRead(content: sect, pageIndex: nil, scrollPosition: nil)
   }
     
@@ -280,18 +271,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       guard let aDelegate = self?.articleVC?.delegate as? ArticleVCdelegate,
             let art = self?.articleVC?.article else { return }
       let sIdx = aDelegate.article2index(art: art)
-      self?.index = sIdx
+      self?.scrollTo(index: sIdx)
       self?.articleVC?.navigationController?.popViewController(animated: true)
     }
     whenLinkPressed { [weak self] (from, to) in
-      /** FIX wrong Article shown (most errors on iPad, some also on Phone)
-          after re-enter app due wired Scroll Pos change
-          @see:  https://developer.apple.com/forums/thread/47100
-          unfortunately is our behaviour quite complex, a simple return in viewWillTransition...
-          destroys the layout or raise other errors
-          so this is currently the most effective solution
-       **/
-      if self?.suppressLinkPressedNotification == true { return }
+      self?.log("=> SectVC when...\(from?.absoluteString.lastPathComponent ?? "-") to: \(to?.absoluteString.lastPathComponent ?? "-")")
       if self?.navigationController?.topViewController != self {
         self?.log("WARNING :: Prevent double tap on open issue to schow article and then pop to section")
         return
@@ -353,7 +337,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   public func article2index(art: Article) -> Int {
     if let fileName = art.html?.fileName,
         let sects = article2sectionHtml[fileName] {
-      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index! }
+      if let s = section, let fn = s.html?.fileName, sects.contains(fn) { return index }
       else {
         let fn = sects[0]
         for i in 0 ..< sections.count {
@@ -405,18 +389,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     showHelpButton()
   }
   
-  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    articleVC?.invalidateLayoutNeededOnViewWillAppear = true
-  }
-    
   override public func viewDidLoad() {
     super.viewDidLoad()
     slider = MyButtonSlider(slider: contentTable, into: self)
     setupSlider()
 
     self.showImageGallery = false
-    self.index = initialSection ?? 0
+    if let sect = initialSection { self.scrollTo(index: sect) }
     
     scrollViewDidScroll{[weak self] offset in
       self?.header.scrollViewDidScroll(offset)
@@ -441,7 +420,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
       self.header.isHidden = false
-      self.collectionView.isHidden = true//??
     }
     else {
       toolBar.show(show: true, animated: true)
@@ -451,18 +429,17 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   override public func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     self.header.isHidden = false
-    self.collectionView.isHidden = false
     guard let wv = currentWebView else { return }
     self.activateWebview(webView: wv)
   }
   
   ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
-  open override func releaseOnDisappear() {
-    articleVC?.cleanup()
-    articleVC = nil
-    cleanup()
-    super.releaseOnDisappear()
-  }
+//  open override func releaseOnDisappear() {
+//    articleVC?.cleanup()
+//    articleVC = nil
+//    cleanup()
+//    super.releaseOnDisappear()
+//  }
    
   /// Initialize with FeederContext
   public init(feederContext: FeederContext,
@@ -492,15 +469,15 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
 
 } // SectionVC
 
-// MARK: - ContentVC Accessibility
-extension SectionVC {
-  @objc override var nextItemAccessibilityLabel: String? {
-    guard let idx = index, idx < self.sections.count else { return nil }
-    return "Nächstes Ressort: \(self.sections.valueAt(idx + 1)?.title ?? "")"
-  }
-  
-  @objc override var prevItemAccessibilityLabel: String? {
-    guard let idx = index, idx > 0 else { return nil }
-    return "Vorheriges Ressort: \(self.sections.valueAt(idx + -1)?.title ?? "")"
-  }
-}
+//// MARK: - ContentVC Accessibility
+//extension SectionVC {
+//  @objc override var nextItemAccessibilityLabel: String? {
+//    guard let idx = index, idx < self.sections.count else { return nil }
+//    return "Nächstes Ressort: \(self.sections.valueAt(idx + 1)?.title ?? "")"
+//  }
+//  
+//  @objc override var prevItemAccessibilityLabel: String? {
+//    guard let idx = index, idx > 0 else { return nil }
+//    return "Vorheriges Ressort: \(self.sections.valueAt(idx + -1)?.title ?? "")"
+//  }
+//}

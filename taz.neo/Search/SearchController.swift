@@ -106,9 +106,9 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
     v.shareArticle = { [weak self] (hit, sourceView) in
       guard let artVc = self?.articleVC,
             let issue = self?.issue else { return }
-      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
-        artVc.index = idx
-      }
+//      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
+//        artVc.index = idx
+//      }
       ArticleExportDialogue.show(article: hit.article,
                                  image: hit.article.images?.first?.image(dir: issue.dir),
                                  sourceView: sourceView)
@@ -258,7 +258,7 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
     searchItem
     = SearchItem(articlePrimaryIssue:searchResultIssue)
     articleVC = SearchResultArticleVc(feederContext: self.feederContext)
-    articleVC.baseDir = Dir.searchResultsPath
+    articleVC.pager.baseDir = Dir.searchResultsPath
     
     super.init(nibName: nil, bundle: nil)
     
@@ -285,22 +285,22 @@ extension SearchController: ReloadAfterAuthChanged {
 extension SearchController {
   func updateArticleVcIfNeeded(){
     self.articleVC.feederContext = self.feederContext
-    self.articleVC.baseDir = Dir.appSupportPath
+    self.articleVC.pager.baseDir = Dir.appSupportPath
     guard let allArticles = searchItem.allArticles else { return }
     defaultSection.articles = allArticles
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
     searchResultIssue.search = self.searchItem
     articleVC.searchContents = allArticles
-    articleVC.reload()
+//    articleVC.reload()
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
     if self.articleVC.view.frame.size.width != self.view.frame.size.width {
-      self.articleVC.invalidateLayoutNeededOnViewWillAppear = true
+//      self.articleVC.invalidateLayoutNeededOnViewWillAppear = true
     }
     
     if let idx = searchItem.allArticles?.firstIndex(where: {$0.html?.name == searchHit.article.html?.name}) {
-      self.articleVC.index = idx
+//      self.articleVC.index = idx
     }
     
     if self.articleVC.parentViewController == nil {

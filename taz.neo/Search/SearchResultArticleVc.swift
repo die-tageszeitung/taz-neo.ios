@@ -59,7 +59,7 @@ class SearchResultArticleVc : ArticleVC {
           }
         }
       }
-      displayUrls(urls: curls)
+//      displayUrls(urls: curls)
     }
   }
   
@@ -77,11 +77,11 @@ class SearchResultArticleVc : ArticleVC {
       guard let mainTabVC = self?.navigationController?.parent as? MainTabVC else { return }
       mainTabVC.selectedIndex = 0
     }
-    atEndOfContent() { [weak self] isAtEnd in
-      if self?.feederContext.isAuthenticated == false || Defaults.expiredAccount {
-        if isAtEnd { self?.feederContext.authenticate() }
-      }
-    }
+//    atEndOfContent() { [weak self] isAtEnd in
+//      if self?.feederContext.isAuthenticated == false || Defaults.expiredAccount {
+//        if isAtEnd { self?.feederContext.authenticate() }
+//      }
+//    }
     header.titletype = .search
     header.subTitleLabel.onTapping { [weak self] _ in
       guard let date = self?.searchHitDate else { return }
