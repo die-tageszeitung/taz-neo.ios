@@ -319,20 +319,6 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     : "audio"
   }
   
-  /// Delete Article from ArticleVC
-  func deleteArticle(_ art: Article) {
-    article2section = issue.article2section
-    article2sectionHtml = issue.article2sectionHtml
-    articleVC?.delete(article: art)
-  }
-  
-  /// Insert Article into ArticleVC
-  func insertArticle(_ art: Article) {
-    article2section = issue.article2section
-    article2sectionHtml = issue.article2sectionHtml
-    articleVC?.insert(article: art)
-  }
-  
   // Return nearest section index containing given Article
   public func article2index(art: Article) -> Int {
     if let fileName = art.html?.fileName,

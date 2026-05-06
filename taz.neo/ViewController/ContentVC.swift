@@ -929,19 +929,14 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     contents.insert(content, at: idx)
-    pager.urls.insert(curl, at: idx)
-#warning("ToDo: haldle insert")
-//    collectionView.insert(at: idx)
+    insert(wwurl: curl, at: idx)
   }
   
   /// Delete content at index
   public func deleteContent(at idx: Int) {
-    if idx < contents.count { 
-      contents.remove(at: idx)
-      pager.urls.remove(at: idx)
-#warning("ToDo: haldle delete")
-//      collectionView.delete(at: idx)
-    }
+    guard idx < contents.count else { return }
+    contents.remove(at: idx)
+    delete(at: idx)
   }
   
   /// Define new contents
