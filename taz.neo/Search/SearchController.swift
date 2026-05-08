@@ -106,9 +106,9 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
     v.shareArticle = { [weak self] (hit, sourceView) in
       guard let artVc = self?.articleVC,
             let issue = self?.issue else { return }
-//      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
-//        artVc.index = idx
-//      }
+      if let idx = self?.searchItem.allArticles?.firstIndex(where: {$0.serverId == hit.article.serverId}) {
+        artVc.gotoIndex(index: idx)
+      }
       ArticleExportDialogue.show(article: hit.article,
                                  image: hit.article.images?.first?.image(dir: issue.dir),
                                  sourceView: sourceView)
@@ -291,16 +291,12 @@ extension SearchController {
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
     searchResultIssue.search = self.searchItem
     articleVC.searchContents = allArticles
-//    articleVC.reload()
+    articleVC.currentWebView?.reload()
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
-    if self.articleVC.view.frame.size.width != self.view.frame.size.width {
-//      self.articleVC.invalidateLayoutNeededOnViewWillAppear = true
-    }
-    
     if let idx = searchItem.allArticles?.firstIndex(where: {$0.html?.name == searchHit.article.html?.name}) {
-//      self.articleVC.index = idx
+      self.articleVC.gotoIndex(index: idx)
     }
     
     if self.articleVC.parentViewController == nil {

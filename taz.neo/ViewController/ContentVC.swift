@@ -162,6 +162,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   ///indicator if multiColumnMode == true & tablet & enough space to display multi columns
   private var isMultiColumnMode = false {
     didSet {
+//      topConstraint?.constant = isMultiColumnMode ? Self.topMargin : 0
+      
       if self.isKind(of: ArticleVC.self)
           && oldValue == true
           && isMultiColumnMode == false
@@ -208,11 +210,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   public var shareButton = Button<ImageView>()
   private var shareClosure: ((ContentVC)->())?
   private var imageOverlay: Overlay?
-//  {
-//    didSet {
-////      currentWebView?.suppressLinkPressedNotification = imageOverlay != nil
-//    }
-//  }
   
   var isImageOverlay:Bool{
     return imageOverlay != nil
@@ -347,7 +344,13 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var singleColumnCss : String {
-    if Device.isIpad == false { return "" }
+    if Device.isIpad == false {
+      return """
+      body #content {
+       padding-bottom: \(footerHeight)px;
+      }
+      """
+    }
     let textSizeFactor = floor(CGFloat(textSize)/10)/10 ///(0.3...2.0)
     let rowWidth = 825.0*textSizeFactor //734 for 0.8&0.9 / 835 fot 0.6 and 0.8
     var maxWidth = min(rowWidth, UIWindow.size.width - 36)
@@ -362,6 +365,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     body #content {
         width: \(maxWidth)px;
         margin-left: \(-maxWidth/2)px;
+        padding-bottom: \(footerHeight)px;
         position: absolute;
         left: 50%;
     }
@@ -383,8 +387,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     /// contentOffset.x + sv.frame.size.width - multiColumnGap
     /// but in case of misplaced scrolling/offset, we need to 'snap' next row
     let currentRow = sv.contentOffset.x/CGFloat(rowWidth)
-//    let wrongOffset = currentRow - floor(currentRow) > 0.1
-    let offset = 0 // wrongOffset ? 1 : 0 Offset Calc only for left tap!?
+    let offset = 0
     let nextRow = CGFloat(Int(currentRow) + max(1, screenColumnsCount - offset))
     var x = rowWidth*nextRow
     if !multiColumnFixedScrolling {
@@ -400,6 +403,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   var rowWidth:CGFloat { multiColumnWidth + multiColumnGap}
+  fileprivate let footerHeight:Int
+  = 50 + Int(UIWindow.bottomInset) //Footer+SafeArea Padding
   
   public override func handleLeftTap() -> Bool {
     guard isMultiColumnMode else { return super.handleLeftTap() }
@@ -431,9 +436,12 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     multiColumnWidth = floor((UIWindow.size.width + 1 - (colF + 1)*padding)/colF)
     screenColumnsCount = columns
     multiColumnGap = padding
-    let hFix = Int(128 + UIWindow.bottomInset)
+    ///Top Padding for Content behind header; not needed for Footer, there we use bottomAnchor
+    ///for footer a Padding is Required in SingleColumnCSS!!
+    let headerHeight:Int = 68
+    ///10 for a little spacing between last text line and fixed Toolbar
+    let hFix = footerHeight + headerHeight + 10
     let buFix = hFix - 20 + Int(CGFloat(articleTextSize*70)/100)
-    //debug("#>>> MainWindowWidth: \(UIWindow.size.width) colWidth: \(multiColumnWidth) :: \(rowWidth) padding: \(multiColumnGap) rowCountCalc: \(UIWindow.size.width/multiColumnWidth) screenRowCount: \(screenColumnsCount)")
     /**
      ***pretty ugly css** but:
         * content paddings&margins increase column gap
@@ -448,7 +456,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
         height: 100%;
       }
       body:has(.article) {
-        padding: 68px 0 0 0;
+        padding: \(headerHeight)px 0 0 0;
         height: calc(100vh - \(hFix)px);
         margin-left: \(Int(multiColumnGap))px;
         overflow-x: scroll;
@@ -825,7 +833,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
                                  action: #selector(backButtonLongPress))
   
   func setupToolbar() {
-    backButton.onPress { [weak self] _ in 
+    backButton.onPress { [weak self] _ in
       guard let self = self else { return }
       self.backClosure?(self)
     }
@@ -1157,31 +1165,11 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   
   override public func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-//    self.collectionView.backgroundColor = Const.SetColor.HBackground.color
+    self.scrollView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
 //    self.accessibilityElements = accessibilityViews
   }
   
-  #warning("IS THIS NEEDED ANYMORE? REMOVED FOR 1.7.0 Release")
-//  override public func viewWillDisappear(_ animated: Bool) {
-//    super.viewWillDisappear(animated)
-//    if let svc = self.navigationController?.viewControllers.last as? SectionVC {
-//      //cannot use updateLayout due strange side effects
-//      if let sidx = svc.index {
-//        svc.collectionView.isHidden = true
-//        svc.collectionView.doLayout()
-//        svc.collectionView.collectionViewLayout.invalidateLayout()
-//        onMainAfter {
-//          //svc.index = sidx//1.7.0 Change DO NOT SET INDEX HERE OTHERWISE Article Header set Index is overwritten!!
-//          svc.collectionView.showAnimated(duration: 0.1)
-//        }
-//      }
-//    }
-//  }
-  
-//  open override func needsReload(webView: WebView) -> Bool {
-//    return reloadLoaded || webView.waitingView != nil
-//  }
   
   override public func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -1213,7 +1201,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     }
     
     issueObserver = Notification.receiveOnce("issue", from: issue) { [weak self] notif in
-//      self?.reloadAllWebViews()
+      self?.reloadAllWebViews()
     }
   }
  

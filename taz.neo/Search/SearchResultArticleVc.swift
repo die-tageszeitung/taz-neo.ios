@@ -59,7 +59,7 @@ class SearchResultArticleVc : ArticleVC {
           }
         }
       }
-//      displayUrls(urls: curls)
+      self.pager.urls = curls
     }
   }
   
