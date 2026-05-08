@@ -75,6 +75,11 @@ class ArticlePlayer: DoesLog {
   var nextContent: [Content] = []
   var lastContent: [Content] = []
   
+  var currentPlayingContent: Content? {
+    if isPlaying == false { return nil }
+    return currentContent
+  }
+  
   var currentContent: Content? {
     didSet {
       Usage.xtrack.audio.play(content: currentContent)
@@ -138,7 +143,11 @@ class ArticlePlayer: DoesLog {
         aPlayerPlayed = true
         self.userInterface.slider.value = 0.0
       }
+      
+      userInterface.playNextSwitch.isEnabled = (currentContent as? Article)?.articleType != .podcast
+      
       userInterface.updateUI()
+      
       updatePlaying()
     }
   }
@@ -279,7 +288,9 @@ class ArticlePlayer: DoesLog {
       }
       self?.userInterface.currentSeconds = self?.userInterface.totalSeconds
       let resume = self?.nextContent.isEmpty == false
-      if self?.autoPlayNext == true && self?.isDisclaimer == false {
+      if (self?.currentContent as? Article)?.articleType != .podcast
+          && self?.autoPlayNext == true
+          && self?.isDisclaimer == false {
         self?.playNext()
         //ensure play next
         if resume { self?.aplayer.play()}
@@ -558,7 +569,7 @@ class ArticlePlayer: DoesLog {
   
   func deleteHistory(){ lastContent = []   }
   
-  func playNext(origin: Usage.xtrack.audio.buttonOrigin? = nil) {
+  func playNext(skipPodcast: Bool = true, origin: Usage.xtrack.audio.buttonOrigin? = nil) {
     if let origin = origin {
       Usage.xtrack.audio.skip.Next(origin: origin)
     }
@@ -580,7 +591,11 @@ class ArticlePlayer: DoesLog {
       lastContent.append(currentArticle)
     }
     ///warning replace current article remembers pause e.g. paused & skip through the playlist should not start
-    currentContent = nextContent.pop()
+    var next = nextContent.pop()
+    while next?.isPodcast == true && skipPodcast == true {
+      next = nextContent.pop()
+    }
+    currentContent = next
   }
   
   func playPrev(origin: Usage.xtrack.audio.buttonOrigin?) {
@@ -712,7 +727,7 @@ class ArticlePlayer: DoesLog {
       case .replaceCurrent:
         nextContent = arts
         isPlaying ? nil : aplayer.close()
-        playNext()
+        playNext(skipPodcast: startFromArticle?.isPodcast == false)
 //      case .enqueueOneNext:
 //        guard let a = startFromArticle else { return }
 //        nextContent.append(a)
@@ -875,5 +890,13 @@ fileprivate extension FileEntry {
     guard self.storageType == .resource else { return nil }
     guard let resDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir else { return nil }
     return resDir.path + "/" + self.name
+  }
+}
+
+fileprivate extension Content {
+  var isPodcast: Bool {
+    ///Section Audio should be handled as podcast
+    guard let art = self as? Article else { return true }
+    return art.articleType == .podcast
   }
 }

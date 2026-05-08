@@ -143,6 +143,8 @@
 		77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
 		77BA366E2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */; };
 		77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BA74642892836600D1039B /* SubscriptionFormView.swift */; };
+		77C07FB82FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C07FB72FAE1B2C0081AF02 /* ContentVC+JsBridge.swift */; };
+		77C07FB92FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C07FB72FAE1B2C0081AF02 /* ContentVC+JsBridge.swift */; };
 		77C766752C29C2EB00198324 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		77C778DA2E8820B00098827B /* MainTabVC+HelpProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C778D92E8820B00098827B /* MainTabVC+HelpProviding.swift */; };
 		77C778DB2E8820B00098827B /* MainTabVC+HelpProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C778D92E8820B00098827B /* MainTabVC+HelpProviding.swift */; };
@@ -477,6 +479,7 @@
 		77B993D92AC4706600C7D832 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		77BA366C2DC501E2007E45C7 /* BackgroundDownloadService+SheduledCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+SheduledCheck.swift"; sourceTree = "<group>"; };
 		77BA74642892836600D1039B /* SubscriptionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionFormView.swift; sourceTree = "<group>"; };
+		77C07FB72FAE1B2C0081AF02 /* ContentVC+JsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentVC+JsBridge.swift"; sourceTree = "<group>"; };
 		77C778D92E8820B00098827B /* MainTabVC+HelpProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainTabVC+HelpProviding.swift"; sourceTree = "<group>"; };
 		77CA15492689A97600A2A18A /* ScrollDownAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDownAnimationView.swift; sourceTree = "<group>"; };
 		77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundDownloadService.swift; sourceTree = "<group>"; };
@@ -831,6 +834,7 @@
 				7758CCB02B504D7A000B8E30 /* LMdSliderContent */,
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
+				77C07FB72FAE1B2C0081AF02 /* ContentVC+JsBridge.swift */,
 				773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */,
 				7767460A2E9D292200A60883 /* NewContentTableVC+HelpProviding.swift */,
 				77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */,
@@ -1334,6 +1338,7 @@
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
 				77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				AE5131752AFBCADB002289E8 /* FeederContext+ResourcesUpdate.swift in Sources */,
+				77C07FB82FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */,
 				7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */,
 				AE5131762AFBCADB002289E8 /* ArticleDB.swift in Sources */,
 				77499E132EA582CC00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift in Sources */,
@@ -1532,6 +1537,7 @@
 				77E6E9AF2CF8814100430B83 /* Bookmarks+ModelExtensions.swift in Sources */,
 				77D434002CE694A100AC992A /* Bookmarks.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,
+				77C07FB92FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */,
 				AEBAF596219ACFAC00566205 /* AppDelegate.swift in Sources */,
 				777DF43E2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */,
 				94487DAC274BCCE10066BCD0 /* AppHelper.swift in Sources */,

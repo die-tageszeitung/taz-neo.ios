@@ -284,6 +284,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
                                      with: self)
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+      #warning("Error: off-Screen rendered/loaded Sections wount update bookmark state")
       if let art = msg.sender as? StoredArticle {
         guard let name = art.html?.name.nonPublic() else { return }
         let js = """
@@ -305,18 +306,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }
       self?.setup()
     }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.updateAudioButton()
-    }
     header.isWochentaz = issue.isWeekend
   }
   
-  func updateAudioButton(){
-    self.playButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.sectionIfAudio(atIndex: index)?.html?.sha256
-    ? "audio-active"
-    : "audio"
+  override var currentAudioContent: Content? {
+    self.sectionIfAudio(atIndex: index)
   }
   
   // Return nearest section index containing given Article

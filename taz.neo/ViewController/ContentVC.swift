@@ -218,6 +218,47 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   var settingsBottomSheet: BottomSheet2?
   private var textSettingsVC:TextSettingsVC? = TextSettingsVC()
   
+  var currentAudioContent: Content? { nil }
+  
+  func updateAudioButton(){
+    self.playButton.buttonView.name
+    = ArticlePlayer.singleton.currentPlayingContent?.html?.sha256 == currentAudioContent?.html?.sha256
+    ? "audio-active"
+    : "audio"
+  }
+  
+  func updateAudioInWebview(_ webView: WebView?, playingContent: Content?) {
+    guard let webView = webView else { return }
+    let playingFileName = playingContent?.html?.fileName.lastPathComponent
+    Task {
+      let active = webView.url?.lastPathComponent == playingFileName
+      let playIconArtSrc =
+      active ? "resources/ic_pause_button.svg" : "resources/ic_play_button.svg"
+      
+      let playIconSectSrc =
+      active ? "resources/ic_pause_button_teaser.svg" : "resources/ic_play_button_teaser.svg"
+      
+      let js = """
+        (function() {
+          var playIcon = document.getElementById("podcastPlayButton");
+          var playIconSection = document.getElementById("podcastPlayButtonSection");
+          if (playIcon) { playIcon.src = "\(playIconArtSrc)"; }
+          if (playIconSection) { playIconSection.src = "\(playIconSectSrc)";}
+        })();
+        """
+      _ = try? await webView.jsexec(js)
+    }
+  }
+  
+//  private var currentContents : [Content] {
+//    var currentItems: [Content] = []
+//    let currentIndex = index
+//    currentItems.appendIfPresent(contents.valueAt(currentIndex-1))
+//    currentItems.appendIfPresent(contents.valueAt(currentIndex))
+//    currentItems.appendIfPresent(contents.valueAt(currentIndex+1))
+//    return currentItems
+//  }
+  
   var mcoBottomSheet:BottomSheet2?
   
   private var issueObserver: Notification.Observer?
@@ -286,6 +327,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
       @media screen {
         \(multiColumnCss)
+    
+        #podcastPlayButton, #podcastPlayButtonSection { display: block; }
       }
       \(heightContrastDarkmodeTextColor)
     
@@ -522,7 +565,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
     
   /// Setup JS bridge
-  private func setupBridge() {
+  func setupBridge() {
     self.bridge = JSBridgeObject(name: "tazApi")
     self.bridge?.addfunc("openImage") { [weak self] jscall in
       guard let self = self else { return NSNull() }
@@ -615,6 +658,24 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
+    self.bridge?.addfunc("togglePlayButtonNative") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 1,
+         let msid = args[0] as? String,
+         let fileName = args[1] as? String {
+        play(msid: msid, audioFileName: fileName)
+      }
+      return NSNull()
+    }
+    self.bridge?.addfunc("togglePlayButtonSectionNative") { [weak self] jscall in
+      guard let self = self else { return NSNull() }
+      if let args = jscall.args, args.count > 1,
+         let msid = args[0] as? String,
+         let fileName = args[1] as? String {
+        play(msid: msid, audioFileName: fileName)
+      }
+      return NSNull()
+    }
     self.bridge?.addfunc("gotoIssue") { [weak self] jscall in
       guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
@@ -659,45 +720,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     ArticleExportDialogue.show(article: article,
                                image: article.cellIconImage,
                                sourceView: shareButton)
-  }
-  
-  /// Write tazApi.js to resource directory
-  public func writeTazApiJs() {
-    setupBridge()
-    let apiJs = """
-    var tazApi = new NativeBridge("tazApi");
-    tazApi.openUrl = function (url) { window.location.href = url };
-    tazApi.openImage = function (url) {
-      tazApi.call("openImage", undefined, url)
-    };
-    tazApi.setBookmark = function (artName, hasBookmark, showToast) {
-      tazApi.call("setBookmark", undefined, artName, hasBookmark, showToast);
-    };
-    tazApi.getBookmarks = function (callback) {
-      tazApi.call("getBookmarks", callback);
-    };
-    tazApi.shareArticle = function (artName) {
-      tazApi.call("shareArticle", undefined, artName);
-    };
-    tazApi.trackAdIfNeeded = function(adIdentifier, htmlFilename) {
-      tazApi.call("trackAdIfNeeded", undefined, adIdentifier, htmlFilename);
-    };
-    tazApi.gotoIssue = function (issueDate) {
-      tazApi.call("gotoIssue", undefined, issueDate);
-    };
-    tazApi.toast = function(msg, duration, callback) {
-      tazApi.call("toast", callback, msg, duration);
-    };
-    tazApi.setDynamicStyles = function() {
-      tazApi.call("setDynamicStyles", undefined);
-    };
-    tazApi.gotoStart = function() {
-      tazApi.call("gotoStart", undefined);
-    };
-    \(Defaults.multiColumnMode ? scrollToPosJsH : scrollToPosJsV)
-    log2bridge(tazApi);\n
-    """
-    tazApiJs.string = JSBridgeObject.js + "\n\n" + apiJs + "\n"
   }
   
   var reopenArticleDocName: String?
@@ -1034,6 +1056,10 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
         (self as? HelpProviding)?.showHelpButton()
       }
       
+      if let wv = ov?.mainView as? WebView {
+        self?.updateAudioInWebview(wv, playingContent: ArticlePlayer.singleton.currentPlayingContent)
+      }
+      
       if self?.hideOnScroll == false {
         self?.additionalSafeAreaInsets
         = UIEdgeInsets(top: 0,
@@ -1050,6 +1076,11 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
       self?.persistReadProgress()
       ArticleDB.save()
+    }
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+      self?.updateAudioButton()
+      self?.updateAudioInWebview(self?.currentWebView,
+                                 playingContent: ArticlePlayer.singleton.currentPlayingContent)
     }
     registerForStyleUpdates()
   }

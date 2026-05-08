@@ -1122,6 +1122,20 @@ public extension Issue {
     }
     return nil
   }
+  
+  func audioArticle(msid: String) -> Article? {
+//    if let sects = sections, sects.count > 0 {
+//      for sect in sects {
+//        if let arts = sect.articles {
+//          for art in arts {
+//            if art.html?.name == artname || art.html?.name == "\(artname).html"
+//              { return art }
+//          }
+//        }
+//      }
+//    }
+    return nil
+  }
    
   /// The first facsimile page (if available)
   var pageOneFacsimile: FileEntry? {

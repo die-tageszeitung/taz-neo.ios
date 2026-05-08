@@ -523,8 +523,7 @@ extension BookmarkTVC {
   
   func updateAudioButton(){
     self.headerPlayButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    && (ArticlePlayer.singleton.currentContent as? Article)?.hasBookmark == true
+    = (ArticlePlayer.singleton.currentPlayingContent as? Article)?.hasBookmark == true
     ? "audio-active"
     : "audio"
     self.headerPlayButton.buttonView.isHidden = Bookmarks.shared.bookmarkIssue?.hasAudio != true

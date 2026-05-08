@@ -97,6 +97,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   func displayBookmark(art: Article) {
     var bbHidden = true
     if let aDel = adelegate {
+      #warning("ISSUE WAS NIL! SAVE IT")
       bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
     }
     bookmarkButton.isHidden = bbHidden
@@ -111,12 +112,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
   }
   
-  func updateAudioButton(){
-    self.playButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.article?.html?.sha256
-    ? "audio-active"
-    : "audio"
+  override var currentAudioContent: Content? {
+    self.article
   }
   
   var playButtonContextMenu: ContextMenu?
@@ -143,9 +140,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
          cart.serverId == art.serverId {
          self.displayBookmark(art: art)
       }
-    }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.updateAudioButton()
     }
     
     /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
