@@ -120,9 +120,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   private func showArticle(url: URL? = nil, index: Int? = nil, animated: Bool = true) {
     guard let avc = articleVC else { return }
     if let url = url { avc.gotoUrl(url: url) }
-    else if let index = index {
-      avc.scrollTo(index: index, animated: animated)
-    }
+    else if let index = index { avc.gotoIndex(index: index) }
     
     if let nvc = navigationController,
        avc != nvc.topViewController {
