@@ -196,6 +196,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
         updateAudioButton()
+        updateAudioInWebview()
       }
       playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
@@ -205,8 +206,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       LinkBusiness.handleLinkPressed(from: from, to: to,
                                      with: self?.adelegate)
     }
-    whenLoaded { _ in
+    whenLoaded {[weak self] _ in
       Notification.send(Const.NotificationNames.articleLoaded)
+      guard let self = self,
+            let art = self.articles.valueAt(self.index),
+            art.canPlayAudio else { return }
+      self.updateAudioInWebview()
     }
     header.titletype = .article
     header.isWochentaz = issue.isWeekend

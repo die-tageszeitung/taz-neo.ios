@@ -120,6 +120,8 @@
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
 		778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
+		7789FA232FB1BADB009BA8A7 /* ContentVC+PlayButtonUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7789FA222FB1BAD0009BA8A7 /* ContentVC+PlayButtonUpdate.swift */; };
+		7789FA242FB1BADB009BA8A7 /* ContentVC+PlayButtonUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7789FA222FB1BAD0009BA8A7 /* ContentVC+PlayButtonUpdate.swift */; };
 		778F741825CC60C80017E426 /* TazTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741525CC60C80017E426 /* TazTextField.swift */; };
 		778F741B25CC61340017E426 /* TazTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778F741A25CC61340017E426 /* TazTextView.swift */; };
 		779229502DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */; };
@@ -463,6 +465,7 @@
 		777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+Helper.swift"; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+RessourcesUpdate.swift"; sourceTree = "<group>"; };
+		7789FA222FB1BAD0009BA8A7 /* ContentVC+PlayButtonUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentVC+PlayButtonUpdate.swift"; sourceTree = "<group>"; };
 		778F741525CC60C80017E426 /* TazTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextField.swift; sourceTree = "<group>"; };
 		778F741A25CC61340017E426 /* TazTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TazTextView.swift; sourceTree = "<group>"; };
 		7792294F2DD5E85200A8AB81 /* BackgroundDownloadService+UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+UserDefaults.swift"; sourceTree = "<group>"; };
@@ -834,6 +837,7 @@
 				7758CCB02B504D7A000B8E30 /* LMdSliderContent */,
 				0032A4D624C89E1600284723 /* Forms */,
 				AEBAF5AB219ACFD900566205 /* ContentVC.swift */,
+				7789FA222FB1BAD0009BA8A7 /* ContentVC+PlayButtonUpdate.swift */,
 				77C07FB72FAE1B2C0081AF02 /* ContentVC+JsBridge.swift */,
 				773E3DA22A2F683E00222EE5 /* NewContentTableVC.swift */,
 				7767460A2E9D292200A60883 /* NewContentTableVC+HelpProviding.swift */,
@@ -1381,6 +1385,7 @@
 				77E6E9A72CF8745100430B83 /* Bookmarks+Helper.swift in Sources */,
 				AE51318D2AFBCADB002289E8 /* MainTabVC.swift in Sources */,
 				AE51318E2AFBCADB002289E8 /* SearchController.swift in Sources */,
+				7789FA242FB1BADB009BA8A7 /* ContentVC+PlayButtonUpdate.swift in Sources */,
 				AE51318F2AFBCADB002289E8 /* ContentImageVC.swift in Sources */,
 				AE5131902AFBCADB002289E8 /* NewInfoToast.swift in Sources */,
 				AE5131912AFBCADB002289E8 /* PlaceholderView.swift in Sources */,
@@ -1507,6 +1512,7 @@
 				775153E02DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,
 				77001DD22CF70452008CFE0A /* GqlFeederArticleLoading.swift in Sources */,
 				AEAABADE24641BFA001BE414 /* Const.swift in Sources */,
+				7789FA232FB1BADB009BA8A7 /* ContentVC+PlayButtonUpdate.swift in Sources */,
 				77E5E1BC292D772200611148 /* Javascript.swift in Sources */,
 				AE76F9F7245421AC0043F497 /* WebViewTests.swift in Sources */,
 				77B993DA2AC4706600C7D832 /* Usage.swift in Sources */,

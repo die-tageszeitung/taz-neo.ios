@@ -207,15 +207,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   func updatePlayButton(){
     if let section = sectionIfAudio(atIndex: index) {
       self.playButton.isHidden = false
-      self.onPlay { _ in
-        section.toggleAudio()
-      }
+      self.onPlay { _ in section.toggleAudio() }
       updateAudioButton()///set correct state of play button
     }
     else {
       self.playButton.isHidden = true
       self.onPlay(closure: nil)
     }
+    self.updateAudioInWebview()
   }
   
   private var firstDisplayed = false

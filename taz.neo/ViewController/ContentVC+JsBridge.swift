@@ -33,6 +33,11 @@ extension ContentVC {
       log("audio filename mismatch for content at Index: \(index) to play id: \(msid) file: \(audioFileName)")
       return
     }
+
+    if ArticlePlayer.singleton.currentContent?.audioItem?.file?.name == audioFileName.lastPathComponent {
+      ArticlePlayer.singleton.toggle(origin: .appUi)
+      return
+    }
     
     ArticlePlayer.singleton.play(issue: issue,
                                  startFromArticle: currentArt,
@@ -77,7 +82,7 @@ extension ContentVC {
           tazApi.call("togglePlayButtonNative", undefined, mediaSyncId, file);
         };
         tazApi.togglePlayButtonSection = function(mediaSyncId, file) {
-          tazApi.call("togglePlayButtonSectionNative", undefined, mediaSyncId, file);
+          tazApi.call("togglePlayButtonNative", undefined, mediaSyncId, file);
         };
         \(Defaults.multiColumnMode ? scrollToPosJsH : scrollToPosJsV)
         log2bridge(tazApi);\n

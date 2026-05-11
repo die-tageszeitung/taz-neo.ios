@@ -227,29 +227,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     : "audio"
   }
   
-  func updateAudioInWebview(_ webView: WebView?, playingContent: Content?) {
-    guard let webView = webView else { return }
-    let playingFileName = playingContent?.html?.fileName.lastPathComponent
-    Task {
-      let active = webView.url?.lastPathComponent == playingFileName
-      let playIconArtSrc =
-      active ? "resources/ic_pause_button.svg" : "resources/ic_play_button.svg"
-      
-      let playIconSectSrc =
-      active ? "resources/ic_pause_button_teaser.svg" : "resources/ic_play_button_teaser.svg"
-      
-      let js = """
-        (function() {
-          var playIcon = document.getElementById("podcastPlayButton");
-          var playIconSection = document.getElementById("podcastPlayButtonSection");
-          if (playIcon) { playIcon.src = "\(playIconArtSrc)"; }
-          if (playIconSection) { playIconSection.src = "\(playIconSectSrc)";}
-        })();
-        """
-      _ = try? await webView.jsexec(js)
-    }
-  }
-  
+
 //  private var currentContents : [Content] {
 //    var currentItems: [Content] = []
 //    let currentIndex = index
@@ -667,15 +645,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
       return NSNull()
     }
-    self.bridge?.addfunc("togglePlayButtonSectionNative") { [weak self] jscall in
-      guard let self = self else { return NSNull() }
-      if let args = jscall.args, args.count > 1,
-         let msid = args[0] as? String,
-         let fileName = args[1] as? String {
-        play(msid: msid, audioFileName: fileName)
-      }
-      return NSNull()
-    }
+
     self.bridge?.addfunc("gotoIssue") { [weak self] jscall in
       guard let self = self else { return NSNull() }
       if let args = jscall.args, args.count > 0,
@@ -1017,9 +987,9 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   
 //  // MARK: - viewDidLoad
   override public func viewDidLoad() {
-    super.viewDidLoad()
     writeTazApiCss()
     writeTazApiJs()
+    super.viewDidLoad()
     self.view.addSubview(header)
     defaultAccessibilityView = header
     pin(header, toSafe: self.view, exclude: .bottom)
@@ -1057,7 +1027,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
       
       if let wv = ov?.mainView as? WebView {
-        self?.updateAudioInWebview(wv, playingContent: ArticlePlayer.singleton.currentPlayingContent)
+        self?.updateAudioInWebview(wv)
       }
       
       if self?.hideOnScroll == false {
@@ -1079,8 +1049,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     }
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
       self?.updateAudioButton()
-      self?.updateAudioInWebview(self?.currentWebView,
-                                 playingContent: ArticlePlayer.singleton.currentPlayingContent)
+      self?.updateAudioInWebview()
+      
     }
     registerForStyleUpdates()
   }
@@ -1313,3 +1283,4 @@ extension ContentVC {
 //    }
   }
 }
+
