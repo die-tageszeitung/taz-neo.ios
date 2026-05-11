@@ -1099,6 +1099,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     settingsBottomSheet?.handleColor = Const.SetColor.ios(.opaqueSeparator).color
     settingsBottomSheet?.shadeView.backgroundColor = Const.SetColor.taz(.shade).color
     settingsBottomSheet?.xButton.tazX()
+    self.scrollView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
     self.scrollView.indicatorStyle = Defaults.darkMode ?  .white : .black
     slider?.sliderView.shadow()
