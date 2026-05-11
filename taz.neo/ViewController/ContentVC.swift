@@ -281,7 +281,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   func cleanup(){
-//    releaseWebviews()
+    pager.releaseWebviews()
     settingsBottomSheet = nil
     mcoBottomSheet = nil
     slider = nil
@@ -290,7 +290,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
 
   public func resetIssueList() {
-    #warning("ToDo delegate.resetIssueList")
+    #warning("ToDo delegate.resetIssueList?")
 //    delegate.resetIssueList()
   }
   

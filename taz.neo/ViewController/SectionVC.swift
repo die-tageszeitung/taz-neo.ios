@@ -200,8 +200,8 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
-//    self.articleVC?.releaseOnDisappear()
-//    self.releaseOnDisappear()
+    self.articleVC?.releaseOnDisappear()
+    self.releaseOnDisappear()
   }
   
   func updatePlayButton(){
@@ -413,13 +413,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.activateWebview(webView: wv)
   }
   
-  ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
-//  open override func releaseOnDisappear() {
-//    articleVC?.cleanup()
-//    articleVC = nil
-//    cleanup()
-//    super.releaseOnDisappear()
-//  }
+  //Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
+  open override func releaseOnDisappear() {
+    articleVC?.cleanup()
+    articleVC = nil
+    cleanup()
+    super.releaseOnDisappear()
+  }
    
   /// Initialize with FeederContext
   public init(feederContext: FeederContext,
