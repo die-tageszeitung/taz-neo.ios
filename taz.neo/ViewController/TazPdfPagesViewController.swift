@@ -277,7 +277,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     if let avc = top as? ArticleVC,
       to.isFileURL,
       issue.article2sectionHtml[fn] != nil {
-//      avc.gotoUrl(url:to)
+      avc.gotoUrl(url:to)
     }
     else {
       self.debug("Calling application for: \(to.absoluteString)")
@@ -489,7 +489,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       log("article file \(name) did not exist in \(path.lastPathComponent)")
       return
     }
-//    articleVC.gotoUrl(path: path, file: name)
+    articleVC.gotoUrl(path: path, file: name)
     #if LMD
     articleSliderContentController.header.imageView.onTapping{[weak self] _ in
       self?.childArticleVC?.slider?.close()
