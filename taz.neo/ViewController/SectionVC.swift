@@ -64,10 +64,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   #warning("Remove no more needed")
   private var lastIndex: Int?
   public var sections: [Section] = []
-  public var section: Section? { 
-//    if let i = index, i < sections.count { return sections[i] }
-    return nil
-  }
+  public var section: Section? { sections.valueAt(index) }
   public var article2section: [String:[Section]] = [:]
   private var article2sectionHtml: [String:[String]] = [:]
   public var article: Article? {

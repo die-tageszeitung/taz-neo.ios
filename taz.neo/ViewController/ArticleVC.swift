@@ -143,9 +143,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
     
     /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
-//    self.atEndOfContent { [weak self] isAtEnd in
-//      self?.handleAtEndOfContent(isAtEnd: isAtEnd)
-//    }
+    self.atEndOfContent { [weak self] isAtEnd in
+      self?.handleAtEndOfContent(isAtEnd: isAtEnd)
+    }
     
     self.onBookmark { [weak self] _ in
       guard let art = self?.article else { return }
@@ -356,11 +356,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
     
   public override func viewWillAppear(_ animated: Bool) {
-    ///fix ugly UI Bug after iPad Roation
-//    if self.invalidateLayoutNeededOnViewWillAppear {
-//      self.collectionView.isHidden = true
-//    }
-    
     /// Set Content Table if needed
     if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
     else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
@@ -384,70 +379,29 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
  
   public override func viewDidAppear(_ animated: Bool) {
-      super.viewDidAppear(animated)
-      onShare { [weak self] _ in
-        guard let self = self else { return }
-        self.debug("*** Action: Share Article")
-        if self.article?.isShareable == false && feeder.hasValidAbo == false {
-          Usage.track(Usage.event.dialog.SharingNotPossible)
-          Alert.actionSheet(message: self.needValidAboToShareText,
-                            actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
-                                                         style: .default ){ [weak self] _ in
-            self?.feederContext.authenticate()
-          })
-        } else {
-          self.exportArticle()
-        }
+    super.viewDidAppear(animated)
+    onShare { [weak self] _ in
+      guard let self = self else { return }
+      self.debug("*** Action: Share Article")
+      if self.article?.isShareable == false && feeder.hasValidAbo == false {
+        Usage.track(Usage.event.dialog.SharingNotPossible)
+        Alert.actionSheet(message: self.needValidAboToShareText,
+                          actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
+                                                       style: .default ){ [weak self] _ in
+          self?.feederContext.authenticate()
+        })
+      } else {
+        self.exportArticle()
       }
-  
-      let suche = UIMenuItem(title: "Suche", action: #selector(search))
-      UIMenuController.shared.menuItems = [suche]
-      showMultiColumnOnboardingIfNeeded()
-      ///ensure article is perstisted, also on recall same article after art>sect>art
-      guard delegate != nil else { return }
-      issue.setLastRead(content: self.articles.valueAt(index), pageIndex: nil, scrollPosition: nil)
     }
-  
-  
-  ///shorter above
-//  public override func viewDidAppear(_ animated: Bool) {
-//    if self.invalidateLayoutNeededOnViewWillAppear {
-//      self.invalidateLayoutNeededOnViewWillAppear = false
-//      self.collectionView.collectionViewLayout.invalidateLayout()
-////      self.collectionView.fixScrollPosition()
-//      updateWebwiews {[weak self] in
-//        self?.collectionView.showAnimated()
-//        guard Defaults.multiColumnMode,
-//              let self = self,
-//              let sv =  self.currentWebView?.scrollView else { return }
-//        let nextRow = sv.contentOffset.x/CGFloat(self.rowWidth)
-//        self.currentWebView?.scrollView.setContentOffset(CGPoint(x: rowWidth*round(nextRow), y: 0), animated: true)
-//      }
-//    }
-//    super.viewDidAppear(animated)
-//    onShare { [weak self] _ in
-//      guard let self = self else { return }
-//      self.debug("*** Action: Share Article")
-//      if self.article?.isShareable == false && feeder.hasValidAbo == false {
-//        Usage.track(Usage.event.dialog.SharingNotPossible)
-//        Alert.actionSheet(message: self.needValidAboToShareText,
-//                          actions: UIAlertAction.init( title: self.feederContext.isAuthenticated ? "Weitere Informationen" : "Anmelden",
-//                                                       style: .default ){ [weak self] _ in
-//          self?.feederContext.authenticate()
-//        })
-//      } else {
-//        self.exportArticle()
-//      }
-//    }
-//    
-//    let suche = UIMenuItem(title: "Suche", action: #selector(search))
-//    UIMenuController.shared.menuItems = [suche]
-//    showMultiColumnOnboardingIfNeeded()
-//    ///ensure article is perstisted, also on recall same article after art>sect>art
-//    guard delegate != nil else { return }
-//    guard let index = index else { return }
-//    issue.setLastRead(content: self.articles.valueAt(index), pageIndex: nil, scrollPosition: nil)
-//  }
+    
+    let suche = UIMenuItem(title: "Suche", action: #selector(search))
+    UIMenuController.shared.menuItems = [suche]
+    showMultiColumnOnboardingIfNeeded()
+    ///ensure article is perstisted, also on recall same article after art>sect>art
+    guard delegate != nil else { return }
+    issue.setLastRead(content: self.articles.valueAt(index), pageIndex: nil, scrollPosition: nil)
+  }
   
   public override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -470,19 +424,19 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
 //MARK: - Context Menu Actions
 extension ArticleVC {
   @objc func search() {
-//    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: {[weak self] selectedText, err in
-//      guard let self = self else {return}
-//      if let e = err { self.log(e.description)}
-//      //#warning("ToDo: 0.9.4+ Implement Search")
-//      guard let txt = selectedText as? String, txt.length > 3 else {
-//        log("No valid Selection for Search: \(String(describing: selectedText))")
-//        return
-//      }
-//      Notification.send(Const.NotificationNames.searchSelectedText,
-//                        content: txt,
-//                        error: nil,
-//                        sender: self)
-//    })
+    self.currentWebView?.evaluateJavaScript("window.getSelection().toString()", completionHandler: {[weak self] selectedText, err in
+      guard let self = self else {return}
+      if let e = err { self.log(e.description)}
+      //#warning("ToDo: 0.9.4+ Implement Search")
+      guard let txt = selectedText as? String, txt.length > 2 else {
+        log("No valid Selection for Search: \(String(describing: selectedText))")
+        return
+      }
+      Notification.send(Const.NotificationNames.searchSelectedText,
+                        content: txt,
+                        error: nil,
+                        sender: self)
+    })
   }
 }
 
@@ -534,9 +488,9 @@ extension ArticleVC {
   @objc func activateButtonPressed(sender: UIButton) {
     multiColumnOnboardingAnswered = true
     multiColumnModeLandscape = true
-//    edgeTapToNavigate = true
+    edgeTapToNavigate = true
     Notification.send(globalStylesChangedNotification)
-//    updateTapArea()
+    updateTapArea()
     mcoBottomSheet?.close()
     ensureToolbarInFrontOfTapButtons()
   }

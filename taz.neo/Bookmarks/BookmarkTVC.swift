@@ -32,9 +32,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   // MARK: - Properties: UI Components
   private var _articleVC: ArticleVC? {
-    didSet { if oldValue != nil {
-//      oldValue?.releaseOnDisappear()
-    }}
+    didSet { if oldValue != nil { oldValue?.releaseOnDisappear()  }}
   }
   private var articleVC: ArticleVC? {
     if _articleVC == nil,

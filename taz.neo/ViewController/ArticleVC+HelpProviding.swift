@@ -84,7 +84,7 @@ extension ArticleVC: HelpProviding{
 
       ///Not for Bookmark and Search!
       if isRegularIssue { items.insert(menu, at: 0) }
-//      if edgeTapToNavigate { items.append(tapOnEdge) }
+      if edgeTapToNavigate { items.append(tapOnEdge) }
       
       if article is VirtualArticle {//TOM's!
         items.append(toolbarBack)

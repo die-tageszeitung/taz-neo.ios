@@ -508,7 +508,7 @@ extension MainTabVC : UITabBarControllerDelegate {
     else if let firstVc = (viewController as? NavigationController)?.viewControllers.first,
        let content = firstVc as? ContentVC
     {
-//      content.currentWebView?.scrollView.setContentOffset(CGPoint(x:0, y:0), animated: true)
+      content.currentWebView?.scrollView.setContentOffset(CGPoint(x:0, y:0), animated: true)
     }
     else if let tvc = viewController as? UITableViewController
     {

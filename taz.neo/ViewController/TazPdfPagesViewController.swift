@@ -1126,7 +1126,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     super.viewDidDisappear(animated)
     if self.parentViewController != nil { return }
     slider?.hideContentAnimated()
-//    self.releaseOnDisappear()
+    self.releaseOnDisappear()
     #if LMD
     (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
     #endif
@@ -1179,13 +1179,13 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     }
   }
   
-//  override func releaseOnDisappear() {
-//    super.releaseOnDisappear()
-//    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
-//    sliderContent = nil
-//    slider?.cleanup()
-//    slider = nil
-//  }
+  override func releaseOnDisappear() {
+    super.releaseOnDisappear()
+    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
+    sliderContent = nil
+    slider?.cleanup()
+    slider = nil
+  }
   
   public init(feederContext: FeederContext, sliderContent:UIViewController) {
     self.sliderContent = sliderContent

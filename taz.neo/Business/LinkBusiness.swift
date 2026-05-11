@@ -11,7 +11,7 @@ import NorthLib
 class LinkBusiness {
   static func handleLinkPressed(from: URL?, to: URL?, with adelegate: ArticleVCdelegate?) {
     if UIApplication.shared.applicationState != .active { return }
-    Log.log("=> handleLinkPressed... in Link Business from: \(from?.absoluteString.lastPathComponent ?? "nil") to: \(to?.absoluteString.lastPathComponent ?? "nil")")
+    
     guard Defaults.singleton["openLinksInApp"]?.bool == true else {
       adelegate?.linkPressed(from: from, to: to)
       return

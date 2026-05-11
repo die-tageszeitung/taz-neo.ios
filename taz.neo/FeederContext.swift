@@ -109,7 +109,12 @@ open class FeederContext: DoesLog {
   
   /// The default Feed to show
   public var defaultFeed: StoredFeed! {
-    didSet { if let feed = defaultFeed { BackgroundDownloadService.shared.updateFeed(feed)}}
+    didSet {
+      if let feed = defaultFeed {
+        BackgroundDownloadService.shared.updateFeed(feed)
+        handleSoftDataUpdatesIfNeeded(feed:feed)
+      }
+    }
   }
   
   /// The Downloader to use
@@ -418,18 +423,16 @@ open class FeederContext: DoesLog {
     guard ArticleDB.singleton == nil else { return }
     ArticleDB(name: name) { [weak self] _ in
       self?.initFeeder()
-      #warning("Migration disabled crash after delete new install")
-//      self?.handleSoftDataUpdatesIfNeeded()
     }
   }
   
-  private func handleSoftDataUpdatesIfNeeded(){
+  private func handleSoftDataUpdatesIfNeeded(feed: StoredFeed){
     /// After Update from old Version migrate everey existing old index to new
     /// for new installations do this also, but there are no issues so trivial & fast exit
     if migrationToIssueLastContent == false {
       log("migrate to last content")
       var needDBsave = false
-      for issue in StoredIssue.issuesInFeed(feed: defaultFeed) {
+      for issue in StoredIssue.issuesInFeed(feed: feed) {
         guard issue.lastContent == nil else { continue }
         if let i = issue.lastArticle, let art = issue.allArticles.valueAt(i) {
           issue.lastContent = art
