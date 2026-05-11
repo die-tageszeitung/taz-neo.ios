@@ -1169,7 +1169,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     super.viewWillAppear(animated)
     self.scrollView.backgroundColor = Const.SetColor.HBackground.color
     self.view.backgroundColor = Const.SetColor.HBackground.color
-//    self.accessibilityElements = accessibilityViews
+    self.accessibilityElements = accessibilityViews
   }
   
   
@@ -1236,52 +1236,52 @@ extension ContentVC {
   @objc var nextItemAccessibilityLabel: String? { return nil }
   @objc var prevItemAccessibilityLabel: String? { return nil }
   
-//  @objc override public var accessibilityViews: [UIView] {
-//    var elements: [UIView] = [] ///NOT: super.accessibilityViews, different Order here!
-//    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
-//      elements = [imgVC.view, imgVC.xButton]
-//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-//    }
-//    else if slider?.isOpen == true {
-//      let contentTable
-//      = (self as? SectionVC)?.contentTable
-//      ?? ((self as? ArticleVC)?.adelegate as? SectionVC)?.contentTable
-//      elements.appendIfPresent(slider?.button)
-//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-//      elements.appendIfPresent(contentTable?.headerListenLabel)
-//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-//      elements.appendIfPresent(contentTable?.headerCollapseIcon)
-//      elements.appendIfPresent(contentTable?.tableView)
-//    } else {
-//      elements.append(header)
-//      elements.appendIfPresent(slider?.button)
-//      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
-//      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
-//      ///Only append next/prev Buttons id label is set
-//      leftTapEnEdgeButton.accessibilityLabel = prevItemAccessibilityLabel
-//      if leftTapEnEdgeButton.accessibilityLabel != nil {
-//        elements.append(leftTapEnEdgeButton)
-//      }
-//      rightTapEnEdgeButton.accessibilityLabel = nextItemAccessibilityLabel
-//      if rightTapEnEdgeButton.accessibilityLabel != nil {
-//        elements.append(rightTapEnEdgeButton)
-//      }
-//      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
-//      elements.append(toolBar)
-//      elements.appendIfPresent(currentView?.activeView)
-//    }
-//    return elements
-//  }
+  @objc override public var accessibilityViews: [UIView] {
+    var elements: [UIView] = [] ///NOT: super.accessibilityViews, different Order here!
+    if let imgVC = imageOverlay?.overlayVC as? ContentImageVC {
+      elements = [imgVC.view, imgVC.xButton]
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+    }
+    else if slider?.isOpen == true {
+      let contentTable
+      = (self as? SectionVC)?.contentTable
+      ?? ((self as? ArticleVC)?.adelegate as? SectionVC)?.contentTable
+      elements.appendIfPresent(slider?.button)
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+      elements.appendIfPresent(contentTable?.headerListenLabel)
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.appendIfPresent(contentTable?.headerCollapseIcon)
+      elements.appendIfPresent(contentTable?.tableView)
+    } else {
+      elements.append(header)
+      elements.appendIfPresent(slider?.button)
+      elements.appendIfPresent(ArticlePlayer.accessibilityToggleButtonIfPresent)
+      elements.appendIfPresent(ArticlePlayer.accessibilityCloseButtonIfPresent)
+      ///Only append next/prev Buttons id label is set
+      leftTapEnEdgeButton.accessibilityLabel = prevItemAccessibilityLabel
+      if leftTapEnEdgeButton.accessibilityLabel != nil {
+        elements.append(leftTapEnEdgeButton)
+      }
+      rightTapEnEdgeButton.accessibilityLabel = nextItemAccessibilityLabel
+      if rightTapEnEdgeButton.accessibilityLabel != nil {
+        elements.append(rightTapEnEdgeButton)
+      }
+      elements.appendIfPresent(HelpBusiness.accessibileHelpButton)
+      elements.append(toolBar)
+      elements.appendIfPresent(pager.currentActive)
+    }
+    return elements
+  }
   
   func updateAccessibility(postLayoutChanged:Bool){
-//    self.view.accessibilityElements = self.accessibilityViews
-//    if postLayoutChanged {
-//      UIAccessibility.post(notification: .layoutChanged,
-//                           argument: self.view)
-//    }
+    self.view.accessibilityElements = self.accessibilityViews
+    if postLayoutChanged {
+      UIAccessibility.post(notification: .layoutChanged,
+                           argument: self.view)
+    }
   }
 }
 

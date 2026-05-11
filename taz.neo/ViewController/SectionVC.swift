@@ -450,14 +450,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
 } // SectionVC
 
 //// MARK: - ContentVC Accessibility
-//extension SectionVC {
-//  @objc override var nextItemAccessibilityLabel: String? {
-//    guard let idx = index, idx < self.sections.count else { return nil }
-//    return "Nächstes Ressort: \(self.sections.valueAt(idx + 1)?.title ?? "")"
-//  }
-//  
-//  @objc override var prevItemAccessibilityLabel: String? {
-//    guard let idx = index, idx > 0 else { return nil }
-//    return "Vorheriges Ressort: \(self.sections.valueAt(idx + -1)?.title ?? "")"
-//  }
-//}
+extension SectionVC {
+  @objc override var nextItemAccessibilityLabel: String? {
+    guard index < self.sections.count else { return nil }
+    return "Nächstes Ressort: \(self.sections.valueAt(index + 1)?.title ?? "")"
+  }
+  
+  @objc override var prevItemAccessibilityLabel: String? {
+    guard index > 0 else { return nil }
+    return "Vorheriges Ressort: \(self.sections.valueAt(index + -1)?.title ?? "")"
+  }
+}

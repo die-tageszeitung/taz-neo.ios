@@ -659,14 +659,14 @@ extension WebView {
 }
 
 //// MARK: - ContentVC Accessibility
-//extension ArticleVC {
-//  @objc override var nextItemAccessibilityLabel: String? {
-//    guard let idx = index, idx < self.articles.count - 1 else { return nil }
-//    return "Nächster Artikel: \(self.articles.valueAt(idx + 1)?.accessibilityTitle ?? "")"
-//  }
-//  
-//  @objc override var prevItemAccessibilityLabel: String? {
-//    guard let idx = index, idx > 0 else { return nil }
-//    return "Vorheriger Artikel: \(self.articles.valueAt(idx + -1)?.accessibilityTitle ?? "")"
-//  }
-//}
+extension ArticleVC {
+  @objc override var nextItemAccessibilityLabel: String? {
+    guard index < self.articles.count - 1 else { return nil }
+    return "Nächster Artikel: \(self.articles.valueAt(index + 1)?.accessibilityTitle ?? "")"
+  }
+  
+  @objc override var prevItemAccessibilityLabel: String? {
+    guard index > 0 else { return nil }
+    return "Vorheriger Artikel: \(self.articles.valueAt(index + -1)?.accessibilityTitle ?? "")"
+  }
+}
