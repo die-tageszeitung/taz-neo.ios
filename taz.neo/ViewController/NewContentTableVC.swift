@@ -203,7 +203,7 @@ public class NewContentTableVC: UIViewController {
     h.pinHeight(240)
       
     h.listenIconActive =
-    ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
+    ArticlePlayer.singleton.currentPlayingContent?.primaryIssue?.date.issueKey
     == self.issue?.date.issueKey
     return h
   }()
@@ -252,7 +252,7 @@ extension NewContentTableVC {
       ///prevent crash bug; better remove observer
       ///if ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey == nil { return }
       self?.header.listenIconActive =
-      ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
+      ArticlePlayer.singleton.currentPlayingContent?.primaryIssue?.date.issueKey
       == self?.issue?.date.issueKey
     }
   }

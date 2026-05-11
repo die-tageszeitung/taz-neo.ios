@@ -200,22 +200,21 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
-//    self.articleVC?.releaseOnDisappear()
-//    self.releaseOnDisappear()
+    self.articleVC?.releaseOnDisappear()
+    self.releaseOnDisappear()
   }
   
   func updatePlayButton(){
     if let section = sectionIfAudio(atIndex: index) {
       self.playButton.isHidden = false
-      self.onPlay { _ in
-        section.toggleAudio()
-      }
+      self.onPlay { _ in section.toggleAudio() }
       updateAudioButton()///set correct state of play button
     }
     else {
       self.playButton.isHidden = true
       self.onPlay(closure: nil)
     }
+    self.updateAudioInWebview()
   }
   
   private var firstDisplayed = false
@@ -250,6 +249,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     whenLoaded {[weak self] wv in
       guard wv == self?.currentWebView else { return }
       self?.activateWebview(webView: wv)
+      self?.updateAudioInWebview()
     }
     onDisplay { [weak self] (secIndex, optionalView) in
       guard let self = self else { return }
@@ -284,6 +284,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
                                      with: self)
     }
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+      #warning("Error: off-Screen rendered/loaded Sections wount update bookmark state")
       if let art = msg.sender as? StoredArticle {
         guard let name = art.html?.name.nonPublic() else { return }
         let js = """
@@ -305,32 +306,11 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       && nIssue.allArticles.count == self?.issue.allArticles.count { return }
       self?.setup()
     }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.updateAudioButton()
-    }
     header.isWochentaz = issue.isWeekend
   }
   
-  func updateAudioButton(){
-    self.playButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.sectionIfAudio(atIndex: index)?.html?.sha256
-    ? "audio-active"
-    : "audio"
-  }
-  
-  /// Delete Article from ArticleVC
-  func deleteArticle(_ art: Article) {
-    article2section = issue.article2section
-    article2sectionHtml = issue.article2sectionHtml
-    articleVC?.delete(article: art)
-  }
-  
-  /// Insert Article into ArticleVC
-  func insertArticle(_ art: Article) {
-    article2section = issue.article2section
-    article2sectionHtml = issue.article2sectionHtml
-    articleVC?.insert(article: art)
+  override var currentAudioContent: Content? {
+    self.sectionIfAudio(atIndex: index)
   }
   
   // Return nearest section index containing given Article
@@ -433,13 +413,13 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     self.activateWebview(webView: wv)
   }
   
-  ///Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
-//  open override func releaseOnDisappear() {
-//    articleVC?.cleanup()
-//    articleVC = nil
-//    cleanup()
-//    super.releaseOnDisappear()
-//  }
+  //Declaration 'releaseOnDisappear()' cannot override more than one superclass declaration
+  open override func releaseOnDisappear() {
+    articleVC?.cleanup()
+    articleVC = nil
+    cleanup()
+    super.releaseOnDisappear()
+  }
    
   /// Initialize with FeederContext
   public init(feederContext: FeederContext,

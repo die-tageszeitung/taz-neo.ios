@@ -422,12 +422,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   var playingCurrentSection: Bool {
     return ArticlePlayer.singleton.isPlaying
-    && ArticlePlayer.singleton.currentContent?.html?.sha256 ==
+    && ArticlePlayer.singleton.currentPlayingContent?.html?.sha256 ==
     sectionAudio()?.html?.sha256
   }
   
   var playingCurrentIssue: Bool {
-    ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey
+    ArticlePlayer.singleton.currentPlayingContent?.primaryIssue?.date.issueKey
     == self.issue.date.issueKey
   }
   

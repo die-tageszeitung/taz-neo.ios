@@ -51,10 +51,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   }
   
   public var articles: [Article] = []
-  public var article: Article? { 
-//    if let i = index { return articles.valueAt(i) }
-    return nil
-  }
+  public var article: Article? { articles.valueAt(index) }
   
   public override var delegate: IssueInfo! {
     didSet {
@@ -100,6 +97,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   func displayBookmark(art: Article) {
     var bbHidden = true
     if let aDel = adelegate {
+      #warning("ISSUE WAS NIL! SAVE IT")
       bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
     }
     bookmarkButton.isHidden = bbHidden
@@ -114,12 +112,8 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     }
   }
   
-  func updateAudioButton(){
-    self.playButton.buttonView.name
-    = ArticlePlayer.singleton.isPlaying
-    && ArticlePlayer.singleton.currentContent?.html?.sha256 == self.article?.html?.sha256
-    ? "audio-active"
-    : "audio"
+  override var currentAudioContent: Content? {
+    self.article
   }
   
   var playButtonContextMenu: ContextMenu?
@@ -146,9 +140,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
          cart.serverId == art.serverId {
          self.displayBookmark(art: art)
       }
-    }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.updateAudioButton()
     }
     
     /// do not add this in onDosplay otherwise it is called multiple times after swipe/scroll
@@ -205,6 +196,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       //if !self.issue.isBookmarkIssue {}
       if art.canPlayAudio {
         updateAudioButton()
+        updateAudioInWebview()
       }
       playButton.isHidden = !art.canPlayAudio
       self.displayBookmark(art: art)///hide bookmarkbutton for imprint!
@@ -214,8 +206,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       LinkBusiness.handleLinkPressed(from: from, to: to,
                                      with: self?.adelegate)
     }
-    whenLoaded { _ in
+    whenLoaded {[weak self] _ in
       Notification.send(Const.NotificationNames.articleLoaded)
+      guard let self = self,
+            let art = self.articles.valueAt(self.index),
+            art.canPlayAudio else { return }
+      self.updateAudioInWebview()
     }
     header.titletype = .article
     header.isWochentaz = issue.isWeekend
