@@ -249,6 +249,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     whenLoaded {[weak self] wv in
       guard wv == self?.currentWebView else { return }
       self?.activateWebview(webView: wv)
+      self?.updateAudioInWebview()
     }
     onDisplay { [weak self] (secIndex, optionalView) in
       guard let self = self else { return }
