@@ -309,6 +309,9 @@ extension SearchController {
     var searchSettings = self.searchSettingsView.data.settings
     header.searchTextField.text = header.searchTextField.text?.trimed ?? ""
     searchSettings.text = header.searchTextField.text
+    
+    guard searchItem.noMoreSearchResults == false else { return }
+    
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",
                                     color: .red)
