@@ -612,7 +612,7 @@ public extension Article {
   
   /// Start/stop audio play if available
   func toggleAudio(issue: Issue) {
-    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+    if ArticlePlayer.singleton.currentContent?.audioItem?.file?.sha256 == self.audioItem?.file?.sha256 && self.audioItem?.file?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
     else if issue is VirtualIssue || issue is StoredIssue {
@@ -720,7 +720,7 @@ public extension Section {
   }
   
   func toggleAudio() {
-    if ArticlePlayer.singleton.currentContent?.html?.sha256 == self.html?.sha256 && self.html?.sha256 != nil {
+    if ArticlePlayer.singleton.currentContent?.audioItem?.file?.sha256 == self.audioItem?.file?.sha256 && self.audioItem?.file?.sha256 != nil {
       ArticlePlayer.singleton.toggle(origin: .appUi)
     }
     else {

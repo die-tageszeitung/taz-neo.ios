@@ -222,7 +222,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   
   func updateAudioButton(){
     self.playButton.buttonView.name
-    = ArticlePlayer.singleton.currentPlayingContent?.html?.sha256 == currentAudioContent?.html?.sha256
+    = ArticlePlayer.singleton.currentPlayingContent?.audioItem?.file?.sha256 == currentAudioContent?.audioItem?.file?.sha256
     ? "audio-active"
     : "audio"
   }

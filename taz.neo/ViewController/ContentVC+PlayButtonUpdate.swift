@@ -25,7 +25,12 @@ extension ContentVC {
   func updateAudioInWebview(_ webView: WebView? = nil) {
     let wv = webView ?? currentWebView
     let pc = ArticlePlayer.singleton.isPlaying ? ArticlePlayer.singleton.currentContent : nil
-    (self as? ArticleVC)?.updateArticleAudioInWebview(wv, playingContent: pc)
+    let currentWebContent = contents.valueAt(index)
+    let active
+    = currentWebContent?.audioItem?.file?.sha256
+    == ArticlePlayer.singleton.currentPlayingContent?.audioItem?.file?.sha256
+    && currentWebContent?.audioItem?.file?.sha256 != nil
+    (self as? ArticleVC)?.updateArticleAudioInWebview(wv, active: active)
     (self as? SectionVC)?.updateSectionAudioInWebview(wv, playingContent: pc)
   }
 }
@@ -34,26 +39,29 @@ extension ContentVC {
 extension SectionVC {
   func updateSectionAudioInWebview(_ webView: WebView?, playingContent: Content?) {
     guard let webView = webView else { return }
-    let playingArticleHref = playingContent?.html?.fileName.lastPathComponent ?? ""
-    
+    let audioFile = playingContent?.audioItem?.file?.fileName ?? ""
     Task {
       let js = """
-      (function() {
-          var activeHref = "\(playingArticleHref)";
-          var sectionArticles = document.querySelectorAll('.SectionArticle');
-          sectionArticles.forEach(function(sectionArticle) {
-              var articleLink = sectionArticle.querySelector('a[href]');
-              if (!articleLink) return;
-              var href = articleLink.getAttribute('href');
-              var playButton = sectionArticle.querySelector('#podcastPlayButtonSection');      
-              if (!playButton) return;
-              var isActive = href === activeHref;
-              playButton.src = isActive
-                  ? 'resources/ic_pause_button_teaser.svg'
-                  : 'resources/ic_play_button_teaser.svg';
-          });
-      })();
-      """
+          (function() {
+              var activeAudioFile = "\(audioFile)";
+              var sectionArticles = document.querySelectorAll('.SectionArticle');
+              sectionArticles.forEach(function(sectionArticle) {
+                  var playButton = sectionArticle.querySelector('#podcastPlayButtonSection');
+                  if (!playButton) return;
+                  var onclickAttr = playButton.getAttribute('onclick');
+                  if (!onclickAttr) return;
+                  // extract audiofilename from
+                  // EPUBTAZ.togglePlayButtonSection('6177015', 'global/xyz.mp3')
+                  var match = onclickAttr.match(/'([^']+\\.mp3)'/);
+                  if (!match || !match[1]) return;
+                  var buttonAudioFile = match[1];
+                  var isActive = buttonAudioFile === activeAudioFile;
+                  playButton.src = isActive
+                      ? 'resources/ic_pause_button_teaser.svg'
+                      : 'resources/ic_play_button_teaser.svg';
+              });
+          })();
+          """
       _ = try? await webView.jsexec(js)
     }
   }
@@ -63,12 +71,9 @@ extension SectionVC {
 
 extension ArticleVC {
   
-  func updateArticleAudioInWebview(_ webView: WebView?, playingContent: Content?) {
+  func updateArticleAudioInWebview(_ webView: WebView?, active: Bool) {
     guard let webView = webView else { return }
-    let playingFileName = playingContent?.html?.fileName.lastPathComponent
     Task {
-      let active = webView.url?.lastPathComponent == playingFileName
-      
       let playIconArtSrc = active ? "resources/ic_pause_button.svg" : "resources/ic_play_button.svg"
       
       let js = """
