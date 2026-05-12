@@ -291,7 +291,8 @@ extension SearchController {
     articleVC.maxResults = self.searchItem.resultCount.currentCount ?? 0
     searchResultIssue.search = self.searchItem
     articleVC.searchContents = allArticles
-    articleVC.currentWebView?.reload()
+    articleVC.updatePagesAfterInsertOrDelete()
+//    articleVC.currentWebView?.reload()
   }
   
   private func openSearchHit(_ searchHit: GqlSearchHit){
