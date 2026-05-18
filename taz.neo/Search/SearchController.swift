@@ -309,8 +309,7 @@ extension SearchController {
     var searchSettings = self.searchSettingsView.data.settings
     header.searchTextField.text = header.searchTextField.text?.trimed ?? ""
     searchSettings.text = header.searchTextField.text
-    
-    guard searchItem.noMoreSearchResults == false else { return }
+  
     
     if searchSettings.searchTermTooShort {
       header.setStatusLabel(text: "Bitte Suchbegriff eingeben!",
@@ -330,6 +329,8 @@ extension SearchController {
     if searchItem.sessionId == nil {
       currentState = .firstSearch
       header.setStatusLabel(text: nil, color: nil)
+    } else if searchItem.noMoreSearchResults {
+      return ///prevent more search if nothing is available
     }
     
     guard let feeder = feederContext.gqlFeeder else { return }
