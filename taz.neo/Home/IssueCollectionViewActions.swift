@@ -31,6 +31,7 @@ extension IssueCollectionViewActions {
     Notification.send("issueDelete", content: issue.date)
     issue.lastPage = nil
     issue.lastArticle = nil
+    issue.lastContent = nil
     issue.lastArticleScrollPos = nil
     issue.lastSection = nil
     issue.delete()
@@ -79,6 +80,7 @@ extension IssueCollectionViewActions {
         issue.lastPage = nil
         issue.lastArticle = nil
         issue.lastSection = nil
+        issue.lastContent = nil
         self?.collectionView.reloadItems(at: [indexPath])
         self?.updateCarouselDownloadButton()
       }

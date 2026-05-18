@@ -2561,6 +2561,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
     self.isAudioComplete = false
     self.lastPage = nil
+    self.lastContent = nil
     self.lastArticle = nil
     self.lastSection = nil
     //lastPage = nil //May delete also last Page?
