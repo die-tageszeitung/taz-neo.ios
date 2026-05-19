@@ -739,7 +739,7 @@ class ArticlePlayer: DoesLog {
   
   public func play(sectionAudio:Section){
     nextContent = [sectionAudio]
-    playNext()
+    playNext(skipPodcast: false)
   }
   
 } // ArticlePlayer
