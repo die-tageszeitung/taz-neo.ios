@@ -48,13 +48,7 @@ extension SectionVC {
               sectionArticles.forEach(function(sectionArticle) {
                   var playButton = sectionArticle.querySelector('#podcastPlayButtonSection');
                   if (!playButton) return;
-                  var onclickAttr = playButton.getAttribute('onclick');
-                  if (!onclickAttr) return;
-                  // extract audiofilename from
-                  // EPUBTAZ.togglePlayButtonSection('6177015', 'global/xyz.mp3')
-                  var match = onclickAttr.match(/'([^']+\\.mp3)'/);
-                  if (!match || !match[1]) return;
-                  var buttonAudioFile = match[1];
+                  var buttonAudioFile = playButton.dataset.audioFile;
                   var isActive = buttonAudioFile === activeAudioFile;
                   playButton.src = isActive
                       ? 'resources/ic_pause_button_teaser.svg'
