@@ -272,13 +272,14 @@ extension IssueDisplayService {
     var title: String?
     var targetArticle: Article?
     
-    if let idx = issue.lastArticleIndexForCurrentMode,
-       let lastArt = issue.allArticles.valueAt(idx) {
+    let lastRead = issue.lastReadData
+    
+    if let lastArt = lastRead.lastContent as? Article {
       img = lastArt.firstImage
       title = "Weiterlesen:"
       txt = lastArt.title ?? "(kein Titel angegeben)"
       targetArticle = lastArt
-    } else if let page = issue.lastPage, page != 0 {
+    } else if let page = lastRead.lastPage, page != 0 {
       img = issue.pages?.valueAt(page)?.facsimile?.image(dir: issue.dir)
       title = "Weiterlesen:"
       txt = "Seite \(page+1)"

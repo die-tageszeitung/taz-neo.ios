@@ -158,10 +158,13 @@ extension HomeVC {
     let issueInfo = IssueDisplayService(feederContext: feederContext,
                                     issue: issue)
     loadingIssueInfos.append(issueInfo)
+    
+    let lastReadData = issue.lastReadData
+    
     issueInfo.showIssue(pushDelegate: self,
-                         atArticle: openLast ? issue.lastArticleIndexForCurrentMode : nil,
-                         atArticleScrollPos: openLast ? issue.lastArticleScrollPos : nil,
-                         atSection: openLast ? issue.lastSection : nil,
+                        atArticle: openLast ? lastReadData.lastArticleIndex : nil,
+                        atArticleScrollPos: openLast ? lastReadData.articleScrollPos : nil,
+                        atSection: openLast ? lastReadData.lastSectionIndex : nil,
                         atPage:openLast ? issue.lastPage : nil, skipDownload: skipDownload)
   }
 }

@@ -905,6 +905,12 @@ extension Issue {
     if let lastSection = lastContent as? Section {
       lastSectionIndex = sections?.firstIndex(where:{ $0.html?.fileName == lastSection.html?.fileName })
     }
+    ///ensure weiterlesen on facsimile open page and not article
+    if TazAppEnvironment.sharedInstance.service?.isFacsimile == true
+        && lastReadWasPage && lastPage != nil {
+      lastArticleIndex = nil
+    }
+    
     return LastReadData(
       articleScrollPos: lastArticleScrollPos,
       lastPage: lastPage,
@@ -913,19 +919,6 @@ extension Issue {
       lastContent: lastContent)
   }
   
-  var lastArticleIndexForCurrentMode: Int? {
-    if TazAppEnvironment.sharedInstance.service?.isFacsimile == true
-        && lastReadWasPage
-        && lastPage != nil { return nil }
-    guard let lastContent else { return nil }
-    if let lastArticle = lastContent as? Article {
-      return allArticles.firstIndex(where:{ $0.serverId == lastArticle.serverId })
-    }
-    if let lastSection = lastContent as? Section {
-      return sections?.firstIndex(where:{ $0.html?.fileName == lastSection.html?.fileName })
-    }
-    return nil
-  }
   
   var downloadState: DownloadStatusIndicatorState {
     if hasLastReadForCurrentMode { return .read }
