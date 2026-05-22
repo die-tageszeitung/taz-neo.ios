@@ -268,7 +268,9 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
-      issue.lastArticle = issue.indexOf(article: article)
+      if issue.allArticles.contains(where: { $0.serverId == article.serverId }) {
+        issue.lastContent = article
+      }
       if isFacsimile, let page = issue.pageIndexOf(article: article) { issue.lastPage = page }
       home.openIssue(issue, openLast: true)
     }
