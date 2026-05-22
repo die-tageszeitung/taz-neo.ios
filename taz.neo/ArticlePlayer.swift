@@ -727,7 +727,7 @@ class ArticlePlayer: DoesLog {
       case .replaceCurrent:
         nextContent = arts
         isPlaying ? nil : aplayer.close()
-        playNext(skipPodcast: startFromArticle?.isPodcast == false)
+        playNext(skipPodcast: startFromArticle?.isPodcast != true)
 //      case .enqueueOneNext:
 //        guard let a = startFromArticle else { return }
 //        nextContent.append(a)
