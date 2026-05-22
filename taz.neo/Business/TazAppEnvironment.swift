@@ -12,6 +12,12 @@ import BackgroundTasks
 
 class TazAppEnvironment: NSObject, DoesLog {
   
+  @Default("autoSyncBookmarks")
+  var autoSyncBookmarks: Bool
+  
+  @Default("requestedSyncBookmarks")
+  var requestedSyncBookmarks: Bool
+  
   class Spinner: UIViewController {
     #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -282,6 +288,10 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
     feederContext?.gqlFeeder.authToken = nil
     feederContext?.endPolling()
+    
+    autoSyncBookmarks = false
+    requestedSyncBookmarks = false
+    
     logKeychain(msg: "after delete")
     onThreadAfter {
       Notification.send(Const.NotificationNames.logoutUserDataDeleted)
