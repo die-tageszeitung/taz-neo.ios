@@ -282,7 +282,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   lazy var defaultToastsDisabledCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
-                  detailText: "Zeige Toasts bei Bookmarks und PDF Umschaltung (nur für @taz.de Accounts)",
+                  detailText: "Zeige Toasts bei Bookmarks (nur für @taz.de Accounts)",
                   initialValue: !defaultToastsDisabled,
                   onChange: {[weak self] newValue in
     self?.defaultToastsDisabled = !newValue })
