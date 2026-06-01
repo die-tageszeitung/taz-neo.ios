@@ -547,6 +547,10 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     self.bridge = JSBridgeObject(name: "tazApi")
     self.bridge?.addfunc("openImage") { [weak self] jscall in
       guard let self = self else { return NSNull() }
+      #warning("Prevent Open Image Galery due Focus could not be set")
+      /// focus stays in Background
+      /// prevent open due image galery make no sense due missing alt text
+      if UIAccessibility.isVoiceOverRunning { return NSNull() }
       if let args = jscall.args, args.count > 0,
          let img = args[0] as? String {
         let current = self.contents[self.index]
