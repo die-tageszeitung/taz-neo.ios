@@ -18,14 +18,14 @@ extension BackgroundDownloadService {
   func sendDownloadStopAndTrack(for downloadData: DownloadData,
                                 with url: String,
                                 feederContext: FeederContext?) {
-    guard let feederContext = feederContext else {
+    guard let gqlFeeder = feederContext?.gqlFeeder else {
       log("⚠️WARNING:...No FeederContext available, cannot send stop to server")
       return
     }
     
     let downloadStart =  UsTime(downloadData.startTime)
     let nsec = UsTime.now.timeInterval - downloadStart.timeInterval
-    feederContext.gqlFeeder.stopDownload(dlId: downloadData.downloadId, seconds: nsec, returnOnMain: false) { [weak self] err in
+    gqlFeeder.stopDownload(dlId: downloadData.downloadId, seconds: nsec, returnOnMain: false) { [weak self] err in
       guard let self = self else { return }
       self.log("...send stop to server for dlId: \(downloadData.downloadId) with err: \(err) downloadDuration: \(nsec)s")
       Usage.track(Usage.event.issue.autoDownload,
