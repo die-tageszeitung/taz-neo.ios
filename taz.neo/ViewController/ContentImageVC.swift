@@ -34,7 +34,7 @@ public class ZoomedImage: OptionalImage {
 extension ContentImageVC {
   override public var accessibilityViews: [UIView] {
     #warning("ToDo No Image Description currently available!")
-    return [xButton, view]
+    return [xButton] + super.accessibilityViews
   }
 }
 
