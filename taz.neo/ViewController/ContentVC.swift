@@ -508,6 +508,9 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
         /*fix: 240417-w+u-1 author box broken text in ip6m/ios17.4/100%fontSize/Landscape */
         break-inside: avoid;
       }
+      body #content {
+       padding-bottom: \(footerHeight)px;
+      }
     """
   }
   
