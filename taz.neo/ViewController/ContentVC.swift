@@ -394,7 +394,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   }
   
   public override func handleRightTap() -> Bool {
-    guard isMultiColumnMode else {
+    guard isMultiColumnMode && !(self is SectionVC) else {
       let isNotAtEnd = super.handleRightTap()
       if hideOnScroll { toolBar.show(show: !isNotAtEnd, animated: true) }
       isNotAtEnd
@@ -428,7 +428,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   = 50 + Int(UIWindow.bottomInset) //Footer+SafeArea Padding
   
   public override func handleLeftTap() -> Bool {
-    guard isMultiColumnMode else { return super.handleLeftTap() }
+    guard isMultiColumnMode && !(self is SectionVC) else { return super.handleLeftTap() }
     guard let sv = self.currentWebView?.scrollView  else { return false }
     if sv.contentOffset.x - 2 < 0 { return false }
     /// scroll visible row count right usually:
