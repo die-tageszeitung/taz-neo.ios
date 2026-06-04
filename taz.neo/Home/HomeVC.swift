@@ -380,6 +380,12 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     openingIssue = nil
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    guard isHomeTiles == false else { return }
+    updateCarouselSize(view.frame.size)
+  }
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     updateAccessibilityOrder()
