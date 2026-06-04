@@ -201,7 +201,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   var centerIndex: Int? {
     guard let cv = collectionView else { return nil }
-    let center = self.view.convert(cv.center, to: cv)
+    /// Warning: new Center calculation after the prev one returned the space between 2 issues
+    /// on some iPads in portrait mode; it was around x=570 for width 880
+    let center = CGPoint( x: cv.contentOffset.x + cv.bounds.width / 2,
+                          y: cv.contentOffset.y + cv.bounds.height / 2)
     return cv.indexPathForItem(at: center)?.row
   }
   
@@ -271,10 +274,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     if let cidx = centerIndex,
        abs(cidx - idx) > 2 { return
     }
-    scrollTo(idx, animated: true)
+    onMainAfter {[weak self] in self?.scrollTo(idx, animated: true)  }
   }
   
   var nextHorizontalSizeClass:UIUserInterfaceSizeClass?
+  var initialized = false
   
   override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
     nextHorizontalSizeClass = newCollection.horizontalSizeClass
@@ -292,13 +296,13 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     super.viewWillTransition(to: size, with: coordinator)
     updateCollectionViewLayout(size, horizontalSizeClass: nextHorizontalSizeClass)
     nextHorizontalSizeClass = nil
-    
     restoreCarouselCenterIssueIndex = isHomeTiles ? nil : carouselCenterIssueIndex
     isRotating = true
-    
-    coordinator.animate(alongsideTransition: nil) { _ in
-        self.isRotating = false
-        self.restoreCenteredIndexIfNeeded()
+    coordinator.animate(alongsideTransition: { [weak self] _ in
+      self?.restoreCenteredIndexIfNeeded(animated: false, reset: false)
+    }) { [weak self] _ in
+      self?.isRotating = false
+      self?.restoreCenteredIndexIfNeeded(animated: true, reset: true)
     }
   }
   
@@ -391,6 +395,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     updateAccessibilityOrder()
     showRequestTrackingIfNeeded()
     onMainAfter(2.0) {[weak self] in self?.postAccessibilityScreenAnnouncement() }
+    guard initialized == false else { return }
+    initialized = true
+    guard !isHomeTiles else { return }
+    scrollTo(0, animated: true)
   }
   
   override func viewDidLoad() {
@@ -596,9 +604,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     updateBottomWrapper(for: i)
   }
   
-  private func restoreCenteredIndexIfNeeded() {
+  private func restoreCenteredIndexIfNeeded(animated: Bool, reset: Bool) {
     guard !isHomeTiles, let cidx = restoreCarouselCenterIssueIndex else { return }
-    scrollTo(cidx, animated: true)
+    scrollTo(cidx, animated: animated)
+    guard reset else { return }
+    restoreCarouselCenterIssueIndex = nil
   }
      
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
