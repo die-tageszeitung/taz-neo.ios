@@ -76,7 +76,18 @@ extension HomeVC  {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    guard let data = self.service.cellData(for: indexPath.row),
+    if centerIndex == indexPath.row {
+      selectIsste(at: indexPath.row)
+      return
+    }
+    scrollTo(indexPath.row, animated: true)
+    onMainAfter {[weak self] in
+      self?.selectIsste(at: indexPath.row)
+    }
+  }
+  
+  private func selectIsste(at index: Int) {
+    guard let data = self.service.cellData(for: index),
           let issue = data.issue else {
       error("Issue not available try later")
       return
