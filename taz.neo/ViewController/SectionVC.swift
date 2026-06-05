@@ -391,10 +391,14 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     super.viewWillAppear(animated)
     persistReadProgress()
     if let iart = initialArticle {
+      self.scrollView.isHidden = true
       articleVC?.view.doLayout()
       self.showArticle(index: iart, animated: false)
       initialArticle = nil
       self.header.isHidden = false
+      onMainAfter(1.0) {[weak self] in
+        self?.scrollView.isHidden = false
+      }
     }
     else {
       toolBar.show(show: true, animated: true)
