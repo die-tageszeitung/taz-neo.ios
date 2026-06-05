@@ -76,7 +76,7 @@ extension HomeVC  {
   // MARK: > Cell Click/Select
   public override func collectionView(_ collectionView: UICollectionView,
                                       didSelectItemAt indexPath: IndexPath) {
-    if centerIndex == indexPath.row {
+    if carousselFixCenterIndex == indexPath.row {
       selectIsste(at: indexPath.row)
       return
     }

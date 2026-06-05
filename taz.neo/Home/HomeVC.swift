@@ -145,7 +145,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
     
     downloadButtonTapArea.onTapping { [weak self] _ in
-      guard let idx = self?.centerIndex,
+      guard let idx = self?.carousselFixCenterIndex,
             let data = self?.service.cellData(for: idx) else { return }
       
       if self?.downloadButton.indicator.downloadState?.canOpen == true,
@@ -189,7 +189,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     datePickerOverlay.isHidden = true
     datePickerOverlay.accessibilityViewIsModal = true
     Usage.track(Usage.event.dialog.IssueDatePicker)
-    datePicker.date = service.date(at: centerIndex ?? 0)?.date ?? Date()
+    datePicker.date = service.date(at: carousselFixCenterIndex ?? 0)?.date ?? Date()
     self.view.addSubview(datePickerOverlay)
     pin(datePickerOverlay, to: self.view)
     datePickerOverlay.showAnimated(){[weak self] in
@@ -199,43 +199,35 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
   }
   
-  var centerIndex: Int? {
+  var carousselScrollingCenterIndex: Int? {
+    guard !isHomeTiles else { return nil }
     guard let cv = collectionView else { return nil }
-    /// Warning: new Center calculation after the prev one returned the space between 2 issues
-    /// on some iPads in portrait mode; it was around x=570 for width 880
-    let center = CGPoint( x: cv.contentOffset.x + cv.bounds.width / 2,
-                          y: cv.contentOffset.y + cv.bounds.height / 2)
-    return cv.indexPathForItem(at: center)?.row
+    
+    let centerX = cv.contentOffset.x + cv.bounds.width / 2
+    
+    return cv.visibleCells
+      .compactMap { cell -> (Int, CGFloat)? in
+        guard let ip = cv.indexPath(for: cell) else { return nil }
+        return (ip.row, abs(cell.center.x - centerX))
+      }
+      .min(by: { $0.1 < $1.1 })?
+      .0
   }
   
-  /// Returns the index path of the center-most visible item in the collection view.
-  /// If `returnFirstItemIfVisible` is `true` and the first item (item 0) is visible,
-  /// it returns IndexPath(item: 0, section: 0) instead.
-  ///
-  /// - Parameter returnFirstItemIfVisible: Whether to prioritize returning the first item if it's visible.
-  /// - Returns: The median visible IndexPath, or the first item if specified and visible.
-  func centerIndexPath(returnFirstItemIfVisible: Bool = false) -> IndexPath? {
-    let visibleIndexPaths = collectionView.indexPathsForVisibleItems
-    guard !visibleIndexPaths.isEmpty else { return nil }
-    
-    // If enabled: return the first item if it is currently visible
-    if returnFirstItemIfVisible,
-       visibleIndexPaths.contains(where: { $0.item == 0 }) {
-      return IndexPath(item: 0, section: 0)
-    }
-    
-    // Sort index paths by section and then item
-    let sorted = visibleIndexPaths.sorted { lhs, rhs in
-      if lhs.section != rhs.section {
-        return lhs.section < rhs.section
-      } else {
-        return lhs.item < rhs.item
-      }
-    }
-    
-    // Return the middle index path (numerically centered)
-    let middleIndex = sorted.count / 2
-    return sorted[middleIndex]
+  var carousselFixCenterIndex: Int? {
+    guard !isHomeTiles else { return nil }
+      guard let cv = collectionView else { return nil }
+      let visibleCenterX = cv.contentOffset.x + cv.bounds.width / 2
+      let rect = CGRect(origin: cv.contentOffset, size: cv.bounds.size)
+      return cv.collectionViewLayout
+          .layoutAttributesForElements(in: rect)?
+          .filter { $0.representedElementCategory == .cell }
+          .min {
+              abs($0.center.x - visibleCenterX)
+              <
+              abs($1.center.x - visibleCenterX)
+          }?
+          .indexPath.row
   }
   
   /// Determines whether scrolling to the given index should be animated or immediate.
@@ -271,7 +263,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     guard !isHomeTiles else { return }
     guard let idx = carouselCenterIssueIndex else { return }
     ///do not make big jumps
-    if let cidx = centerIndex,
+    if let cidx = carousselScrollingCenterIndex,
        abs(cidx - idx) > 2 { return
     }
     onMainAfter {[weak self] in self?.scrollTo(idx, animated: true)  }
@@ -452,7 +444,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       trackScreen()
       updateButtonMenu()
       if isHomeTiles { return }
-      guard let centerIndex = self.centerIndex else { return }
+      guard let centerIndex = self.carousselFixCenterIndex else { return }
       ///update wrapper for carousel
       updateBottomWrapper(for: centerIndex, force: true)
     }
@@ -461,6 +453,12 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.log("isHomeTiles: \(String(describing: self?.isHomeTiles))")
       self?.updateCollectionViewLayout()
       onMainAfter(0.05) {[weak self] in self?.applyLayout() }
+      onMain(after: 0.7) {[weak self] in
+        guard self?.isHomeTiles == false else { return }
+        ///fix centered issue after change from tiles to carousel 
+        guard let idx = self?.carousselScrollingCenterIndex else { return }
+        self?.scrollTo(idx, animated: true)
+      }
       self?.trackScreen()
       self?.updateButtonMenu()
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
@@ -549,7 +547,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   public func updateDate(){
     guard isHomeTiles == false else { return }
-    guard let i = self.centerIndex else { return }
+    guard let i = self.carousselFixCenterIndex else { return }
     updateBottomWrapper(for: i)
   }
   
@@ -583,8 +581,6 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
   }
   
-  var centerIndex2: Int? { return centerIndexPath(returnFirstItemIfVisible: true)?.row }
-  
   private var lastContentOffset: CGFloat = 0
   
   override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -600,7 +596,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       lastContentOffset = offsetY
       return
     }
-    guard let i = centerIndex else { return }
+    guard let i = carousselScrollingCenterIndex else { return }
     updateBottomWrapper(for: i)
   }
   
@@ -614,7 +610,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     guard isHomeTiles == false else { return }
     bottomItemsWrapper.isUserInteractionEnabled = true
-    guard let centerIndex = centerIndex else { return }
+    guard let centerIndex = carousselFixCenterIndex else { return }
     updateBottomWrapper(for: centerIndex)
     scrollTo(centerIndex)
     updateAccessibilityOrder()

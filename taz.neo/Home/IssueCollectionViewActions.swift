@@ -63,7 +63,7 @@ extension IssueCollectionViewActions {
   func updateCarouselDownloadButton(){
     guard let home = self as? HomeVC else { return }
     home.downloadButton.indicator.downloadState
-    = self.service.cellData(for: home.centerIndex ?? 0)?.downloadState
+    = self.service.cellData(for: home.carousselFixCenterIndex ?? 0)?.downloadState
   }
   
   func contextMenuInteraction(for indexPath: IndexPath, issue: StoredIssue) -> UIContextMenuConfiguration? {
@@ -95,7 +95,7 @@ extension IssueCollectionViewActions {
         Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: true)
         guard let home = self as? HomeVC,
-              home.centerIndex == indexPath.row else { return }
+              home.carousselFixCenterIndex == indexPath.row else { return }
         home.downloadButton.indicator.downloadState = .waiting
       }
     } else if issue.isComplete == false {
@@ -105,7 +105,7 @@ extension IssueCollectionViewActions {
         Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: false)
         guard let home = self as? HomeVC,
-              home.centerIndex == indexPath.row else { return }
+              home.carousselFixCenterIndex == indexPath.row else { return }
         home.downloadButton.indicator.downloadState = .waiting
       }
       ///issue.audioFiles.count > 0 not possible until download
@@ -115,7 +115,7 @@ extension IssueCollectionViewActions {
         Notification.send("issueProgress", content: "waiting", sender: issue)
         self?.service.download(issueAt: issue.date, withAudio: true)
         guard let home = self as? HomeVC,
-              home.centerIndex == indexPath.row else { return }
+              home.carousselFixCenterIndex == indexPath.row else { return }
         home.downloadButton.indicator.downloadState = .waiting
       }
     }
@@ -147,26 +147,52 @@ extension IssueCollectionViewActions {
     }
   }
   
-  func _contextMenuInteraction(_ interaction: UIContextMenuInteraction,
-                               configurationForMenuAtLocation location: CGPoint)
-  -> UIContextMenuConfiguration? {
-    // Determine the position within the CollectionView
+  func _contextMenuInteraction(
+    _ interaction: UIContextMenuInteraction,
+    configurationForMenuAtLocation location: CGPoint
+  ) -> UIContextMenuConfiguration? {
+    
+    // Convert the touch location into the CollectionView coordinate system.
     let locationInCollectionView = interaction.location(in: collectionView)
     
-    // Main logic: Create a context menu for the cell at the specified position
+    // Primary hit test.
+    //
+    // UICollectionView.indexPathForItem(at:) occasionally fails on iPad 9
+    // when the carousel layout is initially displayed and the centered item
+    // is scaled using a custom UICollectionViewFlowLayout.
+    //
+    // Therefore determine the tapped cell by checking the visible cell frames
+    // directly in CollectionView coordinates.
+    for cell in collectionView.visibleCells {
+      let frame = cell.convert(cell.bounds, to: collectionView)
+      if frame.contains(locationInCollectionView) {
+        // Read the issue directly from the cell.
+        // Using service.cellData(for:) could theoretically return a different
+        // model if the datasource changes between hit testing and menu creation.
+        if let issueCell = cell as? IssueCollectionViewCell,
+           let issue = issueCell.data?.issue,
+           let indexPath = collectionView.indexPath(for: issueCell) {
+          return contextMenuInteraction(for: indexPath, issue: issue)
+        }
+        break
+      }
+    }
+    
+    // Fallback to UICollectionView hit testing.
+    // This is the preferred UIKit API and works correctly in most cases.
     if let indexPath = collectionView.indexPathForItem(at: locationInCollectionView),
        let issue = service.cellData(for: indexPath.row)?.issue {
       return contextMenuInteraction(for: indexPath, issue: issue)
     }
     
-    // Fallback: Handle cases where no indexPath could be determined (e.g., during scrolling)
+    // Final fallback.
+    // During layout transitions, animations or scrolling, the interaction may
+    // already be attached to a cell even though hit testing above failed.
     if let tappedCell = interaction.view?.superview?.superview as? IssueCollectionViewCell,
        let issue = tappedCell.data?.issue,
        let indexPath = collectionView.indexPath(for: tappedCell) {
       return contextMenuInteraction(for: indexPath, issue: issue)
     }
-    
-    // No context menu available
     return nil
   }
 }
