@@ -288,7 +288,10 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
           }
         """
         Task { [weak self] in
-          try? await self?.currentWebView?.jsexec(js) 
+          guard let self else { return }
+          for webView in pager.currentWebviews {
+              _ = try? await webView.jsexec(js)
+          }
         }
       }
     }
