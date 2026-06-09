@@ -32,7 +32,7 @@ extension HomeVC {
     button.tintColor = Const.Colors.appIconGrey
 
     // Optional: Zugriffshilfe
-    button.accessibilityLabel = "Ausgabenübersicht: Darstellungsoptionen anzeigen"
+    button.accessibilityLabel = "Ausgabenübersicht: Darstellungsoptionen öffnen"
     button.layoutVertically()
     button.pinHeight(42)
     return button
@@ -47,7 +47,7 @@ extension HomeVC {
     button.tintColor = Const.Colors.appIconGrey
 
     // Optional: Zugriffshilfe
-    button.accessibilityLabel = "Datumsauswahl anzeigen"
+    button.accessibilityLabel = "Datumsauswahl öffnen"
     button.layoutVertically()
     button.onTapping { _ in
       self.showDatePicker()
