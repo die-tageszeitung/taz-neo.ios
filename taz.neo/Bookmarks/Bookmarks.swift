@@ -125,6 +125,11 @@ extension Bookmarks {
     // Retrieve the existing bookmarked article, if any
     let bookmarkedArticle = bookmarkArticle(for: article, in: list)
     
+    if article.articleType == .podcast && active == true {
+      Toast.show("Podcasts können nicht in der Leseliste gespeichert werden.")
+      return
+    }
+    
     // If the desired state matches the current state, exit early
     if (bookmarkedArticle == nil && !active) || (bookmarkedArticle != nil && active) {
       return

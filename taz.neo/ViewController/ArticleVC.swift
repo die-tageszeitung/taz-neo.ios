@@ -100,16 +100,16 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       #warning("ISSUE WAS NIL! SAVE IT")
       bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
     }
-    bookmarkButton.isHidden = bbHidden
     
-    if art.hasBookmark {
-      bookmarkButton.buttonView.name = "star-fill"
-      bookmarkButton.accessibilityLabel = "Lesezeichen: gesetzt"
-    }
-    else {
-      bookmarkButton.buttonView.name = "star"
-      bookmarkButton.accessibilityLabel = "Lesezeichen: setzen"
-    }
+    if art.bookmarkIconName == nil { bbHidden = true }
+    
+    bookmarkButton.isHidden = bbHidden
+    bookmarkButton.buttonView.name = art.bookmarkIconName
+    
+    bookmarkButton.accessibilityLabel
+    = art.hasBookmark
+    ? "Lesezeichen: gesetzt"
+    : "Lesezeichen: setzen"
   }
   
   override var currentAudioContent: Content? {

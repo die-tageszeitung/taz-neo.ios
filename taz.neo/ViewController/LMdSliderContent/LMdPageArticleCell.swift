@@ -12,9 +12,6 @@ import NorthLib
 /// self sizing cell with some labels and boockmark icon
 class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
   
-  let starFill = UIImage(named: "star-fill")
-  let star = UIImage(named: "star")
-  
   let titleLabel = UILabel()
   let teaserLabel = UILabel()
   let authorLabel = UILabel()
@@ -66,7 +63,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
       authorLabel.textColor = Const.SetColor.taz2(.text).color
       authorLabel.attributedText = attributedString
       
-      bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
+      bookmarkButton.image = article?.bookmarkIcon
       bookmarkButton.tintColor = Const.Colors.appIconGrey
       articleIdentifier = article?.html?.name
       bookmarkButton.isHidden
@@ -122,7 +119,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
             let articleIdentifier = self?.articleIdentifier,
             !articleIdentifier.isEmpty,
             art.html?.name == articleIdentifier else { return }
-      self?.bookmarkButton.image = art.hasBookmark ? self?.starFill : self?.star
+      self?.bookmarkButton.image = art.bookmarkIcon
     }
     registerForStyleUpdates()
   }

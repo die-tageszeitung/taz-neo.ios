@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 extension Bookmarks {
   static func toggle(article: Article, in list: StoredSection? = nil){
@@ -31,6 +32,16 @@ extension Article {
   var hasBookmark: Bool {
     get { return Bookmarks.shared.has(article: self)}
     set { Bookmarks.shared.set(article: self, active: newValue)}
+  }
+ 
+  var bookmarkIconName: String? {
+    if self.articleType == .podcast { return nil }
+    return hasBookmark ? "star-fill" : "star"
+  }
+  
+  var bookmarkIcon: UIImage? {
+    guard let name = bookmarkIconName else { return nil }
+    return UIImage(named: name)
   }
 }
 

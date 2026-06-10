@@ -166,9 +166,6 @@ class SearchResultsCell: UITableViewCell {
   let shareButton = UIImageView(image: UIImage(named: "share"))
   let bookmarkButton = UIImageView()
   
-  let starFill = UIImage(named: "star-fill")
-  let star = UIImage(named: "star")
-  
   var content : GqlSearchHit? { didSet{ updateContent() }   }
   
   private var contentServerId: Int64?
@@ -195,7 +192,7 @@ class SearchResultsCell: UITableViewCell {
   
   func updateBookmarkButton(for article: Article){
     guard article.serverId == contentServerId else { return }
-    bookmarkButton.image = article.hasBookmark ? starFill : star
+    bookmarkButton.image = article.bookmarkIcon
   }
   
   lazy var cellView: UIView = {

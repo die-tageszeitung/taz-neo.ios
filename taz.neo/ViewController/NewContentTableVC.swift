@@ -610,9 +610,6 @@ class NewContentTableVcCell: UITableViewCell {
   
   var articleIdentifier: String?
   
-  let starFill = UIImage(named: "star-fill")
-  let star = UIImage(named: "star")
-  
   var article: Article? { didSet {  updateStyles()  }  }
   
   func updateStyles(){
@@ -661,8 +658,7 @@ class NewContentTableVcCell: UITableViewCell {
     
     titleLabel.setTazzeText(article?.title)
     customTextLabel.setTazzeText(article?.teaser)
-    
-    bookmarkButton.image = article?.hasBookmark ?? false ? starFill : star
+    bookmarkButton.image = article?.bookmarkIcon
     bookmarkButton.tintColor = Const.Colors.appIconGrey
     setActiveColorsIfNeeded()
   }
@@ -810,7 +806,7 @@ class NewContentTableVcCell: UITableViewCell {
     Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle,
             art.html?.name == self?.articleIdentifier else { return }
-      self?.bookmarkButton.image = art.hasBookmark ? self?.starFill : self?.star
+      self?.bookmarkButton.image = art.bookmarkIcon
     }
   }
 
