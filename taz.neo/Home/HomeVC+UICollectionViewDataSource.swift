@@ -176,7 +176,7 @@ extension HomeVC {
                         atArticle: openLast ? lastReadData.lastArticleIndex : nil,
                         atArticleScrollPos: openLast ? lastReadData.articleScrollPos : nil,
                         atSection: openLast ? lastReadData.lastSectionIndex : nil,
-                        atPage:openLast ? issue.lastPage : nil, skipDownload: skipDownload)
+                        atPage: openLast ? lastReadData.lastPage ?? issue.lastPage : nil, skipDownload: skipDownload)
   }
 }
 
