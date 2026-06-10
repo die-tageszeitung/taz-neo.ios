@@ -147,20 +147,17 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       return
     }
     
-    if syncReason != .manual && autoSyncBookmarks == false { return }
-    
-    let lastSync = BookmarksSyncBusiness.lastBookmarkSyncDate ?? .distantPast
-    
-    if syncReason == .bookmarksAppeared {
-      ///user maybe wants auto-synced bookmarks quite early but not with every tap on bookmarks
-      guard Date() > lastSync.addingTimeInterval(5 * 60) else { return }
+    // Manual sync always runs immediately.
+    if syncReason != .manual {
+      guard autoSyncBookmarks else { return }
+      let lastSync = BookmarksSyncBusiness.lastBookmarkSyncDate ?? .distantPast
+      let syncInterval: TimeInterval
+      = Bookmarks.shared.changesSinceLastSync ? 10 : 10 * 60
+      guard Date() > lastSync.addingTimeInterval(syncInterval) else {
+        return
+      }
     }
-    else if syncReason == .goingBackgroundForeground {
-      ///twice in a hour auto sync is enought here
-      guard Date() > lastSync.addingTimeInterval(30 * 60) else { return }
-    }
-    ///on manual sync, sync everytime
-    
+
     headerSyncButton.isHidden = false
     headerSyncButton.startRotating()
     var hasChanges: Bool = false
@@ -180,6 +177,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   }
   
   private func syncBookmarksFinished(_ hasChanges: Bool, finishNoChangeMessage:String? = nil){
+    Bookmarks.shared.changesSinceLastSync = false
     if hasChanges {
       Bookmarks.shared.reloadBookmarksFromDatabase()
       updateData()

@@ -25,6 +25,8 @@ public class Bookmarks: DoesLog {
   /// Persistent issue for bookmark storage.
   var bookmarkIssue: StoredIssue?
   
+  var changesSinceLastSync: Bool = false
+  
   /// Default section for storing bookmarks.
   var bookmarkSection: StoredSection? {
     didSet {
@@ -150,6 +152,7 @@ extension Bookmarks {
       bookmarkSection.pr.addToArticles(storedArticle.pr)
       
       bookmarkedArticles.append(storedArticle)
+      changesSinceLastSync = true
       ArticleDB.save()
       Notification.send(Const.NotificationNames.bookmarkChanged, sender: storedArticle)
       
