@@ -149,7 +149,6 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     
     // Manual sync always runs immediately.
     if syncReason != .manual {
-      guard autoSyncBookmarks else { return }
       let lastSync = BookmarksSyncBusiness.lastBookmarkSyncDate ?? .distantPast
       let syncInterval: TimeInterval
       = Bookmarks.shared.changesSinceLastSync ? 10 : 10 * 60
