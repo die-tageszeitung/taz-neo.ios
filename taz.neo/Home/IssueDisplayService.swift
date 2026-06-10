@@ -166,9 +166,7 @@ extension IssueDisplayService {
           }
           else {
             self.debug("Issue \(issue.date.isoDate()) DL complete")
-//            self.setLabel(idx: index)
           }
-//          self.issueCarousel.setActivity(idx: index, isActivity: false)
         }
       }
     }
@@ -225,7 +223,6 @@ extension IssueDisplayService {
       self.debug("unspecified download error")
       showDownloadErrorAlert()
     }
-//    self.isDownloading = false
   }
 
 }
