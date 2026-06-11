@@ -131,19 +131,23 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   
   var showRequiredLoginForSyncAlert:Bool = false
   
+  private func showRequiredLoginToUseBookmarksSyncAlert(completion: (()->())? = nil){
+    if showRequiredLoginForSyncAlert { return }
+    showRequiredLoginForSyncAlert = true
+    Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
+                      actions: [UIAlertAction.init( title: "Anmelden",
+                                                    style: .default ){_ in
+      TazAppEnvironment.sharedInstance.feederContext?.authenticate()
+    }],  completion:{ [weak self] in
+      self?.showRequiredLoginForSyncAlert = false
+      completion?()
+    })
+  }
+  
   private func syncBookmarksIfNeeded(syncReason:SyncReason, finishNoChangeMessage:String? = nil){
     if syncReason != .manual && autoSyncBookmarks == false { return }
-    
     if TazAppEnvironment.isAuthenticated == false {
-      if showRequiredLoginForSyncAlert { return }
-      showRequiredLoginForSyncAlert = true
-      Alert.actionSheet(message: "Sie müssen angemeldet sein, um diese Funktion zu nutzen!",
-                        actions: [UIAlertAction.init( title: "Anmelden",
-                                                     style: .default ){_ in
-        TazAppEnvironment.sharedInstance.feederContext?.authenticate()
-      }],  completion: {[weak self] in
-        self?.showRequiredLoginForSyncAlert = false
-      })
+      showRequiredLoginToUseBookmarksSyncAlert()
       return
     }
     
@@ -250,6 +254,11 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       let autoSyncAction = UIAction(
         title: "Leseliste automatisch synchronisieren"/*,
                                                        image: UIImage(systemName: "clock.arrow.trianglehead.2.counterclockwise.rotate.90")*/) {[weak self] _ in
+                                                         if self?.autoSyncBookmarks == false
+                                                              && TazAppEnvironment.isAuthenticated == false {
+                                                           self?.showRequiredLoginToUseBookmarksSyncAlert()
+                                                           return
+                                                         }
                                                          self?.autoSyncBookmarks.toggle()
                                                          guard self?.autoSyncBookmarks == true else { return }
                                                          self?.syncBookmarksIfNeeded(syncReason: .manual)
@@ -321,6 +330,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     }
     ///just ask the user once if auto sync should be done
     if requestedSyncBookmarks == true { return }
+    if TazAppEnvironment.isAuthenticated == false { return }
     
     let autoSyncAction =  UIAlertAction.init( title: "Automatisch Synchronisieren",
                                           style: .default) {  [weak self] _ in
