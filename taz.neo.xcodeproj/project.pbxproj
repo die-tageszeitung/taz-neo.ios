@@ -100,6 +100,8 @@
 		776CB3BB2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */; };
 		777048AB27B3B077007164A0 /* NotificationBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777048AA27B3B077007164A0 /* NotificationBusiness.swift */; };
 		77705A4A2D6F7E9900F3A631 /* BundledResourcesLMd in Resources */ = {isa = PBXBuildFile; fileRef = 77705A482D6F7E9900F3A631 /* BundledResourcesLMd */; };
+		77713BF12FDA9F8800FF4803 /* BackgroundTaskRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77713BF02FDA9F8300FF4803 /* BackgroundTaskRegistrar.swift */; };
+		77713BF22FDA9F8800FF4803 /* BackgroundTaskRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77713BF02FDA9F8300FF4803 /* BackgroundTaskRegistrar.swift */; };
 		7772D5622DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */; };
 		7772D5632DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */; };
 		7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */; };
@@ -452,6 +454,7 @@
 		776CB3BA2C12EFF7000E2D84 /* TazAppEnvironment+ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TazAppEnvironment+ErrorHandling.swift"; sourceTree = "<group>"; };
 		777048AA27B3B077007164A0 /* NotificationBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBusiness.swift; sourceTree = "<group>"; };
 		77705A482D6F7E9900F3A631 /* BundledResourcesLMd */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BundledResourcesLMd; sourceTree = "<group>"; };
+		77713BF02FDA9F8300FF4803 /* BackgroundTaskRegistrar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskRegistrar.swift; sourceTree = "<group>"; };
 		7772D5612DDF604E00A930C5 /* BackgroundDownloadService+FinishedCallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+FinishedCallback.swift"; sourceTree = "<group>"; };
 		7772D5642DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+CheckForNewIssue.swift"; sourceTree = "<group>"; };
 		7775449D2F5AEFCD002C024C /* URL+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Extension.swift"; sourceTree = "<group>"; };
@@ -765,6 +768,7 @@
 		77E6BF182DD7189200CABD9C /* BackgroundDownloads */ = {
 			isa = PBXGroup;
 			children = (
+				77713BF02FDA9F8300FF4803 /* BackgroundTaskRegistrar.swift */,
 				77CAE0A82D76F63D00F6A5FC /* BackgroundDownloadService.swift */,
 				777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */,
 				777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */,
@@ -1420,6 +1424,7 @@
 				773E74C12D55235700570E46 /* VirtualIssue.swift in Sources */,
 				7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */,
 				AE5131A72AFBCADB002289E8 /* FeederContext+Notifications.swift in Sources */,
+				77713BF22FDA9F8800FF4803 /* BackgroundTaskRegistrar.swift in Sources */,
 				77E839922CED2F55001CBB35 /* BookmarkTVC.swift in Sources */,
 				AE5131A82AFBCADB002289E8 /* IssueDisplayService.swift in Sources */,
 				AE5131AA2AFBCADB002289E8 /* IssueCarouselFlowLayout.swift in Sources */,
@@ -1540,6 +1545,7 @@
 				77CB2D202A8148EA00021804 /* UIAlertAction+Extension.swift in Sources */,
 				77B993D82AC406F900C7D832 /* Rating.swift in Sources */,
 				AE34778F283681490022316C /* ArticleDB.xcdatamodeld in Sources */,
+				77713BF12FDA9F8800FF4803 /* BackgroundTaskRegistrar.swift in Sources */,
 				77E6E9AF2CF8814100430B83 /* Bookmarks+ModelExtensions.swift in Sources */,
 				77D434002CE694A100AC992A /* Bookmarks.swift in Sources */,
 				0015B73824DD86B30037A8D6 /* SimpleAuthenticator.swift in Sources */,

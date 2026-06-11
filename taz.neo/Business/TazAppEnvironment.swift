@@ -327,10 +327,6 @@ class TazAppEnvironment: NSObject, DoesLog {
       _ = Usage.shared//init usage, setup Tracking
     }
     feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
-    
-    BGTaskScheduler.shared.register(forTaskWithIdentifier: App.backgroundTaskRefreshId, using: nil) { task in
-      BackgroundDownloadService.shared.handleIssueCheckTask(task: task)
-    }
   }
   
   // Logs Keychain variables if in debug mode

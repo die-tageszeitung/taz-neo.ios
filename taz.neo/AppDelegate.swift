@@ -40,6 +40,7 @@ class AppDelegate: NotifiedDelegate {
     }else {
       Log.appStartContext = .unknown
     }
+    BackgroundTaskRegistrar.shared.registerTasks()
     return true
   }
 
