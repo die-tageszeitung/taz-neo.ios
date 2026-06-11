@@ -96,6 +96,18 @@ extension ArticleDB {
         }
       })
     }
+    actions.append( Alert.action("Änderungen verwerfen?", style: .default) { _ in
+      if let context = ArticleDB.singleton.context {
+        //context.rollback() ///simple
+        context.reset() ///harder
+        onMainAfter { Toast.show("Änderungen verworfen, ....versuche zu speichern") }
+        onMainAfter(1.0) { ArticleDB.save() }
+      }
+      else {
+        Toast.show("Änderungen werden verworfen, App wird beendet")
+        onMainAfter(1.0) { exit(0) } }
+    })
+    
     Alert.actionSheet(message: text, actions: actions, cancelTitle: cancelText) {
       ArticleDB.singleton.isShowingDbErrorInfo = false
     }
