@@ -376,10 +376,22 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     openingIssue = nil
   }
   
+  func reanchorCarousel(animated: Bool = false, doLayout: Bool = false) {
+    guard isHomeTiles == false else { return }
+    if doLayout { collectionView.layoutIfNeeded() }
+    let index = carouselCenterIssueIndex ?? 0
+    collectionView.scrollToItem(
+      at: IndexPath(item: index, section: 0),
+      at: .centeredHorizontally,
+      animated: animated
+    )
+  }
+  
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     guard isHomeTiles == false else { return }
     updateCarouselSize(view.frame.size)
+    reanchorCarousel(animated: false, doLayout: false)
   }
   
   override func viewDidAppear(_ animated: Bool) {
