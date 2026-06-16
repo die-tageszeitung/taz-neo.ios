@@ -88,7 +88,6 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     else { return }
     
     if let idx = delegate.issue.allArticles.firstIndex(where: { $0.html?.name == name }) {
-      ///print(">>> Insert article: \(article.title ?? "-") at index: \(idx) / \(articles.count - 1 )")
       articles.insert(article, at: max(0, min(idx, articles.count - 1)))
       insertContent(content: article, at: max(0, min(idx, contents.count - 1)))
     }
@@ -96,9 +95,9 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   func displayBookmark(art: Article) {
     var bbHidden = true
-    if let aDel = adelegate {
-      #warning("ISSUE WAS NIL! SAVE IT")
-      bbHidden = art.html?.isEqualTo(aDel.issue.imprint?.html) ?? false
+    if let issue = adelegate?.issue {
+      #warning("former crash here issue of delegate was nil")
+      bbHidden = art.html?.isEqualTo(issue.imprint?.html) ?? false
     }
     
     if art.bookmarkIconName == nil { bbHidden = true }

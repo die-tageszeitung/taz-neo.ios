@@ -187,7 +187,12 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
   public weak var delegate: IssueInfo!
   public var contents: [Content] = []
   public var feeder: Feeder { delegate.feeder }
-  public var issue: Issue { delegate.issue }
+  public var issue: Issue {
+    guard let delegate else {
+      fatalError("ContentVC.delegate nil")
+    }
+    return delegate.issue
+  }
   public var feed: Feed { issue.feed }
   public var dloader: Downloader { delegate.dloader }
   ///optional slider configured by SectionVC, PDF but not by Search/Bookmarks
