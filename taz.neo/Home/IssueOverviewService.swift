@@ -188,6 +188,7 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("issue not found for: \(date.issueKey)")
       return
     }
+    self.log("download issue: \(date.issueKey)")
     download(issue: issue, withAudio: withAudio)
   }
   

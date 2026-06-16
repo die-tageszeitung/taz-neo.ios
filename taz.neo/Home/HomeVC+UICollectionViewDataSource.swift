@@ -59,6 +59,7 @@ extension HomeVC  {
         }
         if let date = cell.data?.date.date,
           self?.service.download(issueAt: date, withAudio: false) != nil {
+          self?.log("tap issue => download issueAt: \(date.short)")
           cell.button.indicator.downloadState = .waiting
         }
       }

@@ -155,6 +155,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
         return
       }
       self?.downloadButton.indicator.downloadState = .waiting
+      self?.log("tap download button => download issueAt: \(data.date.date.short) idx: \(idx)")
       self?.service.download(issueAt: data.date.date, withAudio: false)
     }
     return v

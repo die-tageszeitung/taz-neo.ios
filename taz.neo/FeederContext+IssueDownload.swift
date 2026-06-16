@@ -96,7 +96,7 @@ extension FeederContext {
       && autoloadPdfRequested == false ///autoloadPdfRequested never answered before
       && true ///PDF not loaded yet; guard statement above
       && needsUpdate(issue: issue, toShowPdf: false) == false///"App Ansicht" already downloaded => no update for app ansicht needed
-      
+      log("fetch issue: \(issue.date.short)")
       gqlFeeder.issues(feed: issue.feed,///in future may use masterFeed
                        date: issue.date,
                        key: issue.key,
