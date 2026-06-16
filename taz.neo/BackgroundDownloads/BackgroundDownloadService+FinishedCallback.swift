@@ -48,7 +48,7 @@ extension BackgroundDownloadService {
     
     ///** lookup for additional Data in Defaults
     guard let downloadData = getDownloadData(forDownloadUrl: downloadUrl) else {
-      log("...No DownloadData for url: \(downloadUrl). Audio or Resources Downbload")
+      log("...No DownloadData for url: \(downloadUrl). Audio or Resources Download")
       return
     }
         
