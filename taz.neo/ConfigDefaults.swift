@@ -50,6 +50,7 @@ private let configValues = [
   "fullPdfOnPageSwitch" : "true",
   // need to show PDF Info Toast on startup
   "showPdfInfoToast" : "true",
+  "isPdfPageMode" : "true",
   // need to show Bottom Tiles Animation
   "showBottomTilesAnimation" : "true",
   "showBarsOnContentChange" : "false",

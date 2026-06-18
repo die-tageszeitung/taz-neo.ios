@@ -311,6 +311,9 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   var sliderContentController : UIViewController?
   var slider:MyButtonSlider?
   
+  @Default("isPdfPageMode")
+  public var isPdfPageMode: Bool
+  
   @Default("articleFromPdf")
   public var articleFromPdf: Bool
   
@@ -376,9 +379,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   
   public var toolBar = ContentToolbar()
   
-  override public var preferredStatusBarStyle: UIStatusBarStyle {
-    return App.isLMD ? .darkContent : .lightContent
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+    return isPdfPageMode || Defaults.darkMode ?  .lightContent : .darkContent
+    ///former: return App.isLMD ? .darkContent : .lightContent
   }
+  
   
   // MARK: - init
   public init(issueInfo:IssueInfo) {
@@ -513,15 +518,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleVC.navigationController?.popViewController(animated: true)
     }
     
-    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
-      Usage.track(Usage.event.drawer.action_tap.Page)
-      if let newIndex = pdfModel?.index {
-        self?.collectionView.scrollToIndex(newIndex)
-      }
-      articleVC.slider?.close(animated: true) { [weak self] _ in
-        self?.navigationController?.popViewController(animated: true)
-      }
-    }
+//    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
+//      Usage.track(Usage.event.drawer.action_tap.Page)
+//      if let newIndex = pdfModel?.index {
+//        self?.collectionView.scrollToIndex(newIndex)
+//      }
+//      articleVC.slider?.close(animated: true) { [weak self] _ in
+//        self?.navigationController?.popViewController(animated: true)
+//      }
+//    }
     #endif
     
     self.navigationController?.pushViewController(articleVC, animated: true)
@@ -954,7 +959,40 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 
 // MARK: - Helper for Content slider
 extension TazPdfPagesViewController {
-  func createTazSliderChildController(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
+  func createTazSliderChildController(pdfModel: PdfModel) -> NewPdfOverviewCollectionVC {
+    let ctrl = NewPdfOverviewCollectionVC(pdfModel: pdfModel)
+//    ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
+//    ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
+//    ctrl.cellLabelInActiveColor = Const.Colors.appIconGrey
+//    ctrl.cellLabelLinesCount = 2
+//    ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
+//    ctrl.onTitleCellChange {[weak self] cell in
+//      cell?.dateLabel.font = Const.Fonts.contentFont(size: 12)
+//      cell?.dateLabel.text = pdfModel.title
+//      cell?.dateLabel.textColor = Const.Colors.appIconGrey
+//      
+//      cell?.listenLabel.font = Const.Fonts.contentFont(size: 12)
+//      cell?.listenLabel.isHidden = false
+//      cell?.listenIcon.isHidden = false
+//      
+//      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
+//        cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
+//      }
+//      cell?.imageWidthConstraint?.isActive = true
+//      cell?.listenLabel.textColor = Const.Colors.darkPrimaryText
+//      cell?.listenLabel.onTapping { [weak self] _ in
+//        self?.tapPlayInSlider()
+//      }
+//      cell?.listenIcon.onTapping { [weak self] _ in
+//        self?.tapPlayInSlider()
+//      }
+//      self?.updateMenuAudioButton()
+//      self?.updateArticleVcMenuAudioButton()
+//    }
+    return ctrl
+  }
+  
+  func createTazSliderChildControllerOld(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
     let ctrl = PdfOverviewCollectionVC(pdfModel:pdfModel)
     ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
     ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
