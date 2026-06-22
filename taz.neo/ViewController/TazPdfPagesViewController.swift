@@ -441,27 +441,22 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     updateMenuAudioButton()
     updateArticleVcMenuAudioButton()
   }
-  
+   
   private func updateMenuAudioButton(){
-    guard let cell = (sliderContentController as? PdfOverviewCollectionVC)?.titleCell else { return }
-    let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
-    cell.listenLabel.text = playing ? "Wiedergabe beenden" : "Ausgabe hören"
-    
-    cell.listenIcon.image  = UIImage(named: playing  ? "audio-active" : "audio")?
-          .withRenderingMode(.alwaysOriginal)
-          .withTintColor(.white)
+    guard let listenButton = (sliderContentController as? NewPdfOverviewCollectionVC)?.menuHeaderView.listenButton else { return }
+    updateListenButton(for: listenButton)
   }
-  
   private func updateArticleVcMenuAudioButton(){
-    guard let cell = (childArticleVC?.slider?.slider as? PdfOverviewCollectionVC)?.titleCell else { return }
-    let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
-    cell.listenLabel.text = playing ? "Wiedergabe beenden" : "Ausgabe hören"
-    
-    cell.listenIcon.image  = UIImage(named: playing  ? "audio-active" : "audio")?
-          .withRenderingMode(.alwaysOriginal)
-          .withTintColor(.white)
+    guard let listenButton = (childArticleVC?.slider?.slider as? NewPdfOverviewCollectionVC)?.menuHeaderView.listenButton else { return }
+    updateListenButton(for: listenButton)
   }
-  
+    
+  private func updateListenButton(for target:IconLabelButton){
+    let playing = playingCurrentIssue && ArticlePlayer.singleton.isPlaying
+    target.label.text = "Ausgabe hören"
+    target.imageView.image = UIImage(named: playing  ? "audio-active" : "audio")
+  }
+    
   func openArticle(name: String?, path: String?, reopenArticleScrollPos: CGFloat?){
     guard let pdfModel = pdfModel as? NewPdfModel else { return }
     guard let issueInfo = pdfModel.issueInfo else { return }
@@ -980,15 +975,13 @@ extension TazPdfPagesViewController {
 //      }
 //      cell?.imageWidthConstraint?.isActive = true
 //      cell?.listenLabel.textColor = Const.Colors.darkPrimaryText
-//      cell?.listenLabel.onTapping { [weak self] _ in
-//        self?.tapPlayInSlider()
-//      }
-//      cell?.listenIcon.onTapping { [weak self] _ in
-//        self?.tapPlayInSlider()
-//      }
-//      self?.updateMenuAudioButton()
-//      self?.updateArticleVcMenuAudioButton()
-//    }
+
+    ctrl.menuHeaderView.listenButton.onTapping { [weak self] _ in
+      self?.tapPlayInSlider()
+    }
+    self.updateMenuAudioButton()
+    self.updateArticleVcMenuAudioButton()
+
     return ctrl
   }
   

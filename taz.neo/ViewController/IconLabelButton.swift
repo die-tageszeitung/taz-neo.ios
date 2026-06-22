@@ -21,8 +21,6 @@ class IconLabelButton: UIControl {
     label.textColor = .label
     label.translatesAutoresizingMaskIntoConstraints = false
     addSubview(label)
-    addBorder(.systemPink)
-    label.addBorder(.green)
     imageView.pinSize(CGSize(width: 32.0, height: 32.0))
     
     NSLayoutConstraint.activate([

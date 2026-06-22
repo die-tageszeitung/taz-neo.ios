@@ -59,11 +59,11 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   // Add further models if needed for articles, etc.
   
   // MARK: - UI Elements
-  private let menuHeaderView = PdfOverviewMenuHeaderView()
+  let menuHeaderView = PdfOverviewMenuHeaderView()
   private let headerWrapper = UIView()
   private var menuHeaderHeightConstraint: NSLayoutConstraint?
   private let headerMaxHeight: CGFloat = 270
-  private let headerMinHeight: CGFloat = 180
+  private let headerMinHeight: CGFloat = 110
 
   // MARK: - ???
   private var fixScrollPos:Bool = false
