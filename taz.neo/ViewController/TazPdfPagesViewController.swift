@@ -954,7 +954,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 
 // MARK: - Helper for Content slider
 extension TazPdfPagesViewController {
-  func createTazSliderChildController(pdfModel: PdfModel) -> NewPdfOverviewCollectionVC {
+  func createTazSliderChildController(pdfModel: NewPdfModel) -> NewPdfOverviewCollectionVC {
     let ctrl = NewPdfOverviewCollectionVC(pdfModel: pdfModel)
 //    ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
 //    ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText

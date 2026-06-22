@@ -44,7 +44,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   /// Optional: Pass in a model (e.g., PdfModel or other)
-  public var pdfModel: PdfModel? {
+  var pdfModel: NewPdfModel? {
     didSet {
       menuHeaderView.dateLabel.text = pdfModel?.title
       if let pdfModel = pdfModel {
@@ -74,7 +74,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private static let pageCellIdentifier = "PageCell"
   
   // MARK: - Initializers
-  public init(pdfModel: PdfModel? = nil) {
+  init(pdfModel: NewPdfModel? = nil) {
     self.pdfModel = pdfModel
     let layout = Self.getLayout(isPdfPageMode: false, for: pdfModel) // Start in list mode by default
     super.init(collectionViewLayout: layout)
@@ -115,8 +115,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     menuHeaderView.dateLabel.text = pdfModel?.title
     menuHeaderView.applyMode(isList: !isPdfPageMode)
     
-    menuHeaderView.modeSwitchButton.addTarget(self, action: #selector(didTapModeSwitch), for: .touchUpInside)
-    menuHeaderView.listenButton.addTarget(self, action: #selector(didTapListen), for: .touchUpInside)
+    
+    menuHeaderView.modeSwitchButton.onTapping {[weak self] _ in
+      self?.isPdfPageMode.toggle()
+    }
     
     if let pdfModel = pdfModel {
       pdfModel.thumbnail(atIndex: 0) { [weak self] image in
@@ -158,15 +160,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     menuHeaderHeightConstraint?.constant = max(headerMinHeight, headerMaxHeight - offset)
   }
     
-  // MARK: - Actions
-  @objc private func didTapModeSwitch() {
-    isPdfPageMode.toggle()
-  }
-  
-  @objc private func didTapListen() {
-    // TODO: Implement listen action
-  }
-  
   // MARK: - UICollectionViewDataSource
   public override func numberOfSections(in collectionView: UICollectionView) -> Int {
     return 1
