@@ -160,8 +160,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     collectionView?.showsHorizontalScrollIndicator = false
   }
   
-  private func getLayout(isPdfPageMode: Bool, for pdfModel: PdfModel?) -> UICollectionViewLayout {
-    if isPdfPageMode, let pdfModel = pdfModel {
+  private var currentLayout: UICollectionViewLayout {
+    if isPdfPageMode {
       let layout = TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
       layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
                                          left: PdfDisplayOptions.Overview.sideSpacing,
@@ -181,8 +181,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   private func updateLayout() {
-    let newLayout = getLayout(isPdfPageMode: isPdfPageMode,
-                                         for: pdfModel)
+    let newLayout = currentLayout
     collectionView.setCollectionViewLayout(newLayout, animated: true)
   }
   
