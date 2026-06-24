@@ -49,14 +49,12 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   /// Optional: Pass in a model (e.g., PdfModel or other)
-  var pdfModel: NewPdfModel? {
+  var pdfModel: NewPdfModel {
     didSet {
-      menuHeaderView.dateLabel.text = pdfModel?.title
-      if let pdfModel = pdfModel {
-        pdfModel.thumbnail(atIndex: 0) { [weak self] image in
-          DispatchQueue.main.async {
-            self?.menuHeaderView.coverImageView.image = image
-          }
+      menuHeaderView.dateLabel.text = pdfModel.title
+      _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
+        DispatchQueue.main.async {
+          self?.menuHeaderView.coverImageView.image = image
         }
       }
     }
@@ -94,7 +92,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   // MARK: - Initializers
-  init(pdfModel: NewPdfModel? = nil) {
+  init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
     super.init(collectionViewLayout: UICollectionViewLayout())
   }
@@ -135,7 +133,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     collectionView.contentInset.top = headerMaxHeight
     
     // Set initial header data
-    menuHeaderView.dateLabel.text = pdfModel?.title
+    menuHeaderView.dateLabel.text = pdfModel.title
     menuHeaderView.applyMode(isList: !isPdfPageMode)
     
     
@@ -143,11 +141,9 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       self?.isPdfPageMode.toggle()
     }
     
-    if let pdfModel = pdfModel {
-      _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
-        DispatchQueue.main.async {
-          self?.menuHeaderView.coverImageView.image = image
-        }
+    _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
+      DispatchQueue.main.async {
+        self?.menuHeaderView.coverImageView.image = image
       }
     }
     applyStyles()
@@ -164,7 +160,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     collectionView?.showsHorizontalScrollIndicator = false
   }
   
-  private static func getLayout(isPdfPageMode: Bool, for pdfModel: PdfModel?) -> UICollectionViewLayout {
+  private func getLayout(isPdfPageMode: Bool, for pdfModel: PdfModel?) -> UICollectionViewLayout {
     if isPdfPageMode, let pdfModel = pdfModel {
       let layout = TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
       layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
@@ -185,7 +181,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   private func updateLayout() {
-    let newLayout = Self.getLayout(isPdfPageMode: isPdfPageMode,
+    let newLayout = getLayout(isPdfPageMode: isPdfPageMode,
                                          for: pdfModel)
     collectionView.setCollectionViewLayout(newLayout, animated: true)
   }
@@ -204,14 +200,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     // Determine count based on mode/model
-    return (pdfModel?.count ?? 0) - indexShift
+    return pdfModel.count - indexShift
   }
   
   public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     if isPdfPageMode {
       let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.pageCellIdentifier, for: indexPath)
-      guard let cell = cell as? PdfOverviewCvcCell,
-            let pdfModel = self.pdfModel else { return cell }
+      guard let cell = cell as? PdfOverviewCvcCell else { return cell }
       cell.backgroundColor = .systemYellow.withAlphaComponent(0.1)
       cell.imageView.image =  pdfModel.thumbnail(atIndex: indexPath.row + indexShift, finishedClosure: { (img) in
         onMain { cell.imageView.image = img  }
@@ -261,7 +256,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if let attr = attributes {
       sourceFrame = self.collectionView.convert(attr.frame, to: self.collectionView.superview?.superview)
     }
-    pdfModel?.index = indexPath.row + indexShift
+    pdfModel.index = indexPath.row + indexShift
     clickCallback?(sourceFrame, pdfModel)
   }
 }

@@ -17,6 +17,8 @@ class PdfOverviewMenuHeaderView: UIView {
   let modeSwitchButton: IconLabelButton
   let listenButton: IconLabelButton
   
+  private var coverBottomConstraint: NSLayoutConstraint?
+  
   // Init
   override init(frame: CGRect) {
     modeSwitchButton = IconLabelButton(image: UIImage(named: "tiles"), text: "Listenansicht")
@@ -59,11 +61,13 @@ class PdfOverviewMenuHeaderView: UIView {
     listenButton.tintColor = .label
     addSubview(listenButton)
     coverImageView.clipsToBounds = false
+    coverBottomConstraint = coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16)
+    
     // Layout constraints
     NSLayoutConstraint.activate([
       // Cover image: left, full height, fixed width ratio
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
-      coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
+      coverBottomConstraint!,
       coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: 0.64),
       pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
       //from left to right
@@ -91,7 +95,10 @@ class PdfOverviewMenuHeaderView: UIView {
     modeSwitchButton.label.text = isList ? "Seitenansicht" : "Listenansicht"
     let symbol = isList ? "tiles" : "list"
     modeSwitchButton.setImage(UIImage(named: symbol))
-    pageLabel.isHidden = isList // hide page label in list mode
+    UIView.animate(withDuration: 0.2) {[weak self] in
+      self?.coverBottomConstraint?.constant = isList ? -8 : -16
+      self?.pageLabel.alpha = isList ? 0.0 : 1.0
+    }
   }
   
   // Helper to set the cover image, e.g., from PdfModel's thumbnail
