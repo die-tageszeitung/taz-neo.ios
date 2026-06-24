@@ -82,6 +82,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
 
 // MARK: - NewPdfModel
 class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
+
   func size(forItem atIndex: Int) -> CGSize {
     if let item = self.item(atIndex: atIndex),
        let pdfPageImage = item as? ZoomedPdfPageImage,
@@ -112,7 +113,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
   
   var title: String?
-  var count: Int { get {return images.count}}
+  var count: Int { images.count }
   var index: Int = 0
   var issueInfo:IssueInfo?
     
@@ -513,15 +514,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleVC.navigationController?.popViewController(animated: true)
     }
     
-//    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
-//      Usage.track(Usage.event.drawer.action_tap.Page)
-//      if let newIndex = pdfModel?.index {
-//        self?.collectionView.scrollToIndex(newIndex)
-//      }
-//      articleVC.slider?.close(animated: true) { [weak self] _ in
-//        self?.navigationController?.popViewController(animated: true)
-//      }
-//    }
+    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
+      Usage.track(Usage.event.drawer.action_tap.Page)
+      if let newIndex = pdfModel?.index {
+        self?.collectionView.scrollToIndex(newIndex)
+      }
+      articleVC.slider?.close(animated: true) { [weak self] _ in
+        self?.navigationController?.popViewController(animated: true)
+      }
+    }
     #endif
     
     self.navigationController?.pushViewController(articleVC, animated: true)
@@ -544,7 +545,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                   right: 0)
     
     xButton.isHidden = true
-    (sliderContentController as? PdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
+    (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
       guard let self = self else { return }
       guard let newIndex = pdfModel?.index else { return }
       self.collectionView.scrollToIndex(newIndex)
@@ -956,26 +957,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 extension TazPdfPagesViewController {
   func createTazSliderChildController(pdfModel: NewPdfModel) -> NewPdfOverviewCollectionVC {
     let ctrl = NewPdfOverviewCollectionVC(pdfModel: pdfModel)
-//    ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
-//    ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
-//    ctrl.cellLabelInActiveColor = Const.Colors.appIconGrey
-//    ctrl.cellLabelLinesCount = 2
-//    ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
-//    ctrl.onTitleCellChange {[weak self] cell in
-//      cell?.dateLabel.font = Const.Fonts.contentFont(size: 12)
-//      cell?.dateLabel.text = pdfModel.title
-//      cell?.dateLabel.textColor = Const.Colors.appIconGrey
-//      
-//      cell?.listenLabel.font = Const.Fonts.contentFont(size: 12)
-//      cell?.listenLabel.isHidden = false
-//      cell?.listenIcon.isHidden = false
-//      
-//      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
-//        cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
-//      }
-//      cell?.imageWidthConstraint?.isActive = true
-//      cell?.listenLabel.textColor = Const.Colors.darkPrimaryText
-
     ctrl.menuHeaderView.listenButton.onTapping { [weak self] _ in
       self?.tapPlayInSlider()
     }
@@ -997,21 +978,10 @@ extension TazPdfPagesViewController {
       cell?.dateLabel.text = pdfModel.title
       cell?.dateLabel.textColor = Const.Colors.appIconGrey
       
-      cell?.listenLabel.font = Const.Fonts.contentFont(size: 12)
-      cell?.listenLabel.isHidden = false
-      cell?.listenIcon.isHidden = false
-      
       if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
         cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
       }
       cell?.imageWidthConstraint?.isActive = true
-      cell?.listenLabel.textColor = Const.Colors.darkPrimaryText
-      cell?.listenLabel.onTapping { [weak self] _ in
-        self?.tapPlayInSlider()
-      }
-      cell?.listenIcon.onTapping { [weak self] _ in
-        self?.tapPlayInSlider()
-      }
       self?.updateMenuAudioButton()
       self?.updateArticleVcMenuAudioButton()
     }
@@ -1199,7 +1169,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   override func didMove(toParent parent: UIViewController?) {
     super.didMove(toParent: parent)
     if parent == nil {
-      if let thumbCtrl = self.sliderContent as? PdfOverviewCollectionVC {
+      if let thumbCtrl = self.sliderContent as? NewPdfOverviewCollectionVC {
         thumbCtrl.clickCallback = nil
       }
       NotificationCenter.default.removeObserver(self)

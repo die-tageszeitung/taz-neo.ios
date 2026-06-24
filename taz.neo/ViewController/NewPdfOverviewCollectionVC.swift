@@ -29,10 +29,15 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       applyStyles()
     }
   }
+  private var indexShift: Int { isPdfPageMode ? 1 : 0 }
   
   public func applyStyles() {
-    headerWrapper.backgroundColor = isPdfPageMode ? Const.Colors.darkSecondaryBG : Const.SetColor.CTBackground.color
-    self.view.backgroundColor = isPdfPageMode ? Const.Colors.darkSecondaryBG : Const.SetColor.CTBackground.color
+    headerWrapper.contentView.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+//    headerWrapper.alpha = 0.9
+//    headerWrapper.tintColor = isPdfPageMode ? .black : Const.SetColor.CTBackground.color
+    headerWrapper.backgroundColor = isPdfPageMode ? .black.withAlphaComponent(0.2) : Const.SetColor.CTBackground.color
+    self.view.backgroundColor = isPdfPageMode ? Const.Colors.darkSecondaryBG  : Const.SetColor.CTBackground.color
+    self.collectionView.backgroundColor = isPdfPageMode ? Const.Colors.darkSecondaryBG  : Const.SetColor.CTBackground.color
     let dark = isPdfPageMode || Defaults.darkMode
     let textColor = dark ? Const.Colors.iOSDark.label : Const.Colors.iOSLight.label
     menuHeaderView.dateLabel.textColor = textColor
@@ -56,12 +61,18 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       }
     }
   }
+  
+  public var clickCallback: ((CGRect, PdfModel?)->())?
+  
   // Add further models if needed for articles, etc.
   
   // MARK: - UI Elements
   let menuHeaderView = PdfOverviewMenuHeaderView()
-  private let headerWrapper = UIView()
+  private let headerWrapper = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
+  
   private var menuHeaderHeightConstraint: NSLayoutConstraint?
+  private var menuHeaderLeadingConstraint: NSLayoutConstraint?
+  
   private let headerMaxHeight: CGFloat = 270
   private let headerMinHeight: CGFloat = 110
 
@@ -73,11 +84,19 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private static let listArticleCellIdentifier = "ListArticleCell"
   private static let pageCellIdentifier = "PageCell"
   
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    applyStyles()
+    updateLayout()
+    menuHeaderLeadingConstraint?.constant =
+    self.collectionView.layoutMargins.left
+    + ((self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.left ?? 0)
+  }
+  
   // MARK: - Initializers
   init(pdfModel: NewPdfModel? = nil) {
     self.pdfModel = pdfModel
-    let layout = Self.getLayout(isPdfPageMode: false, for: pdfModel) // Start in list mode by default
-    super.init(collectionViewLayout: layout)
+    super.init(collectionViewLayout: UICollectionViewLayout())
   }
   
   required init?(coder: NSCoder) {
@@ -96,17 +115,21 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     headerWrapper.translatesAutoresizingMaskIntoConstraints = false
     menuHeaderView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(headerWrapper)
-    headerWrapper.addSubview(menuHeaderView)
+    headerWrapper.contentView.addSubview(menuHeaderView)
     menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight)
+    menuHeaderLeadingConstraint
+    = menuHeaderView.leadingAnchor.constraint(equalTo: headerWrapper.safeAreaLayoutGuide.leadingAnchor,
+                                              constant: PdfDisplayOptions.Overview.sideSpacing)
     NSLayoutConstraint.activate([
       headerWrapper.topAnchor.constraint(equalTo: view.topAnchor),
       headerWrapper.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       headerWrapper.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       
       menuHeaderView.topAnchor.constraint(equalTo: headerWrapper.safeAreaLayoutGuide.topAnchor, constant:   0),///negative values have no effect
-      menuHeaderView.leadingAnchor.constraint(equalTo: headerWrapper.safeAreaLayoutGuide.leadingAnchor, constant: 14),
+      
       menuHeaderView.trailingAnchor.constraint(equalTo: headerWrapper.trailingAnchor),
-      menuHeaderView.bottomAnchor.constraint(equalTo: headerWrapper.bottomAnchor, constant: -15),
+      menuHeaderView.bottomAnchor.constraint(equalTo: headerWrapper.bottomAnchor, constant: -2),
+      menuHeaderLeadingConstraint!,
       menuHeaderHeightConstraint!
     ])
     collectionView.contentInset.top = headerMaxHeight
@@ -121,7 +144,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     }
     
     if let pdfModel = pdfModel {
-      pdfModel.thumbnail(atIndex: 0) { [weak self] image in
+      _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
         DispatchQueue.main.async {
           self?.menuHeaderView.coverImageView.image = image
         }
@@ -133,14 +156,28 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private func setupCollectionView() {
     collectionView.backgroundColor = .white
     // Register all relevant cell types
-    collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.pageCellIdentifier)
+    collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: Self.pageCellIdentifier)
     collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.listPageCellIdentifier)
     collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.listArticleCellIdentifier)
+    
+    collectionView?.showsVerticalScrollIndicator = false
+    collectionView?.showsHorizontalScrollIndicator = false
   }
   
   private static func getLayout(isPdfPageMode: Bool, for pdfModel: PdfModel?) -> UICollectionViewLayout {
     if isPdfPageMode, let pdfModel = pdfModel {
-      return TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
+      let layout = TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
+      layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
+                                         left: PdfDisplayOptions.Overview.sideSpacing,
+                                         bottom: PdfDisplayOptions.Overview.sideSpacing,
+                                         right: PdfDisplayOptions.Overview.sideSpacing)
+      /// reduced currently to 0 because label not filled
+      /// possible data may come from datamodel, can be: titel, Seite 1 // taz 2, Seite 14 //  die wahrheit; S. 20
+      /// Daten sind da, da die PDF diese enthällt
+      layout.minimumLineSpacing = PdfDisplayOptions.Overview.rowSpacing
+      layout.minimumInteritemSpacing = PdfDisplayOptions.Overview.interItemSpacing - 0.5//fix misscalculation bug
+      layout.scrollDirection = .vertical
+      return layout
     }
     let flowLayout = UICollectionViewFlowLayout()
     flowLayout.scrollDirection = .vertical
@@ -167,14 +204,41 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     // Determine count based on mode/model
-    return pdfModel?.count ?? 0
+    return (pdfModel?.count ?? 0) - indexShift
   }
   
   public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     if isPdfPageMode {
       let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.pageCellIdentifier, for: indexPath)
+      guard let cell = cell as? PdfOverviewCvcCell,
+            let pdfModel = self.pdfModel else { return cell }
       cell.backgroundColor = .systemYellow.withAlphaComponent(0.1)
-      // Configure as page cell (like PdfOverviewCvcCell)
+      cell.imageView.image =  pdfModel.thumbnail(atIndex: indexPath.row + indexShift, finishedClosure: { (img) in
+        onMain { cell.imageView.image = img  }
+      })
+      guard let item = pdfModel.item(atIndex: indexPath.row + indexShift) else {
+        return cell
+      }
+      
+      cell.label.boldContentFont()
+      let attributedText = NSMutableAttributedString()
+
+      if let page = (item as? ZoomedPdfPageImage)?.pageReference?.pagina {
+        let font
+        = [NSAttributedString.Key.font:
+            Const.Fonts.tazFont(size: Const.Size.SmallerFontSize)]
+        attributedText.append(NSAttributedString(string: "\(page) ",
+                                                 attributes: font))
+      }
+      if let pageTitle = item.pageTitle {
+        let font
+        = [NSAttributedString.Key.font:
+            Const.Fonts.tazFontBold(size: Const.Size.SmallerFontSize)]
+        attributedText.append(NSAttributedString(string: "\(pageTitle) ",
+                                                 attributes: font))
+      }
+      cell.label.attributedText = attributedText
+      cell.label.textColor = Const.Colors.appIconGrey
       return cell
     }
     // For demonstration, alternate cells for list
@@ -189,6 +253,16 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       // Configure as article cell (like LMdPageArticleCell)
       return cell
     }
+  }
+  
+  public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    let attributes = collectionView.layoutAttributesForItem(at: indexPath)
+    var sourceFrame = CGRect.zero
+    if let attr = attributes {
+      sourceFrame = self.collectionView.convert(attr.frame, to: self.collectionView.superview?.superview)
+    }
+    pdfModel?.index = indexPath.row + indexShift
+    clickCallback?(sourceFrame, pdfModel)
   }
 }
 

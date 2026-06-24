@@ -13,6 +13,7 @@ class PdfOverviewMenuHeaderView: UIView {
   // MARK: - UI Elements
   let coverImageView = UIImageView()
   let dateLabel = UILabel()
+  let pageLabel = UILabel()
   let modeSwitchButton: IconLabelButton
   let listenButton: IconLabelButton
   
@@ -39,9 +40,15 @@ class PdfOverviewMenuHeaderView: UIView {
     // Date label - top, spanning right of cover
     dateLabel.contentFont()
     dateLabel.numberOfLines = 8
-    dateLabel.textColor = .label
+    dateLabel.textColor = Const.Colors.appIconGrey
     dateLabel.translatesAutoresizingMaskIntoConstraints = false
     addSubview(dateLabel)
+    pageLabel.text = "seite 1"
+    pageLabel.boldContentFont(size: Const.Size.SmallerFontSize)
+    pageLabel.numberOfLines = 1
+    pageLabel.textColor = Const.Colors.appIconGrey
+    pageLabel.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(pageLabel)
     
     // Mode switch button
     modeSwitchButton.translatesAutoresizingMaskIntoConstraints = false
@@ -56,24 +63,25 @@ class PdfOverviewMenuHeaderView: UIView {
     NSLayoutConstraint.activate([
       // Cover image: left, full height, fixed width ratio
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
-      coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -5),
-      coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: 0.65),
-      
+      coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16),
+      coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: 0.64),
+      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
       //from left to right
-      coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 5.0),
+      pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
+      coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       //...top
-      dateLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: 16),
+      dateLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: PdfDisplayOptions.Overview.interItemSpacing),
       dateLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       //...bottom
-      modeSwitchButton.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: 16),
+      modeSwitchButton.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: PdfDisplayOptions.Overview.interItemSpacing),
       listenButton.leadingAnchor.constraint(greaterThanOrEqualTo: modeSwitchButton.trailingAnchor, constant: 2),
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       //vertical...top
       dateLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 11),
       //vertical...bottom
-      modeSwitchButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -9),
-      listenButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -9),
+      modeSwitchButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
+      listenButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
     ])
   }
   
@@ -83,6 +91,7 @@ class PdfOverviewMenuHeaderView: UIView {
     modeSwitchButton.label.text = isList ? "Seitenansicht" : "Listenansicht"
     let symbol = isList ? "tiles" : "list"
     modeSwitchButton.setImage(UIImage(named: symbol))
+    pageLabel.isHidden = isList // hide page label in list mode
   }
   
   // Helper to set the cover image, e.g., from PdfModel's thumbnail
