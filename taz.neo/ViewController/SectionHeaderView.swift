@@ -1,0 +1,52 @@
+//
+//  SectionHeaderView.swift
+//  taz.neo
+//
+//  Created by Ringo Müller on 24.06.26.
+//  Copyright © 2026 taz. All rights reserved.
+//
+
+
+// Simple reusable section header with a label
+import UIKit
+import NorthLib
+
+class SectionHeaderView: UICollectionReusableView {
+  static let reuseIdentifier = "SectionHeaderView"
+  let label = UILabel()
+  let dottedLine = DottedLineView()
+  let topLine = UIView()
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    label.translatesAutoresizingMaskIntoConstraints = false
+    label.boldContentFont(size: Const.Size.SmallerFontSize)
+    label.textColor = Const.SetColor.HText.color
+    dottedLine.fillColor = Const.SetColor.HText.color
+    dottedLine.strokeColor = Const.SetColor.HText.color
+    topLine.backgroundColor = Const.SetColor.HText.color
+    addSubview(label)
+    addSubview(topLine)
+    addSubview(dottedLine)
+    
+    pin(topLine.right, to: self.right, dist: 16, priority: .defaultLow)
+    pin(dottedLine.right, to: self.right, dist: 16, priority: .defaultLow)
+    
+    NSLayoutConstraint.activate([
+      label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      label.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+      label.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+      label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24),
+      topLine.heightAnchor.constraint(equalToConstant:0.7),
+      topLine.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      topLine.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+      dottedLine.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      dottedLine.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+      dottedLine.heightAnchor.constraint(equalToConstant:1.6),
+    ])
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}

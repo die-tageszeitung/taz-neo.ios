@@ -12,7 +12,8 @@ import NorthUIKit
 
 /// seperator for collectionview cells, final width is set with layout
 class CvSeperator: UICollectionReusableView {
-
+  static let reuseIdentifier = "CvSeperator"
+  
   let border = UIView()
   
   func setup(){

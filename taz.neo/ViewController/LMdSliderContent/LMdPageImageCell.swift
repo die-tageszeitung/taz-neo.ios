@@ -63,7 +63,7 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
     self.contentView.addSubview(pageLabel)
     pin(pageImageView.left, to: self.contentView.left)
     pin(pageImageView.right, to: self.contentView.right)
-    pin(pageImageView.top, to: self.contentView.top, dist: 8.0)
+    pin(pageImageView.top, to: self.contentView.top, dist: 0.0)
     pin(pageLabel, to: self.contentView, exclude: .top)
     pin(pageLabel.top, to: pageImageView.bottom, dist: 7.0)
     pageLabel.lmdBenton(size: 14.0)

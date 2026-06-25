@@ -115,6 +115,7 @@
 		777607EA2CE64FC70023D3EF /* StoreBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607E92CE64FC70023D3EF /* StoreBusiness.swift */; };
 		777607ED2CE6503D0023D3EF /* CustomUIActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */; };
 		777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */; };
+		777873C42FEC3666004C1216 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
 		77791EB62BA0602200E9C0D9 /* HelpViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774C27472BA05C4500835BB9 /* HelpViewCell.swift */; };
 		777A49292B5817D6006956B7 /* CvSeperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A49282B5817D6006956B7 /* CvSeperator.swift */; };
 		777B3C022FE2E1B000A88BCD /* IconLabelButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777B3C012FE2E1B000A88BCD /* IconLabelButton.swift */; };
@@ -174,6 +175,15 @@
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77DEFD7F2E37CC6B0009CA87 /* ContinueReadingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */; };
 		77DEFD802E37CC6B0009CA87 /* ContinueReadingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */; };
+		77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */; };
+		77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */; };
+		77E1818C2FEC16D4001E46DD /* NewPdfModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */; };
+		77E1818D2FEC16D4001E46DD /* NewPdfModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */; };
+		77E1818E2FEC183F001E46DD /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
+		77E1818F2FEC1875001E46DD /* _LMdSliderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */; };
+		77E181902FEC196B001E46DD /* LMdPageImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */; };
+		77E181922FEC27EB001E46DD /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* SectionHeaderView.swift */; };
+		77E181932FEC27EB001E46DD /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* SectionHeaderView.swift */; };
 		77E2636A2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
 		77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
@@ -508,6 +518,9 @@
 		77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz ui tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
 		77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingController.swift; sourceTree = "<group>"; };
+		77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfMenuListFlowLayout.swift; sourceTree = "<group>"; };
+		77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPdfModel.swift; sourceTree = "<group>"; };
+		77E181912FEC27EB001E46DD /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+LocalNotifications.swift"; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+JsonData.swift"; sourceTree = "<group>"; };
@@ -857,14 +870,17 @@
 				77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */,
 				AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */,
 				773B2A172E9804C7001DB64B /* SectionVC+HelpProviding.swift */,
+				77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */,
 				AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */,
 				77B12E472E8EB9B70049D2E4 /* ArticleVC+HelpProviding.swift */,
 				AE76F9FA245497F80043F497 /* IntroVC.swift */,
+				77E181912FEC27EB001E46DD /* SectionHeaderView.swift */,
 				AEAEE0002456D9EC00F627FE /* StartupVC.swift */,
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
 				AE44F8E52481621C009DA152 /* IssueInfoProtocol.swift */,
 				00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */,
+				77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */,
 				7738DF602FE2D94F0095BF3A /* PdfOverviewMenuHeaderView.swift */,
 				7738DF632FE2D95D0095BF3A /* NewPdfOverviewCollectionVC.swift */,
 				77499E122EA582BF00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift */,
@@ -1347,6 +1363,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE51316E2AFBCADB002289E8 /* SearchResultsTableView.swift in Sources */,
+				77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */,
 				AE51316F2AFBCADB002289E8 /* Const.swift in Sources */,
 				7738DF652FE2D95D0095BF3A /* NewPdfOverviewCollectionVC.swift in Sources */,
 				AE5131702AFBCADB002289E8 /* Javascript.swift in Sources */,
@@ -1356,6 +1373,7 @@
 				AE5131722AFBCADB002289E8 /* Usage.swift in Sources */,
 				778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,
 				AE5131732AFBCADB002289E8 /* IssueTilesCvcCell.swift in Sources */,
+				77E181932FEC27EB001E46DD /* SectionHeaderView.swift in Sources */,
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
 				77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				AE5131752AFBCADB002289E8 /* FeederContext+ResourcesUpdate.swift in Sources */,
@@ -1391,6 +1409,7 @@
 				77EF78A02E8537A5009B8655 /* HomeVC.swift in Sources */,
 				77EF78A12E8537A5009B8655 /* HomeVC+UICollectionViewDataSource.swift in Sources */,
 				77EF78A32E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */,
+				77E1818D2FEC16D4001E46DD /* NewPdfModel.swift in Sources */,
 				AE5131882AFBCADB002289E8 /* TazPdfPagesViewController.swift in Sources */,
 				77C778DB2E8820B00098827B /* MainTabVC+HelpProviding.swift in Sources */,
 				AE5131892AFBCADB002289E8 /* KeychainTest.swift in Sources */,
@@ -1547,6 +1566,7 @@
 				AEAAEB2C23FD867C00D1187F /* GqlAuth.swift in Sources */,
 				0015B73724DD86B30037A8D6 /* Authenticator.swift in Sources */,
 				77E6E9A32CF852E100430B83 /* BookmarkTVC-DataSource+Delegate.swift in Sources */,
+				77E1818C2FEC16D4001E46DD /* NewPdfModel.swift in Sources */,
 				AE76F9FB245497F80043F497 /* IntroVC.swift in Sources */,
 				AE08C49F2412B66400D41E91 /* ConfigDefaults.swift in Sources */,
 				773500B72A1C0AEA00678647 /* IssueCollectionViewCell.swift in Sources */,
@@ -1591,6 +1611,7 @@
 				777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */,
+				77E181902FEC196B001E46DD /* LMdPageImageCell.swift in Sources */,
 				77128E1A2EEAFFAF0009B961 /* LinkBusiness.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
@@ -1604,6 +1625,7 @@
 				7715969325CC605D00508DE8 /* FeedbackViewController.swift in Sources */,
 				77BA74652892836600D1039B /* SubscriptionFormView.swift in Sources */,
 				779229512DD5E85800A8AB81 /* BackgroundDownloadService+UserDefaults.swift in Sources */,
+				777873C42FEC3666004C1216 /* CvSeperator.swift in Sources */,
 				773500B42A1C0A7C00678647 /* FetchNewStatusHeader.swift in Sources */,
 				4D308EE82834057200529592 /* SearchResultIssue.swift in Sources */,
 				AE4C4FEF26A04EBD006079C8 /* ArticlePlayer.swift in Sources */,
@@ -1611,6 +1633,7 @@
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77CB2D262A814B1400021804 /* FeederContext+Notifications.swift in Sources */,
 				773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */,
+				77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */,
 				77E6E9B22CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				773500B52A1C0A7C00678647 /* IssueCarouselFlowLayout.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
@@ -1639,6 +1662,7 @@
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
+				77E1818E2FEC183F001E46DD /* LMdPageArticleCell.swift in Sources */,
 				4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */,
 				4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */,
 				77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
@@ -1654,8 +1678,10 @@
 				773E74C02D55235700570E46 /* VirtualIssue.swift in Sources */,
 				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
 				77B12E452E8EB9410049D2E4 /* HomeVC+HelpProviding.swift in Sources */,
+				77E181922FEC27EB001E46DD /* SectionHeaderView.swift in Sources */,
 				778F741B25CC61340017E426 /* TazTextView.swift in Sources */,
 				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
+				77E1818F2FEC1875001E46DD /* _LMdSliderCell.swift in Sources */,
 				AEC7D46D249A598B008630FB /* FeederContext.swift in Sources */,
 				AE5D9EBE23E1B81A0002C3B8 /* DataModel.swift in Sources */,
 				AEBAF5C4219ACFD900566205 /* ContentVC.swift in Sources */,

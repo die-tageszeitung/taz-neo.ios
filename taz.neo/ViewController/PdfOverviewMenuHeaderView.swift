@@ -77,7 +77,7 @@ class PdfOverviewMenuHeaderView: UIView {
       dateLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: PdfDisplayOptions.Overview.interItemSpacing),
       dateLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       //...bottom
-      modeSwitchButton.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: PdfDisplayOptions.Overview.interItemSpacing),
+      modeSwitchButton.leadingAnchor.constraint(equalTo: self.centerXAnchor),
       listenButton.leadingAnchor.constraint(greaterThanOrEqualTo: modeSwitchButton.trailingAnchor, constant: 2),
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),

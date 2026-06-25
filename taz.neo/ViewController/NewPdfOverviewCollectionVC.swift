@@ -72,7 +72,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private var menuHeaderLeadingConstraint: NSLayoutConstraint?
   
   private let headerMaxHeight: CGFloat = 270
-  private let headerMinHeight: CGFloat = 110
+  private let headerMinHeight: CGFloat = 95
 
   // MARK: - ???
   private var fixScrollPos:Bool = false
@@ -86,9 +86,9 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     super.viewWillAppear(animated)
     applyStyles()
     updateLayout()
-    menuHeaderLeadingConstraint?.constant =
-    self.collectionView.layoutMargins.left
-    + ((self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.left ?? 0)
+//    menuHeaderLeadingConstraint?.constant =
+//    self.collectionView.layoutMargins.left
+//    + ((self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.left ?? 0)
   }
   
   // MARK: - Initializers
@@ -113,6 +113,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     headerWrapper.translatesAutoresizingMaskIntoConstraints = false
     menuHeaderView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(headerWrapper)
+    menuHeaderView.coverImageView.addBorder(.blue)
+    menuHeaderView.addBorder(.yellow)
     headerWrapper.contentView.addSubview(menuHeaderView)
     menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight)
     menuHeaderLeadingConstraint
@@ -153,8 +155,11 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     collectionView.backgroundColor = .white
     // Register all relevant cell types
     collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: Self.pageCellIdentifier)
-    collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.listPageCellIdentifier)
-    collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Self.listArticleCellIdentifier)
+    collectionView.register(LMdPageImageCell.self, forCellWithReuseIdentifier: Self.listPageCellIdentifier)
+    collectionView.register(LMdPageArticleCell.self, forCellWithReuseIdentifier: Self.listArticleCellIdentifier)
+    collectionView.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeaderView.reuseIdentifier)
+    collectionView.register(CvSeperator.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter.self ,
+                withReuseIdentifier: CvSeperator.reuseIdentifier)
     
     collectionView?.showsVerticalScrollIndicator = false
     collectionView?.showsHorizontalScrollIndicator = false
@@ -175,9 +180,12 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       layout.scrollDirection = .vertical
       return layout
     }
-    let flowLayout = UICollectionViewFlowLayout()
-    flowLayout.scrollDirection = .vertical
-    return flowLayout
+    
+    let layout = PdfMenuListFlowLayout()
+    layout.minimumInteritemSpacing = 16.0
+    layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 10, right: 15)
+    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+    return layout
   }
   
   private func updateLayout() {
@@ -194,12 +202,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     
   // MARK: - UICollectionViewDataSource
   public override func numberOfSections(in collectionView: UICollectionView) -> Int {
-    return 1
+    isPdfPageMode ? 1 : pdfModel.pageIndex2page.count
   }
   
   public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    // Determine count based on mode/model
-    return pdfModel.count - indexShift
+    isPdfPageMode
+    ? pdfModel.count - indexShift
+    : (pdfModel.pageIndex2article[section]?.count ?? -1) + 1
   }
   
   public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -235,18 +244,27 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       cell.label.textColor = Const.Colors.appIconGrey
       return cell
     }
-    // For demonstration, alternate cells for list
-    if indexPath.row % 2 == 0 {
-      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.listPageCellIdentifier, for: indexPath)
-      cell.backgroundColor = .systemBlue.withAlphaComponent(0.1)
-      // Configure as page cell (like LMdPageImageCell)
-      return cell
-    } else {
-      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.listArticleCellIdentifier, for: indexPath)
-      cell.backgroundColor = .systemGreen.withAlphaComponent(0.1)
-      // Configure as article cell (like LMdPageArticleCell)
+    
+    if indexPath.row == 0 {
+      guard let cell = collectionView
+        .dequeueReusableCell(withReuseIdentifier: Self.listPageCellIdentifier,
+                             for: indexPath) as? LMdPageImageCell else {
+        return UICollectionViewCell()
+      }
+      cell.issueDir = pdfModel.issueInfo?.issue.dir
+      cell.page = pdfModel.page(at: indexPath.section)//?? + indexShift??
+      cell.addBorder(.systemPink)
       return cell
     }
+    
+    guard let cell = collectionView
+      .dequeueReusableCell(withReuseIdentifier: Self.listArticleCellIdentifier,
+                           for: indexPath) as? LMdPageArticleCell else {
+      return UICollectionViewCell()
+    }
+    cell.article = pdfModel.articleAt(indexPath: indexPath)
+    cell.addBorder(.green)
+    return cell
   }
   
   public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -257,6 +275,26 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     }
     pdfModel.index = indexPath.row + indexShift
     clickCallback?(sourceFrame, pdfModel)
+  }
+}
+
+extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
+  // MARK: - Supplementary Views
+  public override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    if kind == UICollectionView.elementKindSectionHeader,
+       let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: SectionHeaderView.reuseIdentifier, for: indexPath) as? SectionHeaderView {
+      header.label.text = "Seite \(indexPath.section + 1)"
+      return header
+    }
+    else if kind == UICollectionView.elementKindSectionFooter {
+      return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CvSeperator.reuseIdentifier, for: indexPath)
+    }
+    return UICollectionReusableView()
+  }
+  
+  // MARK: - UICollectionViewDelegateFlowLayout
+  public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+    return CGSize(width: collectionView.bounds.width, height: 40)
   }
 }
 

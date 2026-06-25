@@ -562,6 +562,7 @@ public struct Const {
     static let SubtitleFontSize = CGFloat(21)
     static let DT_Head_extrasmall = CGFloat(20.5)
     static let DottedLineHeight = CGFloat(2.4)
+    static let DottedLineHeightSmall = CGFloat(1.6)
     static let DefaultPadding = CGFloat(15.0)
     static let TabletSidePadding = CGFloat(35.0)
     static let TabletFormMinWidth = CGFloat(550.0)
@@ -583,6 +584,12 @@ public struct Const {
     struct LMd {
       struct Slider {
         static let xLeft = 0.20//left Scale Factor 0.3*SliderWidth
+        //NOT NEEDED static let xRight = 0.77//right Scale Factor 1-xLeft*SliderWidth
+      }
+    }
+    struct taz {
+      struct Slider {
+        static let xLeft = 0.14//left Scale Factor x*SliderWidth
         //NOT NEEDED static let xRight = 0.77//right Scale Factor 1-xLeft*SliderWidth
       }
     }

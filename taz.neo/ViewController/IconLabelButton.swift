@@ -16,12 +16,12 @@ class IconLabelButton: UIControl {
     imageView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(imageView)
     label.text = text
-    label.font =  Const.Fonts.contentFont(size: 11.0)
+    label.font =  Const.Fonts.contentFont(size: 10.0)
     label.textAlignment = .center
     label.textColor = .label
     label.translatesAutoresizingMaskIntoConstraints = false
     addSubview(label)
-    imageView.pinSize(CGSize(width: 32.0, height: 32.0))
+    imageView.pinSize(CGSize(width: 30.0, height: 30.0))
     
     NSLayoutConstraint.activate([
       imageView.topAnchor.constraint(equalTo: topAnchor),
