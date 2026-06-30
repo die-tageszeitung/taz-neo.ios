@@ -58,7 +58,8 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
                             priority: .defaultHigh)
     pageImageView.contentMode = .scaleAspectFit
     pageImageView.shadow()
-    pageLabel.lmdBenton(size: 13.0).centerText()
+    pageLabel.textAlignment = .left
+    pageLabel.contentFont(size: 15.0)
     self.contentView.addSubview(pageImageView)
     self.contentView.addSubview(pageLabel)
     pin(pageImageView.left, to: self.contentView.left)
@@ -66,7 +67,6 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
     pin(pageImageView.top, to: self.contentView.top, dist: 0.0)
     pin(pageLabel, to: self.contentView, exclude: .top)
     pin(pageLabel.top, to: pageImageView.bottom, dist: 7.0)
-    pageLabel.lmdBenton(size: 14.0)
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
     }

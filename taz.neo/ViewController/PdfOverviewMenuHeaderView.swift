@@ -40,7 +40,6 @@ class PdfOverviewMenuHeaderView: UIView {
     coverImageView.shadow()
     
     // Date label - top, spanning right of cover
-    dateLabel.contentFont()
     dateLabel.numberOfLines = 8
     dateLabel.textColor = Const.Colors.appIconGrey
     dateLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -96,7 +95,7 @@ class PdfOverviewMenuHeaderView: UIView {
     let symbol = isList ? "tiles" : "list"
     modeSwitchButton.setImage(UIImage(named: symbol))
     UIView.animate(withDuration: 0.2) {[weak self] in
-      self?.coverBottomConstraint?.constant = isList ? -8 : -16
+      self?.coverBottomConstraint?.constant = -8.0//isList ? -8 : -16
       self?.pageLabel.alpha = isList ? 0.0 : 1.0
     }
   }

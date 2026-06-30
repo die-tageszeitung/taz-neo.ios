@@ -20,7 +20,7 @@ class SectionHeaderView: UICollectionReusableView {
   override init(frame: CGRect) {
     super.init(frame: frame)
     label.translatesAutoresizingMaskIntoConstraints = false
-    label.boldContentFont(size: Const.Size.SmallerFontSize)
+    label.boldContentFont(size: 20)
     label.textColor = Const.SetColor.HText.color
     dottedLine.fillColor = Const.SetColor.HText.color
     dottedLine.strokeColor = Const.SetColor.HText.color

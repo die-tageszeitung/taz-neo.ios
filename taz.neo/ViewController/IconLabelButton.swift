@@ -21,7 +21,7 @@ class IconLabelButton: UIControl {
     label.textColor = .label
     label.translatesAutoresizingMaskIntoConstraints = false
     addSubview(label)
-    imageView.pinSize(CGSize(width: 30.0, height: 30.0))
+    imageView.pinSize(CGSize(width: 32.0, height: 32.0))
     
     NSLayoutConstraint.activate([
       imageView.topAnchor.constraint(equalTo: topAnchor),
@@ -29,7 +29,7 @@ class IconLabelButton: UIControl {
       label.leadingAnchor.constraint(equalTo: leadingAnchor),
       label.trailingAnchor.constraint(equalTo: trailingAnchor),
       label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 2.0),
-      imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -9)
+      imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
     ])
   }
   

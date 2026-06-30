@@ -75,13 +75,11 @@ class PdfMenuListFlowLayout: UICollectionViewFlowLayout, DoesLog {
     for sect in 0..<collectionView.numberOfSections {
       var maxOffset = max(leftYOffset, rightYOffset)
       
-      if sect > 0 {
-        let separatorAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
-                                                             with: IndexPath(row: 0, section: sect))
-        separatorAttr.frame = CGRect(x: 0, y: maxOffset, width: cvWidth - 30, height: 60)
-        maxOffset += 60
-        cachedAttributes.append(separatorAttr)
-      }
+      let separatorAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self,
+                                                           with: IndexPath(row: 0, section: sect))
+      separatorAttr.frame = CGRect(x: 0, y: maxOffset, width: cvWidth - 30, height: 60)
+      maxOffset += 60
+      cachedAttributes.append(separatorAttr)
       
       leftYOffset = maxOffset
       rightYOffset = maxOffset

@@ -30,8 +30,8 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
   
   var article: Article? {
     didSet {
-      titleLabel.attributedText = article?.title?.attributed(lineHeightMultiple: 1.2)
-      teaserLabel.attributedText = article?.teaser?.attributed(lineHeightMultiple: 1.4)
+      titleLabel.text = article?.title
+      teaserLabel.text = article?.teaser
       ///authors & readingDuration
       var autors = article?.authors() ?? ""
       if autors.length > 0 {
@@ -45,7 +45,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
         let timeString
         = NSMutableAttributedString(string: "\(rd) min")
         let trange = NSRange(location: 0, length: timeString.length)
-        let thinFont = Const.Fonts.font(name: Const.Fonts.lmdBenton, size: 12)
+        let thinFont = Const.Fonts.font(name: Const.Fonts.tazRegular, size: 12.0)
         timeString.addAttribute(.font, value: thinFont, range: trange)
         timeString.addAttribute(.foregroundColor, value: Const.Colors.appIconGrey, range: trange)
         timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
@@ -59,7 +59,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
                                     range: NSRange(location: 0,
                                                    length: attributedString.length))
       authorLabel.text = ""
-      authorLabel.lmdArnhem(italic: true)
+      authorLabel.boldContentFont(size: 13.5)
       authorLabel.textColor = Const.SetColor.taz2(.text).color
       authorLabel.attributedText = attributedString
       
@@ -82,8 +82,8 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     titleLabel.numberOfLines = 0
     teaserLabel.numberOfLines = 0
     authorLabel.numberOfLines = 0
-    titleLabel.lmdBenton(bold: true)
-    teaserLabel.lmdArnhem()
+    titleLabel.boldContentFont(size: 14.0)
+    teaserLabel.contentFont(size: 14.0)
     self.contentView.addSubview(titleLabel)
     self.contentView.addSubview(teaserLabel)
     self.contentView.addSubview(authorLabel)
@@ -102,7 +102,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
     
     pin(authorLabel.left, to: self.contentView.left)
     pin(authorLabel.right, to: self.contentView.right)
-    pin(authorLabel.bottom, to: self.contentView.bottom, dist: -1.0)
+    pin(authorLabel.bottom, to: self.contentView.bottom, dist: -8.0)
     
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
