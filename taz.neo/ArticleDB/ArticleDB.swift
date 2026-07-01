@@ -1989,13 +1989,21 @@ public final class StoredIssue: Issue, StoredObject {
     get { return Int(pr.minResourceVersion) }
     set { pr.minResourceVersion = Int32(newValue) }
   }
-  public var versionLocal: Int {
-    get { return Int(pr.versionLocal) }
-    set { pr.versionLocal = Int32(newValue) }
+  
+  public var versionLocal: Int? {
+    get {
+      guard let val = pr.versionLocal else { return nil }
+      return Int(val) }
+    set {
+      guard let new = newValue else {
+        pr.versionLocal = nil
+        return
+      }
+      pr.versionLocal = Int32(newValue) }
   }
-  public var versionRemote: Int {
-    get { return Int(pr.versionRemote) }
-    set { pr.versionRemote = Int32(newValue) }
+  public var versionRemote: Int? {
+    get { pr.versionRemote.map(Int.init) }
+    set { pr.versionRemote = newValue.map(Int32.init) }
   }
   public var zipName: String? {
     get { return pr.zipName }
@@ -2682,7 +2690,7 @@ public final class StoredFeed: Feed, StoredObject {
       for version in issueVersions {
         let si = StoredIssue.get(date: version.date, inFeed: self).first
         if si?.versionRemote == version.versionRemote { continue }
-        debug("update Issue \(version.date.short) remote from>to: \(si?.versionRemote ?? -1)>\(version.versionRemote)")
+        debug("update Issue \(version.date.short) remote from>to: \(si?.versionRemote)>\(version.versionRemote)")
         si?.versionRemote = version.versionRemote
       }
     }
