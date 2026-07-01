@@ -603,9 +603,9 @@ class GqlIssue: Issue, GQLObject {
   /// Issue status
   var status: IssueStatus
   /// remote Version number of an issue
-  var versionRemote: Int
+  var versionRemote: Int?
   /// local Version number of an issue, 0 by default
-  var versionLocal: Int { 0 }
+  var versionLocal: Int? { 0 }
   /// last content for "weiterlesen"
   var lastContent: Content?
   /// Minimal resource version for this issue

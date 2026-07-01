@@ -569,7 +569,7 @@ open class FeederContext: DoesLog {
   
   
   public func needsUpdate(issue: Issue, toShowPdf: Bool = false) -> Bool {
-    if issue.versionLocal < issue.versionRemote { return true }
+    if issue.versionLocal2 < issue.versionRemote2 { return true }
     var needsUpdate = needsUpdate(issue: issue)
     if needsUpdate == false && toShowPdf == true {
       needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))

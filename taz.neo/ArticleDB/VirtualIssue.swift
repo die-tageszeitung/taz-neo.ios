@@ -25,8 +25,8 @@ public class VirtualIssue: Issue {
   public var baseUrl: String { "" }
   public var status: IssueStatus { .unknown }
   public var minResourceVersion: Int { 0 }
-  public var versionLocal: Int { 0 }
-  public var versionRemote: Int { 0 }
+  public var versionLocal: Int? { nil }
+  public var versionRemote: Int? { nil }
   public var lastContent: Content?
   public var zipName: String? { nil }
   public var zipNamePdf: String? { nil }

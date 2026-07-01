@@ -997,9 +997,9 @@ public protocol Issue: ToString, AnyObject {
   /// Issue date
   var date: Date { get }
   /// locale, downloaded Version number of an issue
-  var versionLocal: Int { get }
+  var versionLocal: Int? { get }
   /// remote Version number of an issue
-  var versionRemote: Int { get }
+  var versionRemote: Int? { get }
   /// date when set fully downloaded, needed for cleanup, die optional payload returns wired results
   var fullDownloadedDate: Date? { get }
   /// date until issue is valid if more then one

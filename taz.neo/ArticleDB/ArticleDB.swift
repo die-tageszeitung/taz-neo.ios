@@ -1989,13 +1989,13 @@ public final class StoredIssue: Issue, StoredObject {
     get { return Int(pr.minResourceVersion) }
     set { pr.minResourceVersion = Int32(newValue) }
   }
-  public var versionLocal: Int {
-    get { return Int(pr.versionLocal) }
-    set { pr.versionLocal = Int32(newValue) }
+  public var versionLocal: Int? {
+    get { return (pr.versionLocal < 0) ? nil : Int(pr.versionLocal) }
+    set(val) { pr.versionLocal = Int32((val==nil) ? -1 : val!) }
   }
-  public var versionRemote: Int {
-    get { return Int(pr.versionRemote) }
-    set { pr.versionRemote = Int32(newValue) }
+  public var versionRemote: Int? {
+    get { return (pr.versionRemote < 0) ? nil : Int(pr.versionRemote) }
+    set(val) { pr.versionRemote = Int32((val==nil) ? -1 : val!) }
   }
   public var zipName: String? {
     get { return pr.zipName }
