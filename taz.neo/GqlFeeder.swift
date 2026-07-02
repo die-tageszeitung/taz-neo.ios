@@ -687,7 +687,7 @@ class GqlIssue: Issue, GQLObject {
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
     status = try container.decode(IssueStatus.self, forKey: .status)
     minResourceVersion = try container.decode(Int.self, forKey: .minResourceVersion)
-    versionRemote = try container.decode(Int.self, forKey: .versionRemote)
+    versionRemote = try container.decodeIfPresent(Int.self, forKey: .versionRemote)
     zipName = try container.decodeIfPresent(String.self, forKey: .zipName)
     zipNamePdf = try container.decodeIfPresent(String.self, forKey: .zipNamePdf)
     zipAudioName = try container.decodeIfPresent(String.self, forKey: .zipAudioName)
