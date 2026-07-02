@@ -1251,11 +1251,15 @@ open class GqlFeeder: Feeder, DoesLog {
     }
     """
     log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
-    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { (res, _) in
+    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { [weak self] (res, _) in
+      guard let self = self else { return }
       var ret: Result<GqlFeederStatus,Error>
       switch res {
-      case .success(let fs):   
-        let fst = fs["feederStatus"]!
+      case .success(let fs):
+        guard let fst = fs["feederStatus"] else {
+          closure(.failure(self.fatal("Missing feederStatus in GraphQL response")))
+          return
+        }
         for feed in fst.feeds { feed.gqlFeeder = self }
         ret = .success(fst)
       case .failure(let err):  ret = .failure(err)

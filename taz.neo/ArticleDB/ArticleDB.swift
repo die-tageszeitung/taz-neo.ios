@@ -699,7 +699,10 @@ public final class BundledResources : DoesLog {
       
       let dict = try dec.decode([String:[String:GqlResources]].self,
                                 from: bundledResources.data)
-      return .success(dict["data"]!)
+      guard let data = dict["data"] else {
+        return .failure(self.fatal("No data in resources.json"))
+      }
+      return .success(data)
     }
     catch let error {
       return .failure(self.fatal("JSON decoding error: \(error)"))
