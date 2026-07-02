@@ -897,12 +897,25 @@ extension Log {
     net?.whenDown { caller.log("Network down") }
     if net?.isAvailable == false { caller.error("Network not available") }
     ///this is the first entry in log after appending fileLoger
-    log("App: \"\(App.name)\" \(App.bundleVersion)-\(App.buildNumber)\n" +
-        "\(App.bundleIdentifier)\n" +
-        "\(Device.singleton): \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)\n" +
-        "git-hash: \(BuildConst.hash)\n" +
-        "Path: \(Dir.appSupportPath)\n" +
-        "isTAZ: \(App.isTAZ)")
+    ///due Compiler type check error collect data before add to string
+    let appName:String = App.name
+    let bundleVersion:String = App.bundleVersion
+    let buildNumber:String = App.buildNumber
+    let bundleIdentifier:String = App.bundleIdentifier
+    let systemName:String = UIDevice.current.systemName
+    let systemVersion:String = UIDevice.current.systemVersion
+    let gitHash:String = BuildConst.hash
+    let appSupportPath:String = Dir.appSupportPath
+    let isTAZ:String = App.isTAZ ? "true" : "false"
+    let logString = """
+      App: \(appName) \(bundleVersion)-\(buildNumber)
+      \(bundleIdentifier)
+      Device: \(systemName) \(systemVersion)
+      git-hash: \(gitHash)
+      Path: \(appSupportPath)
+      isTAZ: \(isTAZ)
+      """
+    log(logString)
   }
 }
 
