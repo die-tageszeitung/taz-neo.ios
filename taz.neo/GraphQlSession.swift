@@ -99,7 +99,10 @@ public final class GraphQlSession: HttpSession {
         do {
           let dec = JSONDecoder()
           let dict = try dec.decode([String:T].self, from: d)
-          result = .success(dict["data"]!)
+          guard let data = dict["data"] else {
+            return .failure(self.fatal("No data in resources.json"))
+          }
+          result = .success(data)
         }
         catch let DecodingError.dataCorrupted(context) {
           print(context)
