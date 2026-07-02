@@ -53,7 +53,7 @@ public class VirtualIssue: Issue {
 public class VirtualSection: Section {
   public var audioItem: Audio?
   public var name: String
-  public var contentId: Int64 { 0 }
+  public var contentId: Int64?
   public var extendedTitle: String? { name }
   public var type: SectionType { .articles }
   public var articles: [Article]?

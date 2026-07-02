@@ -42,7 +42,7 @@
     </entity>
     <entity name="Content" representedClassName="PersistentContent" isAbstract="YES" syncable="YES" codeGenerationType="class">
         <attribute name="baseURL" optional="YES" attributeType="String"/>
-        <attribute name="contentId" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="contentId" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="issueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="order" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sectionTitle" optional="YES" attributeType="String"/>

@@ -387,7 +387,7 @@ public protocol Content {
   /// Optional title of content
   var title: String? { get }
   /// server id of an article or section
-  var contentId: Int64 { get }
+  var contentId: Int64? { get }
   /// List of images used in content
   var images: [ImageEntry]? { get }
   ///audio item (podcast, tts)

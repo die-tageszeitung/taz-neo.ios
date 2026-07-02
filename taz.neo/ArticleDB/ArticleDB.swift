@@ -1104,9 +1104,9 @@ public final class StoredArticle: Article, StoredObject {
       get { pr.serverId != 0 ? pr.serverId : nil }
       set { pr.serverId = newValue ?? 0 }
   }
-  public var contentId: Int64 {
-    get { return pr.contentId }
-    set { pr.contentId = newValue }
+  public var contentId: Int64? {
+    get { pr.contentId != 0 ? pr.contentId : nil }
+    set { pr.contentId = newValue ?? 0 }
   }
   public var readingDuration: Int? {
     get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
@@ -1605,9 +1605,9 @@ public final class StoredSection: Section, StoredObject {
     get { return pr.name! }
     set { pr.name = newValue }
   }
-  public var contentId: Int64 {
-    get { return pr.contentId }
-    set { pr.contentId = newValue }
+  public var contentId: Int64? {
+    get { pr.contentId != 0 ? pr.contentId : nil }
+    set { pr.contentId = newValue ?? 0 }
   }
   public var extendedTitle: String? {
     get { return pr.extendedTitle }

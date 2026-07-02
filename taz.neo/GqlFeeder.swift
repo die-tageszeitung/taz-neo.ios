@@ -297,7 +297,7 @@ class GqlArticle: Article, GQLObject {
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// server id
-  var contentId: Int64
+  var contentId: Int64?
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
@@ -369,7 +369,7 @@ class GqlSection: Section, GQLObject {
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// server id
-  var contentId: Int64
+  var contentId: Int64?
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry? { return sectionHtml }
