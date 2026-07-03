@@ -576,13 +576,13 @@ extension Log.FileLogger {
       log += "\n     2nd L A S T - E X E C U T I O N"
       log += "\n     Last: \(secondLastLogEndTime.dateAndTime)"
       //for @taz.de useraccounts add 3 app session logs
-      if (DefaultAuthenticator.getUserData().id ?? "").hasSuffix("@taz.de") {
-        log += "\n not appending 2nd last log"
-        log += "\n###################################"
-      }
-      else {
+      if DefaultAuthenticator.getUserData().id?.hasSuffix("@taz.de") == true {
         log += "\n###################################\n\n"
         log += lString
+      }
+      else {
+        log += "\n not appending 2nd last log"
+        log += "\n###################################"
       }
     }
     
