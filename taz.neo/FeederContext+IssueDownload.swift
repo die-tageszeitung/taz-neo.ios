@@ -50,6 +50,7 @@ extension FeederContext {
           Notification.send("issueProgress", content: (Int64(1),Int64(1)), sender: issue)
         }
         else { res = .failure(err!) }
+        TazAppEnvironment.setDownloadDone(issue.date.ISO8601)
         self?.markStopDownload(dlId: dlId, tstart: tstart)
         Notification.send("issue", result: res, sender: issue)
       }
@@ -76,7 +77,8 @@ extension FeederContext {
                 dimensions: Usage.event.issue.downloadDim(pdf: isPages,
                                                            audio: withAudio))
 
-    if issue.isDownloading {
+    if issue.isDownloading
+        || TazAppEnvironment.isDownloading(issue.date.ISO8601) {
       Notification.receiveOnce("issue", from: issue) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
@@ -89,6 +91,7 @@ extension FeederContext {
       Notification.send("issue", result: .success(issue), sender: issue)
       return
     }
+    TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
     if self.isConnected {
       let requestAutoloadPDF ///Request autodownload pdf if required
       = isPages == true ///only for PDF Downloads
@@ -171,7 +174,7 @@ extension FeederContext {
   /// Tell server we are starting to download
   func markStartDownload(feed: Feed, issue: Issue, isAutomatically: Bool, closure: @escaping (String?, UsTime)->()) {
     let isPush = pushToken != nil
-    debug("Sending start of download to server")
+    debug("Sending start of download to server (manual) issueDateKey: \(issue.date.ISO8601)")
     self.gqlFeeder.startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: self.pushToken, isAutomatically: isAutomatically) { res in
       closure(res.value(), UsTime.now)
     }
@@ -181,20 +184,20 @@ extension FeederContext {
   func markStopDownload(dlId: String?, tstart: UsTime) {
     if let dlId = dlId {
       let nsec = UsTime.now.timeInterval - tstart.timeInterval
-      log("Sending stop of download to server")
+      log("Sending stop of download to server (manual) id: \(dlId)")
       self.gqlFeeder.stopDownload(dlId: dlId, seconds: nsec){[weak self] _ in
         self?.cleanupOldIssues()
       }
     }
   }
   
-  func markStartDownloadAsync(feed: Feed, issue: Issue, isAutomatically: Bool) async -> (String?, UsTime) {
-      return await withCheckedContinuation { continuation in
-          markStartDownload(feed: feed, issue: issue, isAutomatically: isAutomatically) { dlId, time in
-              continuation.resume(returning: (dlId, time))
-          }
-      }
-  }
+//  func markStartDownloadAsyncUNUSED(feed: Feed, issue: Issue, isAutomatically: Bool) async -> (String?, UsTime) {
+//      return await withCheckedContinuation { continuation in
+//          markStartDownload(feed: feed, issue: issue, isAutomatically: isAutomatically) { dlId, time in
+//              continuation.resume(returning: (dlId, time))
+//          }
+//      }
+//  }
 
   /// uncommented due not in use currently maybe for later use on async change
 //  func markStopDownloadAsync(dlId: String?, tstart: UsTime) async {
@@ -227,7 +230,7 @@ extension FeederContext {
   
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
-    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short)")
+    self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short) isDownloading: \(issue.isDownloading)")
     Notification.receiveOnce("resourcesReady") { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)

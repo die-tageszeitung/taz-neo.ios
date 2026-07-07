@@ -1524,7 +1524,14 @@ open class GqlFeeder: Feeder, DoesLog {
                             pushToken: String?, isAutomatically: Bool,
                             returnOnMain: Bool = true,
                             closure: @escaping(Result<String,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+    /// The following did not work due issue has a duplicate maybe in
+    /// Feeder (Download) or Database and will be updated ...soon with this values,
+    /// unfortunately with wrong data if set download here
+    /// ...a downloaded issue may get downloadind flag again
+    //issue.isDownloading = true
+    //if isAutomatically { issue.isAutodownloading = true }
+    
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     

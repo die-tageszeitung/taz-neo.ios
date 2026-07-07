@@ -188,6 +188,10 @@ class IssueOverviewService: NSObject, DoesLog {
       self.log("issue not found for: \(date.issueKey)")
       return
     }
+    if TazAppEnvironment.isDownloading(date.ISO8601) {
+      self.log("skip download for Background downloading issue (1): \(date.issueKey)")
+      return
+    }
     self.log("download issue: \(date.issueKey)")
     download(issue: issue, withAudio: withAudio)
   }
@@ -195,6 +199,10 @@ class IssueOverviewService: NSObject, DoesLog {
   func download(issue: StoredIssue, withAudio: Bool) {
     guard hasDownloadableContent(issue: issue, withAudio: withAudio) else {
       self.log("not downloading issue from: \(issue.date.issueKey)")
+      return
+    }
+    if TazAppEnvironment.isDownloading(issue.date.ISO8601) {
+      self.log("skip download for Background downloading issue (2): \(issue.date.issueKey)")
       return
     }
     guard issue.pr.isDeleted == false else {

@@ -554,6 +554,8 @@ open class FeederContext: DoesLog {
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
     ///ensure manual download while automatic download is queued in the background.
+    ///Warning RaceCondition with autodownload on app resume, solved with
+    ///TazAppEnvironment.isDownloading....
     if issue.isAutodownloading {
       issue.isDownloading = false
       issue.isAutodownloading = false
