@@ -25,6 +25,10 @@ extension BackgroundDownloadService {
     
     let downloadStart =  UsTime(downloadData.startTime)
     let nsec = UsTime.now.timeInterval - downloadStart.timeInterval
+    log("Sending stop of download to server (auto)")
+    onMainAfter {
+      TazAppEnvironment.setDownloadDone(downloadData.isoDateKey)
+    }
     gqlFeeder.stopDownload(dlId: downloadData.downloadId, seconds: nsec, returnOnMain: false) { [weak self] err in
       guard let self = self else { return }
       self.log("...send stop to server for dlId: \(downloadData.downloadId) with err: \(err) downloadDuration: \(nsec)s")
@@ -82,7 +86,7 @@ extension GqlFeeder {
   func markStartDownloadAsync(feed: Feed, issue: Issue, isAutomatically: Bool, returnOnMain: Bool) async throws -> (String, UsTime) {
     let pushToken = Defaults.lastKnownPushToken
     let isPush = pushToken != nil
-    debug("Sending start of download to server")
+    debug("Sending start of download to server (auto) issueDateKey: \(issue.date.ISO8601)")
     
     return try await withCheckedThrowingContinuation { continuation in
       startDownload(feed: feed, issue: issue, isPush: isPush, pushToken: pushToken, isAutomatically: isAutomatically, returnOnMain: returnOnMain) { res in

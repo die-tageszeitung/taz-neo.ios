@@ -699,7 +699,10 @@ public final class BundledResources : DoesLog {
       
       let dict = try dec.decode([String:[String:GqlResources]].self,
                                 from: bundledResources.data)
-      return .success(dict["data"]!)
+      guard let data = dict["data"] else {
+        return .failure(self.fatal("No data in resources.json"))
+      }
+      return .success(data)
     }
     catch let error {
       return .failure(self.fatal("JSON decoding error: \(error)"))
@@ -1101,9 +1104,9 @@ public final class StoredArticle: Article, StoredObject {
       get { pr.serverId != 0 ? pr.serverId : nil }
       set { pr.serverId = newValue ?? 0 }
   }
-  public var contentId: Int64 {
-    get { return pr.contentId }
-    set { pr.contentId = newValue }
+  public var contentId: Int64? {
+    get { pr.contentId != 0 ? pr.contentId : nil }
+    set { pr.contentId = newValue ?? 0 }
   }
   public var readingDuration: Int? {
     get { return pr.readingDuration != 0 ? Int(pr.readingDuration) : nil }
@@ -1602,9 +1605,9 @@ public final class StoredSection: Section, StoredObject {
     get { return pr.name! }
     set { pr.name = newValue }
   }
-  public var contentId: Int64 {
-    get { return pr.contentId }
-    set { pr.contentId = newValue }
+  public var contentId: Int64? {
+    get { pr.contentId != 0 ? pr.contentId : nil }
+    set { pr.contentId = newValue ?? 0 }
   }
   public var extendedTitle: String? {
     get { return pr.extendedTitle }
@@ -1989,13 +1992,13 @@ public final class StoredIssue: Issue, StoredObject {
     get { return Int(pr.minResourceVersion) }
     set { pr.minResourceVersion = Int32(newValue) }
   }
-  public var versionLocal: Int {
-    get { return Int(pr.versionLocal) }
-    set { pr.versionLocal = Int32(newValue) }
+  public var versionLocal: Int? {
+    get { return (pr.versionLocal < 0) ? nil : Int(pr.versionLocal) }
+    set(val) { pr.versionLocal = Int32((val==nil) ? -1 : val!) }
   }
-  public var versionRemote: Int {
-    get { return Int(pr.versionRemote) }
-    set { pr.versionRemote = Int32(newValue) }
+  public var versionRemote: Int? {
+    get { return (pr.versionRemote < 0) ? nil : Int(pr.versionRemote) }
+    set(val) { pr.versionRemote = Int32((val==nil) ? -1 : val!) }
   }
   public var zipName: String? {
     get { return pr.zipName }

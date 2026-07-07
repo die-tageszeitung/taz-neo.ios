@@ -554,6 +554,8 @@ open class FeederContext: DoesLog {
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
     ///ensure manual download while automatic download is queued in the background.
+    ///Warning RaceCondition with autodownload on app resume, solved with
+    ///TazAppEnvironment.isDownloading....
     if issue.isAutodownloading {
       issue.isDownloading = false
       issue.isAutodownloading = false
@@ -569,7 +571,7 @@ open class FeederContext: DoesLog {
   
   
   public func needsUpdate(issue: Issue, toShowPdf: Bool = false) -> Bool {
-    if issue.versionLocal < issue.versionRemote { return true }
+    if issue.versionLocal2 < issue.versionRemote2 { return true }
     var needsUpdate = needsUpdate(issue: issue)
     if needsUpdate == false && toShowPdf == true {
       needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))

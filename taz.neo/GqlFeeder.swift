@@ -297,7 +297,7 @@ class GqlArticle: Article, GQLObject {
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// server id
-  var contentId: Int64
+  var contentId: Int64?
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
@@ -369,7 +369,7 @@ class GqlSection: Section, GQLObject {
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
   /// server id
-  var contentId: Int64
+  var contentId: Int64?
   /// File storing section HTML
   var sectionHtml: GqlFile
   var html: FileEntry? { return sectionHtml }
@@ -603,9 +603,9 @@ class GqlIssue: Issue, GQLObject {
   /// Issue status
   var status: IssueStatus
   /// remote Version number of an issue
-  var versionRemote: Int
+  var versionRemote: Int?
   /// local Version number of an issue, 0 by default
-  var versionLocal: Int { 0 }
+  var versionLocal: Int? { 0 }
   /// last content for "weiterlesen"
   var lastContent: Content?
   /// Minimal resource version for this issue
@@ -687,7 +687,7 @@ class GqlIssue: Issue, GQLObject {
     baseUrl = try container.decode(String.self, forKey: .baseUrl)
     status = try container.decode(IssueStatus.self, forKey: .status)
     minResourceVersion = try container.decode(Int.self, forKey: .minResourceVersion)
-    versionRemote = try container.decode(Int.self, forKey: .versionRemote)
+    versionRemote = try container.decodeIfPresent(Int.self, forKey: .versionRemote)
     zipName = try container.decodeIfPresent(String.self, forKey: .zipName)
     zipNamePdf = try container.decodeIfPresent(String.self, forKey: .zipNamePdf)
     zipAudioName = try container.decodeIfPresent(String.self, forKey: .zipAudioName)
@@ -1251,11 +1251,15 @@ open class GqlFeeder: Feeder, DoesLog {
     }
     """
     log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
-    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { (res, _) in
+    gqlSession.query(graphql: request, type: [String:GqlFeederStatus].self, returnOnMain: !gqlSession.isBackground) { [weak self] (res, _) in
+      guard let self = self else { return }
       var ret: Result<GqlFeederStatus,Error>
       switch res {
-      case .success(let fs):   
-        let fst = fs["feederStatus"]!
+      case .success(let fs):
+        guard let fst = fs["feederStatus"] else {
+          closure(.failure(self.fatal("Missing feederStatus in GraphQL response")))
+          return
+        }
         for feed in fst.feeds { feed.gqlFeeder = self }
         ret = .success(fst)
       case .failure(let err):  ret = .failure(err)
@@ -1520,7 +1524,14 @@ open class GqlFeeder: Feeder, DoesLog {
                             pushToken: String?, isAutomatically: Bool,
                             returnOnMain: Bool = true,
                             closure: @escaping(Result<String,Error>)->()) {
-    guard let gqlSession = self.gqlSession else { 
+    /// The following did not work due issue has a duplicate maybe in
+    /// Feeder (Download) or Database and will be updated ...soon with this values,
+    /// unfortunately with wrong data if set download here
+    /// ...a downloaded issue may get downloadind flag again
+    //issue.isDownloading = true
+    //if isAutomatically { issue.isAutodownloading = true }
+    
+    guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
     

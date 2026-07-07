@@ -104,6 +104,13 @@ extension HomeVC  {
   
 }
 
+///Version Compareable
+extension Issue {
+  var versionLocal2: Int { versionLocal ?? 0 }
+  var versionRemote2: Int { versionRemote ?? 0 }
+}
+
+
 extension HomeVC {
   
   func openIssue(_ issue: StoredIssue, openLast: Bool = false) {
@@ -113,9 +120,9 @@ extension HomeVC {
   ///open given issue
   ///if issue outdated try to update before open
   private func _openIssue(_ issue: StoredIssue, openLast: Bool = false, forceOpen: Bool) {
-    let skipDownload = forceOpen && issue.versionLocal < issue.versionRemote && issue.isComplete
-    log("issue: \(issue.date.short) server: \(issue.versionRemote) localVersion: \(issue.versionLocal)")
-    if !forceOpen && issue.isComplete && issue.versionLocal < issue.versionRemote {
+    let skipDownload = forceOpen && issue.versionLocal2 < issue.versionRemote2 && issue.isComplete
+    log("issue: \(issue.date.short) server: \(issue.versionRemote2) localVersion: \(issue.versionLocal2)")
+    if !forceOpen && issue.isComplete && issue.versionLocal2 < issue.versionRemote2 {
       ///try silent update
       ///in case of download errors show popup to request network connection to update or read outdated version
       Notification.receive("issue"){[weak self] notif in

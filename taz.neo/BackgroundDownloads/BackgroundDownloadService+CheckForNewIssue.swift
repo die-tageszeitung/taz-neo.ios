@@ -127,6 +127,13 @@ fileprivate extension BackgroundDownloadService {
       let issue = try await fetchFromRemote(isBackground: isBackground)
       log("...fetched issue: \(issue.date.short)")
       
+      if isBackground == false {
+        if TazAppEnvironment.isDownloading(issue.date.ISO8601) {
+          throw BackgroundDownloadError("...not download issue twice \(issue.date.ISO8601)")
+        }
+        TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
+      }
+      
       guard let zipUrl = issue.zipUrl else {
         log("latestIssue baseUrl: \(issue.baseUrl) zipName: \(issue.zipName ?? "-")")
         fetchResult = .failed

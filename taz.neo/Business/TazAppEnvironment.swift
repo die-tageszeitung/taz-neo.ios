@@ -18,6 +18,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   @Default("requestedSyncBookmarks")
   var requestedSyncBookmarks: Bool
   
+  fileprivate var backgroundDownloadingIssueDateKey: String?
+  
   class Spinner: UIViewController {
     #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -27,7 +29,6 @@ class TazAppEnvironment: NSObject, DoesLog {
                         error: nil,
                         sender: nil)
     }
-    
     
     convenience init() {
       self.init(nibName: nil, bundle: nil)
@@ -677,6 +678,25 @@ extension TazAppEnvironment {
   }
 }
 #endif // TAZ
+
+// Issue Download Extension, to prevent multiple downloads from BackgroundDownload/Resume and User Interaction...
+extension TazAppEnvironment {
+  static func setDownloadStart(_ issueDateKey: String){
+    guard sharedInstance.backgroundDownloadingIssueDateKey == nil
+            || issueDateKey > sharedInstance.backgroundDownloadingIssueDateKey ?? "999"
+    else { return }
+    sharedInstance.backgroundDownloadingIssueDateKey = issueDateKey
+  }
+  
+  static func setDownloadDone(_ issueDateKey: String){
+    guard sharedInstance.backgroundDownloadingIssueDateKey == issueDateKey else { return }
+    sharedInstance.backgroundDownloadingIssueDateKey = nil
+  }
+  
+  static func isDownloading(_ issueDateKey: String) -> Bool {
+    return sharedInstance.backgroundDownloadingIssueDateKey == issueDateKey
+  }
+}
 
 // Player extension
 extension TazAppEnvironment {
