@@ -281,6 +281,14 @@ class IssueOverviewService: NSObject, DoesLog {
         for issue in issues {
           let si = StoredIssue.get(date: issue.date, inFeed: feed)
           if let sIssue = si.first {
+            #warning("Not updating issues ma result in crash!")
+            //if sIssue.pr.moment == nil || sIssue.moment.isChanged(from: issue.moment){
+            //(issue as? GqlIssue)?.isOverview = true
+            //sIssue.update(from: issue)
+            //newIssues.append(sIssue)
+            //} else {
+            //newIssues.append(sIssue)
+            //}
             newIssues.append(sIssue)
           }
           else {
@@ -641,6 +649,12 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive("issueDelete") { [weak self] notif in
       guard let issueDate = notif.content as? Date else { return }
       self?.issues[issueDate.issueKey] = nil
+    }
+    
+    Notification.receive(Const.NotificationNames.issueUpdateMoment) { [weak self] notif in
+      guard let issue = notif.content as? StoredIssue else { return }
+      self?.notifyIssueOwvAvailable(issue: issue,
+                                    key: issue.key(pdf: self?.isFacsimile ?? false))
     }
     
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in

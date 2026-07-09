@@ -2115,8 +2115,10 @@ public final class StoredIssue: Issue, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Issue) {
+    #warning("NOT IN USE!")
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     var sendUpdateBookmarksNotification: Bool = false
+    var sendMomentUpdateNotification: Bool = false
     self.feed = object.feed
     self.date = object.date
     self.fullDownloadedDate = object.fullDownloadedDate
@@ -2127,6 +2129,9 @@ public final class StoredIssue: Issue, StoredObject {
     ///Set **only** remote version here and **localVersion after Download!**
     self.versionRemote = object.versionRemote
     self.isWeekend = object.isWeekend
+    if self.pr.moment != nil, object.moment.isChanged(from: self.moment){
+      sendMomentUpdateNotification = true
+    }
     self.moment = object.moment
     self.key = object.key
     self.baseUrl = object.baseUrl
@@ -2212,6 +2217,7 @@ public final class StoredIssue: Issue, StoredObject {
     }
     if sendUpdatedDemoIssueNotification { Notification.send("updatedDemoIssue") }
     if sendUpdateBookmarksNotification { Notification.send(Const.NotificationNames.bookmarkChanged) }
+    if sendMomentUpdateNotification { Notification.send(Const.NotificationNames.issueUpdate) }
   }
   
   /// Return stored record with given name
@@ -2687,6 +2693,8 @@ public final class StoredFeed: Feed, StoredObject {
         if si?.versionRemote == version.versionRemote { continue }
         debug("update Issue \(version.date.short) remote from>to: \(si?.versionRemote ?? -1)>\(version.versionRemote)")
         si?.versionRemote = version.versionRemote
+//        si?.isOvwComplete = false
+//        Notification.send(Const.NotificationNames.issueUpdateMoment, content: si)
       }
     }
     /// CR-Feeds: Warning: what should we do? only add issues to primary feed?
@@ -2884,3 +2892,19 @@ public final class StoredFeeder: Feeder, StoredObject {
   }
   
 } // StoredFeeder
+
+extension Moment {
+  /// Vergleicht die Images dieses Moments mit einem anderen Moment nach Anzahl und SHA256-Hash.
+  func isContentEqual(to other: Moment) -> Bool {
+      let imgs = self.images
+      let otherImgs = other.images
+      guard imgs.count == otherImgs.count else { return false }
+      let mySet = Set(imgs.map { "\($0.fileName)|\($0.sha256)" })
+      let otherSet = Set(otherImgs.map { "\($0.fileName)|\($0.sha256)" })
+      return mySet == otherSet
+  }
+  
+  func isChanged(from previous: Moment) -> Bool {
+    return !self.isContentEqual(to: previous)
+  }
+}
