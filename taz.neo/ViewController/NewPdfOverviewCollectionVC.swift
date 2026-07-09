@@ -186,7 +186,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if isPdfPageMode {
       let layout = TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
       layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
-                                         left: PdfDisplayOptions.Overview.sideSpacing,
+                                         left: 8.0,
                                          bottom: PdfDisplayOptions.Overview.sideSpacing,
                                          right: PdfDisplayOptions.Overview.sideSpacing)
       /// reduced currently to 0 because label not filled
