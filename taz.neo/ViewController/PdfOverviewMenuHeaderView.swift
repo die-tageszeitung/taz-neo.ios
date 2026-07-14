@@ -17,7 +17,7 @@ class PdfOverviewMenuHeaderView: UIView {
   let modeSwitchButton: IconLabelButton
   let listenButton: IconLabelButton
   
-  private var coverBottomConstraint: NSLayoutConstraint?
+  var coverBottomConstraint: NSLayoutConstraint?
   
   // Init
   override init(frame: CGRect) {
@@ -68,7 +68,7 @@ class PdfOverviewMenuHeaderView: UIView {
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
       coverBottomConstraint!,
       coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: 0.64),
-      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
+      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -6),
       //from left to right
       pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
@@ -95,7 +95,7 @@ class PdfOverviewMenuHeaderView: UIView {
     let symbol = isList ? "tiles" : "list"
     modeSwitchButton.setImage(UIImage(named: symbol))
     UIView.animate(withDuration: 0.2) {[weak self] in
-      self?.coverBottomConstraint?.constant = -8.0//isList ? -8 : -16
+      self?.coverBottomConstraint?.constant = isList ? -8 : -26
       self?.pageLabel.alpha = isList ? 0.0 : 1.0
     }
   }

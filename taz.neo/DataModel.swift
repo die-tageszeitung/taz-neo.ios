@@ -791,7 +791,6 @@ public protocol Page: ToString {
 } // Page
 
 public extension Page {
-  
   func toString() -> String {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }

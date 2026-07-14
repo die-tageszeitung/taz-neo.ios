@@ -72,6 +72,7 @@ class PdfMenuListFlowLayout: UICollectionViewFlowLayout, DoesLog {
     
     guard collectionView.numberOfSections > 0 else { return }
     
+    
     for sect in 0..<collectionView.numberOfSections {
       var maxOffset = max(leftYOffset, rightYOffset)
       
@@ -100,7 +101,7 @@ class PdfMenuListFlowLayout: UICollectionViewFlowLayout, DoesLog {
         if row == 0 {
           // 📌 Linke Zelle (Bildzelle) → feste Höhe basierend auf Seitenverhältnis 1.34x Breite
           let cellWidth = leftCellWidth
-          let cellHeight = cellWidth / Const.Size.LmdPageAspect + 20.0 //additional Space for label
+          let cellHeight = cellWidth / Const.Size.LmdPageAspect + 30.0 //additional Space for label
           attr.frame = CGRect(origin: CGPoint(x: self.sectionInset.left, y: leftYOffset),
                               size: CGSize(width: cellWidth, height: cellHeight))
           leftYOffset += cellHeight

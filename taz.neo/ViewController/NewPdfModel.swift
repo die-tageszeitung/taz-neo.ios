@@ -8,6 +8,12 @@
 import NorthLib
 import UIKit
 
+struct ListData {
+    var page: Page
+    var pageName: String? ///optional, empty if not first page of a ressort 
+    var articles: [Article]
+}
+
 // MARK: - NewPdfModel
 class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
 
@@ -19,6 +25,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   /// no comercial pages no continued article pages
   var pageIndex2page: [Int:Page] = [:]
   var pageName2pageIndex: [String:Int] = [:]
+  var listData: [ListData] = []
   
   func size(forItem atIndex: Int) -> CGSize {
     if let item = self.item(atIndex: atIndex),
@@ -36,6 +43,14 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   
   func page2(at idx: Int) -> Page? {
     return (item(atIndex: idx)  as? ZoomedPdfPageImage)?.pageReference
+  }
+  
+  /// due Advertisement/Anzeigen mostly have wrong Pagina (mostly "Seite 2" due copy in BAckend
+  /// we do not show original pagina for anzeigen, we hide it
+  public func pageTitle(at idx: Int) -> String? {
+    if pageIndex2article[idx]?.count == 0 { return nil }
+    guard let page = (item(atIndex: idx)  as? ZoomedPdfPageImage)?.pageReference else { return nil }
+    return "Seite \(page.pagina ?? "")"
   }
   
   public func pageIndexForLink(_ link: String) -> Int? {
@@ -67,6 +82,11 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   
   func item(atIndex: Int) -> ZoomedPdfImageSpec? {
     return images.valueAt(atIndex)
+  }
+  
+  func itemsInListSection(_ section: Int) -> Int {
+    guard let data = listData.valueAt(section) else { return 0 }
+    return data.articles.count + 1
   }
   
   var images : [ZoomedPdfImageSpec] = []
@@ -151,31 +171,49 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     
     let articles = issue.allArticles
     var addedArticles: [Article] = []//Prevent listing on later page
-    var idx = 0
+    var pageIndex = 0
+    
+    var pageName2articles: [String: [Article]] = [:]
+    for article in articles {
+        for pname in article.pageNames ?? [] {
+            pageName2articles[pname, default: []].append(article)
+        }
+    }
+    listData = []
+    var lastPageName: String?
+    let lastPage = issue.pages?.last
     for page in issue.pages ?? [] {
       let item = ZoomedPdfPageImage(page:page, issueDir: issueDir)
       item.fullScreenPageHeight = fullscreenPageHeight
       item.pdfDownloadDelegate = self
       self.images.append(item)
       
-      pageName2pageIndex[page.pdf?.name ?? "-"] = idx
-      var arts: [Article] = []
-      for article in articles {
-        for case let pname in article.pageNames ?? [] where pname == page.pdf?.fileName {
-          if addedArticles.contains(where: {$0.html?.name == article.html?.name }) { continue }
-          arts.append(article)
-          addedArticles.append(article)
+      var filteredPageArticles: [Article] = []
+      if let pageFileName = page.pdf?.fileName,
+         let pageArticles = pageName2articles[pageFileName] {
+        let filteredArticles = pageArticles.filter { article in
+          !addedArticles.contains(where: { $0.serverId == article.serverId })
         }
+        filteredPageArticles.append(contentsOf: filteredArticles)
+        addedArticles.append(contentsOf: filteredArticles)
       }
-      if arts.count == 0 { continue }//Prevent Comercial Pages in Slider
-      pageIndex2article[idx] = arts
-      pageIndex2page[idx] = page
-      idx += 1
+      if page.pdf?.fileName == lastPage?.pdf?.fileName,
+        let imprint = issue.imprint {
+        filteredPageArticles.append(imprint)
+      }
+      
+      let itm = ListData(page: page,
+                         pageName: page.title == lastPageName ? nil : page.title,
+                         articles: filteredPageArticles)
+      listData.append(itm)
+
+      pageName2pageIndex[page.pdf?.name ?? "-"] = pageIndex
+      pageIndex2article[pageIndex] = filteredPageArticles
+      pageIndex2page[pageIndex] = page
+      
+      pageIndex += 1
+      lastPageName = page.title
     }
-    
-    
-    
-    
     
     self.defaultRawPageSize = rawPageSize
     let panoPageWidth
@@ -190,3 +228,4 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
                                height: pageHeight)
   }
 }
+

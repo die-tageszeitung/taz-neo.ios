@@ -589,7 +589,7 @@ public struct Const {
     }
     struct taz {
       struct Slider {
-        static let xLeft = 0.15//left Scale Factor x*SliderWidth
+        static let xLeft = 0.18//left Scale Factor x*SliderWidth
         //NOT NEEDED static let xRight = 0.77//right Scale Factor 1-xLeft*SliderWidth
       }
     }

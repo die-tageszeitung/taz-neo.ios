@@ -30,26 +30,10 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
   let pageImageView = UIImageView()
   let pageLabel = UILabel()
   
-  var issueDir: Dir?
-  
-  var page: Page? {
-    didSet {
-      #warning("deprecated: remove soon, just needed for pre RC3 Installations")
-      if page?.facsimile != nil
-          && page?.facsimile?.image(dir: issueDir) == nil
-          && page?.facsimile?.fileName.suffix(4) == "webp" {
-        ///throw away the webp facsimiles (which are also not loaded) and create the jpg ones
-        (page as? StoredPage)?.facsimile = nil
-      }
-      /// -end of deprecated
-      pageImageView.image = page?.facsimile?.image(dir: issueDir)?.left
-      pageLabel.text = "Seite \(page?.pagina ?? "")"
-    }
-  }
-  
   override func prepareForReuse() {
     super.prepareForReuse()///**IMPORTANT!!!!!!!!!!!**
-    page=nil
+    pageImageView.image = nil
+    pageLabel.text = nil
   }
   
   func setup(){
@@ -59,14 +43,15 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
     pageImageView.contentMode = .scaleAspectFit
     pageImageView.shadow()
     pageLabel.textAlignment = .left
-    pageLabel.contentFont(size: 15.0)
+    pageLabel.contentFont(size: Const.Size.SmallerFontSize)
     self.contentView.addSubview(pageImageView)
     self.contentView.addSubview(pageLabel)
     pin(pageImageView.left, to: self.contentView.left)
     pin(pageImageView.right, to: self.contentView.right)
     pin(pageImageView.top, to: self.contentView.top, dist: 0.0)
     pin(pageLabel, to: self.contentView, exclude: .top)
-    pin(pageLabel.top, to: pageImageView.bottom, dist: 7.0)
+    pin(pageLabel.bottom, to: self.contentView.bottom, dist: 3.0)
+    ///Cell height is defined in PdfMenuListFlowLayout ...evaluateLayout...cellHeight
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
     }

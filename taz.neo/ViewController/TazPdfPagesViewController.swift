@@ -373,7 +373,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleVC.navigationController?.popViewController(animated: true)
     }
     
-    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel) in
+    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel, art) in
       Usage.track(Usage.event.drawer.action_tap.Page)
       if let newIndex = pdfModel?.index {
         self?.collectionView.scrollToIndex(newIndex)
@@ -404,8 +404,12 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                   right: 0)
     
     xButton.isHidden = true
-    (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel) in
+    (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel, art) in
       guard let self = self else { return }
+      if let art {
+        openArticle(name: art.html?.name, path: issue.dir.path, reopenArticleScrollPos: nil)
+        return
+      }
       guard let newIndex = pdfModel?.index else { return }
       self.collectionView.scrollToIndex(newIndex)
       self.slider?.close()
