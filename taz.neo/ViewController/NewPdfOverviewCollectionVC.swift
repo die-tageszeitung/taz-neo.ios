@@ -110,6 +110,11 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if headerMinHeight < 50 { calculateHeader() }
   }
   
+  public override func accessibilityPerformEscape() -> Bool {
+    self.navigationController?.popViewController(animated: true)
+    return true
+  }
+  
   // MARK: - Initializers
   init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
