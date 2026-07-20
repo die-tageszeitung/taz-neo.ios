@@ -1218,6 +1218,11 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       self?.reloadAllWebViews()
     }
   }
+  
+  public override func accessibilityPerformEscape() -> Bool {
+    self.navigationController?.popViewController(animated: true)
+    return true
+  }
  
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext

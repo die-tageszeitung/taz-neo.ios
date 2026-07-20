@@ -456,6 +456,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       collectionView.reloadItems(at: indexPaths)
       trackScreen()
       updateButtonMenu()
+      updateAccessibilityOrder()
       if isHomeTiles { return }
       guard let centerIndex = self.carousselFixCenterIndex else { return }
       ///update wrapper for carousel
@@ -476,6 +477,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.updateButtonMenu()
       self?.bottomItemsWrapper.isHidden = (self?.isHomeTiles ?? true)
       self?.downloadButtonTapArea.isHidden = (self?.isHomeTiles ?? true)
+      self?.updateAccessibilityOrder()
     }
 
     bottomItemsWrapper.isHidden = isHomeTiles
@@ -664,14 +666,25 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     let appViewAction = UIAction(
       title: "Mobile Ansicht",
       image: UIImage(named: "mobile-device"),
+      discoverabilityTitle: isFacsimile ? nil : "Ausgewählt",
       state: isFacsimile ? .off : .on
     ) {[weak self] _ in self?.isFacsimile.toggle()  }
     
     let newspaperAction = UIAction(
       title: "Zeitungsansicht",
       image: UIImage(named: "newspaper"),
+      discoverabilityTitle: isFacsimile ? "Ausgewählt":nil,
       state: isFacsimile ? .on : .off
     ) {[weak self] _ in self?.isFacsimile.toggle()  }
+    
+    appViewAction.accessibilityHint = isFacsimile
+        ? "Zur mobilen Ansicht wechseln. Empfohlen für VoiceOver."
+        : "Mobile Ansicht aktiviert. Für VoiceOver empfohlen."
+
+    newspaperAction.accessibilityHint = isFacsimile
+        ? "Zeitungsansicht aktiviert. Für VoiceOver empfehlen wir jedoch die mobile Ansicht."
+        : "Zur Zeitungsansicht wechseln."
+    
     //Ansicht, Anzeige, Lesemodus
     let viewGroup = UIMenu(title: "Ansicht", options: .displayInline, children: [appViewAction, newspaperAction])
     
@@ -687,6 +700,14 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       image: UIImage(named: "carousel"),
       state: isHomeTiles ? .off : .on
     ) {[weak self] _ in self?.isHomeTiles.toggle()  }
+    
+    tileAction.accessibilityHint = isHomeTiles
+        ? "Kachelansicht aktiviert. Für VoiceOver empfehlen wir die Karussellansicht."
+        : "Zur Kachelansicht wechseln."
+    carouselAction.accessibilityHint = isHomeTiles
+        ? "Zur für VoiceOver optimierten Karussellansicht wechseln."
+        : "Karussellansicht aktiviert. Für VoiceOver optimiert."
+    
     // Anordnung, Darstellungsform
     let layoutGroup = UIMenu(title: "Anordnung", options: .displayInline, children: [carouselAction, tileAction])
     

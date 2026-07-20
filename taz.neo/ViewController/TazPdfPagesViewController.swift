@@ -82,7 +82,7 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
 
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
-open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate{
+open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate {
   
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
@@ -389,6 +389,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  public override func accessibilityPerformEscape() -> Bool {
+    self.navigationController?.popViewController(animated: true)
+    return true
   }
   
   // MARK: - viewDidLoad
