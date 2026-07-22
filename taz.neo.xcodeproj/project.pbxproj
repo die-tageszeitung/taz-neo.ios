@@ -52,6 +52,8 @@
 		7715969725CC605D00508DE8 /* FeedbackHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7715969025CC605D00508DE8 /* FeedbackHelper.swift */; };
 		7717EF5A2EA29C7B00CB9646 /* GqlFeeder+UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7717EF592EA29C7700CB9646 /* GqlFeeder+UserData.swift */; };
 		7717EF5B2EA29C7B00CB9646 /* GqlFeeder+UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7717EF592EA29C7700CB9646 /* GqlFeeder+UserData.swift */; };
+		7729689A300E65DE00267550 /* PdfMenuLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77296899300E65DE00267550 /* PdfMenuLayout.swift */; };
+		7729689B300E65DE00267550 /* PdfMenuLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77296899300E65DE00267550 /* PdfMenuLayout.swift */; };
 		7732842A274F9F5B00B08535 /* TazCustomized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77328429274F9F5B00B08535 /* TazCustomized.swift */; };
 		773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A62A1C0A7C00678647 /* IssueOverviewService.swift */; };
 		773500B02A1C0A7C00678647 /* IssueTilesCvcCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */; };
@@ -88,9 +90,9 @@
 		7754452025D150AA00ABE3F8 /* TazPdfPagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C4A0D025655F52002CDFDB /* TazPdfPagesViewController.swift */; };
 		7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */; };
 		7758CCB42B504DAD000B8E30 /* LMdSliderContentVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */; };
-		7758CCB92B504E2B000B8E30 /* LMdPageImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */; };
+		7758CCB92B504E2B000B8E30 /* PdfPageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* PdfPageCell.swift */; };
 		7758CCBA2B504E4D000B8E30 /* _LMdSliderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */; };
-		7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
+		7758CCBD2B504E7F000B8E30 /* PdfArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* PdfArticleCell.swift */; };
 		7758CCBF2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */; };
 		7758CCC22B505181000B8E30 /* LMdSliderDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */; };
 		775AA39F2E39221A0044CCF9 /* IssueDisplayService+ContinueReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775AA39E2E3922060044CCF9 /* IssueDisplayService+ContinueReading.swift */; };
@@ -175,15 +177,15 @@
 		77D434012CE694F800AC992A /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D433FF2CE694A100AC992A /* Bookmarks.swift */; };
 		77DEFD7F2E37CC6B0009CA87 /* ContinueReadingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */; };
 		77DEFD802E37CC6B0009CA87 /* ContinueReadingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */; };
-		77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */; };
-		77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */; };
+		77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift */; };
+		77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift */; };
 		77E1818C2FEC16D4001E46DD /* NewPdfModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */; };
 		77E1818D2FEC16D4001E46DD /* NewPdfModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */; };
-		77E1818E2FEC183F001E46DD /* LMdPageArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */; };
+		77E1818E2FEC183F001E46DD /* PdfArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCBB2B504E7A000B8E30 /* PdfArticleCell.swift */; };
 		77E1818F2FEC1875001E46DD /* _LMdSliderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */; };
-		77E181902FEC196B001E46DD /* LMdPageImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */; };
-		77E181922FEC27EB001E46DD /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* SectionHeaderView.swift */; };
-		77E181932FEC27EB001E46DD /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* SectionHeaderView.swift */; };
+		77E181902FEC196B001E46DD /* PdfPageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7758CCB72B504E28000B8E30 /* PdfPageCell.swift */; };
+		77E181922FEC27EB001E46DD /* PdfSectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* PdfSectionHeaderView.swift */; };
+		77E181932FEC27EB001E46DD /* PdfSectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E181912FEC27EB001E46DD /* PdfSectionHeaderView.swift */; };
 		77E2636A2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
 		77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */; };
 		77E5E1BC292D772200611148 /* Javascript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E5E1BB292D772200611148 /* Javascript.swift */; };
@@ -433,6 +435,7 @@
 		7715968F25CC605D00508DE8 /* FeedbackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		7715969025CC605D00508DE8 /* FeedbackHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedbackHelper.swift; sourceTree = "<group>"; };
 		7717EF592EA29C7700CB9646 /* GqlFeeder+UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GqlFeeder+UserData.swift"; sourceTree = "<group>"; };
+		77296899300E65DE00267550 /* PdfMenuLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfMenuLayout.swift; sourceTree = "<group>"; };
 		77328429274F9F5B00B08535 /* TazCustomized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TazCustomized.swift; sourceTree = "<group>"; };
 		773500A62A1C0A7C00678647 /* IssueOverviewService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueOverviewService.swift; sourceTree = "<group>"; };
 		773500A82A1C0A7C00678647 /* IssueTilesCvcCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IssueTilesCvcCell.swift; sourceTree = "<group>"; };
@@ -460,8 +463,8 @@
 		7758CCAE2B504CCB000B8E30 /* LMdSliderContentVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderContentVC.swift; sourceTree = "<group>"; };
 		7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderHeader.swift; sourceTree = "<group>"; };
 		7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _LMdSliderCell.swift; sourceTree = "<group>"; };
-		7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdPageImageCell.swift; sourceTree = "<group>"; };
-		7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdPageArticleCell.swift; sourceTree = "<group>"; };
+		7758CCB72B504E28000B8E30 /* PdfPageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfPageCell.swift; sourceTree = "<group>"; };
+		7758CCBB2B504E7A000B8E30 /* PdfArticleCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfArticleCell.swift; sourceTree = "<group>"; };
 		7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderCVFlowLayout.swift; sourceTree = "<group>"; };
 		7758CCC02B504F61000B8E30 /* LMdSliderDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LMdSliderDataModel.swift; sourceTree = "<group>"; };
 		775AA39E2E3922060044CCF9 /* IssueDisplayService+ContinueReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IssueDisplayService+ContinueReading.swift"; sourceTree = "<group>"; };
@@ -518,9 +521,9 @@
 		77D1B5042CF9D2F3004CF5FC /* taz ui tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "taz ui tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D433FF2CE694A100AC992A /* Bookmarks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmarks.swift; sourceTree = "<group>"; };
 		77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinueReadingController.swift; sourceTree = "<group>"; };
-		77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfMenuListFlowLayout.swift; sourceTree = "<group>"; };
+		77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfMenuListFlowLayoutOld.swift; sourceTree = "<group>"; };
 		77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPdfModel.swift; sourceTree = "<group>"; };
-		77E181912FEC27EB001E46DD /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
+		77E181912FEC27EB001E46DD /* PdfSectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PdfSectionHeaderView.swift; sourceTree = "<group>"; };
 		77E263692E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+LocalNotifications.swift"; sourceTree = "<group>"; };
 		77E5E1BB292D772200611148 /* Javascript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Javascript.swift; sourceTree = "<group>"; };
 		77E6BF152DD7184500CABD9C /* BackgroundDownloadService+JsonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+JsonData.swift"; sourceTree = "<group>"; };
@@ -739,8 +742,8 @@
 				7758CCBE2B504EB1000B8E30 /* LMdSliderCVFlowLayout.swift */,
 				7758CCB12B504DA5000B8E30 /* LMdSliderHeader.swift */,
 				7758CCB52B504DC5000B8E30 /* _LMdSliderCell.swift */,
-				7758CCB72B504E28000B8E30 /* LMdPageImageCell.swift */,
-				7758CCBB2B504E7A000B8E30 /* LMdPageArticleCell.swift */,
+				7758CCB72B504E28000B8E30 /* PdfPageCell.swift */,
+				7758CCBB2B504E7A000B8E30 /* PdfArticleCell.swift */,
 				777A49282B5817D6006956B7 /* CvSeperator.swift */,
 			);
 			path = LMdSliderContent;
@@ -870,11 +873,11 @@
 				77DEFD7E2E37CC430009CA87 /* ContinueReadingController.swift */,
 				AE4AA2B123F6AD9100EAFE78 /* SectionVC.swift */,
 				773B2A172E9804C7001DB64B /* SectionVC+HelpProviding.swift */,
-				77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift */,
+				77E181882FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift */,
 				AE4AA2B323F6B01A00EAFE78 /* ArticleVC.swift */,
 				77B12E472E8EB9B70049D2E4 /* ArticleVC+HelpProviding.swift */,
 				AE76F9FA245497F80043F497 /* IntroVC.swift */,
-				77E181912FEC27EB001E46DD /* SectionHeaderView.swift */,
+				77E181912FEC27EB001E46DD /* PdfSectionHeaderView.swift */,
 				AEAEE0002456D9EC00F627FE /* StartupVC.swift */,
 				AE0C32DA2462D1AE00E4AEA8 /* TextSettingsVC.swift */,
 				AE44F8E324815AF4009DA152 /* ContentImageVC.swift */,
@@ -887,6 +890,7 @@
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
 				77AB6B042A02653000C42712 /* NotificationsView.swift */,
 				777B3C012FE2E1B000A88BCD /* IconLabelButton.swift */,
+				77296899300E65DE00267550 /* PdfMenuLayout.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -1363,7 +1367,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE51316E2AFBCADB002289E8 /* SearchResultsTableView.swift in Sources */,
-				77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */,
+				77E181892FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift in Sources */,
 				AE51316F2AFBCADB002289E8 /* Const.swift in Sources */,
 				7738DF652FE2D95D0095BF3A /* NewPdfOverviewCollectionVC.swift in Sources */,
 				AE5131702AFBCADB002289E8 /* Javascript.swift in Sources */,
@@ -1373,12 +1377,12 @@
 				AE5131722AFBCADB002289E8 /* Usage.swift in Sources */,
 				778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */,
 				AE5131732AFBCADB002289E8 /* IssueTilesCvcCell.swift in Sources */,
-				77E181932FEC27EB001E46DD /* SectionHeaderView.swift in Sources */,
+				77E181932FEC27EB001E46DD /* PdfSectionHeaderView.swift in Sources */,
 				AE5131742AFBCADB002289E8 /* DeviceData.swift in Sources */,
 				77ABEEC32D3AE73F00D0F063 /* PdfGenerationService.swift in Sources */,
 				AE5131752AFBCADB002289E8 /* FeederContext+ResourcesUpdate.swift in Sources */,
 				77C07FB82FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */,
-				7758CCBD2B504E7F000B8E30 /* LMdPageArticleCell.swift in Sources */,
+				7758CCBD2B504E7F000B8E30 /* PdfArticleCell.swift in Sources */,
 				AE5131762AFBCADB002289E8 /* ArticleDB.swift in Sources */,
 				77499E132EA582CC00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift in Sources */,
 				77D434012CE694F800AC992A /* Bookmarks.swift in Sources */,
@@ -1427,6 +1431,7 @@
 				AE5131902AFBCADB002289E8 /* NewInfoToast.swift in Sources */,
 				AE5131912AFBCADB002289E8 /* PlaceholderView.swift in Sources */,
 				777DF43B2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift in Sources */,
+				7729689A300E65DE00267550 /* PdfMenuLayout.swift in Sources */,
 				AE5131932AFBCADB002289E8 /* FeederContext+Polling.swift in Sources */,
 				AE5131942AFBCADB002289E8 /* IssueCollectionViewActions.swift in Sources */,
 				AE5131962AFBCADB002289E8 /* NotificationsView.swift in Sources */,
@@ -1444,7 +1449,7 @@
 				AE51319F2AFBCADB002289E8 /* Downloader.swift in Sources */,
 				77E6E9AD2CF880FD00430B83 /* String+Extension.swift in Sources */,
 				AE5131A02AFBCADB002289E8 /* FeedbackViewController.swift in Sources */,
-				7758CCB92B504E2B000B8E30 /* LMdPageImageCell.swift in Sources */,
+				7758CCB92B504E2B000B8E30 /* PdfPageCell.swift in Sources */,
 				77B12E482E8EBAA80049D2E4 /* ArticleVC+HelpProviding.swift in Sources */,
 				775AA39F2E39221A0044CCF9 /* IssueDisplayService+ContinueReading.swift in Sources */,
 				AE5131A12AFBCADB002289E8 /* SubscriptionFormView.swift in Sources */,
@@ -1573,6 +1578,7 @@
 				776746092E9D08D000A60883 /* ArticlePlayer+HelpProviding.swift in Sources */,
 				77E6E9B52CF882A800430B83 /* Bookmarks+UpdateFromServer.swift in Sources */,
 				4D3131F2289159FE0087EE1B /* SubscriptionFormController.swift in Sources */,
+				7729689B300E65DE00267550 /* PdfMenuLayout.swift in Sources */,
 				77E6E99A2CF850F300430B83 /* TableSectionSeperatorFooterView.swift in Sources */,
 				AEC7D467249920DF008630FB /* OverlayTest.swift in Sources */,
 				7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */,
@@ -1611,7 +1617,7 @@
 				777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */,
 				77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */,
 				77E6E9A02CF8524E00430B83 /* BookmarksCell.swift in Sources */,
-				77E181902FEC196B001E46DD /* LMdPageImageCell.swift in Sources */,
+				77E181902FEC196B001E46DD /* PdfPageCell.swift in Sources */,
 				77128E1A2EEAFFAF0009B961 /* LinkBusiness.swift in Sources */,
 				779EF0D02A03A16200D6A626 /* InfoToaster.swift in Sources */,
 				779DE96126FA3D790056187B /* SettingsVC.swift in Sources */,
@@ -1633,7 +1639,7 @@
 				0032A4D924C89E4800284723 /* FormsController.swift in Sources */,
 				77CB2D262A814B1400021804 /* FeederContext+Notifications.swift in Sources */,
 				773500B32A1C0A7C00678647 /* IssueDisplayService.swift in Sources */,
-				77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayout.swift in Sources */,
+				77E1818A2FEC0FE2001E46DD /* PdfMenuListFlowLayoutOld.swift in Sources */,
 				77E6E9B22CF881FB00430B83 /* Bookmarks+ArticleVCdelegate.swift in Sources */,
 				773500B52A1C0A7C00678647 /* IssueCarouselFlowLayout.swift in Sources */,
 				C794F23524FED184007168AC /* Helper.swift in Sources */,
@@ -1662,7 +1668,7 @@
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
-				77E1818E2FEC183F001E46DD /* LMdPageArticleCell.swift in Sources */,
+				77E1818E2FEC183F001E46DD /* PdfArticleCell.swift in Sources */,
 				4D308EDB283404D400529592 /* TazAppEnvironment.swift in Sources */,
 				4D308EE62834057200529592 /* SearchHeaderView.swift in Sources */,
 				77BA366D2DC501F9007E45C7 /* BackgroundDownloadService+SheduledCheck.swift in Sources */,
@@ -1678,7 +1684,7 @@
 				773E74C02D55235700570E46 /* VirtualIssue.swift in Sources */,
 				77A214C425D2B68F00A7C41B /* AppOverlay.swift in Sources */,
 				77B12E452E8EB9410049D2E4 /* HomeVC+HelpProviding.swift in Sources */,
-				77E181922FEC27EB001E46DD /* SectionHeaderView.swift in Sources */,
+				77E181922FEC27EB001E46DD /* PdfSectionHeaderView.swift in Sources */,
 				778F741B25CC61340017E426 /* TazTextView.swift in Sources */,
 				773D564226145E8500B42FEF /* InfoToast.swift in Sources */,
 				77E1818F2FEC1875001E46DD /* _LMdSliderCell.swift in Sources */,

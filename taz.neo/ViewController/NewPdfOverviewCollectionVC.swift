@@ -24,11 +24,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     didSet {
       guard oldValue != isPdfPageMode else { return }
       menuHeaderView.applyMode(isList: !isPdfPageMode)
-      updateLayout()
       applyStyles()
+      (collectionView.collectionViewLayout as? PdfMenuLayout)?.mode = isPdfPageMode ? .pages : .list
     }
   }
-  private var indexShift: Int { isPdfPageMode ? 1 : 0 }
   
   public func applyStyles() {
     let dark = isPdfPageMode || Defaults.darkMode
@@ -84,24 +83,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     }
   }
 
-  // MARK: - ???
-  private var fixScrollPos:Bool = false
-  
-  // MARK: - Cell Identifiers
-  private static let listPageCellIdentifier = "ListPageCell"
-  private static let listArticleCellIdentifier = "ListArticleCell"
-  private static let pageCellIdentifier = "PageCell"
-  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     applyStyles()
     self.view.doLayout()
-//    menuHeaderLeadingConstraint?.constant =
-//    self.collectionView.layoutMargins.left
-//    + ((self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.sectionInset.left ?? 0)
-    collectionView.collectionViewLayout.invalidateLayout()
-    collectionView.reloadData()
-    updateLayout()
     calculateHeader()
   }
   
@@ -113,7 +98,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   // MARK: - Initializers
   init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
-    super.init(collectionViewLayout: UICollectionViewLayout())
+    let layout = PdfMenuLayout(pdfModel: pdfModel)
+    super.init(collectionViewLayout: layout)
   }
   
   required init?(coder: NSCoder) {
@@ -171,39 +157,16 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   private func setupCollectionView() {
     collectionView.backgroundColor = .white
-    // Register all relevant cell types
-    collectionView?.register(PdfOverviewCvcCell.self, forCellWithReuseIdentifier: Self.pageCellIdentifier)
-    collectionView.register(LMdPageImageCell.self, forCellWithReuseIdentifier: Self.listPageCellIdentifier)
-    collectionView.register(LMdPageArticleCell.self, forCellWithReuseIdentifier: Self.listArticleCellIdentifier)
-    collectionView.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeaderView.reuseIdentifier)
-    collectionView.register(CvSeperator.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter.self ,
-                withReuseIdentifier: CvSeperator.reuseIdentifier)
-    
-    collectionView?.showsVerticalScrollIndicator = false
-    collectionView?.showsHorizontalScrollIndicator = false
-  }
-  
-  private var currentLayout: UICollectionViewLayout {
-    if isPdfPageMode {
-      let layout = TwoColumnUICollectionViewFlowLayout(pdfModel: pdfModel)
-      layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
-                                         left: 8.0,
-                                         bottom: PdfDisplayOptions.Overview.sideSpacing,
-                                         right: PdfDisplayOptions.Overview.sideSpacing)
-      /// reduced currently to 0 because label not filled
-      /// possible data may come from datamodel, can be: titel, Seite 1 // taz 2, Seite 14 //  die wahrheit; S. 20
-      /// Daten sind da, da die PDF diese enthällt
-      layout.minimumLineSpacing = 45.0
-      layout.minimumInteritemSpacing = PdfDisplayOptions.Overview.interItemSpacing - 0.5//fix misscalculation bug
-      layout.scrollDirection = .vertical
-      return layout
-    }
-    
-    let layout = PdfMenuListFlowLayout()
-    layout.minimumInteritemSpacing = 16.0
-    layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 10, right: 15)
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    return layout
+    // Register all relevant cell types for PdfMenuLayout
+    collectionView.register(PdfPageCell.self,
+                            forCellWithReuseIdentifier: PdfPageCell.reuseIdentifier)
+    collectionView.register(PdfArticleCell.self,
+                            forCellWithReuseIdentifier: PdfArticleCell.reuseIdentifier)
+    collectionView.register(PdfSectionHeaderView.self,
+                            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                            withReuseIdentifier: PdfSectionHeaderView.reuseIdentifier)
+    collectionView.showsVerticalScrollIndicator = false
+    collectionView.showsHorizontalScrollIndicator = false
   }
   
   private func calculateHeader() {
@@ -212,11 +175,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     //self.view.safeAreaInsets
     let verticalPadding: CGFloat = 13.0  
     headerMinHeight = imageHeight + verticalPadding
-  }
-  
-  private func updateLayout() {
-    let newLayout = currentLayout
-    collectionView.setCollectionViewLayout(newLayout, animated: true)
   }
   
   // MARK: - Scroll for Header Animation
@@ -239,26 +197,52 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     
   // MARK: - UICollectionViewDataSource
   public override func numberOfSections(in collectionView: UICollectionView) -> Int {
-    isPdfPageMode ? 1 : pdfModel.listData.count
+    // PdfMenuLayout expects one section per pdf page in both modes
+    return pdfModel.sectionContent.count
   }
   
   public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    isPdfPageMode
-    ? pdfModel.count - indexShift
-    : pdfModel.itemsInListSection(section)
+    if isPdfPageMode {
+      return 1
+    } else {
+      return (pdfModel.sectionContent.valueAt(section)?.articles.count ?? -1) + 1
+    }
+  }
+  
+  public override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    (cell as? PdfPageCell)?.configure(pageMode: isPdfPageMode)
   }
   
   public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    if isPdfPageMode {
-      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.pageCellIdentifier, for: indexPath)
-      guard let cell = cell as? PdfOverviewCvcCell else { return cell }
-      cell.imageView.image =  pdfModel.thumbnail(atIndex: indexPath.row + indexShift, finishedClosure: { (img) in
-        onMain { cell.imageView.image = img  }
-      })
-      guard let item = pdfModel.item(atIndex: indexPath.row + indexShift) else {
-        return cell
+    guard let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section) else {
+      return UICollectionViewCell()
+    }
+    
+    if indexPath.row == 0,
+      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PdfPageCell.reuseIdentifier,
+                                                    for: indexPath) as? PdfPageCell {
+      if indexPath.section == 0 && isPdfPageMode {
+        return cell ///empty cell 0 height comes from Layout!
       }
       
+      let isAdPage = !sectionContent.page.hasArticles
+      cell.pagina = isAdPage ? nil : sectionContent.page.pagina
+      cell.listPrefix = isAdPage ? nil : "Seite"
+      cell.pageRessort = sectionContent.page.title
+      cell.pageImageView.image =  pdfModel.thumbnail(atIndex: indexPath.section, finishedClosure: { (img) in
+        onMain { cell.pageImageView.image = img  }
+      })
+      return cell
+    }
+    else if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PdfArticleCell.reuseIdentifier,
+                                                          for: indexPath) as? PdfArticleCell,
+            let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section),
+            let article = sectionContent.articles.valueAt(indexPath.row - 1) {/// row 0 is the Page itself
+      cell.article = article
+      return cell
+    }
+    
+/*
       cell.label.boldContentFont(size: 14.0)
       let attributedText = NSMutableAttributedString()
 
@@ -276,20 +260,19 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
         attributedText.append(NSAttributedString(string: "\(pageTitle) ",
                                                  attributes: font))
       }
-//      cell.label.attributedText = attributedText
-      cell.label.text = attributedText.string
+      cell.label.attributedText = attributedText
       cell.label.textColor = Const.Colors.appIconGrey
       return cell
     }
-    ///**LIST MODE**
-    guard let sectData = pdfModel.listData.valueAt(indexPath.section) else {
+    /// **LIST MODE**
+    guard let sectData = pdfModel.sectionContent.valueAt(indexPath.section) else {
       return UICollectionViewCell()
     }
     ///row zero for page
     if indexPath.row == 0 {
       guard let cell = collectionView
         .dequeueReusableCell(withReuseIdentifier: Self.listPageCellIdentifier,
-                             for: indexPath) as? LMdPageImageCell else {
+                             for: indexPath) as? PdfPageCell else {
         return UICollectionViewCell()
       }
       cell.pageImageView.image = sectData.page.facsimile?.image(dir: pdfModel.issueInfo?.issue.dir)
@@ -299,11 +282,11 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     
     guard let cell = collectionView
       .dequeueReusableCell(withReuseIdentifier: Self.listArticleCellIdentifier,
-                           for: indexPath) as? LMdPageArticleCell else {
-      return UICollectionViewCell()
+                           for: indexPath) as? PdfArticleCell else {
+
     }
-    cell.article = pdfModel.articleAt(indexPath: indexPath)
-    return cell
+              */
+    return UICollectionViewCell()
   }
   
   public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -312,39 +295,39 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if let attr = attributes {
       sourceFrame = self.collectionView.convert(attr.frame, to: self.collectionView.superview?.superview)
     }
-    if isPdfPageMode {
-      pdfModel.index = indexPath.row + indexShift
-      clickCallback?(sourceFrame, pdfModel, nil)
+    var art: Article?
+    if indexPath.row > 0 {
+      let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section),
+      art = sectionContent?.articles.valueAt(indexPath.row - 1)
     }
-    else {
-      pdfModel.index = indexPath.section
-      var art: Article?
-      if indexPath.row > 0 {
-        art = pdfModel.pageIndex2article[indexPath.section]?.valueAt(indexPath.row - 1)
-      }
-      clickCallback?(.zero, pdfModel, art)
-    }
-
+    pdfModel.currentPage = indexPath.section
+    clickCallback?(sourceFrame, pdfModel, art)
   }
 }
 
 extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
   // MARK: - Supplementary Views
   public override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-    if kind == UICollectionView.elementKindSectionHeader,
-       let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: SectionHeaderView.reuseIdentifier, for: indexPath) as? SectionHeaderView {
-      header.label.text = pdfModel.listData.valueAt(indexPath.section)?.pageName
-      return header
+    guard kind == UICollectionView.elementKindSectionHeader,
+          let header = collectionView.dequeueReusableSupplementaryView(
+      ofKind: kind,
+      withReuseIdentifier: PdfSectionHeaderView.reuseIdentifier,
+      for: indexPath) as? PdfSectionHeaderView else {
+      return UICollectionReusableView()
     }
-    else if kind == UICollectionView.elementKindSectionFooter {
-      return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CvSeperator.reuseIdentifier, for: indexPath)
-    }
-    return UICollectionReusableView()
+    header.configure(with: pdfModel.sectionContent.valueAt(indexPath.section)?.sectionName,
+                     pageMode: isPdfPageMode)
+    return header
   }
   
   // MARK: - UICollectionViewDelegateFlowLayout
   public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-    return CGSize(width: collectionView.bounds.width, height: 40)
+    if collectionViewLayout is PdfMenuLayout {
+      return pdfModel.sectionContent.valueAt(section)?.sectionName == nil
+        ? CGSize(width: collectionView.bounds.width, height: 0.5) /// nth page of same ressort => just a line
+        : CGSize(width: collectionView.bounds.width, height: 40) /// 1st page of a ressort => header with title
+    }
+    return .zero
   }
 }
 

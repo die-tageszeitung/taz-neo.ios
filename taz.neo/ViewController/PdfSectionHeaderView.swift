@@ -11,11 +11,17 @@
 import UIKit
 import NorthLib
 
-class SectionHeaderView: UICollectionReusableView {
-  static let reuseIdentifier = "SectionHeaderView"
+class PdfSectionHeaderView: UICollectionReusableView {
+  static let reuseIdentifier = "PdfSectionHeaderView"
   let label = UILabel()
   let dottedLine = DottedLineView()
   let topLine = UIView()
+  
+  func configure(with title: String?, pageMode: Bool) {
+    label.text = title
+    topLine.isHidden = pageMode
+    dottedLine.isHidden = pageMode || title == nil
+  }
   
   override init(frame: CGRect) {
     super.init(frame: frame)

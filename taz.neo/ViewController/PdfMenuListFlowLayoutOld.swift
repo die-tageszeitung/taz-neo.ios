@@ -1,5 +1,5 @@
 //
-//  LMdSliderCVFlowLayout.swift
+//  PdfMenuListFlowLayoutOld.swift
 //  taz.neo
 //
 //  Created by Ringo Müller on 24.06.26.
@@ -12,7 +12,7 @@ import NorthLib
 ///  layout for 2 column self sizing collection view
 ///  layout is created initially with evaluateLayout and
 ///  needed to be re-evaluated on content change or collection views size change
-class PdfMenuListFlowLayout: UICollectionViewFlowLayout, DoesLog {
+class PdfMenuListFlowLayoutOld: UICollectionViewFlowLayout, DoesLog {
   
   fileprivate var cachedAttributes = [UICollectionViewLayoutAttributes]()
   
@@ -107,7 +107,7 @@ class PdfMenuListFlowLayout: UICollectionViewFlowLayout, DoesLog {
           leftYOffset += cellHeight
         } else {
           // 📌 Rechte Zelle (Artikelzelle) → dynamische Höhe über `systemLayoutSizeFitting`
-          let prototypeCell = LMdPageArticleCell(frame: .zero)
+          let prototypeCell = PdfArticleCell(frame: .zero)
           prototypeCell.article = cvc.pdfModel.articleAt(indexPath: ip)
           
           let fittingSize = prototypeCell.systemLayoutSizeFitting(

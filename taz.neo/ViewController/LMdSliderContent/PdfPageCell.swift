@@ -26,17 +26,54 @@ fileprivate extension UIImage {
 
 
 /// page cell displaying page image and page number
-class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
+class PdfPageCell: UICollectionViewCell, LMdSliderCell {
+  
+  var pagina: String? /// e.g. "1" (single), "2-3" (double), nil (ad)
+  var listPrefix: String? /// e.g. "Seite" or nil for ads
+  var pageRessort: String? ///e.g. "inland" or "anzeige" for ads
+  
+  static let reuseIdentifier = "PdfPageCellIdentifier"
+  
   let pageImageView = UIImageView()
   let pageLabel = UILabel()
   
+  func configure(pageMode: Bool) {
+    if !pageMode {
+      pageLabel.text = "\(listPrefix ?? "") \(pagina ?? "")"
+      pageLabel.contentFont(size: 12.0)
+      return
+    }
+    pageLabel.boldContentFont(size: 14.0)
+    let attributedString = NSMutableAttributedString()
+    if let pagina {
+      let font
+      = [NSAttributedString.Key.font:
+          Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)]
+      attributedString.append(NSAttributedString(string: "\(pagina) ",
+                                                 attributes: font))
+    }
+    if let pageRessort {
+      let font
+      = [NSAttributedString.Key.font:
+          Const.Fonts.titleFont(size: Const.Size.SmallerFontSize)]
+      attributedString.append(NSAttributedString(string: "\(pageRessort)",
+                                                 attributes: font))
+      pageLabel.attributedText = attributedString
+    }
+  }
+  
   override func prepareForReuse() {
-    super.prepareForReuse()///**IMPORTANT!!!!!!!!!!!**
+    super.prepareForReuse()
     pageImageView.image = nil
     pageLabel.text = nil
+    
   }
   
   func setup(){
+    pageLabel.textColor = .orange
+    pageImageView.addBorder(.red)
+    pageLabel.addBorder(.yellow)
+    contentView.addBorder(.green)
     pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
                             pinWidth: false,
                             priority: .defaultHigh)
@@ -46,12 +83,12 @@ class LMdPageImageCell: UICollectionViewCell, LMdSliderCell {
     pageLabel.contentFont(size: Const.Size.SmallerFontSize)
     self.contentView.addSubview(pageImageView)
     self.contentView.addSubview(pageLabel)
-    pin(pageImageView.left, to: self.contentView.left)
-    pin(pageImageView.right, to: self.contentView.right)
-    pin(pageImageView.top, to: self.contentView.top, dist: 0.0)
-    pin(pageLabel, to: self.contentView, exclude: .top)
-    pin(pageLabel.bottom, to: self.contentView.bottom, dist: 3.0)
+    pin(pageImageView, to: self.contentView, exclude: .bottom)
+    pin(pageLabel.left, to: self.contentView.left)
+    pin(pageLabel.right, to: self.contentView.right)
+    pin(pageLabel.top, to: pageImageView.bottom, dist: 3.0)
     ///Cell height is defined in PdfMenuListFlowLayout ...evaluateLayout...cellHeight
+    ///do not pin bottom
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
     }

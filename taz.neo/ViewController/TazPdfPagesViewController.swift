@@ -375,7 +375,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
     articleSliderContentController.clickCallback = { [weak self] (_, pdfModel, art) in
       Usage.track(Usage.event.drawer.action_tap.Page)
-      if let newIndex = pdfModel?.index {
+      if let newIndex = pdfModel?.currentPage {
         self?.collectionView.scrollToIndex(newIndex)
       }
       articleVC.slider?.close(animated: true) { [weak self] _ in
@@ -415,7 +415,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         openArticle(name: art.html?.name, path: issue.dir.path, reopenArticleScrollPos: nil)
         return
       }
-      guard let newIndex = pdfModel?.index else { return }
+      guard let newIndex = pdfModel?.currentPage else { return }
       self.collectionView.scrollToIndex(newIndex)
       self.slider?.close()
       Usage.track(Usage.event.drawer.action_tap.Page)
@@ -613,7 +613,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       ///sectionAudio e.g. for bundestalk
       let sectionAudio = self?.sectionAudio()
       self?.toolBar.setToolbar(sectionAudio == nil ? 0 : 1)
-      (self?.sliderContentController as? PdfOverviewCollectionVC)?.activeIndex = idx
+      (self?.sliderContentController as? OldPdfOverviewCollectionVC)?.activeIndex = idx
       self?.slider?.showMenuImage = true
       
       guard let ziv = optionalView as? ZoomedImageView,
@@ -708,7 +708,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       nModel.images = []
     }
     self.pdfModel = nil
-    (sliderContentController as? PdfOverviewCollectionVC)?.cleanup()
+    (sliderContentController as? OldPdfOverviewCollectionVC)?.cleanup()
     sliderContentController = nil
     slider = nil
     super.releaseOnDisappear()
@@ -834,8 +834,8 @@ extension TazPdfPagesViewController {
     return ctrl
   }
   
-  func createTazSliderChildControllerOld(pdfModel: PdfModel) -> PdfOverviewCollectionVC {
-    let ctrl = PdfOverviewCollectionVC(pdfModel:pdfModel)
+  func createTazSliderChildControllerOld(pdfModel: PdfModel) -> OldPdfOverviewCollectionVC {
+    let ctrl = OldPdfOverviewCollectionVC(pdfModel:pdfModel)
     ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
     ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
     ctrl.cellLabelInActiveColor = Const.Colors.appIconGrey
@@ -846,7 +846,7 @@ extension TazPdfPagesViewController {
       cell?.dateLabel.text = pdfModel.title
       cell?.dateLabel.textColor = Const.Colors.appIconGrey
       
-      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayout {
+      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayoutOld {
         cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
       }
       cell?.imageWidthConstraint?.isActive = true
@@ -1050,7 +1050,7 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   override func releaseOnDisappear() {
     super.releaseOnDisappear()
-    (sliderContent as? PdfOverviewCollectionVC)?.cleanup()
+    (sliderContent as? OldPdfOverviewCollectionVC)?.cleanup()
     sliderContent = nil
     slider?.cleanup()
     slider = nil

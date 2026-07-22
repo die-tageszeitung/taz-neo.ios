@@ -8,15 +8,17 @@
 import NorthLib
 import UIKit
 
-struct ListData {
-    var page: Page
-    var pageName: String? ///optional, empty if not first page of a ressort 
-    var articles: [Article]
+struct SectionContent {
+  @Default("isPdfPageMode")
+  public var isPdfPageMode: Bool
+  
+  var page: Page
+  var sectionName: String? ///optional, empty if not first page of a ressort
+  var articles: [Article]
 }
 
 // MARK: - NewPdfModel
 class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
-
   /// pageIndex-article relation; **WARNING** only contain pages where article start,
   /// no comercial pages no continued article pages
   /// pageIndex start at 0 if 3 pages missing e.g. n-th pahe Index is n+3 page
@@ -25,7 +27,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   /// no comercial pages no continued article pages
   var pageIndex2page: [Int:Page] = [:]
   var pageName2pageIndex: [String:Int] = [:]
-  var listData: [ListData] = []
+  var sectionContent: [SectionContent] = []
   
   func size(forItem atIndex: Int) -> CGSize {
     if let item = self.item(atIndex: atIndex),
@@ -72,8 +74,8 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
   
   var title: String?
-  var count: Int { images.count }
-  var index: Int = 0
+  var count: Int { sectionContent.count }
+  var currentPage: Int = 0
   var issueInfo:IssueInfo?
     
   var defaultRawPageSize: CGSize?
@@ -85,7 +87,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
   }
   
   func itemsInListSection(_ section: Int) -> Int {
-    guard let data = listData.valueAt(section) else { return 0 }
+    guard let data = sectionContent.valueAt(section) else { return 0 }
     return data.articles.count + 1
   }
   
@@ -179,7 +181,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
             pageName2articles[pname, default: []].append(article)
         }
     }
-    listData = []
+    sectionContent = []
     var lastPageName: String?
     let lastPage = issue.pages?.last
     for page in issue.pages ?? [] {
@@ -202,10 +204,10 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
         filteredPageArticles.append(imprint)
       }
       
-      let itm = ListData(page: page,
-                         pageName: page.title == lastPageName ? nil : page.title,
+      let itm = SectionContent(page: page,
+                         sectionName: page.title == lastPageName ? nil : page.title,
                          articles: filteredPageArticles)
-      listData.append(itm)
+      sectionContent.append(itm)
 
       pageName2pageIndex[page.pdf?.name ?? "-"] = pageIndex
       pageIndex2article[pageIndex] = filteredPageArticles

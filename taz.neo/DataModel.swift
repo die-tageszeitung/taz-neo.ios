@@ -791,6 +791,14 @@ public protocol Page: ToString {
 } // Page
 
 public extension Page {
+  
+  var hasArticles: Bool {
+    for frame in frames ?? [] {
+      if frame.link?.hasPrefix("art") == true { return true}
+    }
+    return false
+  }
+  
   func toString() -> String {
     var ret = title ?? "unknown"
     if let pg = pagina { ret += " (#\(pg))" }

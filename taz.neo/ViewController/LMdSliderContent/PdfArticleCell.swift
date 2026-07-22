@@ -10,7 +10,9 @@ import UIKit
 import NorthLib
 
 /// self sizing cell with some labels and boockmark icon
-class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
+class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
+  
+  static let reuseIdentifier = "PdfArticleCellIdentifier"
   
   let titleLabel = UILabel()
   let teaserLabel = UILabel()
@@ -135,7 +137,7 @@ class LMdPageArticleCell: UICollectionViewCell, LMdSliderCell {
   
 }
 
-extension LMdPageArticleCell: UIStyleChangeDelegate{
+extension PdfArticleCell: UIStyleChangeDelegate{
   public func applyStyles() {
     titleLabel.textColor = Const.SetColor.taz2(.text).color
     teaserLabel.textColor = Const.SetColor.taz2(.text).color
