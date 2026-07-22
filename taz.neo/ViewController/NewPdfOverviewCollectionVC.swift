@@ -52,18 +52,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     setNeedsStatusBarAppearanceUpdate()
   }
   
-  /// Optional: Pass in a model (e.g., PdfModel or other)
-  var pdfModel: NewPdfModel {
-    didSet {
-      menuHeaderView.dateLabel.attributedText
-      = NSAttributedString(pdfModel.title, fontSize: Const.Size.SmallerFontSize, lineHeight: 20)
-      _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
-        DispatchQueue.main.async {
-          self?.menuHeaderView.coverImageView.image = image
-        }
-      }
-    }
-  }
+  var pdfModel: NewPdfModel
   
   public var clickCallback: ((CGRect, PdfModel?, Article?)->())?
   
@@ -98,8 +87,22 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   // MARK: - Initializers
   init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
+    menuHeaderView.dateLabel.attributedText
+    = NSAttributedString(pdfModel.title, fontSize: Const.Size.SmallerFontSize, lineHeight: 20)
     let layout = PdfMenuLayout(pdfModel: pdfModel)
+    layout.sectionInset = UIEdgeInsets(top: PdfDisplayOptions.Overview.sideSpacing,
+                                       left: 8.0,
+                                       bottom: PdfDisplayOptions.Overview.sideSpacing,
+                                       right: PdfDisplayOptions.Overview.sideSpacing)
+    layout.minimumLineSpacing = 45.0
+    layout.minimumInteritemSpacing = PdfDisplayOptions.Overview.interItemSpacing - 0.5//fix misscalculation bug
+    layout.scrollDirection = .vertical
     super.init(collectionViewLayout: layout)
+    _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
+      DispatchQueue.main.async {
+        self?.menuHeaderView.coverImageView.image = image
+      }
+    }
   }
   
   required init?(coder: NSCoder) {
@@ -157,7 +160,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   private func setupCollectionView() {
     collectionView.backgroundColor = .white
-    // Register all relevant cell types for PdfMenuLayout
     collectionView.register(PdfPageCell.self,
                             forCellWithReuseIdentifier: PdfPageCell.reuseIdentifier)
     collectionView.register(PdfArticleCell.self,
@@ -172,8 +174,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private func calculateHeader() {
     let leftCellWidth = collectionView.frame.size.width * Const.Size.taz.Slider.xLeft
     let imageHeight = leftCellWidth / 0.64
-    //self.view.safeAreaInsets
-    let verticalPadding: CGFloat = 13.0  
+    let verticalPadding: CGFloat = 13.0
     headerMinHeight = imageHeight + verticalPadding
   }
   
@@ -225,7 +226,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
         return cell ///empty cell 0 height comes from Layout!
       }
       
-      let isAdPage = !sectionContent.page.hasArticles
+      let isAdPage = sectionContent.page.isAdvertisement
       cell.pagina = isAdPage ? nil : sectionContent.page.pagina
       cell.listPrefix = isAdPage ? nil : "Seite"
       cell.pageRessort = sectionContent.page.title
@@ -241,51 +242,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       cell.article = article
       return cell
     }
-    
-/*
-      cell.label.boldContentFont(size: 14.0)
-      let attributedText = NSMutableAttributedString()
-
-      if let page = (item as? ZoomedPdfPageImage)?.pageReference?.pagina {
-        let font
-        = [NSAttributedString.Key.font:
-            Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)]
-        attributedText.append(NSAttributedString(string: "\(page) ",
-                                                 attributes: font))
-      }
-      if let pageTitle = item.pageTitle {
-        let font
-        = [NSAttributedString.Key.font:
-            Const.Fonts.titleFont(size: Const.Size.SmallerFontSize)]
-        attributedText.append(NSAttributedString(string: "\(pageTitle) ",
-                                                 attributes: font))
-      }
-      cell.label.attributedText = attributedText
-      cell.label.textColor = Const.Colors.appIconGrey
-      return cell
-    }
-    /// **LIST MODE**
-    guard let sectData = pdfModel.sectionContent.valueAt(indexPath.section) else {
-      return UICollectionViewCell()
-    }
-    ///row zero for page
-    if indexPath.row == 0 {
-      guard let cell = collectionView
-        .dequeueReusableCell(withReuseIdentifier: Self.listPageCellIdentifier,
-                             for: indexPath) as? PdfPageCell else {
-        return UICollectionViewCell()
-      }
-      cell.pageImageView.image = sectData.page.facsimile?.image(dir: pdfModel.issueInfo?.issue.dir)
-      cell.pageLabel.text = sectData.page.pagina
-      return cell
-    }
-    
-    guard let cell = collectionView
-      .dequeueReusableCell(withReuseIdentifier: Self.listArticleCellIdentifier,
-                           for: indexPath) as? PdfArticleCell else {
-
-    }
-              */
     return UICollectionViewCell()
   }
   
@@ -297,7 +253,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     }
     var art: Article?
     if indexPath.row > 0 {
-      let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section),
+      let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section)
       art = sectionContent?.articles.valueAt(indexPath.row - 1)
     }
     pdfModel.currentPage = indexPath.section
@@ -319,15 +275,4 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
                      pageMode: isPdfPageMode)
     return header
   }
-  
-  // MARK: - UICollectionViewDelegateFlowLayout
-  public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-    if collectionViewLayout is PdfMenuLayout {
-      return pdfModel.sectionContent.valueAt(section)?.sectionName == nil
-        ? CGSize(width: collectionView.bounds.width, height: 0.5) /// nth page of same ressort => just a line
-        : CGSize(width: collectionView.bounds.width, height: 40) /// 1st page of a ressort => header with title
-    }
-    return .zero
-  }
 }
-

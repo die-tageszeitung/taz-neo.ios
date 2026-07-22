@@ -14,6 +14,7 @@ struct SectionContent {
   
   var page: Page
   var sectionName: String? ///optional, empty if not first page of a ressort
+  var isAdvertisement: Bool
   var articles: [Article]
 }
 
@@ -205,8 +206,9 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
       }
       
       let itm = SectionContent(page: page,
-                         sectionName: page.title == lastPageName ? nil : page.title,
-                         articles: filteredPageArticles)
+                               sectionName: page.title == lastPageName ? nil : page.title,
+                               isAdvertisement: page.isAdvertisement,
+                               articles: filteredPageArticles)
       sectionContent.append(itm)
 
       pageName2pageIndex[page.pdf?.name ?? "-"] = pageIndex

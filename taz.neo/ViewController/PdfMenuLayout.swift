@@ -8,7 +8,7 @@
 import UIKit
 import NorthUIKit
 
-class PdfMenuLayout: UICollectionViewFlowLayout {
+class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   
   enum Mode {
     case list
@@ -103,26 +103,6 @@ class PdfMenuLayout: UICollectionViewFlowLayout {
     }
     pageContentSize = CGSize(width: collectionView.bounds.size.width,
                              height: yOffset + rowHeight)
-    ///This was the AI-generated code
-    /*
-     if mode == .pages {
-     // Single section, all pages are items
-     for row in 0..<pdfModel.count {
-     let ip = IndexPath(item: row, section: 0)
-     let attr = UICollectionViewLayoutAttributes(forCellWith: ip)
-     // Use 2-column or pano logic
-     let isPano = pdfModel.item(atIndex: row)?.pageType == .double
-     let cellWidth: CGFloat = isPano ? width : (width - minInteritemSpacing) / 2
-     let cellHeight: CGFloat = cellWidth * 1.4 // Estimate aspect
-     let x: CGFloat = isPano ? sectionInsets.left : (row % 2 == 0 ? sectionInsets.left : sectionInsets.left + cellWidth + minInteritemSpacing)
-     attr.frame = CGRect(x: x, y: yOffset, width: cellWidth, height: cellHeight)
-     cachedAttributes[ip] = attr
-     if isPano || row % 2 == 1 {
-     yOffset += cellHeight + minInteritemSpacing
-     }
-     }
-     contentSize = CGSize(width: cv.bounds.width, height: yOffset + sectionInsets.bottom)
-     */
   }
   
   
@@ -132,12 +112,13 @@ class PdfMenuLayout: UICollectionViewFlowLayout {
     cachedListHeaderAttributes = []
 
     var yOffset = 0.0
+    let xLeft = self.sectionInset.left + collectionView.layoutMargins.left
     
     let cvWidth = collectionView.frame.size.width
     let leftCellWidth = cvWidth * Const.Size.taz.Slider.xLeft
     
-    let rightCellWidth = cvWidth - leftCellWidth - sectionInset.left - sectionInset.right - minimumInteritemSpacing
-    let rightCellXOffset = leftCellWidth + sectionInset.left + minimumInteritemSpacing
+    let rightCellWidth = cvWidth - leftCellWidth - xLeft - sectionInset.right - minimumInteritemSpacing
+    let rightCellXOffset = leftCellWidth + xLeft + minimumInteritemSpacing
     let pageCellWidth = leftCellWidth
     let pageCellHeight = pageCellWidth / Const.Size.LmdPageAspect + 30.0 //additional Space for label
     
@@ -155,7 +136,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout {
       /// **left cell, Page Image**
       let pageCellIndexPath = IndexPath(row: 0, section: currentSection)
       let pageCellAttributes = UICollectionViewLayoutAttributes(forCellWith: pageCellIndexPath)
-      pageCellAttributes.frame = CGRect(origin: CGPoint(x: self.sectionInset.left, y: yOffset),
+      pageCellAttributes.frame = CGRect(origin: CGPoint(x: xLeft, y: yOffset),
                           size: CGSize(width: pageCellWidth, height: pageCellHeight))
       cachedListCellAttributes[pageCellIndexPath] = pageCellAttributes
       
@@ -187,47 +168,17 @@ class PdfMenuLayout: UICollectionViewFlowLayout {
     }
     listContentSize
     = CGSize(width: collectionView.bounds.width, height: yOffset)
-//    = CGSize(width: rightCellXOffset + rightCellWidth + sectionInset.right,
-//             height: yOffset + sectionInset.bottom)
-    
-    /** AI Generated code
-     for section in 0..<(pdfModel.sectionContent.count) {
-     let headerIp = IndexPath(item: 0, section: section)
-     // Header
-     let headerAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, with: headerIp)
-     headerAttr.frame = CGRect(x: sectionInsets.left, y: yOffset, width: width, height: headerHeight)
-     cachedHeaders[headerIp] = headerAttr
-     yOffset += headerHeight
-     let nRows = pdfModel.itemsInListSection(section)
-     for row in 0..<nRows {
-     let ip = IndexPath(item: row, section: section)
-     let attr = UICollectionViewLayoutAttributes(forCellWith: ip)
-     if row == 0 {
-     // Page image
-     let imageWidth = width * 0.48
-     let cellHeight = imageWidth / 0.64 + maxLabelHeight
-     attr.frame = CGRect(x: sectionInsets.left, y: yOffset, width: imageWidth, height: cellHeight)
-     yOffset += cellHeight + minInteritemSpacing
-     } else {
-     // Article cell: dynamic height (estimate here, should be improved by delegate)
-     let cellHeight: CGFloat = 80.0
-     attr.frame = CGRect(x: sectionInsets.left, y: yOffset, width: width, height: cellHeight)
-     yOffset += cellHeight + 4.0
-     }
-     cachedAttributes[ip] = attr
-     }
-     // Separator
-     //                let sepAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, with: headerIp)
-     //                sepAttr.frame = CGRect(x: sectionInsets.left, y: yOffset, width: width, height: separatorHeight)
-     //                cachedSeparators[headerIp] = sepAttr
-     //                yOffset += separatorHeight
-     }
-     contentSize = CGSize(width: cv.bounds.width, height: yOffset)
-     */
   }
+  
+  var oldSize: CGSize?
   
   override func prepare() {
     super.prepare()
+    let newSize = collectionView?.frame.size ?? .zero
+    if abs((oldSize?.height ?? 0) - newSize.height) < 4
+    && abs((oldSize?.width ?? 0) - newSize.width) < 4
+    { return }
+    oldSize = newSize
     preparePageLayout()
     prepareListLayout()
   }

@@ -792,11 +792,12 @@ public protocol Page: ToString {
 
 public extension Page {
   
-  var hasArticles: Bool {
+  var isAdvertisement: Bool {
     for frame in frames ?? [] {
-      if frame.link?.hasPrefix("art") == true { return true}
+      if frame.link?.hasPrefix("art") == true { return false }
+      if frame.link?.hasSuffix(".pdf") == true { return false }
     }
-    return false
+    return true
   }
   
   func toString() -> String {
