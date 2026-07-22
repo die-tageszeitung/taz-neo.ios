@@ -123,7 +123,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     }
   }
   ///reference to pushed child vc, if any
-  var childArticleVC: ArticleVcWithPdfInSlider? { didSet { oldValue?.cleanup() }}
+  var childArticleVC: ArticleVcWithPdfInSlider
   
   public var article2section: [String : [Section]]
   public func displaySection(index: Int) { log("displaySection not implemented")}
@@ -260,14 +260,29 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.article2section = issueInfo.issue.article2section
     self.feederContext = issueInfo.feederContext
     self.issue = issueInfo.issue
+    
+    childArticleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext)
+    
     super.init(data: pdfModel, useTopGradient: App.isTAZ)
     hidesBottomBarWhenPushed = true
     
-    #if LMD
-    sliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
-    #else
-    sliderContentController = createTazSliderChildController(pdfModel: pdfModel)
-    #endif
+    childArticleVC.delegate = self
+    childArticleVC.header.onTitle { [weak self] _ in
+      self?.debug("*** Action: Header back to Page pressed")
+      if let art = self?.childArticleVC.article,
+      let idx = pdfModel.pageIndexForArticle(art) {
+        self?.index = idx
+      }
+      self?.childArticleVC.navigationController?.popViewController(animated: true)
+    }
+    
+    let sliderCtrl = NewPdfOverviewCollectionVC(pdfModel: pdfModel)
+    sliderCtrl.menuHeaderView.listenButton.onTapping { [weak self] _ in
+      self?.tapPlayInSlider()
+    }
+    self.updateMenuAudioButton()
+    
+    sliderContentController = sliderCtrl
     
     self.onTap { [weak self] (oimg, x, y) in
       guard let self = self else { return }
@@ -296,18 +311,13 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     == self.issue.date.issueKey
   }
   
-  func updateAllAudioButtons(){
+  func updateAudioButtons(){
     audioButton?.buttonView.name = playingCurrentSection ? "audio-active" : "audio"
     updateMenuAudioButton()
-    updateArticleVcMenuAudioButton()
   }
    
   private func updateMenuAudioButton(){
     guard let listenButton = (sliderContentController as? NewPdfOverviewCollectionVC)?.menuHeaderView.listenButton else { return }
-    updateListenButton(for: listenButton)
-  }
-  private func updateArticleVcMenuAudioButton(){
-    guard let listenButton = (childArticleVC?.slider?.slider as? NewPdfOverviewCollectionVC)?.menuHeaderView.listenButton else { return }
     updateListenButton(for: listenButton)
   }
     
@@ -331,61 +341,18 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.collectionView.scrollToIndex(pageIdx,animated: true)
       return
     }
-    #if LMD
-    let articleSliderContentController = createLmdSliderChildController(issueInfo: issueInfo)
-    #else
-    let articleSliderContentController = createTazSliderChildController(pdfModel: pdfModel)
-    #endif
-       
-    let articleVC = ArticleVcWithPdfInSlider(feederContext: issueInfo.feederContext,
-                                             sliderContent: articleSliderContentController)
     
-    articleVC.delegate = self
-    articleVC.reopenArticleDocName = name
-    articleVC.reopenArticleScrollPos = reopenArticleScrollPos
+    childArticleVC.reopenArticleDocName = name
+    childArticleVC.reopenArticleScrollPos = reopenArticleScrollPos
     let artFile = File(dir: path, fname: name)
     ///check if article file exists, otherwise log and return => do not open wrong article
     guard artFile.exists || File(dir: path, fname: name.replacingOccurrences(of: ".html", with: ".public.html")).exists else {
       log("article file \(name) did not exist in \(path.lastPathComponent)")
       return
     }
-    articleVC.gotoUrl(path: path, file: name)
-    #if LMD
-    articleSliderContentController.header.imageView.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popViewController(animated: true)
-    }
-    articleSliderContentController.header.pageLabel.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popViewController(animated: true)
-    }
-    articleSliderContentController.header.issueLabel.onTapping{[weak self] _ in
-      self?.childArticleVC?.slider?.close()
-      self?.navigationController?.popToRootViewController(animated: true)
-    }
-    #else
-    articleVC.header.onTitle { [weak self] _ in
-      self?.debug("*** Action: Header back to Page pressed")
-      if  let art = articleVC.article,
-      let idx = pdfModel.pageIndexForArticle(art) {
-        self?.index = idx
-      }
-      articleVC.navigationController?.popViewController(animated: true)
-    }
-    
-    articleSliderContentController.clickCallback = { [weak self] (_, pdfModel, art) in
-      Usage.track(Usage.event.drawer.action_tap.Page)
-      if let newIndex = pdfModel?.currentPage {
-        self?.collectionView.scrollToIndex(newIndex)
-      }
-      articleVC.slider?.close(animated: true) { [weak self] _ in
-        self?.navigationController?.popViewController(animated: true)
-      }
-    }
-    #endif
-    
-    self.navigationController?.pushViewController(articleVC, animated: true)
-    self.childArticleVC = articleVC
+    childArticleVC.gotoUrl(path: path, file: name)
+    if childArticleVC.navigationController != nil { return }
+    self.navigationController?.pushViewController(childArticleVC, animated: true)
   }
   public required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -411,18 +378,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     xButton.isHidden = true
     (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel, art) in
       guard let self = self else { return }
+      self.slider?.close()
+      self.childArticleVC.slider?.close()
       if let art {
         openArticle(name: art.html?.name, path: issue.dir.path, reopenArticleScrollPos: nil)
         return
       }
       guard let newIndex = pdfModel?.currentPage else { return }
       self.collectionView.scrollToIndex(newIndex)
-      self.slider?.close()
       Usage.track(Usage.event.drawer.action_tap.Page)
+      if navigationController?.viewControllers.last != self {
+        _ = navigationController?.popToViewController(self, animated: true)
+      }
     }
     
     onDisplay { [weak self]  (idx, _) in
-      #warning("MISSUNG isFromScroll here!!")
       let isFromScroll = true
       if let issue = self?.issue, idx > 0 || isFromScroll {
         issue.setLastRead(content: nil, pageIndex: idx, scrollPosition: nil)
@@ -438,7 +408,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         }
       }
       self?.updateSlider(index: idx)
-      self?.updateAllAudioButtons()
+      self?.updateAudioButtons()
     }
     
     setupToolbar()
@@ -450,7 +420,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     registerForStyleUpdates()
     Rating.issueOpened()
     Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
-      self?.updateAllAudioButtons()
+      self?.updateAudioButtons()
     }
     
     onRightTap {[weak self] in
@@ -528,20 +498,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       guard self?.navigationController?.topViewController == self else { return }
       Notification.send(Const.NotificationNames.helpProviderChanged)
     }
-//    if !App.isLMD { slider.hideButtonOnClose = true }
     slider.button.additionalTapOffset = 20
-//    slider.close()
-    #if LMD
-    (sliderContent as? LMdSliderContentVC)?.header.imageView.onTapping{[weak self] _ in
-      self?.slider?.close()
-    }
-    (sliderContent as? LMdSliderContentVC)?.header.pageLabel.onTapping{[weak self] _ in
-      self?.slider?.close()
-    }
-    (sliderContent as? LMdSliderContentVC)?.header.issueLabel.onTapping{[weak self] _ in
-      self?.navigationController?.popViewController(animated: true)
-    }
-    #endif
   }
   
   func updateSlider(index: Int){
@@ -703,10 +660,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   open override func releaseOnDisappear(){
-    childArticleVC = nil
     if let nModel = self.pdfModel as? NewPdfModel {
       nModel.images = []
     }
+    childArticleVC.releaseOnDisappear()
+    childArticleVC.sliderContent = nil
+    childArticleVC.slider?.cleanup()
+    childArticleVC.slider = nil
+    childArticleVC.delegate = nil
+    childArticleVC.header.onTitle {_ in }
     self.pdfModel = nil
     (sliderContentController as? OldPdfOverviewCollectionVC)?.cleanup()
     sliderContentController = nil
@@ -823,39 +785,6 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 
 // MARK: - Helper for Content slider
 extension TazPdfPagesViewController {
-  func createTazSliderChildController(pdfModel: NewPdfModel) -> NewPdfOverviewCollectionVC {
-    let ctrl = NewPdfOverviewCollectionVC(pdfModel: pdfModel)
-    ctrl.menuHeaderView.listenButton.onTapping { [weak self] _ in
-      self?.tapPlayInSlider()
-    }
-    self.updateMenuAudioButton()
-    self.updateArticleVcMenuAudioButton()
-
-    return ctrl
-  }
-  
-  func createTazSliderChildControllerOld(pdfModel: PdfModel) -> OldPdfOverviewCollectionVC {
-    let ctrl = OldPdfOverviewCollectionVC(pdfModel:pdfModel)
-    ctrl.cellLabelFont = Const.Fonts.titleFont(size: 12)
-    ctrl.cellLabelActiveColor = Const.Colors.darkPrimaryText
-    ctrl.cellLabelInActiveColor = Const.Colors.appIconGrey
-    ctrl.cellLabelLinesCount = 2
-    ctrl.collectionView.backgroundColor = Const.Colors.darkSecondaryBG
-    ctrl.onTitleCellChange {[weak self] cell in
-      cell?.dateLabel.font = Const.Fonts.contentFont(size: 12)
-      cell?.dateLabel.text = pdfModel.title
-      cell?.dateLabel.textColor = Const.Colors.appIconGrey
-      
-      if let layout = ctrl.collectionView.collectionViewLayout as? TwoColumnUICollectionViewFlowLayoutOld {
-        cell?.imageWidthConstraint?.constant = layout.singleItemSize.width
-      }
-      cell?.imageWidthConstraint?.isActive = true
-      self?.updateMenuAudioButton()
-      self?.updateArticleVcMenuAudioButton()
-    }
-    return ctrl
-  }
-  
   func tapPlayInSlider(){
     if playingCurrentIssue {
       ArticlePlayer.singleton.close()
@@ -866,47 +795,6 @@ extension TazPdfPagesViewController {
                enqueueType: .replaceCurrent)
     Usage.track(Usage.event.drawer.action_tap.PlayIssue)
   }
-  
-  
-  #if LMD
-  func createLmdSliderChildController(issueInfo: IssueInfo) -> LMdSliderContentVC {
-    let ctrl = LMdSliderContentVC()
-    ctrl.dataSource
-    = LMdSliderDataModel(feederContext: issueInfo.feederContext,
-                         issue: issueInfo.issue)
-    #warning("USED TO CREATE ART CTRL PAGE PRESS IS WRONGLY CONFIGURED HERE!")
-    ///...but will be overwritten in articleVC
-    ctrl.onPagePress {[weak self] page in
-      self?.slider?.close()
-      
-      if let index = issueInfo.issue.pages?.firstIndex(where: { p in
-        return p.pdf?.name == page.pdf?.name
-      }){
-        self?.collectionView.index = index
-      }
-      
-    }
-    ctrl.onArticlePress{[weak self] article in
-      self?.slider?.close()
-      if self?.articleFromPdf == false {
-        var pageIndex: Int?
-        let pages:[Page] = self?.issue.pages ?? []
-        for (index, page) in pages.enumerated() {
-          if (article.pageNames ?? []).contains(page.pdf?.name ?? "---") {
-            pageIndex = index
-            break
-          }
-        }
-        if let i = pageIndex {
-          self?.collectionView.index = i
-        }
-        return
-      }
-      self?.openArticle(name: article.html?.name, path: article.primaryIssue?.dir.path)
-    }
-    return ctrl
-  }
-  #endif
 }
 
 extension TazPdfPagesViewController: ScreenTracking {
@@ -949,24 +837,6 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     if let sContent = self.sliderContent {
       slider = MyButtonSlider(slider: sContent, into: self)
     }
-    #if LMD
-    if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
-      lmdSliderContentVc.onArticlePress{[weak self] article in
-        self?.collectionView.index = article.index
-        self?.slider?.close()
-      }
-      lmdSliderContentVc.onPagePress {[weak self] page in
-        self?.slider?.close()
-        
-        if let index = self?.issue.pages?.firstIndex(where: { p in
-          return p.pdf?.name == page.pdf?.name
-        }){
-          (self?.navigationController?.viewControllers.penultimate as? TazPdfPagesViewController)?.collectionView.index = index
-          self?.navigationController?.popViewController(animated: true)
-        }
-      }
-    }
-    #endif
     super.setupSlider()
     applyStyles()
   }
@@ -980,89 +850,20 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     #endif
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    view.bringSubviewToFront(header)
+  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-    setupSlider()//not called with contentTable set
+    setupSlider()
     header.isFromFacsimile = true
   }
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     slider?.close()
-  }
-  
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    if self.parentViewController != nil { return }
-    slider?.hideContentAnimated()
-    self.releaseOnDisappear()
-    #if LMD
-    (self.sliderContent as? LMdSliderContentVC)?.dataSource = nil
-    #endif
-    self.slider = nil
-    self.delegate = nil
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    #if LMD
-    (sliderContent as? LMdSliderContentVC)?.currentArticle = self.article
-    if let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC {
-      header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
-    }
-    
-    #endif
-    updateSlidersWidth(self.view.frame.size)
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    slider?.button.showAnimated()
-  }
-  
-  override func willMove(toParent parent: UIViewController?) {
-    super.willMove(toParent: parent)
-    if parent == nil {
-      slider?.button.hideAnimated{[weak self] in
-        ///if didMove is done slider is nil so this has no effect
-        ///if didMove not happen slider is still there => back canceled
-        onMain(after: 0.4){ [weak self] in
-          self?.slider?.button.isHidden = false
-        }
-      }
-      self.slider?.close()
-    }
-  }
-  
-  override func didMove(toParent parent: UIViewController?) {
-    super.didMove(toParent: parent)
-    if parent == nil {
-      if let thumbCtrl = self.sliderContent as? NewPdfOverviewCollectionVC {
-        thumbCtrl.clickCallback = nil
-      }
-      NotificationCenter.default.removeObserver(self)
-      sliderContent = nil
-      delegate = nil
-      self.slider = nil
-      self.settingsBottomSheet = nil
-    }
-  }
-  
-  override func releaseOnDisappear() {
-    super.releaseOnDisappear()
-    (sliderContent as? OldPdfOverviewCollectionVC)?.cleanup()
-    sliderContent = nil
-    slider?.cleanup()
-    slider = nil
-  }
-  
-  public init(feederContext: FeederContext, sliderContent:UIViewController) {
-    self.sliderContent = sliderContent
-    super.init(feederContext: feederContext)
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
   }
 }
 

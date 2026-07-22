@@ -66,14 +66,10 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
     super.prepareForReuse()
     pageImageView.image = nil
     pageLabel.text = nil
-    
   }
   
   func setup(){
-    pageLabel.textColor = .orange
-    pageImageView.addBorder(.red)
-    pageLabel.addBorder(.yellow)
-    contentView.addBorder(.green)
+    contentView.clipsToBounds = true
     pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
                             pinWidth: false,
                             priority: .defaultHigh)

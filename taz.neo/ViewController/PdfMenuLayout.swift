@@ -121,6 +121,10 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     let rightCellXOffset = leftCellWidth + xLeft + minimumInteritemSpacing
     let pageCellWidth = leftCellWidth
     let pageCellHeight = pageCellWidth / Const.Size.LmdPageAspect + 30.0 //additional Space for label
+    let adCellHeight = pageCellHeight - 30.0 //no label
+    
+    let pageCellSize = CGSize(width: pageCellWidth, height: pageCellHeight)
+    let adCellSize = CGSize(width: pageCellWidth, height: adCellHeight)
     
     guard collectionView.numberOfSections > 0 else { return }
     
@@ -128,16 +132,18 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     for sectionContent in pdfModel.sectionContent {
       yOffset += self.sectionInset.top
       /// **Section Header**
-      let separatorAttr = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self, with: IndexPath(row: 0, section: currentSection))
-      separatorAttr.frame = CGRect(x: 0, y: yOffset, width: cvWidth - 30, height: 60)
-      yOffset += 60
-      cachedListHeaderAttributes.append(separatorAttr)
+      let sectHeaderAttributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self, with: IndexPath(row: 0, section: currentSection))
+      let sectHeaderHeight:CGFloat = sectionContent.sectionName == nil ? 21 : 60
+      sectHeaderAttributes.frame = CGRect(x: 0, y: yOffset, width: cvWidth - 30, height: sectHeaderHeight)
+      yOffset += sectHeaderHeight
+      cachedListHeaderAttributes.append(sectHeaderAttributes)
       
       /// **left cell, Page Image**
       let pageCellIndexPath = IndexPath(row: 0, section: currentSection)
       let pageCellAttributes = UICollectionViewLayoutAttributes(forCellWith: pageCellIndexPath)
+      
       pageCellAttributes.frame = CGRect(origin: CGPoint(x: xLeft, y: yOffset),
-                          size: CGSize(width: pageCellWidth, height: pageCellHeight))
+                                        size: sectionContent.isAdvertisement ? adCellSize : pageCellSize)
       cachedListCellAttributes[pageCellIndexPath] = pageCellAttributes
       
       /// **right cells, article cells**

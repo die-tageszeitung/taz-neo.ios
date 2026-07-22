@@ -357,7 +357,12 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   public override func viewWillAppear(_ animated: Bool) {
     /// Set Content Table if needed
     if self.navigationController?.viewControllers.first is BookmarkTVC { /*NO CONTENT TABLE*/}
-    else if self is ArticleVcWithPdfInSlider { /*NO CONTENT TABLE*/}
+    else if let sectionSlider = (self.adelegate as? TazPdfPagesViewController)?.slider {
+      self.slider?.exchangeSliderContent(from: sectionSlider)
+    }
+    else if self is ArticleVcWithPdfInSlider {
+      /*NO CONTENT TABLE*/
+    }
     else if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
       /// **exchange  Content Table from SectionVC**
       self.slider?.exchangeSliderContent(from: sectionSlider)
@@ -367,7 +372,10 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
+    if let sectionSlider = (self.adelegate as? TazPdfPagesViewController)?.slider {
+      self.slider?.exchangeSliderContent(from: sectionSlider)
+    }
+    else if let sectionSlider = (self.adelegate as? SectionVC)?.slider {
       self.slider?.exchangeSliderContent(from: sectionSlider)
     }
     persistReadProgress()
@@ -409,9 +417,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
-    if self is ArticleVcWithPdfInSlider || issue.isBookmarkIssue {
-      /*NO CONTENT TABLE*/
-    }
+    if issue.isBookmarkIssue { /*NO CONTENT TABLE*/ }
     else {
       slider = MyButtonSlider(slider: contentTablePlaceholder, into: self)
       setupSlider()
