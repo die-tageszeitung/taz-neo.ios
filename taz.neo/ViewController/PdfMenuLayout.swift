@@ -178,7 +178,11 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   
   var oldSize: CGSize?
   
-  var forceUpdate = false
+  var forceUpdate = false {
+    didSet {
+      log("changed to: \(forceUpdate)")
+    }
+  }
   
   override func prepare() {
     super.prepare()

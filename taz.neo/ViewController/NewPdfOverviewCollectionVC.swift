@@ -172,6 +172,19 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       }
     }
     applyStyles()
+    menuHeaderView.coverImageView.onTapping {[weak self] _ in
+      guard let self else { return }
+      if isPdfPageMode,
+        pdfModel.currentPage != 0 {
+        pdfModel.currentPage = 0
+        clickCallback?(.zero, pdfModel, nil)
+      }
+      if collectionView.contentOffset.y > 5 {
+        collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+        return
+      }
+      parentViewController?.navigationController?.popToRootViewController(animated: true)
+    }
   }
   
   private func setupCollectionView() {
