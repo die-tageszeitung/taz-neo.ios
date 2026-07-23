@@ -156,14 +156,21 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     pageIndex2article[indexPath.section]?.valueAt(indexPath.row-1)
   }
   
-  
   init(issueInfo:IssueInfo?) {
-    guard let issueInfo = issueInfo,
-          let pages = issueInfo.issue.pages
-          else { return }
-    let issue = issueInfo.issue
     self.issueInfo = issueInfo
+    prepareData()
+  }
+  
+  public func prepareData(){
+    guard let issueInfo = issueInfo else { return }
+    let issue = issueInfo.issue
     let issueDir = issueInfo.feeder.issueDir(issue: issue)
+    
+    /// Reset old data if any
+    pageName2pageIndex = [:]
+    pageIndex2article = [:]
+    pageIndex2page = [:]
+    sectionContent = []
     
     /// Use Page 1 Facsimile PDF CropBox  @see: PdfRenderService.swift -> extension PDFPage -> var frame
     let rawPageSize:CGSize
@@ -182,7 +189,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
             pageName2articles[pname, default: []].append(article)
         }
     }
-    sectionContent = []
+
     var lastPageName: String?
     let lastPage = issue.pages?.last
     for page in issue.pages ?? [] {

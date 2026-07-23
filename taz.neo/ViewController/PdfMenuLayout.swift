@@ -63,7 +63,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     - self.sectionInset.left
     - self.sectionInset.right
     let singleItemWidth =  max(1, panoItemWidth/2 - spacing/2)
-    let itemHeight = singleItemWidth * singlePageRatio + 20.0 ///+ labelHeight!
+    let itemHeight = singleItemWidth * singlePageRatio + 30.0 ///+ labelHeight!
     singlePageItemSize = CGSize(width: singleItemWidth, height: itemHeight)
     panoPageItemSize = CGSize(width: panoItemWidth, height: itemHeight)
     let rowHeight = itemHeight + self.minimumLineSpacing
@@ -185,16 +185,18 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   }
   
   override func prepare() {
-    super.prepare()
-    let newSize = collectionView?.frame.size ?? .zero
-    if forceUpdate
-        || abs((oldSize?.height ?? 0) - newSize.height) < 4
-        || abs((oldSize?.width ?? 0) - newSize.width) < 4
-    { return }
-    oldSize = newSize
-    preparePageLayout()
-    prepareListLayout()
-    forceUpdate = false
+      super.prepare()
+      let newSize = collectionView?.frame.size ?? .zero
+      if !forceUpdate,
+         let oldSize,
+         abs(oldSize.width - newSize.width) < 4,
+         abs(oldSize.height - newSize.height) < 4 {
+          return
+      }
+      self.oldSize = newSize
+      preparePageLayout()
+      prepareListLayout()
+      forceUpdate = false
   }
   
   override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {

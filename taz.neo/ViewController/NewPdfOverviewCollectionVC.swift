@@ -19,11 +19,24 @@ public enum PdfOverviewMode {
 /// - Pages mode: 1 cell type (like PdfOverviewCollectionVC)
 public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChangeDelegate {
   
+  var changePageModePreventHeaderResize = false
+  
   @Default("isPdfPageMode")
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
+      changePageModePreventHeaderResize = true
+      ///remember old scroll pos
+      let topItem = collectionView.indexPathsForVisibleItems.min()
       applyPdfPageMode()
+      collectionView.reloadData()
+      collectionView.layoutIfNeeded()
+      guard let topItem else { return }
+      #warning("todo, solve restore with layout!")
+      collectionView.scrollToItem(at: topItem, at: .top, animated: true)///Crash on wild play
+      onMainAfter {[weak self] in
+        self?.changePageModePreventHeaderResize = false
+      }
     }
   }
   
@@ -113,11 +126,14 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       }
     }
     if pdfModel.issueInfo?.issue.isComplete == true { return }
+    menuHeaderView.waitingSpinner.isHidden = false
+    menuHeaderView.waitingSpinner.startAnimating()
     Notification.receive("issue") { [weak self] notification in
+      pdfModel.prepareData()
       (self?.collectionView.collectionViewLayout as? PdfMenuLayout)?.forceUpdate = true
       self?.collectionView.collectionViewLayout.invalidateLayout()
-      self?.collectionView.reloadData()
-      self?.collectionView.layoutSubviews()
+      self?.collectionView.layoutIfNeeded() // nur wenn sofort aktualisiert werden muss
+      self?.menuHeaderView.waitingSpinner.stopAnimating()
     }
   }
   
@@ -209,6 +225,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   // MARK: - Scroll for Header Animation
   public override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    guard changePageModePreventHeaderResize == false else { return }
     // Animate header height based on scroll offset
     let offset
     = scrollView.contentOffset.y

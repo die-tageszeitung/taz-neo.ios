@@ -28,6 +28,9 @@ fileprivate extension UIImage {
 /// page cell displaying page image and page number
 class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   
+  @Default("isPdfPageMode")
+  public var isPdfPageMode: Bool
+  
   var pagina: String? /// e.g. "1" (single), "2-3" (double), nil (ad)
   var listPrefix: String? /// e.g. "Seite" or nil for ads
   var pageRessort: String? ///e.g. "inland" or "anzeige" for ads
@@ -37,12 +40,17 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   let pageImageView = UIImageView()
   let pageLabel = UILabel()
   
+  var labelTopConstraint: NSLayoutConstraint?
+  
   func configure(pageMode: Bool) {
+    applyStyles()
     if !pageMode {
       pageLabel.text = "\(listPrefix ?? "") \(pagina ?? "")"
-      pageLabel.contentFont(size: 12.0)
+      pageLabel.contentFont(size: 14.0)
+      labelTopConstraint?.constant = 6.0
       return
     }
+    labelTopConstraint?.constant = 12.0
     pageLabel.boldContentFont(size: 14.0)
     let attributedString = NSMutableAttributedString()
     if let pagina {
@@ -77,17 +85,19 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
     pageImageView.shadow()
     pageLabel.textAlignment = .left
     pageLabel.contentFont(size: Const.Size.SmallerFontSize)
+    pageLabel.textColor = Const.Colors.appIconGrey
     self.contentView.addSubview(pageImageView)
     self.contentView.addSubview(pageLabel)
     pin(pageImageView, to: self.contentView, exclude: .bottom)
     pin(pageLabel.left, to: self.contentView.left)
     pin(pageLabel.right, to: self.contentView.right)
-    pin(pageLabel.top, to: pageImageView.bottom, dist: 3.0)
+    labelTopConstraint = pin(pageLabel.top, to: pageImageView.bottom, dist: isPdfPageMode ? 3.0 : 8.0)
     ///Cell height is defined in PdfMenuListFlowLayout ...evaluateLayout...cellHeight
     ///do not pin bottom
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
     }
+    registerForStyleUpdates()
   }
   
   override init(frame: CGRect) {
@@ -97,5 +107,14 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   required init?(coder: NSCoder) {
     super.init(coder: coder)
     setup()
+  }
+}
+
+extension PdfPageCell: UIStyleChangeDelegate{
+  public func applyStyles() {
+    pageLabel.textColor
+    = isPdfPageMode
+    ? Const.Colors.appIconGrey
+    : Const.SetColor.taz2(.text).color
   }
 }

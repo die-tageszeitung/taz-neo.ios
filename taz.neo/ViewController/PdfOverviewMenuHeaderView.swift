@@ -13,6 +13,7 @@ class PdfOverviewMenuHeaderView: UIView {
   // MARK: - UI Elements
   let coverImageView = UIImageView()
   let dateLabel = UILabel()
+  let waitingSpinner = UIActivityIndicatorView()
   let pageLabel = UILabel()
   let modeSwitchButton: IconLabelButton
   let listenButton: IconLabelButton
@@ -32,6 +33,7 @@ class PdfOverviewMenuHeaderView: UIView {
   }
   
   private func setupSubviews() {
+    waitingSpinner.isHidden = true
     // Cover image - left, full height
     coverImageView.contentMode = .scaleAspectFit
     coverImageView.clipsToBounds = true
@@ -86,6 +88,9 @@ class PdfOverviewMenuHeaderView: UIView {
       modeSwitchButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
       listenButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
     ])
+    addSubview(waitingSpinner)
+    pin(waitingSpinner.centerY, to: coverImageView.centerY)
+    pin(waitingSpinner.right, to: listenButton.left, dist: -15.0)
   }
   
   // Helper to update the mode toggle icon
