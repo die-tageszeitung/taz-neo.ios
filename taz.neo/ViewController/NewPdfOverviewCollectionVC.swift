@@ -23,10 +23,14 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
-      menuHeaderView.applyMode(isList: !isPdfPageMode)
-      applyStyles()
-      (collectionView.collectionViewLayout as? PdfMenuLayout)?.mode = isPdfPageMode ? .pages : .list
+      applyPdfPageMode()
     }
+  }
+  
+  private func applyPdfPageMode() {
+    menuHeaderView.applyMode(isList: !isPdfPageMode)
+    applyStyles()
+    (collectionView.collectionViewLayout as? PdfMenuLayout)?.mode = isPdfPageMode ? .pages : .list
   }
   
   public func applyStyles() {
@@ -84,6 +88,11 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if headerMinHeight < 50 { calculateHeader() }
   }
   
+  public override func loadView() {
+    super.loadView()
+    applyPdfPageMode()
+  }
+  
   // MARK: - Initializers
   init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
@@ -102,6 +111,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       DispatchQueue.main.async {
         self?.menuHeaderView.coverImageView.image = image
       }
+    }
+    if pdfModel.issueInfo?.issue.isComplete == true { return }
+    Notification.receive("issue") { [weak self] notification in
+      (self?.collectionView.collectionViewLayout as? PdfMenuLayout)?.forceUpdate = true
+      self?.collectionView.collectionViewLayout.invalidateLayout()
+      self?.collectionView.reloadData()
+      self?.collectionView.layoutSubviews()
     }
   }
   

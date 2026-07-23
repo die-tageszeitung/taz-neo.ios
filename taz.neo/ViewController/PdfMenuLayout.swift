@@ -178,15 +178,19 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   
   var oldSize: CGSize?
   
+  var forceUpdate = false
+  
   override func prepare() {
     super.prepare()
     let newSize = collectionView?.frame.size ?? .zero
-    if abs((oldSize?.height ?? 0) - newSize.height) < 4
-    && abs((oldSize?.width ?? 0) - newSize.width) < 4
+    if forceUpdate
+        || (abs((oldSize?.height ?? 0) - newSize.height) < 4
+            && abs((oldSize?.width ?? 0) - newSize.width) < 4)
     { return }
     oldSize = newSize
     preparePageLayout()
     prepareListLayout()
+    forceUpdate = false
   }
   
   override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
