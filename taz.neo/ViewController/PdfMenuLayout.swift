@@ -188,8 +188,8 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     super.prepare()
     let newSize = collectionView?.frame.size ?? .zero
     if forceUpdate
-        || (abs((oldSize?.height ?? 0) - newSize.height) < 4
-            && abs((oldSize?.width ?? 0) - newSize.width) < 4)
+        || abs((oldSize?.height ?? 0) - newSize.height) < 4
+        || abs((oldSize?.width ?? 0) - newSize.width) < 4
     { return }
     oldSize = newSize
     preparePageLayout()

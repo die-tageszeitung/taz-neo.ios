@@ -376,7 +376,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
                                                   right: 0)
     
     xButton.isHidden = true
-    (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (_, pdfModel, art) in
+    (sliderContentController as? NewPdfOverviewCollectionVC)?.clickCallback = { [weak self] (pdfModel, art) in
       guard let self = self else { return }
       self.slider?.close()
       self.childArticleVC.slider?.close()

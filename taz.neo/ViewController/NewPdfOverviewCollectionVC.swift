@@ -58,7 +58,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   var pdfModel: NewPdfModel
   
-  public var clickCallback: ((CGRect, PdfModel?, Article?)->())?
+  public var clickCallback: ((PdfModel?, Article?)->())?
   
   // Add further models if needed for articles, etc.
   
@@ -177,7 +177,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       if isPdfPageMode,
         pdfModel.currentPage != 0 {
         pdfModel.currentPage = 0
-        clickCallback?(.zero, pdfModel, nil)
+        clickCallback?(pdfModel, nil)
       }
       if collectionView.contentOffset.y > 5 {
         collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
@@ -276,17 +276,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let attributes = collectionView.layoutAttributesForItem(at: indexPath)
-    var sourceFrame = CGRect.zero
-    if let attr = attributes {
-      sourceFrame = self.collectionView.convert(attr.frame, to: self.collectionView.superview?.superview)
-    }
     var art: Article?
     if indexPath.row > 0 {
       let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section)
       art = sectionContent?.articles.valueAt(indexPath.row - 1)
     }
     pdfModel.currentPage = indexPath.section
-    clickCallback?(sourceFrame, pdfModel, art)
+    clickCallback?(pdfModel, art)
   }
 }
 
