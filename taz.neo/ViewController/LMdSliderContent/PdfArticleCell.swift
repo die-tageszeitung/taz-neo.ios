@@ -14,6 +14,8 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
   
   static let reuseIdentifier = "PdfArticleCellIdentifier"
   
+  var bottomBorder: UIView = UIView()
+  
   let titleLabel = UILabel()
   let teaserLabel = UILabel()
   let authorLabel = UILabel()
@@ -47,7 +49,7 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
         let timeString
         = NSMutableAttributedString(string: "\(rd) min")
         let trange = NSRange(location: 0, length: timeString.length)
-        let thinFont = Const.Fonts.font(name: Const.Fonts.tazRegular, size: 12.0)
+        let thinFont = Const.Fonts.font(name: Const.Fonts.tazRegular, size: 13.5)
         timeString.addAttribute(.font, value: thinFont, range: trange)
         timeString.addAttribute(.foregroundColor, value: Const.Colors.appIconGrey, range: trange)
         timeString.addAttribute(.backgroundColor, value: UIColor.clear, range: trange)
@@ -61,7 +63,7 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
                                     range: NSRange(location: 0,
                                                    length: attributedString.length))
       authorLabel.text = ""
-      authorLabel.boldContentFont(size: 13.5)
+      authorLabel.boldContentFont(size: 14)
       authorLabel.textColor = Const.SetColor.taz2(.text).color
       authorLabel.attributedText = attributedString
       
@@ -90,6 +92,7 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
     self.contentView.addSubview(teaserLabel)
     self.contentView.addSubview(authorLabel)
     self.contentView.addSubview(bookmarkButton)
+    self.contentView.addSubview(bottomBorder)
     bookmarkButton.pinSize(CGSize(width: 26, height: 26))
     bookmarkButton.accessibilityLabel = "Lesezeichen"
     pin(bookmarkButton.centerY, to: titleLabel.centerY, dist: -3)
@@ -100,11 +103,16 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
     pin(teaserLabel.left, to: self.contentView.left)
     pin(teaserLabel.right, to: self.contentView.right)
     pin(teaserLabel.top, to: titleLabel.bottom)
-    pin(authorLabel.top, to: teaserLabel.bottom)
+    pin(authorLabel.top, to: teaserLabel.bottom, dist: -6.0)
     
     pin(authorLabel.left, to: self.contentView.left)
     pin(authorLabel.right, to: self.contentView.right)
-    pin(authorLabel.bottom, to: self.contentView.bottom, dist: -8.0)
+    pin(authorLabel.bottom, to: self.contentView.bottom, dist: -35.0)
+    
+    bottomBorder.pinHeight(0.7)
+    bottomBorder.isHidden = true
+    bottomBorder.backgroundColor = Const.SetColor.taz2(.text).color
+    pin(bottomBorder, to: self.contentView, exclude: .top)
     
     if let sv = self.contentView.superview {
       pin(self.contentView, to: sv)
@@ -142,6 +150,7 @@ extension PdfArticleCell: UIStyleChangeDelegate{
     titleLabel.textColor = Const.SetColor.taz2(.text).color
     teaserLabel.textColor = Const.SetColor.taz2(.text).color
     authorLabel.textColor = Const.SetColor.taz2(.text).color
+    bottomBorder.backgroundColor = Const.SetColor.taz2(.text).color
   }
 }
 

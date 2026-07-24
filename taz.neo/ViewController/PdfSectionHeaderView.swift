@@ -34,7 +34,6 @@ class PdfSectionHeaderView: UICollectionReusableView {
     addSubview(label)
     addSubview(topLine)
     addSubview(dottedLine)
-    
     pin(topLine.right, to: self.right, dist: 16, priority: .defaultLow)
     pin(dottedLine.right, to: self.right, dist: 16, priority: .defaultLow)
     

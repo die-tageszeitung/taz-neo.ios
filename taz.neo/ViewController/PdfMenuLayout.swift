@@ -63,7 +63,8 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     - self.sectionInset.left
     - self.sectionInset.right
     let singleItemWidth =  max(1, panoItemWidth/2 - spacing/2)
-    let itemHeight = singleItemWidth * singlePageRatio + 30.0 ///+ labelHeight!
+    ///+ labelHeight!, label/image dist, bottom Dist (lineSpacing)
+    let itemHeight = singleItemWidth * singlePageRatio + 53.0
     singlePageItemSize = CGSize(width: singleItemWidth, height: itemHeight)
     panoPageItemSize = CGSize(width: panoItemWidth, height: itemHeight)
     let rowHeight = itemHeight + self.minimumLineSpacing
@@ -133,9 +134,9 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
       yOffset += self.sectionInset.top
       /// **Section Header**
       let sectHeaderAttributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader.self, with: IndexPath(row: 0, section: currentSection))
-      let sectHeaderHeight:CGFloat = sectionContent.sectionName == nil ? 21 : 60
+      let sectHeaderHeight:CGFloat = sectionContent.sectionName == nil ? 25 : 70
       sectHeaderAttributes.frame = CGRect(x: 0, y: yOffset, width: cvWidth - 30, height: sectHeaderHeight)
-      yOffset += sectHeaderHeight
+      yOffset += sectHeaderHeight + 6.0//spacing, due header dotted bottom line is on edge
       cachedListHeaderAttributes.append(sectHeaderAttributes)
       
       /// **left cell, Page Image**
@@ -166,10 +167,10 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
                                  y: yOffset + articleCellsOffset),
                  size: fittingSize)
         cachedListCellAttributes[artCellIndexPath] = artCellAttributes
-        articleCellsOffset += fittingSize.height
+        articleCellsOffset += fittingSize.height + 25.0 ///dist to next art cell
         row += 1
       }
-      yOffset += max(pageCellHeight, articleCellsOffset)
+      yOffset += max(pageCellHeight, articleCellsOffset - 20.0)
       currentSection += 1
     }
     listContentSize

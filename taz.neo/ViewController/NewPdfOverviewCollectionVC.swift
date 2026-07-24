@@ -61,6 +61,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     = dark ? Const.Colors.darkSecondaryBG : Const.Colors.Light.Taz_BackgroundForms
     
     let textColor = dark ? Const.Colors.iOSDark.label : Const.Colors.iOSLight.label
+    menuHeaderView.waitingSpinner.color = textColor
     menuHeaderView.dateLabel.textColor = textColor
     menuHeaderView.modeSwitchButton.label.textColor = textColor
     menuHeaderView.listenButton.label.textColor = textColor
@@ -116,7 +117,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
                                        left: 8.0,
                                        bottom: PdfDisplayOptions.Overview.sideSpacing,
                                        right: PdfDisplayOptions.Overview.sideSpacing)
-    layout.minimumLineSpacing = 45.0
+    layout.minimumLineSpacing = 0
     layout.minimumInteritemSpacing = PdfDisplayOptions.Overview.interItemSpacing - 0.5//fix misscalculation bug
     layout.scrollDirection = .vertical
     super.init(collectionViewLayout: layout)
@@ -286,13 +287,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
             let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section),
             let article = sectionContent.articles.valueAt(indexPath.row - 1) {/// row 0 is the Page itself
       cell.article = article
+      cell.bottomBorder.isHidden = indexPath.row > sectionContent.articles.count - 1
       return cell
     }
     return UICollectionViewCell()
   }
   
   public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let attributes = collectionView.layoutAttributesForItem(at: indexPath)
     var art: Article?
     if indexPath.row > 0 {
       let sectionContent = pdfModel.sectionContent.valueAt(indexPath.section)

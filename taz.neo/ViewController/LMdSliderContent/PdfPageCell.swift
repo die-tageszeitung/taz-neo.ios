@@ -47,7 +47,7 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
     if !pageMode {
       pageLabel.text = "\(listPrefix ?? "") \(pagina ?? "")"
       pageLabel.contentFont(size: 14.0)
-      labelTopConstraint?.constant = 6.0
+      labelTopConstraint?.constant = 8.0
       return
     }
     labelTopConstraint?.constant = 12.0
