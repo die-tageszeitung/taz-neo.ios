@@ -277,6 +277,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       cell.pagina = isAdPage ? nil : sectionContent.page.pagina
       cell.listPrefix = isAdPage ? nil : "Seite"
       cell.pageRessort = sectionContent.page.title
+      ///Warning: in list mode pano page is fully visible and horizontally centered
+      let isPdfPanoPage = sectionContent.page.type == .double && isPdfPageMode
+      cell.imageAspectConstraint?.isActive = !isPdfPanoPage
+      cell.pageImageView.contentMode = isPdfPanoPage ? .scaleToFill : .scaleAspectFit
       cell.pageImageView.image =  pdfModel.thumbnail(atIndex: indexPath.section, finishedClosure: { (img) in
         onMain { cell.pageImageView.image = img  }
       })

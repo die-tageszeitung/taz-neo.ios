@@ -28,6 +28,8 @@ fileprivate extension UIImage {
 /// page cell displaying page image and page number
 class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   
+  var imageAspectConstraint: NSLayoutConstraint?
+  
   @Default("isPdfPageMode")
   public var isPdfPageMode: Bool
   
@@ -78,7 +80,7 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   
   func setup(){
     contentView.clipsToBounds = true
-    pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
+    imageAspectConstraint = pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
                             pinWidth: false,
                             priority: .defaultHigh)
     pageImageView.contentMode = .scaleAspectFit

@@ -27,10 +27,6 @@ class PdfSectionHeaderView: UICollectionReusableView {
     super.init(frame: frame)
     label.translatesAutoresizingMaskIntoConstraints = false
     label.boldContentFont(size: 20)
-    label.textColor = Const.SetColor.HText.color
-    dottedLine.fillColor = Const.SetColor.HText.color
-    dottedLine.strokeColor = Const.SetColor.HText.color
-    topLine.backgroundColor = Const.SetColor.HText.color
     addSubview(label)
     addSubview(topLine)
     addSubview(dottedLine)
@@ -49,9 +45,21 @@ class PdfSectionHeaderView: UICollectionReusableView {
       dottedLine.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
       dottedLine.heightAnchor.constraint(equalToConstant:1.6),
     ])
+    registerForStyleUpdates()
+    applyStyles()
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+extension PdfSectionHeaderView: UIStyleChangeDelegate{
+  public func applyStyles() {
+    label.textColor = Const.SetColor.HText.color
+    dottedLine.fillColor = Const.SetColor.HText.color
+    dottedLine.strokeColor = Const.SetColor.HText.color
+    dottedLine.setNeedsLayout()//apply color on mode change, if already displayed
+    topLine.backgroundColor = Const.SetColor.HText.color
   }
 }
