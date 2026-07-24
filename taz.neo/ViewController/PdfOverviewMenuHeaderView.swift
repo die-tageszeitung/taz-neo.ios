@@ -14,10 +14,24 @@ class PdfOverviewMenuHeaderView: UIView {
   let coverImageView = UIImageView()
   let dateLabel = UILabel()
   let waitingSpinner = UIActivityIndicatorView()
+  let loadInfoLabel = UILabel()
   let pageLabel = UILabel()
   let modeSwitchButton: IconLabelButton
   let listenButton: IconLabelButton
   
+  var isLoading = false {
+    didSet {
+      guard isLoading != oldValue else { return }
+      if isLoading {
+        waitingSpinner.startAnimating()
+        loadInfoLabel.showAnimated()
+      }
+      else {
+        waitingSpinner.stopAnimating()
+        loadInfoLabel.hideAnimated()
+      }
+    }
+  }
   var coverBottomConstraint: NSLayoutConstraint?
   
   // Init
@@ -33,7 +47,6 @@ class PdfOverviewMenuHeaderView: UIView {
   }
   
   private func setupSubviews() {
-    waitingSpinner.isHidden = true
     // Cover image - left, full height
     coverImageView.contentMode = .scaleAspectFit
     coverImageView.clipsToBounds = true
@@ -88,9 +101,17 @@ class PdfOverviewMenuHeaderView: UIView {
       modeSwitchButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
       listenButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
     ])
+    loadInfoLabel.isHidden = !isLoading
+    waitingSpinner.isHidden = !isLoading
     addSubview(waitingSpinner)
-    pin(waitingSpinner.centerY, to: coverImageView.centerY)
+    addSubview(loadInfoLabel)
+    addSubview(loadInfoLabel)
+    pin(waitingSpinner.centerY, to: coverImageView.centerY, dist: -30.0)
     pin(waitingSpinner.right, to: listenButton.left, dist: -15.0)
+    pin(loadInfoLabel.centerX, to: waitingSpinner.centerX)
+    pin(loadInfoLabel.top, to: waitingSpinner.bottom, dist: 5)
+    loadInfoLabel.text = "Lade Ausgabe"
+    loadInfoLabel.contentFont(size: Const.Size.SmallerFontSize)
   }
   
   // Helper to update the mode toggle icon

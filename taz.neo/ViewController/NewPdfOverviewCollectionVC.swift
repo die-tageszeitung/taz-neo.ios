@@ -62,6 +62,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     
     let textColor = dark ? Const.Colors.iOSDark.label : Const.Colors.iOSLight.label
     menuHeaderView.waitingSpinner.color = textColor
+    menuHeaderView.loadInfoLabel.textColor = textColor
     menuHeaderView.dateLabel.textColor = textColor
     menuHeaderView.modeSwitchButton.label.textColor = textColor
     menuHeaderView.listenButton.label.textColor = textColor
@@ -127,14 +128,13 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       }
     }
     if pdfModel.issueInfo?.issue.isComplete == true { return }
-    menuHeaderView.waitingSpinner.isHidden = false
-    menuHeaderView.waitingSpinner.startAnimating()
+    menuHeaderView.isLoading = true
     Notification.receive("issue") { [weak self] notification in
       pdfModel.prepareData()
       (self?.collectionView.collectionViewLayout as? PdfMenuLayout)?.forceUpdate = true
       self?.collectionView.collectionViewLayout.invalidateLayout()
-      self?.collectionView.layoutIfNeeded() // nur wenn sofort aktualisiert werden muss
-      self?.menuHeaderView.waitingSpinner.stopAnimating()
+      self?.collectionView.layoutIfNeeded() 
+      self?.menuHeaderView.isLoading = false
     }
   }
   
