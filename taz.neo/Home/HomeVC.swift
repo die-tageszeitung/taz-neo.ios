@@ -668,14 +668,18 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       image: UIImage(named: "mobile-device"),
       discoverabilityTitle: isFacsimile ? nil : "Ausgewählt",
       state: isFacsimile ? .off : .on
-    ) {[weak self] _ in self?.isFacsimile.toggle()  }
+    ) {[weak self] _ in
+      if self?.isFacsimile == false { return }
+      self?.isFacsimile.toggle()  }
     
     let newspaperAction = UIAction(
       title: "Zeitungsansicht",
       image: UIImage(named: "newspaper"),
       discoverabilityTitle: isFacsimile ? "Ausgewählt":nil,
       state: isFacsimile ? .on : .off
-    ) {[weak self] _ in self?.isFacsimile.toggle()  }
+    ) {[weak self] _ in
+      if self?.isFacsimile == true { return }
+      self?.isFacsimile.toggle()  }
     
     appViewAction.accessibilityHint = isFacsimile
         ? "Zur mobilen Ansicht wechseln. Empfohlen für VoiceOver."
@@ -693,13 +697,18 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       title: "Kacheln",
       image: UIImage(named: "tiles"),
       state: isHomeTiles ? .on : .off
-    ) {[weak self] _ in self?.isHomeTiles.toggle()  }
+    ) {[weak self] _ in
+      if self?.isHomeTiles == true { return }
+      self?.isHomeTiles.toggle()  }
     
     let carouselAction = UIAction(
       title: "Karussell",
       image: UIImage(named: "carousel"),
       state: isHomeTiles ? .off : .on
-    ) {[weak self] _ in self?.isHomeTiles.toggle()  }
+    ) {[weak self] _ in
+      if self?.isHomeTiles == false { return }
+      self?.isHomeTiles.toggle()
+    }
     
     tileAction.accessibilityHint = isHomeTiles
         ? "Kachelansicht aktiviert. Für VoiceOver empfehlen wir die Karussellansicht."
