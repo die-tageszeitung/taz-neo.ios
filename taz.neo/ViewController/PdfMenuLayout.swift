@@ -122,7 +122,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     let rightCellXOffset = leftCellWidth + xLeft + minimumInteritemSpacing
     let pageCellWidth = leftCellWidth
     let pageCellHeight = pageCellWidth / Const.Size.LmdPageAspect + 30.0 //additional Space for label
-    let adCellHeight = pageCellHeight - 30.0 //no label
+    let adCellHeight = pageCellHeight - 23.0 //no label
     
     let pageCellSize = CGSize(width: pageCellWidth, height: pageCellHeight)
     let adCellSize = CGSize(width: pageCellWidth, height: adCellHeight)
@@ -142,6 +142,8 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
       /// **left cell, Page Image**
       let pageCellIndexPath = IndexPath(row: 0, section: currentSection)
       let pageCellAttributes = UICollectionViewLayoutAttributes(forCellWith: pageCellIndexPath)
+      
+      let currentPageCellHeight = sectionContent.isAdvertisement ? adCellHeight : pageCellHeight
       
       pageCellAttributes.frame = CGRect(origin: CGPoint(x: xLeft, y: yOffset),
                                         size: sectionContent.isAdvertisement ? adCellSize : pageCellSize)
@@ -170,7 +172,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
         articleCellsOffset += fittingSize.height + 25.0 ///dist to next art cell
         row += 1
       }
-      yOffset += max(pageCellHeight, articleCellsOffset - 20.0)
+      yOffset += max(currentPageCellHeight, articleCellsOffset - 20.0)
       currentSection += 1
     }
     listContentSize
