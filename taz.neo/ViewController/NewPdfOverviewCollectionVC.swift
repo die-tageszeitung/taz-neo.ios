@@ -27,13 +27,16 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       guard oldValue != isPdfPageMode else { return }
       changePageModePreventHeaderResize = true
       ///remember old scroll pos
-      let topItem = collectionView.indexPathsForVisibleItems.min()
+      let currentSection = collectionView.indexPathsForVisibleItems.min()?.section
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
-      guard let topItem else { return }
-      #warning("todo, solve restore with layout!")
-      collectionView.scrollToItem(at: topItem, at: .top, animated: true)///Crash on wild play
+      guard let currentSection else { return }
+      ///dirty hack to prevent scroll to far up on change due indexPathsForVisibleItems.min returns slightly out of visible items
+      let offset:Int = isPdfPageMode ? 2 : 1
+      let targetSection = min(currentSection + offset, collectionView.numberOfSections)
+      let targetItem = IndexPath(row: 0, section:targetSection)
+      collectionView.scrollToItem(at: targetItem, at: .top, animated: true)
       onMainAfter {[weak self] in
         self?.changePageModePreventHeaderResize = false
       }
