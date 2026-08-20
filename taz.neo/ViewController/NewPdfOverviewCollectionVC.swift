@@ -19,27 +19,23 @@ public enum PdfOverviewMode {
 /// - Pages mode: 1 cell type (like PdfOverviewCollectionVC)
 public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChangeDelegate {
   
-  var changePageModePreventHeaderResize = false
-  
   @Default("isPdfPageMode")
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
-      changePageModePreventHeaderResize = true
+      log("current offset: \(collectionView.contentOffset.y)")
       ///remember old scroll pos
       let currentSection = collectionView.indexPathsForVisibleItems.min()?.section
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
-      guard let currentSection else { return }
+      guard let currentSection else {return }
       ///dirty hack to prevent scroll to far up on change due indexPathsForVisibleItems.min returns slightly out of visible items
-      let offset:Int = isPdfPageMode ? 2 : 1
+      let offset:Int = isPdfPageMode ? 0 : 1
       let targetSection = min(currentSection + offset, collectionView.numberOfSections)
-      let targetItem = IndexPath(row: 0, section:targetSection)
-      collectionView.scrollToItem(at: targetItem, at: .top, animated: true)
-      onMainAfter {[weak self] in
-        self?.changePageModePreventHeaderResize = false
-      }
+      let targetOffset = (collectionView.collectionViewLayout as? PdfMenuLayout)?.offset(forSection: targetSection) ?? 0.0
+      log("scroll to: \(currentSection+offset) targetOffset: \(targetOffset)")
+      collectionView.setContentOffset(CGPoint(x: 0, y: targetOffset), animated: false)
     }
   }
   
@@ -229,7 +225,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   // MARK: - Scroll for Header Animation
   public override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    guard changePageModePreventHeaderResize == false else { return }
     // Animate header height based on scroll offset
     let offset
     = scrollView.contentOffset.y
