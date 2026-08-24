@@ -323,6 +323,11 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
     }
     header.configure(with: pdfModel.sectionContent.valueAt(indexPath.section)?.sectionName,
                      pageMode: isPdfPageMode)
+    header.onTapping {[weak self] _ in
+      guard let self else { return }
+      pdfModel.currentPage = indexPath.section
+      clickCallback?(pdfModel, nil)
+    }
     return header
   }
 }
