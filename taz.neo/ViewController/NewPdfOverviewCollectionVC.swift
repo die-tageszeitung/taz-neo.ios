@@ -83,7 +83,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private var menuHeaderHeightConstraint: NSLayoutConstraint?
   private var menuHeaderLeadingConstraint: NSLayoutConstraint?
   
-  private let headerMaxHeight: CGFloat = 250
+  private let headerMaxHeight: CGFloat = 266
   private var headerMinHeight: CGFloat = 95 {
     didSet {
       log(">> headerMinHeight updated to \(headerMinHeight) former: \(oldValue)")
@@ -154,7 +154,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     menuHeaderView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(headerWrapper)
     headerWrapper.contentView.addSubview(menuHeaderView)
-    menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight)
+    menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight + 21)
     menuHeaderLeadingConstraint
     = menuHeaderView.leadingAnchor.constraint(equalTo: headerWrapper.safeAreaLayoutGuide.leadingAnchor,
                                               constant: PdfDisplayOptions.Overview.sideSpacing)
@@ -194,8 +194,9 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
         pdfModel.currentPage != 0 {
         pdfModel.currentPage = 0
         clickCallback?(pdfModel, nil)
+        return
       }
-      if collectionView.contentOffset.y > 5 {
+      if collectionView.contentOffset.y + collectionView.contentInset.top + 20 > 0 {
         collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         return
       }
@@ -218,8 +219,9 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   
   private func calculateHeader() {
     let leftCellWidth = collectionView.frame.size.width * Const.Size.taz.Slider.xLeft
-    let imageHeight = leftCellWidth / 0.64
+    let imageHeight = leftCellWidth / Const.Size.PageAspectRatio
     let verticalPadding: CGFloat = 13.0
+    ///min header image width depends on: headerMinHeight
     headerMinHeight = imageHeight + verticalPadding
   }
   
@@ -229,14 +231,27 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     let offset
     = scrollView.contentOffset.y
     + scrollView.adjustedContentInset.top
-    + (isPdfPageMode ? -14 : 5)
+    + (isPdfPageMode ? -33: -12)/// Adj#1: Header height, heighter is bigger
+    log("calc offset: \(offset)")
+    ///! List header is smaller!
     menuHeaderHeightConstraint?.constant = max(headerMinHeight, headerMaxHeight - offset)
     if isPdfPageMode {
-      menuHeaderView.coverBottomConstraint?.constant = min(0, offset / 5 - 8) - 16
+      /// Adj#2: Moment width min, 2nd Value; bigger is wider, but reduces image height!
+      /// //Breite des Moments durch abstand -8....> .250
+      ///   calc offset bottmConstr: -57.6 offset: -38.0  AUS -38 und -50 ganz ok breite stimmt, zeilenabstand zu hoch!
+      ///     calc offset bottmConstr: -80.0 offset: -50.0 AUS -50 -70 Zeilenabstand viel zu hoch, breite leicht zu wenig
+      ///      calc offset bottmConstr: -68.4 offset: -42.0 AUS -42 und -60 Zeilenabstand ca 12px zu hoch, 3px zu schmal
+      ///        calc offset bottmConstr: -56.6 offset: -33.0 aus -33 und -50 Zeilenabstand ca 4px zu hoch, 5px zu schmal
+      ///        ///        calc offset bottmConstr: -56.6 offset: -33.0 aus -33 und -60 Zeilenabstand ca 12px zu hoch, 8px zu schmal
+      menuHeaderView.coverBottomConstraint?.constant = min(48, offset/5 ) - 46
       menuHeaderView.pageLabel.alpha = max (0, 1 - offset / 80)
+      log("calc offset bottmConstr: \(menuHeaderView.coverBottomConstraint?.constant ?? -1) offset: \(offset)")
+      /// so ist der abstand nach unten gut:   calc offset bottmConstr: -43.6 offset: -8.0, aber die größe des headers nicht!
+      /// 5 ist der beschleunigungsfaktor
+      /// -8/5 +7 - 45 = -46.5
     }
     else {
-      menuHeaderView.coverBottomConstraint?.constant = -8
+      menuHeaderView.coverBottomConstraint?.constant = min(37, offset/5 + 7) - 45
       menuHeaderView.pageLabel.alpha = 0
     }
   }

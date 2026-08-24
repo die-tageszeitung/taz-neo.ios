@@ -47,6 +47,9 @@ class PdfOverviewMenuHeaderView: UIView {
   }
   
   private func setupSubviews() {
+    addBorder(.red)
+    coverImageView.addBorder(.green)
+    pageLabel.addBorder(.green)
     // Cover image - left, full height
     coverImageView.contentMode = .scaleAspectFit
     coverImageView.clipsToBounds = true
@@ -65,7 +68,6 @@ class PdfOverviewMenuHeaderView: UIView {
     pageLabel.textColor = Const.Colors.appIconGrey
     pageLabel.translatesAutoresizingMaskIntoConstraints = false
     addSubview(pageLabel)
-    
     // Mode switch button
     modeSwitchButton.translatesAutoresizingMaskIntoConstraints = false
     modeSwitchButton.tintColor = .label
@@ -75,15 +77,15 @@ class PdfOverviewMenuHeaderView: UIView {
     listenButton.tintColor = .label
     addSubview(listenButton)
     coverImageView.clipsToBounds = false
-    coverBottomConstraint = coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -16)
+    coverBottomConstraint = coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -23)
     
     // Layout constraints
     NSLayoutConstraint.activate([
       // Cover image: left, full height, fixed width ratio
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
       coverBottomConstraint!,
-      coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: 0.64),
-      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -6),
+      coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: Const.Size.PageAspectRatio),
+      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -14),
       //from left to right
       pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
@@ -96,10 +98,10 @@ class PdfOverviewMenuHeaderView: UIView {
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       listenButton.trailingAnchor.constraint(greaterThanOrEqualTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       //vertical...top
-      dateLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 11),
+      dateLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 0.0),
       //vertical...bottom
-      modeSwitchButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
-      listenButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: -6),
+      modeSwitchButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 0.0),
+      listenButton.bottomAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 0.0),
     ])
     loadInfoLabel.isHidden = !isLoading
     waitingSpinner.isHidden = !isLoading

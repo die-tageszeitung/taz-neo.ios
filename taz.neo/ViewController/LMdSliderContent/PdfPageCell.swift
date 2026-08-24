@@ -80,7 +80,7 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   
   func setup(){
     contentView.clipsToBounds = true
-    imageAspectConstraint = pageImageView.pinAspect(ratio: Const.Size.LmdPageAspect,
+    imageAspectConstraint = pageImageView.pinAspect(ratio: Const.Size.PageAspectRatio,
                             pinWidth: false,
                             priority: .defaultHigh)
     pageImageView.contentMode = .scaleAspectFit
@@ -93,7 +93,7 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
     pin(pageImageView, to: self.contentView, exclude: .bottom)
     pin(pageLabel.left, to: self.contentView.left)
     pin(pageLabel.right, to: self.contentView.right)
-    labelTopConstraint = pin(pageLabel.top, to: pageImageView.bottom, dist: isPdfPageMode ? 3.0 : 8.0)
+    labelTopConstraint = pin(pageLabel.top, to: pageImageView.bottom, dist: isPdfPageMode ? 1.0 : 8.0)
     ///Cell height is defined in PdfMenuListFlowLayout ...evaluateLayout...cellHeight
     ///do not pin bottom
     if let sv = self.contentView.superview {
