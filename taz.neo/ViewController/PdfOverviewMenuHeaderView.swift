@@ -47,9 +47,6 @@ class PdfOverviewMenuHeaderView: UIView {
   }
   
   private func setupSubviews() {
-    addBorder(.red)
-    coverImageView.addBorder(.green)
-    pageLabel.addBorder(.green)
     // Cover image - left, full height
     coverImageView.contentMode = .scaleAspectFit
     coverImageView.clipsToBounds = true
@@ -85,7 +82,7 @@ class PdfOverviewMenuHeaderView: UIView {
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
       coverBottomConstraint!,
       coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: Const.Size.PageAspectRatio),
-      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -14),
+      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -24),
       //from left to right
       pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
@@ -122,10 +119,6 @@ class PdfOverviewMenuHeaderView: UIView {
     modeSwitchButton.label.text = isList ? "Seitenansicht" : "Listenansicht"
     let symbol = isList ? "tiles" : "list"
     modeSwitchButton.setImage(UIImage(named: symbol))
-    UIView.animate(withDuration: 0.2) {[weak self] in
-      self?.coverBottomConstraint?.constant = isList ? -8 : -26
-      self?.pageLabel.alpha = isList ? 0.0 : 1.0
-    }
   }
   
   // Helper to set the cover image, e.g., from PdfModel's thumbnail

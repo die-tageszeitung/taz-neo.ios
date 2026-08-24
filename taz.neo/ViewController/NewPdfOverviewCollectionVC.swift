@@ -23,18 +23,20 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
-      log("current offset: \(collectionView.contentOffset.y)")
-      ///remember old scroll pos
+      let scroll = collectionView.contentInset.top + collectionView.contentOffset.y > 0
       let currentSection = collectionView.indexPathsForVisibleItems.min()?.section
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
-      guard let currentSection else {return }
+      guard scroll else {
+        scrollViewDidScroll(collectionView)
+        return
+      }
+      guard let currentSection else { return }
       ///dirty hack to prevent scroll to far up on change due indexPathsForVisibleItems.min returns slightly out of visible items
-      let offset:Int = isPdfPageMode ? 0 : 1
-      let targetSection = min(currentSection + offset, collectionView.numberOfSections)
-      let targetOffset = (collectionView.collectionViewLayout as? PdfMenuLayout)?.offset(forSection: targetSection) ?? 0.0
-      log("scroll to: \(currentSection+offset) targetOffset: \(targetOffset)")
+      let targetSection = min(currentSection, collectionView.numberOfSections)
+      let targetOffset
+      = (collectionView.collectionViewLayout as? PdfMenuLayout)?.offset(forSection: targetSection) ?? 0.0
       collectionView.setContentOffset(CGPoint(x: 0, y: targetOffset), animated: false)
     }
   }
@@ -171,6 +173,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       menuHeaderHeightConstraint!
     ])
     collectionView.contentInset.top = headerMaxHeight
+    collectionView.setContentOffset(CGPoint(x: 0, y: -headerMaxHeight), animated: false)
     
     // Set initial header data
     menuHeaderView.dateLabel.attributedText
@@ -231,27 +234,14 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     let offset
     = scrollView.contentOffset.y
     + scrollView.adjustedContentInset.top
-    + (isPdfPageMode ? -33: -12)/// Adj#1: Header height, heighter is bigger
-    log("calc offset: \(offset)")
-    ///! List header is smaller!
+    + (isPdfPageMode ? -33: 10)/// Adj#1: Header height, neg. values increase header total height
     menuHeaderHeightConstraint?.constant = max(headerMinHeight, headerMaxHeight - offset)
     if isPdfPageMode {
-      /// Adj#2: Moment width min, 2nd Value; bigger is wider, but reduces image height!
-      /// //Breite des Moments durch abstand -8....> .250
-      ///   calc offset bottmConstr: -57.6 offset: -38.0  AUS -38 und -50 ganz ok breite stimmt, zeilenabstand zu hoch!
-      ///     calc offset bottmConstr: -80.0 offset: -50.0 AUS -50 -70 Zeilenabstand viel zu hoch, breite leicht zu wenig
-      ///      calc offset bottmConstr: -68.4 offset: -42.0 AUS -42 und -60 Zeilenabstand ca 12px zu hoch, 3px zu schmal
-      ///        calc offset bottmConstr: -56.6 offset: -33.0 aus -33 und -50 Zeilenabstand ca 4px zu hoch, 5px zu schmal
-      ///        ///        calc offset bottmConstr: -56.6 offset: -33.0 aus -33 und -60 Zeilenabstand ca 12px zu hoch, 8px zu schmal
-      menuHeaderView.coverBottomConstraint?.constant = min(48, offset/5 ) - 46
+      menuHeaderView.coverBottomConstraint?.constant = min(36, offset/5 ) - 44
       menuHeaderView.pageLabel.alpha = max (0, 1 - offset / 80)
-      log("calc offset bottmConstr: \(menuHeaderView.coverBottomConstraint?.constant ?? -1) offset: \(offset)")
-      /// so ist der abstand nach unten gut:   calc offset bottmConstr: -43.6 offset: -8.0, aber die größe des headers nicht!
-      /// 5 ist der beschleunigungsfaktor
-      /// -8/5 +7 - 45 = -46.5
     }
     else {
-      menuHeaderView.coverBottomConstraint?.constant = min(37, offset/5 + 7) - 45
+      menuHeaderView.coverBottomConstraint?.constant = min(-3, offset/5) - 5
       menuHeaderView.pageLabel.alpha = 0
     }
   }
