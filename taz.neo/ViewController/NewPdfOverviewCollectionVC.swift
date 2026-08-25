@@ -85,7 +85,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private var menuHeaderHeightConstraint: NSLayoutConstraint?
   private var menuHeaderLeadingConstraint: NSLayoutConstraint?
   
-  private let headerMaxHeight: CGFloat = 266
+  private let headerMaxHeight: CGFloat = 285
   private var headerMinHeight: CGFloat = 95 {
     didSet {
       log(">> headerMinHeight updated to \(headerMinHeight) former: \(oldValue)")
@@ -234,15 +234,17 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     let offset
     = scrollView.contentOffset.y
     + scrollView.adjustedContentInset.top
-    + (isPdfPageMode ? -33: 10)/// Adj#1: Header height, neg. values increase header total height
+    + (isPdfPageMode ? 0 : 40)/// Adj#1: Header height, neg. values increase header total height
     menuHeaderHeightConstraint?.constant = max(headerMinHeight, headerMaxHeight - offset)
     if isPdfPageMode {
-      menuHeaderView.coverBottomConstraint?.constant = min(36, offset/5 ) - 44
+      menuHeaderView.coverBottomConstraint?.constant = min(30, offset/5 ) - 37.5
       menuHeaderView.pageLabel.alpha = max (0, 1 - offset / 80)
+      collectionView.contentInset.top = headerMaxHeight
     }
     else {
-      menuHeaderView.coverBottomConstraint?.constant = min(-3, offset/5) - 5
+      menuHeaderView.coverBottomConstraint?.constant = min(10, offset/5) - 6
       menuHeaderView.pageLabel.alpha = 0
+      collectionView.contentInset.top = headerMaxHeight - 45
     }
   }
     

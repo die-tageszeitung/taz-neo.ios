@@ -75,14 +75,13 @@ class PdfOverviewMenuHeaderView: UIView {
     addSubview(listenButton)
     coverImageView.clipsToBounds = false
     coverBottomConstraint = coverImageView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -23)
-    
     // Layout constraints
     NSLayoutConstraint.activate([
       // Cover image: left, full height, fixed width ratio
       coverImageView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 5),
       coverBottomConstraint!,
       coverImageView.widthAnchor.constraint(equalTo: coverImageView.heightAnchor, multiplier: Const.Size.PageAspectRatio),
-      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -24),
+      pageLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10),
       //from left to right
       pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
