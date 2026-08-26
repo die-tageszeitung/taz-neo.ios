@@ -28,6 +28,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
+      updateSelection()
       guard scroll else {
         scrollViewDidScroll(collectionView)
         return
@@ -70,6 +71,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     menuHeaderView.modeSwitchButton.imageView.tintColor = textColor
     menuHeaderView.listenButton.imageView.tintColor = textColor
     setNeedsStatusBarAppearanceUpdate()
+    activeSectionBackgroundView.backgroundColor
+    = Defaults.darkMode ? UIColor.rgb(0x353535) : .white
   }
   
   var pdfModel: NewPdfModel
@@ -91,7 +94,14 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       log(">> headerMinHeight updated to \(headerMinHeight) former: \(oldValue)")
     }
   }
-
+  
+  private let activeSectionBackgroundView: UIView = {
+    let view = UIView()
+    view.isUserInteractionEnabled = false
+    view.backgroundColor = Const.SetColor.CTBackground.color
+    return view
+  }()
+  
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     applyStyles()
@@ -102,6 +112,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if headerMinHeight < 50 { calculateHeader() }
+    onMainAfter{ [weak self] in self?.updateSelection()}
   }
   
   public override func loadView() {
@@ -196,6 +207,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       if isPdfPageMode,
         pdfModel.currentPage != 0 {
         pdfModel.currentPage = 0
+        updateSelection()
         clickCallback?(pdfModel, nil)
         return
       }
@@ -208,7 +220,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   private func setupCollectionView() {
-    collectionView.backgroundColor = .white
     collectionView.register(PdfPageCell.self,
                             forCellWithReuseIdentifier: PdfPageCell.reuseIdentifier)
     collectionView.register(PdfArticleCell.self,
@@ -218,6 +229,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
                             withReuseIdentifier: PdfSectionHeaderView.reuseIdentifier)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.showsHorizontalScrollIndicator = false
+    collectionView.insertSubview(activeSectionBackgroundView, at: 0)
+    self.activeSectionBackgroundView.layer.zPosition = -1000
   }
   
   private func calculateHeader() {
@@ -309,6 +322,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       art = sectionContent?.articles.valueAt(indexPath.row - 1)
     }
     pdfModel.currentPage = indexPath.section
+    updateSelectionBackground()
     clickCallback?(pdfModel, art)
   }
 }
@@ -328,8 +342,31 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
     header.onTapping {[weak self] _ in
       guard let self else { return }
       pdfModel.currentPage = indexPath.section
+      updateSelection()
       clickCallback?(pdfModel, nil)
     }
     return header
   }
+}
+
+extension NewPdfOverviewCollectionVC {
+  fileprivate func updateSelection(animated: Bool = false) {
+    updateSelectionBackground(animated: animated)
+  }
+  
+  private func updateSelectionBackground(animated: Bool = false) {
+    guard !isPdfPageMode,
+          let layout = collectionView.collectionViewLayout as? PdfMenuLayout,
+          let frame = layout.frameForSection(pdfModel.currentPage) else {
+      activeSectionBackgroundView.isHidden = true
+      return
+    }
+    
+    activeSectionBackgroundView.isHidden = false
+    
+    let animations = { self.activeSectionBackgroundView.frame = frame }
+    if animated { UIView.animate( withDuration: 0.25, animations: animations )}
+    else { animations()}
+  }
+  
 }

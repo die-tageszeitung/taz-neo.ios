@@ -33,6 +33,8 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   @Default("isPdfPageMode")
   public var isPdfPageMode: Bool
   
+  public var isActive = false { didSet { applyStyles() }}
+  
   var pagina: String? /// e.g. "1" (single), "2-3" (double), nil (ad)
   var listPrefix: String? /// e.g. "Seite" or nil for ads
   var pageRessort: String? ///e.g. "inland" or "anzeige" for ads
@@ -116,7 +118,7 @@ extension PdfPageCell: UIStyleChangeDelegate{
   public func applyStyles() {
     pageLabel.textColor
     = isPdfPageMode
-    ? Const.Colors.appIconGrey
+    ? isActive ? .white : Const.Colors.appIconGrey
     : Const.SetColor.taz2(.text).color
   }
 }

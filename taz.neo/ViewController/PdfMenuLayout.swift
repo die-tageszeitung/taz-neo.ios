@@ -52,6 +52,32 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   
   let pageInterItemSpacing = PdfDisplayOptions.Overview.interItemSpacing - 0.5//fix misscalculation bug
   
+  func frameForSection(_ section: Int) -> CGRect? {
+    let attributes = cachedListCellAttributes.values
+      .filter { $0.indexPath.section == section }
+    
+    let headerAttributes = cachedListHeaderAttributes
+      .filter { $0.indexPath.section == section }
+    
+    let allAttributes = attributes + headerAttributes
+    
+    guard let first = allAttributes.first else {
+      return nil
+    }
+    
+    let targetFrame = allAttributes.dropFirst().reduce(first.frame) {
+      $0.union($1.frame)
+    }
+    
+    let addOffset = pdfModel.sectionContent.valueAt(section)?.articles.count == 0 ? 0.0 : 5.0
+    
+    /// adjustments
+    return CGRect(x: targetFrame.origin.x,
+                  y: targetFrame.origin.y + 4,
+                  width: collectionView?.frame.size.width ?? targetFrame.width,
+                  height: targetFrame.size.height + minInteritemSpacing + addOffset)
+  }
+  
   func offset(forSection section: Int) -> CGFloat? {
     
     let cachedAttributes
