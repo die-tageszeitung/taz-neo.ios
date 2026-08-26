@@ -79,7 +79,7 @@ class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   }
   
   func setup(){
-    contentView.clipsToBounds = true
+    contentView.clipsToBounds = false
     imageAspectConstraint = pageImageView.pinAspect(ratio: Const.Size.PageAspectRatio,
                             pinWidth: false,
                             priority: .defaultHigh)
