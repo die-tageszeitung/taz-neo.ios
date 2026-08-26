@@ -242,7 +242,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       collectionView.contentInset.top = headerMaxHeight
     }
     else {
-      menuHeaderView.coverBottomConstraint?.constant = min(10, offset/5) - 6
+      menuHeaderView.coverBottomConstraint?.constant = min(-1.5, offset/5) - 6
       menuHeaderView.pageLabel.alpha = 0
       collectionView.contentInset.top = headerMaxHeight - 45
     }
