@@ -65,7 +65,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     let textColor = dark ? Const.Colors.iOSDark.label : Const.Colors.iOSLight.label
     menuHeaderView.waitingSpinner.color = textColor
     menuHeaderView.loadInfoLabel.textColor = textColor
-    menuHeaderView.dateLabel.textColor = textColor
     menuHeaderView.modeSwitchButton.label.textColor = textColor
     menuHeaderView.listenButton.label.textColor = textColor
     menuHeaderView.modeSwitchButton.imageView.tintColor = textColor
@@ -73,6 +72,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     setNeedsStatusBarAppearanceUpdate()
     activeSectionBackgroundView.backgroundColor
     = Defaults.darkMode ? UIColor.rgb(0x353535) : .white
+    updateSelection()///dateLabel Text Color
   }
   
   var pdfModel: NewPdfModel
@@ -355,6 +355,9 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
 extension NewPdfOverviewCollectionVC {
   func updateSelection(animated: Bool = false) {
     if isPdfPageMode {
+      menuHeaderView.pageLabel.textColor
+      = pdfModel.currentPage == 0 ? .white : Const.Colors.appIconGrey
+      
       for sect in collectionView.indexPathsForVisibleItems.map({$0.section}) {
         let ip = IndexPath(row: 0, section: sect)
         (collectionView.cellForItem(at: ip) as? PdfPageCell)?.isActive
