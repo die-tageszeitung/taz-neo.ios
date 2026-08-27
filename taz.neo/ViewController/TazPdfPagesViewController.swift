@@ -293,9 +293,11 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     childArticleVC.header.onTitle { [weak self] _ in
       self?.debug("*** Action: Header back to Page pressed")
       if let art = self?.childArticleVC.article,
-      let idx = pdfModel.pageIndexForArticle(art) {
-        self?.index = idx
+         let page = self?.page(for: art),
+         let idx = self?.issue.pages?.firstIndex(where: { $0.pdf?.fileName == page.pdf?.fileName }){
+           self?.index = idx
       }
+      ///old:  let idx = pdfModel.pageIndexForArticle(art)
       self?.childArticleVC.navigationController?.popViewController(animated: true)
     }
     
