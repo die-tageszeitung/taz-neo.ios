@@ -151,9 +151,32 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   }
   
   func page(for art: Article) -> Page? {
-    self.issue.pages?.first { page in
-      page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
+    func _page1(for art: Article) -> Page? {
+      self.issue.pages?.first { page in
+        page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
+      }
     }
+    func _page2(for art: Article) -> Page? {
+      for pageName in art.pageNames ?? [] {
+        return issue.pages?.first(where: { $0.pdf?.name == pageName })
+      }
+      return nil
+    }
+    
+    
+    if let directPage = _page2(for: art){ return directPage }
+    
+    guard let artFilename = art.html?.name,
+          let sections = article2section[artFilename] else { return nil }
+    
+    for sect in sections {
+      guard art.sectionTitle == sect.title else { continue }
+      for art in sect.articles ?? [] {
+        guard let page = _page2(for: art) else { continue }
+        return page
+      }
+    }
+    return nil
   }
   
   public func closeIssue() {
@@ -329,7 +352,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     
   func openArticle(name: String?, path: String?, reopenArticleScrollPos: CGFloat?){
     guard let pdfModel = pdfModel as? NewPdfModel else { return }
-    guard let issueInfo = pdfModel.issueInfo else { return }
+    guard pdfModel.issueInfo != nil else { return }
     guard let name = name else { return }
     guard let path = path else { return }
     
@@ -664,7 +687,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       nModel.images = []
     }
     childArticleVC.releaseOnDisappear()
-    childArticleVC.sliderContent = nil
+//    childArticleVC.sliderContent = nil
     childArticleVC.slider?.cleanup()
     childArticleVC.slider = nil
     childArticleVC.delegate = nil
@@ -811,8 +834,6 @@ extension TazPdfPagesViewController: ScreenTracking {
 // MARK: - Class ArticleVcWithPdfInSlider
 class ArticleVcWithPdfInSlider : ArticleVC {
   
-  var sliderContent: UIViewController?
-  
   open override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
     transitionNextCollection = newCollection
     super.willTransition(to: newCollection, with: coordinator)
@@ -821,31 +842,38 @@ class ArticleVcWithPdfInSlider : ArticleVC {
   
   var transitionNextCollection: UITraitCollection?
   
-  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-    super.viewWillTransition(to: size, with: coordinator)
-    updateSlidersWidth(size)
-  }
+//  open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+//    super.viewWillTransition(to: size, with: coordinator)
+//    updateSlidersWidth(size)
+//  }
   
-  func updateSlidersWidth(_ newParentSize : CGSize? = nil){
-    guard sliderContent != nil else { return }
-    let width = (newParentSize ?? self.view.frame.size).sliderWidth(for: transitionNextCollection?.horizontalSizeClass)
-    transitionNextCollection = nil
-    slider?.ocoverage = width
-  }
-  
-  override func setupSlider() {
-    if let sContent = self.sliderContent {
-      slider = MyButtonSlider(slider: sContent, into: self)
-    }
-    super.setupSlider()
-    applyStyles()
-  }
+//  func updateSlidersWidth(_ newParentSize : CGSize? = nil){
+//    guard sliderContent != nil else { return }
+//    let width = (newParentSize ?? self.view.frame.size).sliderWidth(for: transitionNextCollection?.horizontalSizeClass)
+//    transitionNextCollection = nil
+//    slider?.ocoverage = width
+//  }
+//  
+//  override func setupSlider() {
+//    if let sContent = self.sliderContent {
+//      slider = MyButtonSlider(slider: sContent, into: self)
+//    }
+//    super.setupSlider()
+//    applyStyles()
+//  }
   
   override func setHeader(artIndex: Int) {
     #if LMD
     guard let lmdSliderContentVc = self.sliderContent as? LMdSliderContentVC else { return }
     header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
     #else
+    if let menu = self.slider?.slider as? NewPdfOverviewCollectionVC,
+    let art = article,
+    let pageIndex = menu.pdfModel.pageIndexForArticle(art)
+    {
+      menu.pdfModel.currentPage = pageIndex
+      menu.updateSelection()
+    }
     super.setHeader(artIndex: artIndex)
     #endif
   }

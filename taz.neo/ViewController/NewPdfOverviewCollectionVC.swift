@@ -276,7 +276,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   }
   
   public override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    (cell as? PdfPageCell)?.configure(pageMode: isPdfPageMode)
+    if let pc = cell as? PdfPageCell {
+      pc.configure(pageMode: isPdfPageMode)
+      pc.isActive = pdfModel.currentPage == indexPath.section
+    }
   }
   
   public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -322,7 +325,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       art = sectionContent?.articles.valueAt(indexPath.row - 1)
     }
     pdfModel.currentPage = indexPath.section
-    updateSelectionBackground()
+    updateSelection()
     clickCallback?(pdfModel, art)
   }
 }
@@ -350,11 +353,15 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
 }
 
 extension NewPdfOverviewCollectionVC {
-  fileprivate func updateSelection(animated: Bool = false) {
-    updateSelectionBackground(animated: animated)
-  }
-  
-  private func updateSelectionBackground(animated: Bool = false) {
+  func updateSelection(animated: Bool = false) {
+    if isPdfPageMode {
+      for sect in collectionView.indexPathsForVisibleItems.map({$0.section}) {
+        let ip = IndexPath(row: 0, section: sect)
+        (collectionView.cellForItem(at: ip) as? PdfPageCell)?.isActive
+        = sect == pdfModel.currentPage
+      }
+    }
+    
     guard !isPdfPageMode,
           let layout = collectionView.collectionViewLayout as? PdfMenuLayout,
           let frame = layout.frameForSection(pdfModel.currentPage) else {
