@@ -157,10 +157,19 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   // MARK: - View Lifecycle
   public override func viewDidLoad() {
     super.viewDidLoad()
-    setupMenuHeader()
     setupCollectionView()
   }
   
+  private var menuHeaderInitialized = false
+  
+  public override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    guard view.bounds.width > 0 else { return }
+    if !menuHeaderInitialized {
+      setupMenuHeader()
+      menuHeaderInitialized = true
+    }
+  }
   
   private func setupMenuHeader() {
     headerWrapper.translatesAutoresizingMaskIntoConstraints = false

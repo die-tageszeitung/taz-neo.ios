@@ -153,6 +153,9 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     let xLeft = self.sectionInset.left + collectionView.layoutMargins.left
     
     let cvWidth = collectionView.frame.size.width
+    
+    guard cvWidth > 0 else { return }///remove negative width warnings
+    
     let leftCellWidth = cvWidth * Const.Size.taz.Slider.xLeft
     
     let rightCellWidth = cvWidth - leftCellWidth - xLeft - sectionInset.right - minimumInteritemSpacing

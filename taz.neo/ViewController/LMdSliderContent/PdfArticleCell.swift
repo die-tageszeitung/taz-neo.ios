@@ -114,9 +114,6 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
     bottomBorder.backgroundColor = Const.SetColor.taz2(.text).color
     pin(bottomBorder, to: self.contentView, exclude: .top)
     
-    if let sv = self.contentView.superview {
-      pin(self.contentView, to: sv)
-    }
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)
       onMainAfter(0.1){[weak self] in ///prevent additional  cell tap due async call

@@ -32,12 +32,12 @@ class PdfSectionHeaderView: UICollectionReusableView {
     addSubview(dottedLine)
     pin(topLine.right, to: self.right, dist: 16, priority: .defaultLow)
     pin(dottedLine.right, to: self.right, dist: 16, priority: .defaultLow)
+    pin(label.bottom, to: self.bottom, dist: -24, priority: .defaultLow)
     
     NSLayoutConstraint.activate([
       label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
       label.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
       label.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-      label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24),
       topLine.heightAnchor.constraint(equalToConstant:0.7),
       topLine.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
       topLine.topAnchor.constraint(equalTo: topAnchor, constant: 4),
