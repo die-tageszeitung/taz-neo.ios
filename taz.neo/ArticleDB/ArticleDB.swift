@@ -2683,10 +2683,10 @@ public final class StoredFeed: Feed, StoredObject {
     self.lastUpdated = object.lastUpdated
     if let issueVersions = object.issueVersions {
       for version in issueVersions {
-        let si = StoredIssue.get(date: version.date, inFeed: self).first
-        if si?.versionRemote == version.versionRemote { continue }
-        debug("update Issue \(version.date.short) remote from>to: \(si?.versionRemote ?? -1)>\(version.versionRemote)")
-        si?.versionRemote = version.versionRemote
+        guard let si = StoredIssue.get(date: version.date, inFeed: self).first else { continue }
+        if si.versionRemote == version.versionRemote { continue }
+        debug("update Issue \(version.date.short) remote from>to: \(si.versionRemote ?? -1)>\(version.versionRemote)")
+        si.versionRemote = version.versionRemote
       }
     }
     /// CR-Feeds: Warning: what should we do? only add issues to primary feed?
