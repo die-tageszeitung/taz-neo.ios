@@ -110,6 +110,8 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     /// UI:  |-sectionInset.left-[cell]-spacing-[cell]-sectionInset.right-|
     let xRight = singleItemWidth + spacing + xLeft
     var prevPageType : PageType?
+    ///max header image width!
+    log(">>> page mode singleItemWidth \(singleItemWidth)  collectionView.bounds.width: \(collectionView.bounds.width)")
     
     var currentSection = 0
     for sectionContent in pdfModel.sectionContent {
@@ -157,6 +159,9 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     guard cvWidth > 0 else { return }///remove negative width warnings
     
     let leftCellWidth = cvWidth * Const.Size.taz.Slider.xLeft
+    
+    ///min header image width!
+    log(">>> list mode leftCellWidth \(leftCellWidth)  cvWidth: \(collectionView.frame.size.width)")
     
     let rightCellWidth = cvWidth - leftCellWidth - xLeft - sectionInset.right - minimumInteritemSpacing
     let rightCellXOffset = leftCellWidth + xLeft + minimumInteritemSpacing
@@ -268,7 +273,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
   
   public init(pdfModel: NewPdfModel) {
     self.pdfModel = pdfModel
-    self.singlePageRatio = max(1.2, pdfModel.singlePageSize.height/pdfModel.singlePageSize.width)
+    self.singlePageRatio = 1/Const.Size.PageAspectRatio
     super.init()
     
   }

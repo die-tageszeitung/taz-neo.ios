@@ -23,14 +23,19 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
-      let scroll = collectionView.contentInset.top + collectionView.contentOffset.y > 0
+      let scroll = collectionView.contentInset.top + collectionView.contentOffset.y > 10
       let currentSection = collectionView.indexPathsForVisibleItems.min()?.section
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
       updateSelection()
+      
+      lastCVWidthCalculation = CGFloat.nan
+      calculateHeaderIfNeeded()
+      
       guard scroll else {
-        scrollViewDidScroll(collectionView)
+        //prevent top pos
+        collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.contentInset.top), animated: false)
         return
       }
       guard let currentSection else { return }
@@ -88,12 +93,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   private var menuHeaderHeightConstraint: NSLayoutConstraint?
   private var menuHeaderLeadingConstraint: NSLayoutConstraint?
   
-  private let headerMaxHeight: CGFloat = 285
-  private var headerMinHeight: CGFloat = 95 {
-    didSet {
-      log(">> headerMinHeight updated to \(headerMinHeight) former: \(oldValue)")
-    }
-  }
+  private var headerMaxHeight: CGFloat = 285
+  private var headerMinHeight: CGFloat = 95
   
   private let activeSectionBackgroundView: UIView = {
     let view = UIView()
@@ -105,13 +106,10 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     applyStyles()
-    self.view.doLayout()
-    calculateHeader()
   }
   
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    if headerMinHeight < 50 { calculateHeader() }
     onMainAfter{ [weak self] in self?.updateSelection()}
   }
   
@@ -160,23 +158,12 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     setupCollectionView()
   }
   
-  private var menuHeaderInitialized = false
-  
-  public override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    guard view.bounds.width > 0 else { return }
-    if !menuHeaderInitialized {
-      setupMenuHeader()
-      menuHeaderInitialized = true
-    }
-  }
-  
   private func setupMenuHeader() {
     headerWrapper.translatesAutoresizingMaskIntoConstraints = false
     menuHeaderView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(headerWrapper)
     headerWrapper.contentView.addSubview(menuHeaderView)
-    menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight + 21)
+    menuHeaderHeightConstraint = menuHeaderView.heightAnchor.constraint(equalToConstant: headerMaxHeight)
     menuHeaderLeadingConstraint
     = menuHeaderView.leadingAnchor.constraint(equalTo: headerWrapper.safeAreaLayoutGuide.leadingAnchor,
                                               constant: PdfDisplayOptions.Overview.sideSpacing)
@@ -192,7 +179,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       menuHeaderLeadingConstraint!,
       menuHeaderHeightConstraint!
     ])
-    collectionView.contentInset.top = headerMaxHeight
     collectionView.setContentOffset(CGPoint(x: 0, y: -headerMaxHeight), animated: false)
     
     // Set initial header data
@@ -240,33 +226,68 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.insertSubview(activeSectionBackgroundView, at: 0)
     self.activeSectionBackgroundView.layer.zPosition = -1000
+    collectionView.contentInsetAdjustmentBehavior = .never
+  }
+    
+  public override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    guard view.bounds.width > 0 else { return }
+    if headerWrapper.superview == nil { setupMenuHeader() }
+    calculateHeaderIfNeeded()
+    updateHeaderHeight(for: collectionView)
   }
   
-  private func calculateHeader() {
-    let leftCellWidth = collectionView.frame.size.width * Const.Size.taz.Slider.xLeft
+  private var lastCVWidthCalculation = CGFloat.nan
+  private var initialized = false
+  
+  private func calculateHeaderIfNeeded() {
+    guard lastCVWidthCalculation != collectionView.frame.size.width else { return }
+    lastCVWidthCalculation = collectionView.frame.size.width
+    let leftCellWidth = lastCVWidthCalculation * Const.Size.taz.Slider.xLeft
     let imageHeight = leftCellWidth / Const.Size.PageAspectRatio
     let verticalPadding: CGFloat = 13.0
     ///min header image width depends on: headerMinHeight
     headerMinHeight = imageHeight + verticalPadding
+    
+    let layout = (collectionView.collectionViewLayout as? UICollectionViewFlowLayout)
+    let insets = layout?.sectionInset ?? .zero
+    let spacing = layout?.minimumInteritemSpacing ?? 0
+    let panoItemWidth = collectionView.bounds.width - insets.left - insets.right
+    let singleItemWidth = panoItemWidth/2 - spacing/2
+    let singlePageRatio = 1/Const.Size.PageAspectRatio
+    headerMaxHeight = CGFloat(Int(singleItemWidth * singlePageRatio)) + (isPdfPageMode ? 30.0 : 0.0)
+    
+    collectionView.contentInset.top = headerMaxHeight + max(0, collectionView.safeAreaInsets.top)
+    
+    if !initialized {
+      initialized = true
+      collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.contentInset.top), animated: false)
+    }
+    
+    updateHeaderHeight(for: collectionView)
   }
   
   // MARK: - Scroll for Header Animation
   public override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    // Animate header height based on scroll offset
-    let offset
-    = scrollView.contentOffset.y
-    + scrollView.adjustedContentInset.top
-    + (isPdfPageMode ? 0 : 40)/// Adj#1: Header height, neg. values increase header total height
-    menuHeaderHeightConstraint?.constant = max(headerMinHeight, headerMaxHeight - offset)
+    updateHeaderHeight(for: scrollView)
+  }
+  
+  private func updateHeaderHeight(for scrollView: UIScrollView) {
+
+    let offset =
+        scrollView.contentOffset.y
+        + scrollView.contentInset.top
+
+    menuHeaderHeightConstraint?.constant
+    = max(headerMinHeight, headerMaxHeight - offset)
+    
     if isPdfPageMode {
       menuHeaderView.coverBottomConstraint?.constant = min(30, offset/5 ) - 37.5
       menuHeaderView.pageLabel.alpha = max (0, 1 - offset / 80)
-      collectionView.contentInset.top = headerMaxHeight
     }
     else {
       menuHeaderView.coverBottomConstraint?.constant = min(-1.5, offset/5) - 6
       menuHeaderView.pageLabel.alpha = 0
-      collectionView.contentInset.top = headerMaxHeight - 45
     }
   }
     
