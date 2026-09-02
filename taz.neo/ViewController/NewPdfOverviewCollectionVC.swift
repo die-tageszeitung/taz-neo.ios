@@ -213,7 +213,12 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
         clickCallback?(pdfModel, nil)
         return
       }
-      if collectionView.contentOffset.y + collectionView.contentInset.top + 20 > 0 {
+      let offset
+      = collectionView.contentOffset.y
+      + (self.menuHeaderHeightConstraint?.constant ?? 0.0)
+      + collectionView.safeAreaInsets.top
+      
+      if offset > 3 {
         collectionView.scrollToItem(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         return
       }
