@@ -149,36 +149,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       }
     }
   }
-  
-  func page(for art: Article) -> Page? {
-    func _page1(for art: Article) -> Page? {
-      self.issue.pages?.first { page in
-        page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
-      }
-    }
-    func _page2(for art: Article) -> Page? {
-      for pageName in art.pageNames ?? [] {
-        return issue.pages?.first(where: { $0.pdf?.name == pageName })
-      }
-      return nil
-    }
     
-    
-    if let directPage = _page2(for: art){ return directPage }
-    
-    guard let artFilename = art.html?.name,
-          let sections = article2section[artFilename] else { return nil }
-    
-    for sect in sections {
-      guard art.sectionTitle == sect.title else { continue }
-      for art in sect.articles ?? [] {
-        guard let page = _page2(for: art) else { continue }
-        return page
-      }
-    }
-    return nil
-  }
-  
   public func closeIssue() {
     self.navigationController?.popViewController(animated: false)
   }
@@ -293,8 +264,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     childArticleVC.header.onTitle { [weak self] _ in
       self?.debug("*** Action: Header back to Page pressed")
       if let art = self?.childArticleVC.article,
-         let page = self?.page(for: art),
-         let idx = self?.issue.pages?.firstIndex(where: { $0.pdf?.fileName == page.pdf?.fileName }){
+         let idx = self?.issue.pageIndex(for: art) {
            self?.index = idx
       }
       ///old:  let idx = pdfModel.pageIndexForArticle(art)
@@ -432,7 +402,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
 
         }
       }
-      self?.updateSlider(index: idx)
+      self?.updateSlider(for: idx)
       self?.updateAudioButtons()
     }
     
@@ -526,16 +496,10 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     slider.button.additionalTapOffset = 20
   }
   
-  func updateSlider(index: Int){
-    #if LMD
-    guard let sliderContentVc
-            = sliderContentController
-            as? LMdSliderContentVC
-    else { return }
-    let page = issue.pages?.valueAt(index)
-    sliderContentVc.currentPage = page
-    (childArticleVC?.sliderContent as? LMdSliderContentVC)?.currentPage = page
-    #endif
+  func updateSlider(for pageIndex: Int){
+    guard let sliderContentVc = sliderContentController as? NewPdfOverviewCollectionVC
+            else { return }
+    sliderContentVc.pdfModel.currentPage = pageIndex
   }
   
   var lastWindowSize: CGSize?
@@ -870,9 +834,8 @@ class ArticleVcWithPdfInSlider : ArticleVC {
     header.title = "Seite \(lmdSliderContentVc.currentPage?.pagina ?? "")"
     #else
     if let menu = self.slider?.slider as? NewPdfOverviewCollectionVC,
-    let art = article,
-    let pageIndex = menu.pdfModel.pageIndexForArticle(art)
-    {
+       let art = article,
+       let pageIndex = issue.pageIndex(for: art) {
       menu.pdfModel.currentPage = pageIndex
       menu.updateSelection()
     }
@@ -929,3 +892,39 @@ extension Article {
   
 }
 #endif
+
+extension Issue {
+  func page(for art: Article) -> Page? {
+    func _page1(for art: Article) -> Page? {
+      pages?.first { page in
+        page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
+      }
+    }
+    func _page2(for art: Article) -> Page? {
+      for pageName in art.pageNames ?? [] {
+        return pages?.first(where: { $0.pdf?.name == pageName })
+      }
+      return nil
+    }
+    
+    
+    if let directPage = _page2(for: art){ return directPage }
+    
+    guard let artFilename = art.html?.name,
+          let sections = article2section[artFilename] else { return nil }
+    
+    for sect in sections {
+      guard art.sectionTitle == sect.title else { continue }
+      for art in sect.articles ?? [] {
+        guard let page = _page2(for: art) else { continue }
+        return page
+      }
+    }
+    return nil
+  }
+  
+  func pageIndex(for art: Article) -> Int? {
+    guard let page = self.page(for: art) else { return nil }
+    return pages?.firstIndex(where: { $0.pdf?.fileName == page.pdf?.fileName })
+  }
+}

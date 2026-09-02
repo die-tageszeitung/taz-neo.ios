@@ -23,8 +23,6 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public var isPdfPageMode: Bool {
     didSet {
       guard oldValue != isPdfPageMode else { return }
-      let scroll = collectionView.contentInset.top + collectionView.contentOffset.y > 10
-      let currentSection = collectionView.indexPathsForVisibleItems.min()?.section
       applyPdfPageMode()
       collectionView.reloadData()
       collectionView.layoutIfNeeded()
@@ -32,18 +30,8 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
       
       lastCVWidthCalculation = CGFloat.nan
       calculateHeaderIfNeeded()
-      
-      guard scroll else {
-        //prevent top pos
-        collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.contentInset.top), animated: false)
-        return
-      }
-      guard let currentSection else { return }
-      ///dirty hack to prevent scroll to far up on change due indexPathsForVisibleItems.min returns slightly out of visible items
-      let targetSection = min(currentSection, collectionView.numberOfSections)
-      let targetOffset
-      = (collectionView.collectionViewLayout as? PdfMenuLayout)?.offset(forSection: targetSection) ?? 0.0
-      collectionView.setContentOffset(CGPoint(x: 0, y: targetOffset), animated: false)
+      needToScrollToActivePage = true
+      scrollToActivePageIfNeeded()
     }
   }
   
@@ -106,6 +94,25 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     applyStyles()
+    needToScrollToActivePage = true
+    scrollToActivePageIfNeeded()
+  }
+  
+  private var needToScrollToActivePage = false
+  
+  private func scrollToActivePageIfNeeded() {
+    guard needToScrollToActivePage == true,
+          collectionView.bounds.width > 0 else {
+      return
+    }
+    needToScrollToActivePage = false
+    let targetSection = pdfModel.currentPage
+    let targetOffset = (collectionView.collectionViewLayout as? PdfMenuLayout)?.offset(forSection: targetSection) ?? 0.0
+    let offset
+    = targetOffset
+    - (targetSection > 2 ? headerMinHeight : headerMaxHeight)
+    - collectionView.safeAreaInsets.top
+    collectionView.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
   }
   
   public override func viewDidAppear(_ animated: Bool) {
@@ -235,6 +242,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     if headerWrapper.superview == nil { setupMenuHeader() }
     calculateHeaderIfNeeded()
     updateHeaderHeight(for: collectionView)
+    scrollToActivePageIfNeeded()
   }
   
   private var lastCVWidthCalculation = CGFloat.nan
