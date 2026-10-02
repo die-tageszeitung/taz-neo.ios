@@ -725,3 +725,131 @@ extension Issue {
     dir.createGlobalLinksIfNeeded(feeder: feeder)
   }
 }
+
+fileprivate extension Feeder {
+  
+  func hasChanges(to feeder: Feeder?) -> Bool {
+    guard let feeder else {  return true }
+    // Compare the number of feeds.
+    guard feeds.count == feeder.feeds.count else {
+      return true
+    }
+    // Compare each feed by name and publicationDates count.
+    for feed in feeds {
+      guard let otherFeed = feeder.feeds.first(where: {
+        $0.name == feed.name
+      }) else {
+        // A feed with this name doesn't exist in the other feeder.
+        return true
+      }
+      // Compare the number of publicationDates.
+      let count = feed.publicationDates?.count ?? 0
+      let otherCount = otherFeed.publicationDates?.count ?? 0
+      
+      guard count == otherCount else {
+        return true
+      }
+      
+      guard feed.lastIssue.short == otherFeed.lastIssue.short else {
+        return true
+      }
+      
+      guard feed.firstIssue.short == otherFeed.firstIssue.short else {
+        return true
+      }
+    }
+    // No differences found.
+    return false
+  }
+  
+  /// Returns all feeds whose publicationDates need to be loaded or updated.
+  /// An empty array means that all feeds have complete publicationDates.
+  func feedsToNeedLoadAllPublicationDates() -> [Feed] {
+      guard feeds.isEmpty else {
+        Log.log("no local feeds available => load them")
+          return []
+      }
+
+      var feedsToLoad: [Feed] = []
+
+      for feed in feeds {
+          let pubDates = feed.publicationDates ?? []
+
+          // No publicationDates available: load all dates for this feed.
+          if pubDates.isEmpty {
+            Log.log("no publicationDates for feed: \(feed.name) available => load them")
+              feedsToLoad.append(feed)
+              continue
+          }
+
+          // Check whether the locally stored dates cover the feed's date range.
+          let first = (pubDates.last?.date.ISO8601 ?? "1980-01-01") == feed.firstIssue.ISO8601
+          let last = (pubDates.first?.date.ISO8601 ?? "1980-01-01") >= feed.lastIssue.ISO8601
+          let count = pubDates.count >= feed.issueCnt
+
+          if pubDates.count != feed.issueCnt {
+              // TODO: Keep an eye on this — shouldn't cause issues.
+            Log.log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
+          }
+
+          // All checks passed: this feed doesn't need an update.
+          if first && last && count {
+            Log.debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
+              continue
+          }
+
+          // At least one check failed: reload publicationDates for this feed.
+          let logString = """
+              Missing some issues: Match pubDates data == feed data
+                firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
+                lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") >= \(feed.lastIssue.short)
+                count (\(count)): \(pubDates.count) >= \(feed.issueCnt)
+          """
+        Log.log(logString)
+        Log.log("Update all publication Dates")
+
+          feedsToLoad.append(feed)
+      }
+
+      return feedsToLoad
+  }
+  
+  ///empty array means load all feeds publicationDates
+//  func feedsToNeedLoadAllPublicationDates() -> [Feed]{<= new
+  func needLoadAllPublicationDates1() -> Bool{
+    
+    guard feeds.count > 0 else {
+      Log.log("no local feeds available => load them")
+      return true
+    }
+    
+    for feed in feeds {
+      let pubDates = feed.publicationDates ?? []
+      if pubDates.count == 0 {
+        Log.log("no publicationDates for feed: \(feed.name) available => load them")
+        return true
+      }
+      let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
+      let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
+      let count = pubDates.count >= feed.issueCnt
+      if pubDates.count != feed.issueCnt {
+        // TODO: Keep an eye on this — shouldn't cause issues.
+        Log.log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
+      }
+      if first && last && count {
+        Log.debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
+        continue
+      }
+      let logString = """
+          Missing some issues: Match pubDates data == feed data
+            firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
+            lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") == \(feed.lastIssue.short)
+            count (\(count)): \(pubDates.count) == \(feed.issueCnt)
+      """
+      Log.log(logString)
+      Log.log("Update all publication Dates")
+      return true
+    }
+    return false
+  }
+}
