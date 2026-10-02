@@ -52,10 +52,19 @@ extension BackgroundDownloadService {
     Self.shared.log("...static checkForNewIssue requested, App State: \(UIApplication.shared.stateDescription) isBackground: \(isBackground)")
     let currentAppState = UIApplication.shared.applicationState
     
-    guard Self.shared.autoloadNewIssues,
-          let gqlFeeder = Self.shared.feederContext?.gqlFeeder,
-          gqlFeeder.hasValidAbo == true else {
-      Self.shared.log("...static checkForNewIssue skipped, no auto-load enabled or no valid abo")
+    guard Self.shared.autoloadNewIssues else {
+      Self.shared.log("...static checkForNewIssue skipped, no auto-load enabled")
+      fetchCompletionHandler?(.noData)
+      return
+    }
+    guard let feederContext = Self.shared.feederContext,
+          let gqlFeeder = Self.shared.feederContext?.gqlFeeder else {
+      Self.shared.log("...static checkForNewIssue skipped, environment missing!")
+      fetchCompletionHandler?(.noData)
+      return
+    }
+    guard gqlFeeder.hasValidAbo == true else {
+      Self.shared.log("...static checkForNewIssue skipped, no valid abo")
       fetchCompletionHandler?(.noData)
       return
     }
@@ -65,7 +74,7 @@ extension BackgroundDownloadService {
       Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
       fetchCompletionHandler?(.noData)
       ///maybe enqueued not downloaded, not saved to db
-      Self.shared.handlePendingTasks()//persist stuff
+      Self.shared.handlePendingTasks(in: feederContext.masterFeed1)//persist stuff
       ///maybe re-start download? BackgroundSession.restartAllArchivedDownloads EXPERIMENTELL!!!
       return
     }
@@ -119,7 +128,7 @@ fileprivate extension BackgroundDownloadService {
              autoload: \(autoloadOnlyInWLAN ? "only in WLAN" : "in any network")
              Triggered by \(isPush ? "Push" : "BackgroundTask")
               \(localResources?.resourceVersion.description.prepend("lastLocalResourceVersion: ") ?? "WARNING: No local resources found!")
-             Latest known publication date: \(feederContext.latestPublicationDate?.short ?? "none")
+             Latest known publication date: \(feederContext.latestPublicationDateForMasterFeed?.short ?? "none")
           """)
       ///   isMobile connected/isConnected: \(feederContext.netAvailability.isMobile)/\(feederContext.netAvailability.isConnected) did not work!
       // MARK: - Fetch & Validate Issue
@@ -150,12 +159,12 @@ fileprivate extension BackgroundDownloadService {
       downloadSession.waitForAvailability = true
       
       // MARK: - Start Issue Download
-      downloadSession.download(urlString: zipUrl, destPath: issue.dir.path, unzip: true)
+      downloadSession.download(urlString: zipUrl, destPath: issue.dir?.path ?? "", unzip: true)
       fetchResult = .newData
-      log("...downloading IssueData \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
+      log("...downloading IssueData \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir?.path ?? "")")
       
       let (downloadId, startTime) = try await feederContext.gqlFeeder
-        .markStartDownloadAsync(feed: feederContext.defaultFeed,
+        .markStartDownloadAsync(feed: feederContext.masterFeed1,
                                 issue: issue,
                                 isAutomatically: true,
                                 returnOnMain: false)
@@ -167,8 +176,8 @@ fileprivate extension BackgroundDownloadService {
       
       // MARK: - Optional Audio Download
       if autoloadAudio, let audioUrl = issue.zipAudioUrl {
-        downloadSession.download(urlString: audioUrl, destPath: issue.dir.path, unzip: true)
-        log("...downloading Audio \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir.path)")
+        downloadSession.download(urlString: audioUrl, destPath: issue.dir?.path ?? "", unzip: true)
+        log("...downloading Audio \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir?.path ?? "")")
       }
       
       // MARK: - Optional Resouces Download
@@ -186,7 +195,7 @@ fileprivate extension BackgroundDownloadService {
       /// Schedule background task to resume Download if Autodownload did not started
       scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 60))
       ///persist data to db
-      handlePendingTasks()
+      handlePendingTasks(in: feederContext.masterFeed1)
       ///push notification callback
       ///
       ///In case of app restart in celuar show user info to enable wlan for download
@@ -241,7 +250,7 @@ fileprivate extension BackgroundDownloadService {
     // MARK: fetch latest issue and publication Dates from server
     let response
     = try await feederContext.gqlFeeder
-      .latestIssueAndFeed(feed: feederContext.defaultFeed,
+      .latestIssueAndFeed(feed: feederContext.masterFeed1,
                           isPages: Defaults.autoloadPdfOrFacsimile,
                           withAudio: autoloadAudio,
                           latestKnownPublicationDate: lastLocalIssueDate,
@@ -306,10 +315,11 @@ fileprivate extension BackgroundDownloadService {
   }
   
   private func lastFromDatabase(for feederContext: FeederContext) throws -> Date? {
-    guard let feed = feederContext.defaultFeed else {
+    guard let feeder = feederContext.storedFeeder else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    return StoredIssue.lastComplete(feed: feed,
+    #warning("todo not this way")
+    return StoredIssue.lastComplete(feed: feeder.masterFeed as! StoredFeed,
                                      isPages: autoloadPdf,
                                      withAudio: autoloadAudio)?.date
   }
@@ -318,10 +328,10 @@ fileprivate extension BackgroundDownloadService {
   /// returns the date
   private func lastFromJsonFile(for feederContext: FeederContext) throws -> Date? {
     guard let issueDateKey = downloadDateKeys.max() else { return nil }
-    guard let feed = feederContext.defaultFeed else {
+    guard let feeder = feederContext.storedFeeder else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    let feedPath = feederContext.storedFeeder.feedDir(feed.name).path
+    let feedPath = feeder.feedDir(feeder.masterFeed.name).path
     let filePath = "\(feedPath)/\(issueDateKey)/\(BackgroundDownloadService.jsonDataFilename)"
     let file = File(filePath)
     guard file.exists else {
@@ -379,7 +389,8 @@ fileprivate extension GqlFeeder {
 fileprivate extension Issue {
   
   func createFolderStructureIfNeeded(for feederContext: FeederContext) {
-    self.dir.createGlobalLinksIfNeeded(feeder: feederContext.storedFeeder)
+    guard let dir = dir else { return }
+    dir.createGlobalLinksIfNeeded(feeder: feederContext.storedFeeder)
   }
   
   var zipAudioUrl: String? {

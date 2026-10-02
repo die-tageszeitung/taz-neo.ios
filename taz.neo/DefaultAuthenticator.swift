@@ -267,11 +267,6 @@ public class DefaultAuthenticator: Authenticator {
       return
     }
     
-    if self.feeder.isAuthenticated && TazAppEnvironment.sharedInstance.feederContext?.needsReInit() ?? false {
-      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
-      return
-    }
-    
     var authController:FormsController
     if self.feeder.isAuthenticated,
       let expiredDate = Defaults.expiredAccountDate {

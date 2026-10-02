@@ -23,5 +23,5 @@ public extension IssueInfo {
   /// The Downloader to get data from the Feeder
   var dloader: Downloader { feederContext.dloader }
   /// The Feed containing Issues
-  var feed: Feed { issue.feed }
+  var feed: Feed { feeder.masterFeed }
 }

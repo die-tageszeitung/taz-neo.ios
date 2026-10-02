@@ -63,7 +63,7 @@ struct BackgroundDownloadError: Error {
 public extension Issue {
   /// Full file path for the JSON data, combining the target directory and filename.
   var jsonFile: File {
-    File(dir: dir.path,
+    File(dir: dir?.path ?? "",
          fname: BackgroundDownloadService.jsonDataFilename)
   }
   

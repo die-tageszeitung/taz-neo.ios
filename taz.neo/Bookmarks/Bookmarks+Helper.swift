@@ -9,21 +9,6 @@
 import UIKit
 import NorthLib
 
-// MARK: - Bookmarks Helper
-extension Bookmarks {
-  func commonIssueDir(for issueDate: Date) -> Dir? {
-    guard let feeder = feederContext?.storedFeeder,
-    let feed = bookmarkIssue?.feed else { return nil }
-    return feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
-  }
-  
-  func commonIssueDir(fromSearchArticle searchArticle: SearchArticle) -> Dir? {
-    guard let issueDate = searchArticle.originalIssueDate else { return nil }
-    return commonIssueDir(for: issueDate)
-  }
- 
-}
-
 // MARK: - Bookmarks Static Helper
 extension Bookmarks {
   /// Downloads all audio files for a list of articles.
@@ -61,11 +46,12 @@ extension Bookmarks {
   static func lowresMomentImage(for article:Article?) -> UIImage? {
     guard let article = article,
           let issueDate = article.issueDate,
-          let feed = Self.shared.bookmarkIssue?.feed as? StoredFeed,
+          let feed = Self.shared.feederContext?.masterFeed1,
           let issue = StoredIssue.get(date: issueDate, inFeed: feed).first,
-          let image = issue.moment.lowres
+          let issueDir = issue.dir,
+          let image = issue.moment?.lowres
     else { return defaultMomentImage(for: article) }
-   return UIImage(contentsOfFile: "\(issue.dir.path)/\(image.name)")
+   return UIImage(contentsOfFile: "\(issueDir.path)/\(image.name)")
   }
   
   private static func defaultMomentImage(for article:Article?) -> UIImage? {

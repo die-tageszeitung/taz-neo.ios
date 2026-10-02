@@ -18,7 +18,7 @@ class TazAppEnvironment: NSObject, DoesLog {
   @Default("requestedSyncBookmarks")
   var requestedSyncBookmarks: Bool
   
-  fileprivate var backgroundDownloadingIssueDateKey: String?
+  fileprivate var lastBackgroundDownloadingIssueDateKey: String?
   
   class Spinner: UIViewController {
     #warning("Required? try to remove and test, handled in MainTabVc, but for startup?")
@@ -82,6 +82,8 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
   }
   
+  public static var masterFeed: StoredFeed? { sharedInstance.feederContext?.masterFeed1 }
+  public static var storedFeeder: StoredFeeder? { sharedInstance.feederContext?.storedFeeder }
   
   public static let sharedInstance = TazAppEnvironment()
   ///shared startup info
@@ -309,14 +311,14 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   func setupFeeder(isStartup: Bool = true) {
     let feeder = Defaults.currentFeeder
-    log("Connecting to feeder: \(feeder.name) feed: \(feeder.feed)")
+    log("Connecting to feeder: \(feeder.name)")
     Notification.receiveOnce("feederReady") { [weak self] notification in
       guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder.toString())
       if isStartup { self.startup() }
       else { self.showHome() }
       
-      if let sf = feederContext?.defaultFeed {
+      if let sf = feederContext?.masterFeed1 {
         let latestLocalIssue = StoredIssue.latest(feed: sf)
         if latestLocalIssue?.isComplete == false {
           BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue (\(latestLocalIssue?.date.short ?? "-")) is incompleete")
@@ -327,7 +329,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       }
       _ = Usage.shared//init usage, setup Tracking
     }
-    feederContext = FeederContext(name: feeder.name, url: feeder.url, feed: feeder.feed)
+    feederContext = FeederContext(name: feeder.name, url: feeder.url)
   }
   
   // Logs Keychain variables if in debug mode
@@ -682,19 +684,19 @@ extension TazAppEnvironment {
 // Issue Download Extension, to prevent multiple downloads from BackgroundDownload/Resume and User Interaction...
 extension TazAppEnvironment {
   static func setDownloadStart(_ issueDateKey: String){
-    guard sharedInstance.backgroundDownloadingIssueDateKey == nil
-            || issueDateKey > sharedInstance.backgroundDownloadingIssueDateKey ?? "999"
-    else { return }
-    sharedInstance.backgroundDownloadingIssueDateKey = issueDateKey
+    if let oldKey = sharedInstance.lastBackgroundDownloadingIssueDateKey {
+      Log.log("WARNING:: download started for: \(issueDateKey), but already downloading: \(oldKey)")
+    }
+    sharedInstance.lastBackgroundDownloadingIssueDateKey = issueDateKey
   }
   
   static func setDownloadDone(_ issueDateKey: String){
-    guard sharedInstance.backgroundDownloadingIssueDateKey == issueDateKey else { return }
-    sharedInstance.backgroundDownloadingIssueDateKey = nil
+    guard sharedInstance.lastBackgroundDownloadingIssueDateKey == issueDateKey else { return }
+    sharedInstance.lastBackgroundDownloadingIssueDateKey = nil
   }
   
   static func isDownloading(_ issueDateKey: String) -> Bool {
-    return sharedInstance.backgroundDownloadingIssueDateKey == issueDateKey
+    return sharedInstance.lastBackgroundDownloadingIssueDateKey == issueDateKey
   }
 }
 
@@ -710,8 +712,8 @@ extension TazAppEnvironment {
   
   func playLatestIssue(){
     guard let feederContext = feederContext,
-          feederContext.defaultFeed != nil,
-          let si = feederContext.getLatestStoredIssue() else {
+          feederContext.masterFeed1 != nil,
+          let si = feederContext.getLatestStoredIssue1() else {
       LocalNotifications.notifyOfflineListenNotPossible()
       return
     }
@@ -756,27 +758,28 @@ extension Defaults{
     }
   }
 
-  static var currentFeeder : (name: String, url: String, feed: String) {
+  static var currentFeeder : (name: String, url: String) {
     get {
       if Defaults.useTestServer {
-        return (name: "taz", url: "https://testdl.taz.de/appGraphQl", feed: FeedName.taz.rawValue)
+        return (name: "taz",
+                url: "https://testdl.taz.de/appGraphQl")
       }
       switch Defaults.singleton["currentServer"] {
         case Shortcuts.testServer.type:
-          return (name: "taz-test", url: "https://testdl.taz.de/appGraphQl",
-                  feed: FeedName.taz.rawValue)
+          return (name: "taz-test",
+                  url: "https://testdl.taz.de/appGraphQl")
         case Shortcuts.lmdServer.type:
-          return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl",
-                  feed: FeedName.LMd.rawValue)
+          return (name: "LMd",
+                  url: "https://dl.monde-diplomatique.de/appGraphQl")
         default:
-          return (name: "taz", url: "https://dl.taz.de/appGraphQl",
-                  feed: FeedName.taz.rawValue)
+          return (name: "taz",
+                  url: "https://dl.taz.de/appGraphQl")
       }
     }
   }
 #else
   static var currentFeeder : (name: String, url: String, feed: String) {
-    return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl", feed: "LMd")
+    return (name: "LMd", url: "https://dl.monde-diplomatique.de/appGraphQl")
   }
 #endif // TAZ
 }
@@ -959,5 +962,19 @@ extension UIDevice.BatteryState {
       case .full: return "full"
       @unknown default: return "unknown future state"
     }
+  }
+}
+
+extension Issue {
+  var masterIssueDir : Dir? {
+    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(issue: self)
+  }
+}
+
+extension Article {
+  var masterIssueDir : Dir? {
+    guard let issueDate = (self as? SearchArticle)?.originalIssueDate
+            ?? self.issueDate else { return nil }
+      return TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(date: issueDate)
   }
 }

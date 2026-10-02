@@ -161,8 +161,7 @@ class TestController: PageCollectionVC {
     }
     debug("Base directory: \(Dir.appSupportPath)")
     ArticleDB.dbRemove(name: "taz")
-    self.feederContext = FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl",
-                                       feed: "taz")
+    self.feederContext = FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl")
     Notification.receive("issueProgress") { notif in
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         print("issue progress: \(loaded)/\(total)")

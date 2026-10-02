@@ -897,7 +897,7 @@ fileprivate extension ArticleType {
 
 // MARK: ...Issue
 fileprivate extension Issue {
-  var trackingNamePathId: String { "/issue/\(self.feed.name)/\(self.date.ISO8601)" }
+  var trackingNamePathId: String { "/issue/\(TazAppEnvironment.masterFeed?.name ?? App.name)/\(self.date.ISO8601)" }
 }
 // MARK: ...URL
 extension URL {

@@ -246,7 +246,8 @@ class IssueOverviewService: NSObject, DoesLog {
     else if count >= 10 { count = 10 }//API Limit is currently 20
     var d = date
     var lds:[String] = []
-    for _ in 0...count*feederContext.defaultFeed.cycle.multiplicator {
+    
+    for _ in 0...count*feed.cycle.multiplicator {
       if loadingIssueData[d.issueKey] != nil { break }//prevent load same issue multiple times
       lds.append(d.issueKey)
       loadingIssueData[d.issueKey] = d
@@ -255,7 +256,7 @@ class IssueOverviewService: NSObject, DoesLog {
     
     if lds.count == 0 { return }//prevent multiple times enqueued same item
     
-    count = max(1, lds.count/feederContext.defaultFeed.cycle.multiplicator)//prevent load same issue multiple times
+    count = max(1, lds.count/feed.cycle.multiplicator)//prevent load same issue multiple times
     
     self.feederContext.gqlFeeder.issues(feed: feed,
                                         date: date,
@@ -286,6 +287,9 @@ class IssueOverviewService: NSObject, DoesLog {
           else {
             (issue as? GqlIssue)?.isOverview = true
             let sIssue = StoredIssue.persist(object: issue)
+            if let sFeeder = TazAppEnvironment.storedFeeder {
+              sIssue.applyFeeds(for: sFeeder)
+            }
             newIssues.append(sIssue)
           }
           loadedDates.append(issue.date)
@@ -321,8 +325,8 @@ class IssueOverviewService: NSObject, DoesLog {
     if isPdf, let f = issue.pageOneFacsimile {
       files = [f]
     }
-    else if !isPdf, issue.moment.carouselFiles.count > 0 {
-      files = issue.moment.carouselFiles
+    else if !isPdf, issue.moment?.carouselFiles.count ?? 0 > 0 {
+      files = issue.moment?.carouselFiles ?? []
     }
     var dlFiles: [FileEntry] = []
     self.debug(">>> scan dir \(dir.path)")
@@ -598,13 +602,14 @@ class IssueOverviewService: NSObject, DoesLog {
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    self.feed = feederContext.defaultFeed
+    self.feed = feederContext.storedFeeder.selectedFeed as! StoredFeed
     self.publicationDates = feed.publicationDates ?? []
     issues =
     (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     } ?? [:]
     super.init()
+    log(">>>...init IOService for feed: \(feed.name) iss#:\(issues.count) pb#: \(self.publicationDates.count)")
     self.ovwHelper.sender = self//required for notification send
     $isFacsimile.onChange {[weak self] _ in
       guard let mode = self?.isFacsimile.mode,
@@ -644,8 +649,20 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
-      self?.updateIssues()
+      guard let self else { return }
+      updateIssues()
     }
+    
+    Notification.receive(Const.NotificationNames.feedChange) {[weak self] _ in
+      guard let self else { return }
+      log(">>> Feed Change from \(feed.name) to \(feederContext.storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+      feed = feederContext.storedFeeder.selectedFeed as! StoredFeed
+      publicationDates = feed.publicationDates ?? []
+      updateIssues()
+      log(">>>..now iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+      Notification.send(Const.NotificationNames.refreshOverview)
+    }
+    
     self.ovwHelper.onTimer{ [weak self] in
       if UIApplication.shared.applicationState != .active { return }
       self?.loadMissingItems()
@@ -699,7 +716,8 @@ extension IssueOverviewService {
       let file = File(fn)
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
-      let name = "\(issue.feed.name)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
+      let feedName = TazAppEnvironment.sharedInstance.feederContext?.feedName ?? App.name
+      let name = "\(feedName)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
       let img = UIImage(data: file.data)
       dialogue.present(item: file.url,
                        view: sourceView,
@@ -974,11 +992,12 @@ extension Issue {
     let hasLastRead = hasLastReadForCurrentMode
     // Only notify if the last read state actually changed (from no last read to having one, or vice versa)
     guard hadLastRead != hasLastRead else { return }
+    guard let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 else { return }
     
     guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
     
     let isPdf = TazAppEnvironment.sharedInstance.service?.isFacsimile ?? false
-    let image = self.feed.feeder.momentImage(issue: self,
+    let image = feed.feeder.momentImage(issue: self,
                                              isPdf: isPdf,
                                              usePdfAlternative: false)
     
@@ -998,4 +1017,19 @@ extension Content {
   var isSection: Bool { self is Section }
 }
 
+extension StoredFeeder {
+  var selectableFeeds: [Feed] {
+    feeds.filter { $0.feedId >= 20 && $0.feedId <= 23 }
+         .sorted { $0.feedId < $1.feedId }
+  }
+}
 
+extension Feed {
+  var displayName: String {
+    switch name {
+        case "taz-weekly": return "wochentaz"
+        case "taz-LMd": return "le monde diplomatique"
+        default : return name
+    }
+  }
+}

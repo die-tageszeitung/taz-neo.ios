@@ -193,7 +193,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     }
     return delegate.issue
   }
-  public var feed: Feed { issue.feed }
+//  public var feed: Feed? { TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 }
   public var dloader: Downloader { delegate.dloader }
   ///optional slider configured by SectionVC, PDF but not by Search/Bookmarks
   var slider:MyButtonSlider?
@@ -970,9 +970,9 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
             || selfSafeIssue.isBookmarkIssue == true {
           guard let baseUrl = curl.content.baseURL,
                 let issueDate = curl.content.issueDate,
-                let storedFeeder = self?.feederContext.storedFeeder,
-                let issueDir = Bookmarks.shared.commonIssueDir(for: issueDate)
+                let storedFeeder = self?.feederContext.storedFeeder
           else { return }
+          let issueDir = storedFeeder.issueDir(date: issueDate)
           issueDir.createGlobalLinksIfNeeded(feeder: storedFeeder)
           self?.dloader.downloadSearchHitFiles(files: curl.content.files,
                                               baseUrl: baseUrl,

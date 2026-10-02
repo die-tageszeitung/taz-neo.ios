@@ -17,8 +17,13 @@ extension BackgroundDownloadService {
       self?.backgroundSession.resume(archived: false, priority: 1.0)
     }
     if tempStorage.hasActiveDownloads {
+      #warning("check if recieve feeder ready required!")
+      //otherwise ...
       log("BDL App entered foreground, execute pending tasks...")
-      handlePendingTasks()
+      if let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 {
+        handlePendingTasks(in: feed)
+      }
+      
     }
   }
 }

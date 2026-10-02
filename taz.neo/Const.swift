@@ -48,6 +48,7 @@ public struct Const {
     static let checkForNewIssues = "NotificationName.checkForNewIssues"
     static let publicationDatesChanged = "NotificationName.publicationDatesChanged"
     static let feederReachable = "NotificationName.feederReachable"
+    static let feedChange = "NotificationName.feedChange"
     static let feederUnreachable = "NotificationName.feederUnreachable"
     static let feederUpdateDone = "NotificationName.feederUpdateDone"
     static let issueUpdate = "NotificationName.issueUpdate"

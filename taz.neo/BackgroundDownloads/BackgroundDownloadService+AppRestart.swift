@@ -53,7 +53,7 @@ extension BackgroundDownloadService {
         notifyHome(skipDownloadNoWlan ? .autoloadErrorNoWlan : .loadIssue)
         do {
           let feed = try await loadFeedFromJsonFile(feederContext: feederContext,
-                                                    feedName: feederContext.defaultFeed.name,
+                                                    feedName: feederContext.masterFeed1.name,
                                                     issueDateKey: issueDateKey)
           guard let issue = feed.issues?.first else {
             throw BackgroundDownloadError("No Issue found!")
@@ -91,7 +91,7 @@ extension BackgroundDownloadService {
         }
       }
       let openDl = backgroundSession.hasOpenDownloads ///issue, audio and resources downloads
-      handlePendingTasks()
+      handlePendingTasks(in: feederContext.masterFeed1)
       if skipDownloadNoWlan { return }
       notifyHome(openDl ? .loadIssue : feederContext.isConnected ? .online : .offline)
       if openDl { backgroundSession.resume(archived: true, priority: 1.0)}

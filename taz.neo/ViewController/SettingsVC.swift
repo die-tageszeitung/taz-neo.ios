@@ -535,12 +535,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   isDestructive: true,
                   tapHandler: {[weak self] in
     Dir.searchResults.remove()
-    Dir.tomsDir.remove()
+    #warning("TODO: Test! remove tom dir is not part of the function name!")
+//    Dir.tomsDir.remove()
     guard let fc = TazAppEnvironment.sharedInstance.feederContext,
-          let feed = fc.defaultFeed else { return }
-    let feedDir = fc.storedFeeder.feedDir(feed.name)
-    self?.log("remove: \(feedDir.path)")
-    feedDir.remove()
+          let feeder = fc.storedFeeder else { return }
+    #warning("TODO: Test! remove feed dir is not part of the function name!")
+//    let feedDir = feeder.feedDir(feeder.masterFeed.name)
+//    self?.log("remove: \(feedDir.path)")
+//    feedDir.remove()
     
   })
   
@@ -1198,17 +1200,17 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
                                          handler:  { [weak self] _ in
       guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-            let storedFeeder = feederContext.storedFeeder,
-            let storedFeed = storedFeeder.storedFeeds.first(where: {$0.name == feederContext.feedName})  else {
-        /// CR-Feeds: Warning: delete all issues need to be fixed for multiple feeds
+            feederContext.storedFeeder != nil else {
         return
       }
+      
       if isDownloading {
         TazAppEnvironment.sharedInstance.feederContext?.stopDownloadsAndResetDownloader()
       }
+      
       Notification.send(Const.NotificationNames.closeOpenIssues)
       TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
-      StoredIssue.deleteAllIssues(feed: storedFeed)
+      StoredIssue.deleteAllIssues(feed: feederContext.masterFeed1)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails

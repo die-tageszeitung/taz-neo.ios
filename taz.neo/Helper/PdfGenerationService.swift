@@ -63,7 +63,6 @@ class PdfGenerationService: DoesLog {
       }
       await downloadSearchArticleFiles(downloader: downloader, files: filesToDownload, baseUrl: baseUrl)
     } else if let issue = article.primaryIssue{
-      
       await downloadIssueFiles(downloader: downloader, files: filesToDownload, issue: issue)
     }
   }

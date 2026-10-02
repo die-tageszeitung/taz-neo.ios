@@ -20,7 +20,7 @@ public class VirtualIssue: Issue {
   public var validityDate: Date?
   public var moTime: Date
   public var isWeekend: Bool { false }
-  public var moment: Moment { DummyMoment() }
+  public var moment: Moment? { nil }
   public var key: String? { nil }
   public var baseUrl: String { "" }
   public var status: IssueStatus { .unknown }

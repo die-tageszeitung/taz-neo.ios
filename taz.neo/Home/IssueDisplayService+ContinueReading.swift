@@ -223,7 +223,7 @@ extension IssueDisplayService {
     
     if let art = atArticle {
       vc.openArticle(name: art.html?.name,
-                     path: issue.dir.path,
+                     path: issue.dir?.path,
                      reopenArticleScrollPos: CGFloat(atArticleScrollPos ?? 0.0))
     }
   }

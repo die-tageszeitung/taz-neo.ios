@@ -80,7 +80,7 @@ public class Bookmarks: DoesLog {
   private func setup(){
     ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
     guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-          let feed = feederContext.defaultFeed else {
+          feederContext.storedFeeder != nil else {
       return
     }
     
@@ -89,7 +89,7 @@ public class Bookmarks: DoesLog {
     /// - no bookmark can be set: OK
     /// - no bookmark can be fetch from Database, list is empty: OK
     self.feederContext = feederContext
-    let bookmarkIssue = self.loadOrCreateBookmarkIssue(in: feed)
+    let bookmarkIssue = self.loadOrCreateBookmarkIssue(in: feederContext.masterFeed1)
     self.bookmarkIssue = bookmarkIssue
     ///as long as default bookmarkSection is unset bookmarks did not work;
     self.bookmarkSection
@@ -245,8 +245,8 @@ extension Bookmarks {
     }
     
     
-    guard let issueDir = commonIssueDir(fromSearchArticle: searchArticle) else {
-      error("something went wrong, did not found commonIssueDir for: \(article)")
+    guard let issueDir = searchArticle.masterIssueDir else {
+      error("something went wrong, did not found dir for: \(article)")
       return nil
     }
     guard let feeder = feederContext?.storedFeeder else {

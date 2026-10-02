@@ -74,8 +74,7 @@ extension Bookmarks {
       storedArticle.baseURL = articleWrapper.baseUrl
       
       ///2 options: either write file OR download file(s)
-      guard let issueDate = storedArticle.issueDate,
-            let targetDir = commonIssueDir(for: issueDate) else { continue }
+      guard let targetDir = storedArticle.masterIssueDir else { continue }
       
       let subdir = String(targetDir.path.dropFirst(Database.appDir.count + 1))
       for case let f as StoredFileEntry in storedArticle.files {

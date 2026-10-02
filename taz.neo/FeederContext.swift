@@ -74,16 +74,19 @@ open class FeederContext: DoesLog {
   public var openedIssue: Issue? {
     didSet {
       if let openedIssue = openedIssue,
-         openedIssue.date.issueKey == getLatestStoredIssue()?.date.issueKey {
+         openedIssue.date.issueKey == getLatestStoredIssue1()?.date.issueKey {
         UIApplication.shared.applicationIconBadgeNumber = 0
       }
     }
   }
+  
+  var selectedFeedName:String { storedFeeder.selectedFeed.name }
+  var feedName:String { masterFeed1.name }
 
-  /// Name (title) of Feeder
+  /// Name (title) of Feeder, base Dir in 
   public var name: String
   /// Name of default Feed to show
-  public var feedName: String
+//  public var feedName: String
   /// URL of Feeder (as String)
   public var url: String
   /// Authenticator object
@@ -105,17 +108,13 @@ open class FeederContext: DoesLog {
     }
   }
   /// The stored Feeder (from DB)
-  public private(set) var storedFeeder: StoredFeeder!
-  
-  /// The default Feed to show
-  public var defaultFeed: StoredFeed! {
+  public private(set) var storedFeeder: StoredFeeder! {
     didSet {
-      if let feed = defaultFeed {
-        BackgroundDownloadService.shared.updateFeed(feed)
-        handleSoftDataUpdatesIfNeeded(feed:feed)
-      }
+      log("storedFeeder set")
     }
   }
+  
+  public var masterFeed1: StoredFeed { storedFeeder.masterFeed as! StoredFeed }
   
   /// The Downloader to use
   public var dloader: Downloader! {
@@ -169,9 +168,14 @@ open class FeederContext: DoesLog {
   @Default("specialArticleSystemSetting")
   var specialArticleSystemSetting: Bool
   
-  var latestPublicationDate:Date? {
-    guard defaultFeed != nil else { return nil }
-    return defaultFeed.lastIssue
+  var latestPublicationDateForMasterFeed:Date? {
+    guard storedFeeder != nil else { return nil }
+    return masterFeed1.lastIssue
+  }
+  
+  var latestPublicationDateForSelectedFeed:Date? {
+    guard storedFeeder != nil else { return nil }
+    return storedFeeder.selectedFeed.lastIssue
   }
   ///Shortcut
   var isConnected: Bool { netAvailability.isConnected }
@@ -198,15 +202,6 @@ open class FeederContext: DoesLog {
   /// Are we authenticated with the server?
   public var isAuthenticated: Bool { gqlFeeder.isAuthenticated }
 
-  /// Do we need reinitialization?
-  func needsReInit() -> Bool {
-    if let storedFeeder = self.storedFeeder,
-       let sfeed = storedFeeder.feeds.first(where: {$0.name == self.feedName}),
-       let gfeed = gqlFeeder.feeds.first(where: {$0.name == self.feedName}) {
-      return !(sfeed.cycle == gfeed.cycle)
-    }
-    return false
-  }
   
   //CHALLANGE
   /// init - update just call update once even if initial init
@@ -226,10 +221,11 @@ open class FeederContext: DoesLog {
       self?.log("applicationWillResignActive: \(UIApplication.shared.stateDescription)")
     }
     
-    let needUpdate = self.storedFeeder == nil
+    var needUpdate = self.storedFeeder == nil
+    var loadAllFeeds = false
     
     if needUpdate {
-      self.storedFeeder = StoredFeeder.get(name: self.name).first
+      storedFeeder = StoredFeeder.get(name: self.name).first
     }
 
     ///Handle initial App Start
@@ -242,19 +238,35 @@ open class FeederContext: DoesLog {
         ///No feeder update possible if offline
         return
       }
+      
       log("No stored Feeder found, update Feeder caLLED FROM INIT")
-      updateFeeder(feedName: feedName)
+      updateFeeder()
       return
     }
+    else if storedFeeder.pr.feeds?.count == 1,
+       let oldMasterPersistentFeed
+        = storedFeeder.pr.feeds?.allObjects.first as? PersistentFeed,
+       (oldMasterPersistentFeed.type == "publication"
+        || oldMasterPersistentFeed.type == FeedType.unknown.rawValue){
+      ///Migrate some properties to multi Feed
+      oldMasterPersistentFeed.type = "isMaster"
+      needUpdate = true
+      loadAllFeeds = true
+    }
+    
+
     
     let loadAll = needLoadAllPublicationDates()
-    defaultFeed = StoredFeed.get(name: feedName, inFeeder: storedFeeder).first
-    //Alternative: defaultFeed = storedFeeder.feeds.first as? StoredFeed
     notify("feederReady")
     cleanupOldIssues(deleteOlder: true)//requires inited bookmarks
     checkAppUpdate()
     if needUpdate {
-      updateFeeder(loadAllPublicationDates: loadAll, feedName: feedName)
+      updateFeeder(loadAllPublicationDates: loadAll, loadAllFeeds: loadAllFeeds)
+    }
+    
+    if let masterFeed = storedFeeder.masterFeed as? StoredFeed {
+      BackgroundDownloadService.shared.updateFeed(masterFeed)
+      handleSoftDataUpdatesIfNeeded(feed:masterFeed)
     }
     onMainAfter(2.0){[weak self] in  self?.handleUnfinshedDownloads() }
   }
@@ -270,13 +282,14 @@ open class FeederContext: DoesLog {
       self.notifyNetStatus(isConnected: netAvailability.isConnected)
     }
     else {
-        updateFeeder(feedName: feedName)
+        updateFeeder()
     }
   }
 #warning("maybe do not use this in BG Download Stuff!!!")
-  private func updateFeeder(loadAllPublicationDates:Bool = false, feedName: String){
+  //if no feed to load given, load all feeds
+  private func updateFeeder(loadAllPublicationDates:Bool = false, loadAllFeeds:Bool = false){
     if loadAllPublicationDates == false && gqlFeeder.isUpdating {
-      debug("...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
+      debug(">>>...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
       return
     }
     
@@ -285,14 +298,16 @@ open class FeederContext: DoesLog {
       log("got a bg SESSION!?")
       log("########################### W A R N I N G #######################")
     }
+    ///LOad all or just given feed?
+    let fName = storedFeeder == nil ? nil : loadAllFeeds ? nil : selectedFeedName
     
-    
-    log("...updateFeeder called, loadAllPublicationDates: \(loadAllPublicationDates) is backgroundFeeder? \(gqlFeeder.gqlSession?.isBackground)")
+    log(">>> ...updateFeeder called, load: \(fName == nil ? "all Feeds" : "\(fName!) Feed "))loadAllPublicationDates: \(loadAllPublicationDates) is backgroundFeeder? \(gqlFeeder.gqlSession?.isBackground)")
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
                       sender: self)
-    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates, feedName: feedName) {
+    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates,
+                           feedName: fName) {
       [weak self] res in
       guard let self = self else { return }
       let needInit = self.storedFeeder == nil
@@ -303,10 +318,29 @@ open class FeederContext: DoesLog {
           ///remember old data due on set storedFeeder  old reference is overwritten
           let publicationDatesChanged
           = self.storedFeeder != nil
-          && self.gqlFeeder?.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count != 1
-          && self.storedFeeder.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count
-          != self.gqlFeeder?.feeds.first(where: {$0.name == self.feedName})?.publicationDates?.count
+          && self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count != 1
+          && self.storedFeeder.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count
+          != self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count
+          
+//          for gqlFeed in self.gqlFeeder.feeds {
+//            
+//            die updatefunktion macht mir zu schaffen
+//            ....nee müsste trivial sein und sich selbst auflösen!?
+//            for issueDate
+//          }
+          let currentFeedCount = self.storedFeeder.feeds.count
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+          let newFeedsAvailable = self.storedFeeder.feeds.count > currentFeedCount
+//          for issue in self.storedFeeder
+          
+          if newFeedsAvailable {
+            #warning("only update status for new feeds!")
+            ///this is working but slow!
+            ///danach möchte ich noch die neueste issue pro feed laden
+            updateFeeder(loadAllPublicationDates: true, loadAllFeeds: true)
+            return
+          }
+          
           if publicationDatesChanged {
             ArticleDB.save()
             log("...publication dates changed, inform UI (if not in background mode)")
@@ -354,51 +388,111 @@ open class FeederContext: DoesLog {
     }
   }
   
+  /// Returns all feeds whose publicationDates need to be loaded or updated.
+  /// An empty array means that all feeds have complete publicationDates.
+  func feedsToNeedLoadAllPublicationDates() -> [Feed] {
+      guard let storedFeeder = storedFeeder else {
+          log("storedFeeder not initialized yet!")
+          return []
+      }
+
+      guard !storedFeeder.feeds.isEmpty else {
+          log("no local feeds available => load them")
+          return []
+      }
+
+      var feedsToLoad: [Feed] = []
+
+      for feed in storedFeeder.feeds {
+          let pubDates = feed.publicationDates ?? []
+
+          // No publicationDates available: load all dates for this feed.
+          if pubDates.isEmpty {
+              log("no publicationDates for feed: \(feed.name) available => load them")
+              feedsToLoad.append(feed)
+              continue
+          }
+
+          // Check whether the locally stored dates cover the feed's date range.
+          let first = (pubDates.last?.date.ISO8601 ?? "1980-01-01") == feed.firstIssue.ISO8601
+          let last = (pubDates.first?.date.ISO8601 ?? "1980-01-01") >= feed.lastIssue.ISO8601
+          let count = pubDates.count >= feed.issueCnt
+
+          if pubDates.count != feed.issueCnt {
+              // TODO: Keep an eye on this — shouldn't cause issues.
+              log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
+          }
+
+          // All checks passed: this feed doesn't need an update.
+          if first && last && count {
+              debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
+              continue
+          }
+
+          // At least one check failed: reload publicationDates for this feed.
+          let logString = """
+              Missing some issues: Match pubDates data == feed data
+                firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
+                lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") >= \(feed.lastIssue.short)
+                count (\(count)): \(pubDates.count) >= \(feed.issueCnt)
+          """
+          log(logString)
+          log("Update all publication Dates")
+
+          feedsToLoad.append(feed)
+      }
+
+      return feedsToLoad
+  }
+  
+  ///empty array means load all feeds publicationDates
+//  func feedsToNeedLoadAllPublicationDates() -> [Feed]{<= new
   func needLoadAllPublicationDates() -> Bool{
     guard let storedFeeder = storedFeeder else {
       log("storedFeeder not initialized yet!")
       return true
     }
-    guard let feed = storedFeeder.feeds.first(where: {$0.name == self.feedName}) else {
-      log("No Stored Feed => load all Publication Dates... for feed: \(self.feedName)")
-      return true
-    }
-    guard let pubDates = feed.publicationDates else {
-      log("No Publication Dates => load all Publication Dates... for feed: \(feed.name)")
+    
+    guard storedFeeder.feeds.count > 0 else {
+      log("no local feeds available => load them")
       return true
     }
     
-    let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
-    let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
-    let count = pubDates.count >= feed.issueCnt
-    
-    if first && last && count {
-      log("All data matching, no new issue or missing old issue")
-      return false
+    for feed in storedFeeder.feeds {
+      let pubDates = feed.publicationDates ?? []
+      if pubDates.count == 0 {
+        log("no publicationDates for feed: \(feed.name) available => load them")
+        return true
+      }
+      let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
+      let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
+      let count = pubDates.count >= feed.issueCnt
+      if pubDates.count != feed.issueCnt {
+        // TODO: Keep an eye on this — shouldn't cause issues.
+        log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
+      }
+      if first && last && count {
+        debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
+        continue
+      }
+      let logString = """
+          Missing some issues: Match pubDates data == feed data
+            firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
+            lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") == \(feed.lastIssue.short)
+            count (\(count)): \(pubDates.count) == \(feed.issueCnt)
+      """
+      log(logString)
+      log("Update all publication Dates")
+      return true
     }
-    
-    if pubDates.count != feed.issueCnt {
-      // TODO: Keep an eye on this — shouldn't cause issues.
-      log("⚠️ WARNING ⚠️")
-    }
-    
-    let logString = """
-        Missing some issues: Match pubDates data == feed data
-          firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
-          lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") == \(feed.lastIssue.short)
-          count (\(count)): \(pubDates.count) == \(feed.issueCnt)
-    """
-    
-    log(logString)
-    log("Update all publication Dates")
-    return true
+    return false
   }
   
   private func netStatusChanged(isConnected:Bool){
     log("NET STATUS CHANGED isConnected: \(isConnected)")
     if isConnected,
        BackgroundDownloadService.shared.executeScheduledCheckIfNeeded() == false {
-      updateFeeder(feedName: feedName)
+      updateFeeder()
     }
     notifyNetStatus(isConnected: isConnected)
   }
@@ -469,11 +563,12 @@ open class FeederContext: DoesLog {
     
   /// init sends a "feederReady" Notification when the feeder context has
   /// been set up
-  public init?(name: String, url: String, feed feedName: String) {
+  /// name is used for Databasename eg. "App..Support/database/taz.sqlite" in AppSupport Folder/Database
+  /// name is used  root folder for data in "App..Support/taz/..."
+  public init?(name: String, url: String) {
     if URL(string: url)?.host == nil { return nil }
     self.name = name
     self.url = url
-    self.feedName = feedName
     self.netAvailability = ExtendedNetAvailability(url: url)
     
     self.netAvailability.onChange{[weak self] connected in self?.netStatusChanged(isConnected:connected)
@@ -498,7 +593,7 @@ open class FeederContext: DoesLog {
     }
     else {
       log("Enter Foreground, updateFeeder")
-      updateFeeder(feedName: feedName)
+      updateFeeder()
     }
     BackgroundDownloadService.shared.handleEnterForeground()
   }
@@ -543,12 +638,12 @@ open class FeederContext: DoesLog {
     }
   }
   
-  public func getLatestStoredIssue() -> StoredIssue? {
-    guard defaultFeed != nil else {
+  public func getLatestStoredIssue1() -> StoredIssue? {
+    guard masterFeed1 != nil else {
       error("Stored Feed not found");
       return nil
     }
-    return StoredIssue.issuesInFeed(feed: defaultFeed, count: 1).first
+    return StoredIssue.issuesInFeed(feed: masterFeed1, count: 1).first
   }
   
   /// Returns true if the Issue needs to be updated
@@ -612,3 +707,21 @@ open class FeederContext: DoesLog {
     ArticleDB.save()
   }
 } // eof FeederContext
+
+extension Issue {
+  /// directory where all issue specific data is stored
+  var dir: Dir? {
+    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(issue: self)
+  }
+  
+  func createGlobalLinksIfNeeded(){
+    guard let dir else {
+      Log.error("dir not available")
+      return
+    }
+    guard let feeder = TazAppEnvironment.storedFeeder else {
+      Log.error("feeder not available")
+      return }
+    dir.createGlobalLinksIfNeeded(feeder: feeder)
+  }
+}

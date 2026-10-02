@@ -376,7 +376,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.slider?.close()
       self.childArticleVC.slider?.close()
       if let art {
-        openArticle(name: art.html?.name, path: issue.dir.path, reopenArticleScrollPos: nil)
+        openArticle(name: art.html?.name, path: issue.dir?.path ?? "", reopenArticleScrollPos: nil)
         return
       }
       guard let newIndex = pdfModel?.currentPage else { return }

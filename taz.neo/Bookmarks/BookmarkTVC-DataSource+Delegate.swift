@@ -70,9 +70,8 @@ extension BookmarkTVC: UITableViewDataSource {
 extension Article {
   ///Only use here it uses bookmarkFeed!
   fileprivate var validityDateText: String? {
-    let feed = Bookmarks.shared.bookmarkIssue?.feed as? StoredFeed
     var validityDate:Date?
-    if let feed = feed,
+    if let feed = TazAppEnvironment.storedFeeder?.selectedFeed as? StoredFeed,
        let issueDate = self.issueDate {
       ///remove the StoredIssue.get to see "more" missing publicationDates Bugs in Bookmarks
       validityDate

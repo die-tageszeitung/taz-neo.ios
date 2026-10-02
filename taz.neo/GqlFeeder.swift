@@ -296,8 +296,12 @@ class GqlArticle: Article, GQLObject {
     get { realPrimaryIssue } 
     set { realPrimaryIssue = (newValue as! GqlIssue) }
   }
-  /// server id
+  /// Server-provided article ID
+  /// The only verified ID in the archive
   var contentId: Int64?
+  /// MediaSync ID originating from InterRed
+  /// Intended to be unique, but may contain inconsistencies
+  var serverId: Int64?
   /// File storing article HTML
   var articleHtml: GqlFile
   var html: FileEntry? { return articleHtml }
@@ -324,7 +328,6 @@ class GqlArticle: Article, GQLObject {
   /// List of authors
   var authorList: [GqlAuthor]?
   var authors: [Author]? { return authorList }
-  var serverId: Int64?
   var readingDuration: Int?
 
   static var fields = """
@@ -473,9 +476,7 @@ class GqlMoment: Moment, GQLObject {
 
 ///
 class GqlPublicationDate: PublicationDate, GQLObject {
-  
-  var feed: Feed?
-  
+  var feeds: [any Feed]
   var sDate: String
   var date: Date {
       return UsTime(iso: sDate, tz: GqlFeeder.tz).date
@@ -485,7 +486,7 @@ class GqlPublicationDate: PublicationDate, GQLObject {
   static func fields(loadAllPublicationDates: Bool = false) -> String {      
     var startArg = ""
     if loadAllPublicationDates == false,
-        let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+        let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDateForSelectedFeed {
       startArg = """
                  (start:"\(last.isoDate(tz: GqlFeeder.tz))")
                  """
@@ -508,14 +509,15 @@ class GqlPublicationDate: PublicationDate, GQLObject {
     return "date: \(date.short) - \(vd.short)"
   }
   
-  required init(from sDate: String, feed: Feed) {
+  required init(from sDate: String) {
     self.sDate = sDate
-    self.feed = feed
+    self.feeds = []
   }
   
   required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
+    self.feeds = []
   }
   
 }// GqlPublicationDate
@@ -537,7 +539,7 @@ class GqlValidityDate: GQLObject {
       return ""
     }
     var startArg = ""
-    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDate {
+    if let last = TazAppEnvironment.sharedInstance.feederContext?.latestPublicationDateForSelectedFeed {
       startArg = """
                  (start:"\(last.isoDate(tz: GqlFeeder.tz))")
                  """
@@ -571,9 +573,9 @@ class GqlValidityDate: GQLObject {
 
 /// One Issue of a Feed
 class GqlIssue: Issue, GQLObject {
-  var realFeed: Feed?
+  var masterFeed: Feed?
   /// The Feed containing this Issue
-  var feed: Feed { get { realFeed! } set { realFeed = newValue } }
+  var feed: Feed { get { masterFeed! } set { masterFeed = newValue } }
   /// Issue date
   var sDate: String 
   var date: Date { return UsTime(iso: sDate, tz: GqlFeeder.tz).date }
@@ -595,7 +597,7 @@ class GqlIssue: Issue, GQLObject {
   var sIsWeekend: Bool?
   /// Issue defining images
   var gqlMoment: GqlMoment
-  var moment: Moment { return gqlMoment }
+  var moment: Moment? { return gqlMoment }
   /// persistent Issue key
   var key: String?
   /// Base URL of all files of this Issue
@@ -677,6 +679,7 @@ class GqlIssue: Issue, GQLObject {
   }
 
   required init(from decoder: Decoder) throws {
+    masterFeed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
     sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)
@@ -755,6 +758,10 @@ class GqlFeed: Feed, GQLObject {
   var gqlFeeder: GqlFeeder!
   /// The Feeder offering this Feed
   var feeder: Feeder { gqlFeeder }
+  /// Type of Feed e.g. master, podcast
+  var type: FeedType
+  /// Server ID of the feed
+  var feedId: Int
   /// Name of Feed
   var name: String
   /// Publication cycle
@@ -780,7 +787,7 @@ class GqlFeed: Feed, GQLObject {
   var publicationDates: [PublicationDate]?
 
   enum CodingKeys: String, CodingKey {
-    case name, cycle, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlIssueVersions, gqlValidityDates, gqlPublicationDates
+    case name, cycle, feedType, feedId, momentRatio, issueCnt, sLastIssue, sFirstIssue, sFirstSearchableIssue, gqlIssues, gqlIssueVersions, gqlValidityDates, gqlPublicationDates
   }
 
   required init(from decoder: Decoder) throws {
@@ -789,11 +796,14 @@ class GqlFeed: Feed, GQLObject {
     cycle = try container.decode(PublicationCycle.self, forKey: .cycle)
     momentRatio = try container.decode(Float.self, forKey: .momentRatio)
     issueCnt = try container.decode(Int.self, forKey: .issueCnt)
+    feedId = try container.decode(Int.self, forKey: .feedId)
     sLastIssue = try container.decode(String.self, forKey: .sLastIssue)
     sFirstIssue = try container.decode(String.self, forKey: .sFirstIssue)
     sFirstSearchableIssue = try container.decode(String.self, forKey: .sFirstSearchableIssue)
     gqlIssues = try container.decodeIfPresent([GqlIssue].self, forKey: .gqlIssues)
     gqlIssueVersions = try container.decodeIfPresent([GqlIssueVersion].self, forKey: .gqlIssueVersions)
+    type = try container.decode(FeedType.self, forKey: .feedType)
+
     
     ///Encode gqlPublicationDates and gqlValidityDates and generate PublicationDates for persist in DB
     let gqlPublicationDates
@@ -803,7 +813,7 @@ class GqlFeed: Feed, GQLObject {
     publicationDates = []
     
     for gpd in gqlPublicationDates ?? [] {
-      let pd = GqlPublicationDate(from: gpd, feed: self)
+      let pd = GqlPublicationDate(from: gpd)
       if let gvd = gqlValidityDates?.first(where: { $0.sDate == gpd }){
         pd.validityDate = gvd.validityDate
       }
@@ -815,6 +825,8 @@ class GqlFeed: Feed, GQLObject {
   static func fields(loadAllPublicationDates: Bool = false) -> String {
         return """
           name cycle momentRatio issueCnt
+          feedId: id
+          feedType: type
           sLastIssue: issueMaxDate
           sFirstIssue: issueMinDate
           sFirstSearchableIssue: issueMinSearchDate
@@ -829,6 +841,8 @@ class GqlFeed: Feed, GQLObject {
     }
         return """
           name cycle momentRatio issueCnt
+          feedId: id
+          feedType: type
           sLastIssue: issueMaxDate
           sFirstIssue: issueMinDate
           sFirstSearchableIssue: issueMinSearchDate
@@ -892,7 +906,7 @@ class GqlFeederStatus: GQLObject {
     fatalError("Do not use this without default name!")
     //Self.fields(feedName: "taz")
   }
-  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil, feedName: String) -> String {
+  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil, feedName: String?) -> String {
     
     var feedFields = ""
     if let pubDate = latestKnownPublicationDate {
@@ -901,6 +915,21 @@ class GqlFeederStatus: GQLObject {
     else {
       feedFields = GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)
     }
+    
+    guard let feedName else {
+      return """
+      authInfo{\(GqlAuthInfo.fields)}
+      resourceVersion
+      resourceBaseUrl
+      resourceZipName: resourceZip,
+      globalBaseUrl
+      feeds: feedList { 
+        \(feedFields)
+        gqlIssueVersions: issueList(limit: 2){\(GqlIssueVersion.fields)}
+      }
+    """
+    }
+    
     return """
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
@@ -930,6 +959,10 @@ class GqlFeederStatus: GQLObject {
   }  
 } // GqlFeederStatus
 
+public extension Feeder {
+  var masterFeed: Feed { TazAppEnvironment.masterFeed! }
+}
+
 /**
  The GqlFeeder implements the Feeder protocol to manage the communication
  with a Feeder providing data feeds (publications).
@@ -938,7 +971,6 @@ class GqlFeederStatus: GQLObject {
  operations with the taz/lmd GraphQL server.
  */
 open class GqlFeeder: Feeder, DoesLog {
-  
   public private(set) var isUpdating:Bool = false
 
   /// Time zone Feeder lives in ;-(
@@ -1035,8 +1067,8 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   //ToDo: Ensure this is just done once not on every net status Change
-  public func updateStatus(loadAllPublicationDates:Bool = false, feedName: String, closure: @escaping(Result<Feeder,Error>)->()){
-    log("updateStatus loadAllPublicationDates:\(loadAllPublicationDates)")
+  public func updateStatus(loadAllPublicationDates:Bool = false, feedName: String?, closure: @escaping(Result<Feeder,Error>)->()){
+    log(">>> updateStatus loadAllPublicationDates:\(loadAllPublicationDates) for: \(feedName)")
     isUpdating = true
     let wasAuthenticated: Bool = authToken != nil
     feederStatus(loadAllPublicationDates:loadAllPublicationDates, feedName: feedName) { [weak self] (res) in
@@ -1241,7 +1273,7 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(loadAllPublicationDates:Bool = false, feedName: String, closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+  func feederStatus(loadAllPublicationDates:Bool = false, feedName: String?, closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
@@ -1410,7 +1442,6 @@ open class GqlFeeder: Feeder, DoesLog {
           }
           if let issues = frqResponse.feeds.first(where: {$0.name == feed.name})?.issues, issues.count > 0 {
             for issue in issues {
-              issue.feed = feed
               if isOverview {
                 (issue as? GqlIssue)?.isOverview = true
               }
@@ -1473,7 +1504,6 @@ open class GqlFeeder: Feeder, DoesLog {
           if let feedResponse = frqResponse.feeds.first(where: {$0.name == feed.name}) {
             feedResponse.gqlFeeder = self
             for issue in feedResponse.issues ?? [] {
-              issue.feed = feed
               if isOverview { (issue as? GqlIssue)?.isOverview = true }
               (issue as? GqlIssue)?.setPayload(feeder: self, isPages: isPages, withAudio: withAudio)
               if let sections = issue.sections as? [GqlSection] {

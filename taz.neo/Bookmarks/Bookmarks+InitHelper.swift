@@ -34,8 +34,9 @@ extension Bookmarks {
     newBookmarkIssue.isWeekend = false
     newBookmarkIssue.isDownloading = false
     newBookmarkIssue.isComplete = false
-    newBookmarkIssue.feed = feed
-    newBookmarkIssue.moment =  DummyMoment()
+    if let masterFeed = TazAppEnvironment.masterFeed {
+      newBookmarkIssue.pr.addToFeeds(masterFeed.pr)
+    }
     ///result is fetched in setup/singleton getter
     createBookmarkSection(in: newBookmarkIssue,
                           sectionName: Bookmarks.defaultBookmarkSectionTitle)
@@ -58,9 +59,9 @@ extension Bookmarks {
     newSection.type = .unknown
     
     ///create not used/ legacy fileentry for html property
-    newSection.html = fileEntry(for: newSection, in: issue.feed.bookmarksDir)
+    newSection.html = fileEntry(for: newSection, in:  TazAppEnvironment.masterFeed!.bookmarksDir)
+    
     issue.pr.addToSections(newSection.pr)
-    newSection.pr.issue = issue.pr
     
     bookmarkSection = newSection
     migrateBookmarks()

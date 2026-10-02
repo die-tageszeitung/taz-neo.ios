@@ -243,14 +243,10 @@ public extension ImageEntry {
         }
         else if let issueDate = (content as? SearchArticle)?.originalIssueDate ?? content?.issueDate,
                 let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-                let feed = feederContext.defaultFeed,
                 let feeder = feederContext.storedFeeder {
-          dir = feeder.issueDir(feed: feed.name, issue: feeder.date2a(issueDate))
+          dir = feeder.issueDir(date: issueDate)
         }
-      case .global: dir
-        = content?.primaryIssue?.feed.feeder.globalDir
-        ?? subdir
-        ?? TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
+      case .global: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
       case .resource: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir
       case .unknown: break
     }
@@ -426,9 +422,10 @@ public extension Content {
   
   /// Directory where Content is stored
   var dir: Dir { 
-    guard let issue = primaryIssue
+    guard let issue = primaryIssue,
+          let feeder = TazAppEnvironment.storedFeeder
     else { fatalError("Undefined primaryIssue") }
-    return issue.dir 
+    return feeder.issueDir(issue: issue)
   }
   
   #warning("ToDo make path also optional soon")
@@ -951,7 +948,7 @@ public protocol PublicationDate: ToString, AnyObject {
   /// validity date for week issue
   var validityDate: Date? { get }
   /// Reference to Feed providing this Issue
-  var feed: Feed? { get set }
+  var feeds: [Feed] { get set }
 }
 
 public extension PublicationDate {
@@ -1000,8 +997,6 @@ public protocol Issue: ToString, AnyObject {
   /// Is this Issue currently autodownloading in Background
   /// all database is compleete but files are missing
   var isAutodownloading: Bool { get set }
-  /// Reference to Feed providing this Issue
-  var feed: Feed { get set }
   /// Issue date
   var date: Date { get }
   /// locale, downloaded Version number of an issue
@@ -1017,7 +1012,7 @@ public protocol Issue: ToString, AnyObject {
   /// Is this Issue a week end edition
   var isWeekend: Bool { get }
   /// Issue defining images
-  var moment: Moment { get }
+  var moment: Moment? { get }
   /// persistent Issue key
   var key: String? { get }
   /// Base URL of all files of this Issue
@@ -1053,8 +1048,6 @@ public protocol Issue: ToString, AnyObject {
   var lastReadWasPage: Bool { get set }
   /// Payload of files
   var payload: Payload { get }
-  /// Directory where all issue specific data is stored
-  var dir: Dir { get }
 }
 
 public extension Issue {
@@ -1077,7 +1070,14 @@ public extension Issue {
   }
     
   func toString() -> String {
-    var ret = "Issue \(date.isoDate()), key: \(key ?? "[undefined]"), " +
+    var feedData: [String] = []
+    if let sIssue = self as? StoredIssue {
+      for f in sIssue.feeds {
+        feedData.append("\(f.name) (\(f.type.rawValue))")
+      }
+    }
+    var ret = "Issue \(date.isoDate()), feeds: \(feedData.joined(separator: ", "))" +
+              "key: \(key ?? "[undefined]"), " +
               "status: \(status.toString())"
     if let sec = sections {
       for s in sec { ret += "\n  \(s.toString())" }
@@ -1087,9 +1087,6 @@ public extension Issue {
     }
     return ret
   }
-  
-  /// directory where all issue specific data is stored
-  var dir: Dir { Dir(dir: feed.dir.path, fname: feed.feeder.date2a(date)) }
   
   /// All Articles in one Issue (one Article may appear multiple
   /// times in the resulting array if it is referenced in more than
@@ -1206,7 +1203,7 @@ public extension Issue {
   
   /// Overview files
   var overviewFiles: [FileEntry] {
-    var ret = moment.files
+    var ret = moment?.files ?? []
     if let fac1 = pageOneFacsimile { ret += fac1 }
     return ret
   }
@@ -1304,17 +1301,20 @@ public enum PublicationCycle: String, CodableEnum {
 } // PublicationCycle
 
 /// Type of a Feed
-public enum FeedType: String, CodableEnum {  
-  case publication = "publication" /// regular publication
-  case bookmarks   = "bookmarks"   /// a feed of bookmarks
-  case info        = "info"        /// info and help texts
-  case unknown     = "unknown"     /// decoded from unknown string
-} // FeedType
+public enum FeedType: String, CodableEnum {
+  case isMaster = "isMaster" /// the main feed that most other feeds reference
+  case fullIssue = "fullIssue" /// a feed that references a complete issue, e.g. the weekly taz
+  case partiallyIssue = "partiallyIssue" /// a feed that contains one or more sections from the master feed, e.g. LMd
+  case podcast = "podcast" /// a dedicated feed containing all podcasts
+  case unknown = "unknown"
+}
 
 /**
  A Feed is a somewhat abstract form of a publication
  */
 public protocol Feed: ToString {
+  /// Server ID of the feed, added with multi-feed support
+  var feedId: Int { get }
   /// Name of Feed
   var name: String { get }
   /// Feeder offering this Feed
@@ -1350,14 +1350,13 @@ public protocol Feed: ToString {
 public extension Feed {  
   var dir: Dir { Dir(dir: feeder.baseDir.path, fname: name) }
   var bookmarksDir: Dir { Dir(dir: feeder.baseDir.path, fname: "\(name)/bookmarks") }
-  var type: FeedType { .publication }
   var lastIssueRead: Date? { nil }
   var lastUpdated: Date? { nil }
+  var isMaster: Bool { type == .isMaster }
   var firstSearchableIssue: Date? { nil }
   func toString() -> String {
     return "\(name): \(cycle), \(issueCnt) issues total"
   }
-  
 } // Feed
 
 /** 
@@ -1383,6 +1382,8 @@ public protocol Feeder: ToString, AnyObject {
   var resourceVersion: Int { get }
   /// The Feeds this Feeder is providing
   var feeds: [Feed] { get }
+  /// The master Feed this Feeder is providing
+  var masterFeed: Feed { get }
   /// Directory where all Feeder specific data is stored
   var dir: Dir { get }
   
@@ -1451,14 +1452,19 @@ extension Feeder {
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
 
   /// Returns directory where all issue specific data is stored
-  public func issueDir(feed: String, issue: String) -> Dir 
-    { return Dir(dir: feedDir(feed).path, fname: issue) }
+  public func issueDir(isoDate: String) -> Dir {
+    return Dir(dir: feedDir(masterFeed.name).path, fname: isoDate)
+  }
+  
+  public func issueDir(date: Date) -> Dir {
+    return issueDir(isoDate: date2a(date))
+  }
   
   /// Returns directory where all issue specific data is stored
   public func issueDir(issue: Issue) -> Dir {
     if issue is SearchResultIssue { return Dir.searchResults }
-    if issue.isBookmarkIssue { return issue.feed.bookmarksDir }
-    return issueDir(feed: issue.feed.name, issue: date2a(issue.date))
+    if issue.isBookmarkIssue { return masterFeed.bookmarksDir }
+    return issueDir(date: issue.date)
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
@@ -1467,32 +1473,34 @@ extension Feeder {
                               isPdf: Bool = false,
                               usePdfAlternative: Bool = true)
     -> String? {
-    var file: FileEntry?
-    if isPdf {
-      file = issue.moment.facsimile
-    }
-    else {
-      ///fix race condition bug: demo issue deleted due update, issueservice calls moment crash
-      if (issue as? StoredIssue)?.pr.moment == nil { return nil }
-      file = issue.moment.animatedGif
-      if isCredited, let highres = issue.moment.creditedHighres {
-        file = highres
+      guard let moment = issue.moment else { return nil }
+      var file: FileEntry?
+      if isPdf {
+        file = moment.facsimile
       }
-    }
-    let loadHighres = !isPdf || usePdfAlternative
-    if file == nil && loadHighres { file = issue.moment.highres }
-    if let img = file {
-      return "\(issueDir(issue: issue).path)/\(img.fileName)"
-    }
-    return nil
+      else {
+        ///fix race condition bug: demo issue deleted due update, issueservice calls moment crash
+        if (issue as? StoredIssue)?.pr.moment == nil { return nil }
+        file = moment.animatedGif
+        if isCredited, let highres = moment.creditedHighres {
+          file = highres
+        }
+      }
+      let loadHighres = !isPdf || usePdfAlternative
+      if file == nil && loadHighres { file = moment.highres }
+      if let img = file {
+        return "\(issueDir(issue: issue).path)/\(img.fileName)"
+      }
+      return nil
   }
   
   /// Returns the "Moment" Image file name as Gif-Animation or in highest resolution
   public func smallMomentImageName(issue: Issue, isPdf: Bool = false)
-    -> String? {
+  -> String? {
+    guard let moment = issue.moment else { return nil }
     var file: FileEntry?
-    if isPdf { file = issue.moment.facsimile }
-    else { file = issue.moment.lowres }
+    if isPdf { file = moment.facsimile }
+    else { file = moment.lowres }
     if let img = file {
       return "\(issueDir(issue: issue).path)/\(img.fileName)"
     }
@@ -1504,9 +1512,9 @@ extension Feeder {
     -> String? {
       guard let issueDate = article.issueDate,
             let issue = article.primaryIssue,
-            let publicationDate = issue.feed.publicationDates?.first(where: {$0.date == issueDate}),
-            let fileName =  issue.moment.lowres?.fileName else { return nil }
-      let dir = issueDir(feed: issue.feed.name, issue: date2a(issueDate))
+            let moment = issue.moment,
+            let fileName =  moment.lowres?.fileName else { return nil }
+      let dir = issueDir(date: issueDate)
       return "\(dir.path)/\(fileName)"
   }
 

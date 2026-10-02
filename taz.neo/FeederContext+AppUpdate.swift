@@ -32,9 +32,6 @@ extension FeederContext {
       enforceUpdate()
       return
     }
-    if needsReInit() {
-      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin)
-    }
     check4Update()
   }
   

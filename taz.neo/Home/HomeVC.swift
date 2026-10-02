@@ -215,6 +215,12 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       .0
   }
   
+  var dateForFeedSwitch: Date? {
+    guard let idx = carousselFixCenterIndex
+            ?? collectionView?.indexPathsForVisibleItems.first?.row else { return nil }
+    return service.date(at: idx)?.date
+  }
+  
   var carousselFixCenterIndex: Int? {
     guard !isHomeTiles else { return nil }
       guard let cv = collectionView else { return nil }
@@ -378,6 +384,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   func reanchorCarousel(animated: Bool = false, doLayout: Bool = false) {
+    guard initialized else { return }
     guard isHomeTiles == false else { return }
     if doLayout { collectionView.layoutIfNeeded() }
     let index = carouselCenterIssueIndex ?? 0
@@ -495,6 +502,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
     Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
       self?.collectionView.reloadData()
+      self?.updateDate()
     }
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
@@ -729,9 +737,30 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       }
     let archiveGroup = UIMenu(title: "Ausgabenarchiv", options: .displayInline, children: [archiveAction])
     
+    var filterActions: [UIAction] = []
+    for feed in TazAppEnvironment.storedFeeder?.selectableFeeds ?? [] {
+      let state: UIMenuElement.State
+      = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed.feedId
+      ? .on
+      : .off
+      
+      let action = UIAction(title: feed.displayName, state: state) {[weak self] _ in
+        let visibleDate = self?.dateForFeedSwitch
+        TazAppEnvironment.storedFeeder?.selectedFeed = feed
+        Notification.send(Const.NotificationNames.feedChange)
+        self?.updateButtonMenu()
+        guard let visibleDate,
+              let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
+        self?.scrollTo(newIdx, animated: true)
+      }
+      filterActions.append(action)
+    }
+    
+    let filterGroup = UIMenu(title: "Filter", options: .displayInline, children: filterActions)
+    
     // Komplettes Menü zuweisen
     if #available(iOS 14.0, *) {
-      button.menu = UIMenu(title: "", children: [viewGroup, layoutGroup, archiveGroup])
+      button.menu = UIMenu(title: "", children: [viewGroup, layoutGroup, filterGroup, archiveGroup])
       button.showsMenuAsPrimaryAction = true
     }
   }

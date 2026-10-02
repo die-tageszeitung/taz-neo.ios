@@ -82,7 +82,7 @@ extension HomeVC {
     wrapper.layer.borderColor = Const.Colors.appIconGrey.cgColor
     wrapper.layer.cornerRadius = 8.0
     
-    datePicker.minimumDate = feederContext.defaultFeed.firstIssue
+    datePicker.minimumDate = feederContext.storedFeeder.selectedFeed.firstIssue
     datePicker.maximumDate =  Date()
     datePicker.datePickerMode = .date
     

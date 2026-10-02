@@ -119,14 +119,14 @@ open class Downloader: DoesLog {
   public func createIssueDir(feed: String, issue: String) {
     guard let feeder else { return }
     createDirs()
-    let idir = feeder.issueDir(feed: feed, issue: issue)
+    let idir = feeder.issueDir(isoDate: issue)
     idir.createGlobalLinksIfNeeded(feeder: feeder)
   }
   
   public func createIssueDir(issue: Issue) {
     guard let feeder else { return }
     let name = feeder.date2a(issue.date)
-    createIssueDir(feed: issue.feed.name, issue: name)
+    createIssueDir(feed: TazAppEnvironment.masterFeed!.name, issue: name)
   }
   
   /// Update StoredFileEntries
@@ -199,10 +199,10 @@ open class Downloader: DoesLog {
   }
   
   /// Download files with storage type .issue
-  private func downloadIssueFiles(url: String, feed: String, issue: String, 
+  private func downloadIssueFiles(url: String, issue: String,
     files: [FileEntry], closure: @escaping (Error?)->()) {
     guard let feeder else { return }
-    let idir = feeder.issueDir(feed: feed, issue: issue)
+    let idir = feeder.issueDir(isoDate: issue)
     downloadIssueFiles(from: url, to: idir, files: files, closure: closure)
   }
 
@@ -229,15 +229,14 @@ open class Downloader: DoesLog {
                                  closure: @escaping (Error?)->()) {
     guard let feeder else { return }
     let name = feeder.date2a(issue.date)
-    self.downloadIssueFiles(url: issue.baseUrl, feed: issue.feed.name, 
-      issue: name, files: files, closure: closure)   
+    self.downloadIssueFiles(url: issue.baseUrl, issue: name, files: files, closure: closure)
   }
                                 
   /// Download Issue data
   public func downloadIssueData(issue: Issue, files: [FileEntry], 
                                 closure: @escaping (Error?)->()) {
     if issue.isComplete {
-      let issuePath = issue.dir.path
+      let issuePath = issue.dir?.path ?? ""
       var missingFilesCount = 0
       for file in files {
         if file.existsIgnoringTime(inDir: issuePath) == false {
@@ -251,7 +250,8 @@ open class Downloader: DoesLog {
       issue.isComplete = false
       ///notify home to show correct state for download button
       Notification.send("issueProgress", content: "deleted", sender: issue)
-      issue.dir.createGlobalLinksIfNeeded(feeder: issue.feed.feeder)
+      let feeder = TazAppEnvironment.storedFeeder
+      issue.createGlobalLinksIfNeeded()
       let allIssueFiles = issue.files
       ///redownload all files, existing files will be skipped by HttpLoader
       downloadGlobalFiles(files: allIssueFiles) { [weak self] err in

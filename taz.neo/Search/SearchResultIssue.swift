@@ -38,7 +38,7 @@ public class SearchResultIssue: VirtualIssue {
   static let shared = SearchResultIssue(TazAppEnvironment.sharedInstance.feederContext!)
   private init(_ feederContext: FeederContext){
     _feederContext = feederContext
-    super.init(feed: feederContext.defaultFeed)
+    super.init(feed: feederContext.masterFeed1)
     createDirsIfNeeded()
   }
 }

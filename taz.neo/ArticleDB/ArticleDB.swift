@@ -1139,8 +1139,12 @@ public final class StoredArticle: Article, StoredObject {
   public var nonBookmarkSections: [StoredSection] {
     var ret: [StoredSection] = []
     for case let s as PersistentSection in pr.sections ?? [] {
-      if s.issue?.isBookmarkIssue == true { continue }
-      ret += StoredSection(persistent: s)
+      for case let issue as StoredIssue in s.issues ?? [] {
+        if issue.isBookmarkIssue == true { continue }
+        ret += StoredSection(persistent: s)
+      }
+      
+
     }
     return ret
   }
@@ -1561,7 +1565,7 @@ public final class StoredPage: Page, StoredObject {
   /// Return all Pages in an Issue
   public static func pagesInIssue(issue: StoredIssue) -> [StoredPage] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.predicate = NSPredicate(format: "ANY issues = %@", issue.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
@@ -1569,7 +1573,7 @@ public final class StoredPage: Page, StoredObject {
   /// Return first of an Issue
   public static func pageOne(issue: StoredIssue) -> StoredPage? {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.predicate = NSPredicate(format: "ANY issues = %@", issue.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     request.fetchLimit = 1
     let res = get(request: request)
@@ -1650,9 +1654,21 @@ public final class StoredSection: Section, StoredObject {
       else { pr.navButton = nil }
     }
   }
+  
+  ///issue in masterFeed if available or issue in other feed; not issue in bookmark feed
   public var primaryIssue: Issue? {
-    guard let pIssue = pr.issue else { return nil }
-    return StoredIssue(persistent: pIssue)
+    var bestPersistantIssue: PersistentIssue?
+    for case let pIssue as PersistentIssue in pr.issues ?? [] {
+      if pIssue.isBookmarkIssue { continue }
+      bestPersistantIssue = pIssue
+      for case let feed as PersistentFeed in pIssue.feeds ?? [] {
+        if feed.type == FeedType.isMaster.rawValue {
+          return StoredIssue(persistent: pIssue)
+        }
+      }
+    }
+    guard let bestPersistantIssue else { return nil }
+    return StoredIssue(persistent: bestPersistantIssue)
   }
   
   public var dir: Dir {
@@ -1734,7 +1750,8 @@ public final class StoredSection: Section, StoredObject {
             art.pr.removeFromSections(self.pr)
             debug(">>> remove \(art)")
           }
-          else {
+          
+          if (art.pr.sections?.count == 0) {
             debug(">>> deleting \(art)")
             art.delete()
           }
@@ -1761,7 +1778,7 @@ public final class StoredSection: Section, StoredObject {
   /// Return all Sections in an Issue
   public static func sectionsInIssue(issue: StoredIssue) -> [StoredSection] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "issue = %@", issue.pr)
+    request.predicate = NSPredicate(format: "ANY issues = %@", issue.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "order", ascending: true)]
     return get(request: request)
   }
@@ -1778,14 +1795,16 @@ extension StoredPublicationDate: Equatable {
 
 /// A stored PublicationDate
 public final class StoredPublicationDate: PublicationDate, StoredObject {
-  
   public static var entity = "PublicationDate"
   public var pr: PersistentPublicationDate // persistent record
   
-  public var feed: (any Feed)? {
-    get {
-      guard let pFeed = pr.feed else { return nil }
-      return StoredFeed(persistent: pFeed)
+  public var feeds: [any Feed] {
+    get{
+      var feeds = [Feed]()
+      for case let pFeed as PersistentFeed in pr.feeds ?? [] {
+        feeds.append(StoredFeed(persistent: pFeed))
+      }
+      return feeds
     }
     set {/*not allowed due circular/endless loop on startup*/}
   }
@@ -1823,78 +1842,131 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   /// - Parameters:
   ///   - publicationDates: An array of `PublicationDate` instances to be persisted.
   ///   - feed: The `StoredFeed` entity to which the publication dates belong.
-  public static func persist(publicationDates: [PublicationDate],
-                             inFeed feed: StoredFeed) {
+  public static func persist(
+    publicationDates: [PublicationDate],
+    inFeed feed: StoredFeed
+  ) {
     let start = Date()
+    let context = ArticleDB.context
     
-    let objectsArray: [[String: Any]] = publicationDates.map {
-      [
-        "date": $0.date,
-        "validityDate": $0.validityDate ?? NSNull()
-      ]
-    }
+    guard !publicationDates.isEmpty else { return }
     
-    guard let entD = NSEntityDescription.entity(forEntityName: StoredPublicationDate.entity, in: ArticleDB.context) else {
+    guard let entity = NSEntityDescription.entity(
+      forEntityName: StoredPublicationDate.entity,
+      in: context
+    ) else {
       Log.log("Could not get entity for \(StoredPublicationDate.entity)")
       return
     }
     
-    let request = NSBatchInsertRequest(entity: entD, objects: objectsArray)
+    // Dates supplied by the server
+    let dates = Array(Set(publicationDates.map(\.date)))
     
-    if let insertResult = try? ArticleDB.context.execute(request) as? NSBatchInsertResult,
-       let objectIDs = insertResult.result as? [NSManagedObjectID] {
-      // Importent: for later fetch
-      let changes = [NSInsertedObjectsKey: objectIDs]
-      NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [ArticleDB.context])
+    // Fetch existing dates in chunks to avoid an oversized IN predicate.
+    let chunkSize = 500
+    var existingDates = Set<Date>()
+    
+    for startIndex in stride(from: 0, to: dates.count, by: chunkSize) {
+      let chunk = Array(dates[startIndex..<min(startIndex + chunkSize, dates.count)])
+      let request = NSFetchRequest<NSDictionary>(
+        entityName: StoredPublicationDate.entity
+      )
+      request.resultType = .dictionaryResultType
+      request.propertiesToFetch = ["date"]
+      request.predicate = NSPredicate(format: "date IN %@", chunk)
+      
+      if let results = try? context.fetch(request) {
+        for result in results {
+          if let date = result["date"] as? Date {
+            existingDates.insert(date)
+          }
+        }
+      }
     }
     
-    // new objects are now in context, so we can fetch them
-    let pds = StoredPublicationDate.getAllWithoutFeed()
-    for pd in pds { feed.pr.addToPublicationDates(pd.pr) }
+    // Only insert dates that do not already exist.
+    let missing = publicationDates.filter {
+      !existingDates.contains($0.date)
+    }
     
-    Log.log("Persisting \(publicationDates.count) took \(Date().timeIntervalSince(start))s")
+    if !missing.isEmpty {
+      let objectsArray: [[String: Any]] = missing.map {
+        [
+          "date": $0.date,
+          "validityDate": $0.validityDate ?? NSNull()
+        ]
+      }
+      
+      let insertRequest = NSBatchInsertRequest(
+        entity: entity,
+        objects: objectsArray
+      )
+      
+      if let result = try? context.execute(insertRequest) as? NSBatchInsertResult,
+         let objectIDs = result.result as? [NSManagedObjectID] {
+        let changes = [NSInsertedObjectsKey: objectIDs]
+        NSManagedObjectContext.mergeChanges(
+          fromRemoteContextSave: changes,
+          into: [context]
+        )
+      }
+    }
+    
+    // Fetch all requested dates, including those already in other feeds.
+    for startIndex in stride(from: 0, to: dates.count, by: chunkSize) {
+      let chunk = Array(dates[startIndex..<min(startIndex + chunkSize, dates.count)])
+      
+      let request = StoredPublicationDate.fetchRequest
+      request.predicate = NSPredicate(format: "date IN %@", chunk)
+      
+      let pds = (try? context.fetch(request)) ?? []
+      
+      for pd in pds {
+        feed.pr.addToPublicationDates(pd)
+      }
+    }
+    
+    Log.log(
+      ">>> Persisting \(publicationDates.count) publication dates took \(Date().timeIntervalSince(start))s"
+    )
   }
   
-  /// Return stored record with given name
-  public static func get(date: Date, inFeed feed: StoredFeed) -> [StoredPublicationDate] {
+  /// Return stored record
+  public static func get(date: Date, inFeed feed: StoredFeed? = nil) -> [StoredPublicationDate] {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                           date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
-                                    nsdate, feed.pr)
+    if let feed {
+      request.predicate
+      = NSPredicate(format: "(date = %@) AND (ANY feeds = %@)", nsdate, feed.pr)
+    }
+    else {
+      request.predicate
+      = NSPredicate(format: "date = %@", nsdate)
+    }
     return get(request: request)
   }
   
   /// Return stored record with given name
   public static func getAll(inFeed feed: StoredFeed) -> [StoredPublicationDate] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(feed = %@)", feed.pr)
+    request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
     return get(request: request)
   }
     
-  private static func getAllWithoutFeed() -> [StoredPublicationDate] {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed == nil")
-    return get(request: request)
-  }
-  
   public static func get(object: PublicationDate, inFeed feed: StoredFeed) -> StoredPublicationDate? {
     return get(date: object.date, inFeed: feed).first
   }
   
   public static func get(object: PublicationDate) -> StoredPublicationDate? {
-    if let feed = object.feed,
-       let sfeed = StoredFeed.get(object: feed) {
-      return get(object: object, inFeed: sfeed)
-    }
-    else { return nil }
+    return get(date: object.date).first
   }
   
   /// Return an array of Issues in a Feed
   public static func publicationDatesInFeed(feed: StoredFeed, count: Int = -1)
   -> [StoredPublicationDate] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@", feed.pr)
+    request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
@@ -1904,7 +1976,6 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: PublicationDate) {
-    self.feed = object.feed ///in or out?
     self.date = object.date
     self.validityDate = object.validityDate
   }
@@ -1928,16 +1999,19 @@ extension StoredIssue: Equatable {
 
 /// A stored Issue
 public final class StoredIssue: Issue, StoredObject {
+  public var dir: Dir { self.masterIssueDir! }
+  
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
-  public var feed: Feed {
-    get { StoredFeed(persistent: pr.feed!) }
-    set {
-      if let sfeed = StoredFeed.get(object: newValue) {
-        pr.feed = sfeed.pr
-        pr.feed?.addToIssues(self.pr)
+  public var masterFeed: Feed {
+    (feeds.first!.feeder as! StoredFeeder).masterFeed
+  }
+  public var feeds: [Feed] {
+      var feeds = [Feed]()
+      for case let pFeed as PersistentFeed in pr.feeds ?? [] {
+        feeds.append(StoredFeed(persistent: pFeed))
       }
-    }
+      return feeds
   }
   public var safeDate: Date? { pr.date }
   public var date: Date {
@@ -1969,11 +2043,18 @@ public final class StoredIssue: Issue, StoredObject {
     get { return pr.isWeekend }
     set { pr.isWeekend = newValue }
   }
-  public var moment: Moment {
-    get { StoredMoment(persistent: pr.moment!) }///CrashCount: 1
+  public var moment: Moment? {
+    get {
+      guard let mom = pr.moment else { return nil }
+      return StoredMoment(persistent: mom)
+    }
     set {
+      guard let newValue = newValue else {
+        pr.moment?.issue = nil
+        pr.moment = nil //required?
+        return
+      }
       pr.moment = StoredMoment.persist(object: newValue).pr
-      pr.moment?.issue = self.pr
     }
   }
   public var key: String? {
@@ -2117,7 +2198,6 @@ public final class StoredIssue: Issue, StoredObject {
   public func update(from object: Issue) {
     let sendUpdatedDemoIssueNotification = self.status == .reduced && object.status != .reduced
     var sendUpdateBookmarksNotification: Bool = false
-    self.feed = object.feed
     self.date = object.date
     self.fullDownloadedDate = object.fullDownloadedDate
     self.validityDate = object.validityDate
@@ -2146,7 +2226,7 @@ public final class StoredIssue: Issue, StoredObject {
       var order: Int32 = 0
       for section in secs {
         let ssection = StoredSection.persist(object: section)
-        ssection.pr.issue = self.pr
+        ssection.pr.addToIssues(self.pr)
         ssection.pr.order = order
         pr.addToSections(ssection.pr)
         order += 1
@@ -2164,7 +2244,7 @@ public final class StoredIssue: Issue, StoredObject {
       var order: Int32 = 0
       for page in pages {
         let spage = StoredPage.persist(object: page)
-        spage.pr.issue = self.pr
+        spage.pr.addToIssues(self.pr)
         spage.pr.order = order
         pr.addToPages(spage.pr)
         order += 1
@@ -2201,11 +2281,15 @@ public final class StoredIssue: Issue, StoredObject {
     let storedPayload = StoredPayload.persist(object: object.payload)
     pr.payload = storedPayload.pr
     pr.payload?.issue = pr
-    let globalsPath = feed.feeder.globalDir.path
-    var globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
-    globalsSubPath = globalsSubPath.hasSuffix("/") ? String(globalsSubPath.dropLast()) : globalsSubPath
-    log("storedPayload.updateGlobalFiles(subdir: \(globalsSubPath)")
-    storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
+    if let globalsPath = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir.path {
+      var globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
+      globalsSubPath = globalsSubPath.hasSuffix("/") ? String(globalsSubPath.dropLast()) : globalsSubPath
+      log("storedPayload.updateGlobalFiles(subdir: \(globalsSubPath)")
+      storedPayload.updateGlobalFiles(subdir: globalsSubPath)///fix globals subdir!
+    }
+    else {
+      log("WARNING CANNOT UPDATE GLOBALS PATH!")
+    }
     if let p1 = StoredPage.pageOne(issue: self) {
       let mom = StoredMoment(persistent: pr.moment!)
       mom.firstPage = p1
@@ -2219,9 +2303,17 @@ public final class StoredIssue: Issue, StoredObject {
     let nsdate = NSDate(timeIntervalSinceReferenceDate:
                           date.timeIntervalSinceReferenceDate)
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "(date = %@) AND (feed = %@)",
+    request.predicate = NSPredicate(format: "(date = %@) AND (ANY feeds = %@)",
                                     nsdate, feed.pr)
-    return get(request: request)
+    
+    let request2 = fetchRequest
+    request2.predicate = NSPredicate(format: "date = %@", nsdate)
+    
+    let withFeeds = get(request: request)
+    let woFeeds = get(request: request2)
+    
+    Log.log("Issue for \(date.short) in feed: \(feed.name) requested got: \(withFeeds.count) issues with feeds, \(woFeeds.count) issues without feeds")
+    return withFeeds
   }
   
   /// Return stored record with given params or nil
@@ -2238,8 +2330,8 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   public static func get(object: Issue) -> StoredIssue? {
-    if let sfeed = StoredFeed.get(object: object.feed) {
-      return get(object: object, inFeed: sfeed)
+    if let issueFeed = TazAppEnvironment.storedFeeder?.issueProviderFeed {
+      return get(object: object, inFeed: issueFeed)
     }
     else { return nil }
   }
@@ -2248,7 +2340,7 @@ public final class StoredIssue: Issue, StoredObject {
   public static func lastComplete(feed: StoredFeed, isPages: Bool, withAudio: Bool) -> StoredIssue? {
       let request = fetchRequest
       var predicates: [NSPredicate] = [
-          NSPredicate(format: "feed = %@", feed.pr),
+          NSPredicate(format: "ANY feeds = %@", feed.pr),
           NSPredicate(format: "isComplete = true")
       ]
       if isPages { predicates.append(NSPredicate(format: "zipNamePdf != nil"))  }
@@ -2263,7 +2355,7 @@ public final class StoredIssue: Issue, StoredObject {
   public static func lastComplete(feed: StoredFeed)
   -> StoredIssue? {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    request.predicate = NSPredicate(format: "ANY feeds = %@ AND isComplete = true", feed.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     request.fetchLimit = 1
     return get(request: request).first
@@ -2275,9 +2367,9 @@ public final class StoredIssue: Issue, StoredObject {
     let request = fetchRequest
     if let fromDate = fromDate {
       let nsdate = NSDate(timeIntervalSinceReferenceDate: fromDate.timeIntervalSinceReferenceDate)
-      request.predicate = NSPredicate(format: "feed = %@ AND date <= %@", feed.pr, nsdate)
+      request.predicate = NSPredicate(format: "ANY feeds = %@ AND date <= %@", feed.pr, nsdate)
     }
-    else { request.predicate = NSPredicate(format: "feed = %@", feed.pr) }
+    else { request.predicate = NSPredicate(format: "ANY feeds = %@", feed.pr) }
     request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
     if count > 0 { request.fetchLimit = count }
     return get(request: request)
@@ -2287,7 +2379,7 @@ public final class StoredIssue: Issue, StoredObject {
   /// load date) comes first
   public static func firstLoaded(feed: StoredFeed, count: Int = -1) -> [StoredIssue] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feed = %@ AND isComplete = true", feed.pr)
+    request.predicate = NSPredicate(format: "ANY feeds = %@ AND isComplete = true", feed.pr)
     request.sortDescriptors = [NSSortDescriptor(key: "payload.downloadStarted",
                                                 ascending: true)]
     if count > 0 { request.fetchLimit = count }
@@ -2331,7 +2423,7 @@ public final class StoredIssue: Issue, StoredObject {
     let request = fetchRequest
     
     var predicates: [NSPredicate] = [
-        NSPredicate(format: "feed = %@", feed.pr)
+        NSPredicate(format: "ANY feeds = %@", feed.pr)
     ]
 
     if onlyComplete {
@@ -2405,12 +2497,14 @@ public final class StoredIssue: Issue, StoredObject {
                                   keepPreviews: Int = 20,
                                   deleteOlder: Bool = false,
                                   deleteOrphanFolders: Bool = false) {
+    #warning("TODO FIX THIS, after Download Issues are removed!")
+    return;
     // User-Setting keepDownloaded:
     // 0 = means keep all issues
     // otherwise user setting, at least 3
     let completeFetchCount: Int = keepDownloaded == 0 ? -1 : max(3, keepDownloaded)
     
-    Log.debug("keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
+    Log.debug("removeOldest in Feed: \(feed.name) :: keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
     
     // all issues which should not be deleted
     var lastCompleteIssues: [StoredIssue] = issues(feed: feed,
@@ -2590,6 +2684,10 @@ public final class StoredFeed: Feed, StoredObject {
     get { return PublicationCycle(pr.cycle!)! }
     set { pr.cycle = newValue.representation }
   }
+  public var feedId: Int {
+    get { return Int(pr.feedId) }
+    set { pr.feedId = Int64(newValue) }
+  }
   public var type: FeedType {
     get { return FeedType(pr.type!)! }
     set { pr.type = newValue.representation }
@@ -2654,7 +2752,7 @@ public final class StoredFeed: Feed, StoredObject {
   private func createPublicationDatesFromStoredIssues(){
     var dates: [PublicationDate] = []
     for issue in storedIssues {
-      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation, feed: self)
+      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation)
       date.validityDate = issue.validityDate
       dates.append(date)
     }
@@ -2669,11 +2767,12 @@ public final class StoredFeed: Feed, StoredObject {
   
   /// Overwrite the persistent values
   public func update(from object: Feed) {
-    log("update Feed: \(object.name)")
+    log(">>>...update Feed: \(object.name) PubDatesCount:\(object.publicationDates?.count ?? 0)")
     self.name = object.name
     self.feeder = object.feeder
     self.cycle = object.cycle
     self.type = object.type
+    self.feedId = object.feedId
     self.issueCnt = object.issueCnt
     self.momentRatio = object.momentRatio
     self.firstIssue = object.firstIssue
@@ -2692,18 +2791,12 @@ public final class StoredFeed: Feed, StoredObject {
     /// CR-Feeds: Warning: what should we do? only add issues to primary feed?
     /// CR-Feeds: Warning Issue>Feed Relation is currently **to one** need to be changed or add just issues to master feed?
     /// wochentaz login => default filter to wochentaz > no more db reset required > no more time consuming qa...legacy code...
-    if let iss = object.issues {
-      for issue in iss {
-        let sissue = StoredIssue.persist(object: issue)
-        ///CR-Feeds: adding multiple feeds?
-        sissue.pr.feed = pr
-        pr.addToIssues(sissue.pr)
-      }
-      // Remove Issues no longer needed
-      for issue in self.issues as! [StoredIssue] {
-        if !iss.contains(where: { $0.date == issue.date }) {
-          pr.removeFromIssues(issue.pr)
-        }
+    if let issues = object.issues {
+      for issue in issues {
+        log("Issue \(issue.date.short) added to: \(self.name)")
+        let storedIssue = StoredIssue.persist(object: issue)
+        pr.addToIssues(storedIssue.pr)
+        storedIssue.pr.addToFeeds(pr)
       }
     }
     if let pubDates = object.publicationDates {
@@ -2775,7 +2868,6 @@ extension PersistentFeeder: PersistentObject {}
 
 /// A stored Feeder
 public final class StoredFeeder: Feeder, StoredObject {
-  
   public static var entity = "Feeder"
   public var pr: PersistentFeeder // persistent record
   public var title: String {
@@ -2820,6 +2912,24 @@ public final class StoredFeeder: Feeder, StoredObject {
   public var storedFeeds: [StoredFeed] { StoredFeed.feedsOfFeeder(feeder: self) }
   public var feeds: [Feed] { storedFeeds }
   
+  public var masterFeed: Feed {
+    return feeds.first{ $0.type == .isMaster }!
+  }
+  
+  public var selectedFeed: Feed {
+    get {
+      if let prFeed = pr.selectedFeed {
+        return StoredFeed(persistent: prFeed)
+      }
+      return masterFeed
+    }
+    set {
+      if let sfeed = StoredFeed.get(object: newValue) {
+        pr.selectedFeed = sfeed.pr
+      }
+    }
+  }
+
   public required init(persistent: PersistentFeeder) { self.pr = persistent }
   
   /// Overwrite the persistent values
@@ -2884,3 +2994,82 @@ public final class StoredFeeder: Feeder, StoredObject {
   }
   
 } // StoredFeeder
+
+extension StoredFeeder {
+  /// The feed used to provide issues for remote fetching
+  /// and local Core Data lookups.
+  ///
+  /// For full-issue feeds, the master feed is used as the provider,
+  /// regardless of which full-issue feed was selected.
+  /// This ensures that issues can be fetched and found consistently
+  /// across full-issue feeds.
+  ///
+  /// For master and partiallyIssue feeds, the selected feed
+  /// is used directly. PartiallyIssue feeds provide feed-specific
+  /// content that may not be available in the master feed,
+  /// e.g. an LMd issue containing only LMd sections.
+  ///
+  /// This feed is used as the source for both remote API requests
+  /// and local database lookups. It does not define the exclusive
+  /// feed membership of an issue.
+  public var issueProviderFeed: StoredFeed {
+      if selectedFeed.type == .fullIssue {
+          return masterFeed as! StoredFeed
+      }
+
+      return selectedFeed as! StoredFeed
+  }
+}
+
+extension StoredIssue {
+  /// Associates this issue with the feeds determined by the feeder.
+  ///
+  /// Full issues are associated with both the selected feed and
+  /// the master feed. Other issue types are associated only with
+  /// the selected feed.
+  ///
+  /// Weekend issues are additionally associated with the
+  /// "taz-weekly" feed, if it exists and is a fullIssue feed.
+  ///
+  /// Missing feeds are ignored, e.g. if they have been removed
+  /// concurrently. If no applicable feeds are available, the issue
+  /// remains without feed associations.
+  ///
+  /// - Parameter feeder: The feeder used to determine the target feeds.
+  func applyFeeds(for feeder: StoredFeeder) {
+    var feeds = persistingFeeds(for: feeder)
+    
+    if isWeekend,
+       let weeklyFeed = feeder.feeds.first(where: {
+         $0.type == .fullIssue && $0.name == "taz-weekly"
+       }) as? StoredFeed {
+      feeds.append(weeklyFeed)
+    }
+    
+    for feed in feeds {
+      feed.pr.addToIssues(pr)
+      pr.addToFeeds(feed.pr)
+      log(">>>> add issue \(date.short) to feed \(feed.name)")
+    }
+  }
+  
+  /// Determines the feeds this issue should be associated with.
+  ///
+  /// Full issues belong to both the selected feed and the master feed.
+  /// All other issue types belong only to the selected feed.
+  private func persistingFeeds(for feeder: StoredFeeder) -> [StoredFeed] {
+    guard let selected = feeder.selectedFeed as? StoredFeed else {
+      return []
+    }
+    
+    guard selected.type == .fullIssue else {
+      return [selected]
+    }
+    
+    guard let master = feeder.masterFeed as? StoredFeed else {
+      return [selected]
+    }
+    
+    return [master, selected]
+  }
+}

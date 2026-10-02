@@ -154,23 +154,23 @@ extension BackgroundDownloadService {
   }
   
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
-  func handlePendingTasks() {
+  func handlePendingTasks(in masterFeed: Feed) {
     ensureMain { [weak self] in
-      self?.handlePendingTasksOnMain()
+      self?.handlePendingTasksOnMain(in: masterFeed)
     }
   }
   
-  private func handlePendingTasksOnMain() {
+  private func handlePendingTasksOnMain(in masterFeed: Feed) {
     log("handlePendingTasks")
     
-    let finishedStoredIssues = persistCurrentIssues()
+    let finishedStoredIssues = persistCurrentIssues(in: masterFeed)
     ///1st persist existing if available > this should delete used json then load jsons available
     ///das mach ich doch beim neu erstellen des FeederContext.  => brauche ich hier nicht.
     ///
     #warning("TODO")
     //    persistJsonData()...nö nicht (mehr?)
     
-    if let storedFeed = feederContext?.defaultFeed,
+    if let storedFeed = feederContext?.masterFeed1,
        tempStorage.publicationDates.count > 0
     {
       log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)\nDates: \(tempStorage.publicationDates.map{ $0.date.short }.joined(separator: ", "))")
@@ -237,7 +237,7 @@ extension BackgroundDownloadService {
   /// - Marks the database as needing to be saved if any issues were processed.
   ///
   /// - Returns: An array of completed (finished) `StoredIssue` instances.
-  private func persistCurrentIssues() -> [StoredIssue] {
+  private func persistCurrentIssues(in feed: Feed) -> [StoredIssue] {
     log("wait for persistCurrentIssues...")
     return self.tempStorage.issuesQueue.sync(flags: .barrier) { [weak self] in
       
@@ -286,6 +286,11 @@ extension BackgroundDownloadService {
       }
 
       let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
+
+    if let storedFeeder = TazAppEnvironment.storedFeeder{
+      storedIssue.applyFeeds(for: storedFeeder)
+    }
+    
       if storedIssue.payload.downloadStarted == nil {
         if let startTime = getDownloadData(forDateKey: storedIssue.date.ISO8601)?.startTime {
           let started = UsTime(startTime).date
@@ -306,7 +311,9 @@ extension BackgroundDownloadService {
           if storedIssue.payload.downloadStopped == nil {
             storedIssue.pr.payload?.downloadStopped = Date()
           }
-          storedIssue.fixMoTime()
+        if let feed = TazAppEnvironment.storedFeeder?.selectedFeed {
+          storedIssue.fixMoTime(feed: feed)
+        }
 
           // Preload facsimile if available (triggers lazy loading)
           _ = storedIssue.pages?.first?.facsimile
@@ -333,11 +340,11 @@ fileprivate extension StoredIssue {
   
   ///fix moTime for issue
   ///downloaded and extracted file have different moTime then the one in the database
-  func fixMoTime() {
+  func fixMoTime(feed:Feed) {
     let appPath = Database.appDir /// appDir is appPath!
     let issueRelPath = prepareRelativePath(self.dir.path, removePart: appPath)
-    let globalRelPath = prepareRelativePath(self.feed.feeder.globalDir.path, removePart: appPath)
-    let resourcesRelPath = prepareRelativePath(self.feed.feeder.resourcesDir.path, removePart: appPath)
+    let globalRelPath = prepareRelativePath(feed.feeder.globalDir.path, removePart: appPath)
+    let resourcesRelPath = prepareRelativePath(feed.feeder.resourcesDir.path, removePart: appPath)
     log("path:\n \(issueRelPath)\n \(globalRelPath)\n \(resourcesRelPath)")
     for file in self.files {
       let relPath: String = {

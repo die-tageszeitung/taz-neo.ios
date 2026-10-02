@@ -64,37 +64,40 @@ extension BackgroundDownloadService {
     
     let serverBaseUrl = downloadUrl.urlByDeleetingLastPathComponent
     
+    ///** collect some environment
+    guard let feederContext = feederContext,
+          let storedFeeder = feederContext.storedFeeder else {
+      log("⚠️ WARNING: no storedFeed available")
+      return
+    }
+    
     ///** lookup in Temp Storage
     if let issue = tempStorage.getIssue(with: serverBaseUrl) {
       log("...found issue in tempStorage: \(issue.date.short)")
-      updateLatestIssueDownloadDate(ifNewer: issue.date)
-      log("...set isAutodownloading compleete!")
-      issue.setAutodownloadCompleete()
-      notify(issueDate: issue.date, finished: true)
-      handlePendingTasks()
+      ensureMain {[weak self] in
+        guard let self else { return }
+        updateLatestIssueDownloadDate(ifNewer: issue.date)
+        log("...set isAutodownloading compleete!")
+        issue.setAutodownloadCompleete()
+        notify(issueDate: issue.date, finished: true)
+        handlePendingTasks(in: storedFeeder.masterFeed)
+      }
       return
     }
     ///App Restarted by system!?
     log("...issue NOT FOUND in tempStorage, try to fetch from database")
        
-    ///** collect some environment
-    guard let feederContext = feederContext,
-          let storedFeed = feederContext.defaultFeed else {
-      log("⚠️ WARNING: no storedFeed available")
-      return
-    }
-    
     ///** lookup in Database#
     ensureMain {[weak self] in
       if let issue = StoredIssue.get(baseUrl: serverBaseUrl,
-                                  inFeed: storedFeed),
+                                     inFeed: storedFeeder.masterFeed as! StoredFeed),
          issue.isAutodownloading == true {
         self?.log("...found issue in databse: \(issue.date.short)")
         /// If auto-downloading is true, full data is available—not just overview data.
         self?.log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         self?.notify(issueDate: issue.date, finished: true)
-        self?.handlePendingTasks()
+        self?.handlePendingTasks(in: storedFeeder.masterFeed)
         return
       }
       self?.log("issue not found in database, restore from JSON")
@@ -102,7 +105,7 @@ extension BackgroundDownloadService {
       Task.detached { [weak self] in
         await self?
           .loadFromJsonAndFinish(feederContext: feederContext,
-                                 feedName: storedFeed.name,
+                                 feed: storedFeeder.masterFeed,
                                  issueDateKey: downloadData.isoDateKey)
       }
     }
@@ -124,13 +127,13 @@ fileprivate extension BackgroundDownloadService {
   ///   - issueDateKey: The key used to determine the relevant issue by date.
   func loadFromJsonAndFinish(
     feederContext: FeederContext,
-    feedName: String,
+    feed: Feed,
     issueDateKey: String
   ) async {
     do {
       let feed = try await loadFeedFromJsonFile(
         feederContext: feederContext,
-        feedName: feedName,
+        feedName: feed.name,
         issueDateKey: issueDateKey
       )
       
@@ -146,7 +149,7 @@ fileprivate extension BackgroundDownloadService {
       log("...set isAutodownloading compleete!")
       issue.setAutodownloadCompleete()
       notify(issueDate: issue.date, finished: true)
-      handlePendingTasks()
+      handlePendingTasks(in: feed)
       
     } catch {
       log("⚠️ Failed to process JSON for date \(issueDateKey): \(error)")

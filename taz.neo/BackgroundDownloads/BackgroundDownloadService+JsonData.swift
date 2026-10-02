@@ -33,15 +33,14 @@ extension BackgroundDownloadService {
       throw BackgroundDownloadError("FEHLER: 'feedRequest' not found in saved response.")
     }
     
-    guard let feed = frqResponse.feeds.first(where: {$0.name == feederContext.feedName}) else {
+    guard let feed = frqResponse.feeds.first(where: {$0.name == feederContext.masterFeed1.name}) else {
       throw BackgroundDownloadError("FEHLER: No feed found in saved response.")
     }
     
     // Set references like done in GqlFeeder.Feeder.feedWithIssues
     feed.gqlFeeder = feederContext.gqlFeeder
-    
+    #warning("TODO HECK MAYBE FEED SETTING IS MISSING! DEBUG")
     for issue in feed.issues ?? [] {
-      issue.feed = feederContext.defaultFeed
       (issue as? GqlIssue)?.setPayload(
         feeder: feederContext.gqlFeeder,
         isPages: Defaults.autoloadPdfOrFacsimile,
