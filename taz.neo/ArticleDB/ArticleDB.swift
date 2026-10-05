@@ -2964,11 +2964,6 @@ public final class StoredFeeder: Feeder, StoredObject {
     else { return nil }
   }
   
-  public static func all() -> [StoredFeeder] {
-    let request = fetchRequest
-    return get(request: request)
-  }
-  
   public required init(title: String, url: String, closure:
                        @escaping(Result<Feeder,Error>)->()) {
     let request = StoredFeeder.fetchRequest
