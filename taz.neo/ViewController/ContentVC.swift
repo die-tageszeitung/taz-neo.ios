@@ -193,7 +193,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
     }
     return delegate.issue
   }
-//  public var feed: Feed? { TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 }
   public var dloader: Downloader { delegate.dloader }
   ///optional slider configured by SectionVC, PDF but not by Search/Bookmarks
   var slider:MyButtonSlider?
