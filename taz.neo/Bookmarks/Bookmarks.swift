@@ -80,7 +80,7 @@ public class Bookmarks: DoesLog {
   private func setup(){
     ///check if required environment is available; otherwise bookmarks would not work and cannot be initialized
     guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-          feederContext.storedFeeder != nil else {
+          let masterFeed = feederContext.masterFeed else {
       return
     }
     
@@ -89,7 +89,7 @@ public class Bookmarks: DoesLog {
     /// - no bookmark can be set: OK
     /// - no bookmark can be fetch from Database, list is empty: OK
     self.feederContext = feederContext
-    let bookmarkIssue = self.loadOrCreateBookmarkIssue(in: feederContext.masterFeed1)
+    let bookmarkIssue = self.loadOrCreateBookmarkIssue(in: masterFeed)
     self.bookmarkIssue = bookmarkIssue
     ///as long as default bookmarkSection is unset bookmarks did not work;
     self.bookmarkSection

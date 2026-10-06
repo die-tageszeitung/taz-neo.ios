@@ -20,7 +20,7 @@ extension BackgroundDownloadService {
       #warning("check if recieve feeder ready required!")
       //otherwise ...
       log("BDL App entered foreground, execute pending tasks...")
-      if let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 {
+      if let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed {
         handlePendingTasks(in: feed)
       }
       

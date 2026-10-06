@@ -58,6 +58,7 @@ extension BackgroundDownloadService {
       return
     }
     guard let feederContext = Self.shared.feederContext,
+          let feed = feederContext.masterFeed,
           let gqlFeeder = Self.shared.feederContext?.gqlFeeder else {
       Self.shared.log("...static checkForNewIssue skipped, environment missing!")
       fetchCompletionHandler?(.noData)
@@ -74,7 +75,7 @@ extension BackgroundDownloadService {
       Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
       fetchCompletionHandler?(.noData)
       ///maybe enqueued not downloaded, not saved to db
-      Self.shared.handlePendingTasks(in: feederContext.masterFeed1)//persist stuff
+      Self.shared.handlePendingTasks(in: feed)//persist stuff
       ///maybe re-start download? BackgroundSession.restartAllArchivedDownloads EXPERIMENTELL!!!
       return
     }
@@ -100,6 +101,12 @@ fileprivate extension BackgroundDownloadService {
     // MARK: - Initial Checks
     guard let feederContext = feederContext else {
       log("No feeder context... try later")
+      fetchCompletionHandler?(.noData)
+      return
+    }
+    
+    guard let masterFeed = feederContext.masterFeed else {
+      log("No master feed to safe... try later")
       fetchCompletionHandler?(.noData)
       return
     }
@@ -164,7 +171,7 @@ fileprivate extension BackgroundDownloadService {
       log("...downloading IssueData \(zipUrl.lastPathComponent) from: \(zipUrl) to: \(issue.dir?.path ?? "")")
       
       let (downloadId, startTime) = try await feederContext.gqlFeeder
-        .markStartDownloadAsync(feed: feederContext.masterFeed1,
+        .markStartDownloadAsync(feed: masterFeed,
                                 issue: issue,
                                 isAutomatically: true,
                                 returnOnMain: false)
@@ -195,7 +202,7 @@ fileprivate extension BackgroundDownloadService {
       /// Schedule background task to resume Download if Autodownload did not started
       scheduleBackgroundIssueCheck(earliestBeginDate: Date(timeIntervalSinceNow: 60 * 60))
       ///persist data to db
-      handlePendingTasks(in: feederContext.masterFeed1)
+      handlePendingTasks(in: masterFeed)
       ///push notification callback
       ///
       ///In case of app restart in celuar show user info to enable wlan for download
@@ -239,7 +246,8 @@ fileprivate extension BackgroundDownloadService {
   func fetchFromRemote(isBackground: Bool) async throws -> Issue {
     //add to publicationsdates and issues, returns latest issue
     
-    guard let feederContext = feederContext else {
+    guard let feederContext = feederContext,
+          let masterFeed = feederContext.masterFeed else {
       throw BackgroundDownloadError("Currently no feederContext available!")
     }
     
@@ -250,7 +258,7 @@ fileprivate extension BackgroundDownloadService {
     // MARK: fetch latest issue and publication Dates from server
     let response
     = try await feederContext.gqlFeeder
-      .latestIssueAndFeed(feed: feederContext.masterFeed1,
+      .latestIssueAndFeed(feed: masterFeed,
                           isPages: Defaults.autoloadPdfOrFacsimile,
                           withAudio: autoloadAudio,
                           latestKnownPublicationDate: lastLocalIssueDate,
@@ -389,8 +397,9 @@ fileprivate extension GqlFeeder {
 fileprivate extension Issue {
   
   func createFolderStructureIfNeeded(for feederContext: FeederContext) {
-    guard let dir = dir else { return }
-    dir.createGlobalLinksIfNeeded(feeder: feederContext.storedFeeder)
+    guard let dir = dir,
+    let storedFeeder = feederContext.storedFeeder else { return }
+    dir.createGlobalLinksIfNeeded(feeder: storedFeeder)
   }
   
   var zipAudioUrl: String? {

@@ -15,7 +15,10 @@ extension BackgroundDownloadService {
   func loadFeedFromJsonFile(feederContext: FeederContext,
                             feedName: String,
                             issueDateKey: String) async throws -> Feed {
-    let feedPath = feederContext.storedFeeder.feedDir(feedName).path
+    guard let storedFeeder = feederContext.storedFeeder else {
+      throw BackgroundDownloadError("No StoredFeeder available.")
+    }
+    let feedPath = storedFeeder.feedDir(feedName).path
     let filePath = "\(feedPath)/\(issueDateKey)/\(BackgroundDownloadService.jsonDataFilename)"
     let file = File(filePath)
     log("Loading feed from JSON file: \(filePath)")
@@ -33,7 +36,8 @@ extension BackgroundDownloadService {
       throw BackgroundDownloadError("FEHLER: 'feedRequest' not found in saved response.")
     }
     
-    guard let feed = frqResponse.feeds.first(where: {$0.name == feederContext.masterFeed1.name}) else {
+    guard let masterFeedName = feederContext.masterFeed?.name,
+          let feed = frqResponse.feeds.first(where: {$0.name == masterFeedName}) else {
       throw BackgroundDownloadError("FEHLER: No feed found in saved response.")
     }
     

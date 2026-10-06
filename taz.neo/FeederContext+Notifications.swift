@@ -122,7 +122,7 @@ extension FeederContext {
   public func handleArticlePush(pn: PushNotification,
                                 payload: PushNotification.Payload,
                                 fetchCompletionHandler: FetchCompletionHandler?) {
-    log("Handle new Article Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.masterFeed1.name)")
+    log("Handle new Article Push\n  Current App State: \(UIApplication.shared.stateDescription)\n  feed: \(self.masterFeed?.name ?? "-")")
     log("pn: \(pn) ")
     if specialArticleSystemSetting == false {
       log("do not notify user, deactivated")

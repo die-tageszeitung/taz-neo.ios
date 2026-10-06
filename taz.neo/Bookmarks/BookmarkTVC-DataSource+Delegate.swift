@@ -71,7 +71,7 @@ extension Article {
   ///Only use here it uses bookmarkFeed!
   fileprivate var validityDateText: String? {
     var validityDate:Date?
-    if let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1,
+    if let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed,
        let issueDate = self.issueDate {
       ///remove the StoredIssue.get to see "more" missing publicationDates Bugs in Bookmarks
       validityDate

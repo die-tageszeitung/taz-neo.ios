@@ -31,7 +31,7 @@ extension FeederContext {
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    markStartDownload(feed: storedFeeder.issueProviderFeed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
+    markStartDownload(feed: storedFeeder!.issueProviderFeed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload,
                                    onProgress: { (bytesLoaded,totalBytes) in
@@ -100,7 +100,7 @@ extension FeederContext {
       && true ///PDF not loaded yet; guard statement above
       && needsUpdate(issue: issue, toShowPdf: false) == false///"App Ansicht" already downloaded => no update for app ansicht needed
       log("fetch issue: \(issue.date.short)")
-      gqlFeeder.issues(feed: storedFeeder.issueProviderFeed,
+      gqlFeeder.issues(feed: storedFeeder!.issueProviderFeed,
                        date: issue.date,
                        key: issue.key,
                        count: 1,
@@ -112,7 +112,7 @@ extension FeederContext {
           let dissue = issues[0]
           if issue.date != dissue.date {
             ///*NOTE:*After Server switch testserver maybe did not have the requested issue!
-            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") \(self.masterFeed1.cycle.toString())")
+            self.error("Cannot Update issue \(issue.date.short)/\(issue.isWeekend ? "weekend" : "weekday") with issue \(dissue.date.short)/\(dissue.isWeekend ? "weekend" : "weekday") \(self.masterFeed?.cycle.toString() ?? "-")")
             let unexpectedResult : Result<[Issue], Error>
               = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
             Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
@@ -217,7 +217,7 @@ extension FeederContext {
   ///check is new issue was available since popup should be shown (Step1)
   func didDownload(_ issue: Issue){
     BackgroundDownloadService.shared.updateLatestIssueDownloadDate(ifNewer: issue.date)
-    guard issue.date == self.masterFeed1.lastIssue else { return }
+    guard issue.date == self.masterFeed?.lastIssue else { return }
     guard let momentPublicationDate = issue.moment?.files.first?.moTime else { return }
     ///momentPublicationDate is in UTC timeIntervalSinceNow calculates also with utc, so timeZone calculation needed!
     //is called multiple times!

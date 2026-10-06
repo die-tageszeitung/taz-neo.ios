@@ -125,7 +125,7 @@ class Tom {
 extension File {
   /// returns the searchResults directory
   public static var tomsPath: String {
-    return TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.baseDir.path.appending("/tmp-toms")
+    return TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.baseDir.path.appending("/tmp-toms")
     ?? Dir.appSupportPath.appending("/tmp-toms")
   }
   

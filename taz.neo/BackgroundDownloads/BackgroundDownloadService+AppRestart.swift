@@ -26,7 +26,8 @@ extension BackgroundDownloadService {
   
   func applicationRestarted(with feederContext: FeederContext) {
     Task{[weak self] in
-      guard let self = self else { return }
+      guard let self = self,
+      let masterFeed = feederContext.masterFeed else { return }
       /// Helper
       var outdatedDurationDays : Double {
         switch publicationSchedule {
@@ -53,7 +54,7 @@ extension BackgroundDownloadService {
         notifyHome(skipDownloadNoWlan ? .autoloadErrorNoWlan : .loadIssue)
         do {
           let feed = try await loadFeedFromJsonFile(feederContext: feederContext,
-                                                    feedName: feederContext.masterFeed1.name,
+                                                    feedName: masterFeed.name,
                                                     issueDateKey: issueDateKey)
           guard let issue = feed.issues?.first else {
             throw BackgroundDownloadError("No Issue found!")
@@ -91,7 +92,7 @@ extension BackgroundDownloadService {
         }
       }
       let openDl = backgroundSession.hasOpenDownloads ///issue, audio and resources downloads
-      handlePendingTasks(in: feederContext.masterFeed1)
+      handlePendingTasks(in: masterFeed)
       if skipDownloadNoWlan { return }
       notifyHome(openDl ? .loadIssue : feederContext.isConnected ? .online : .offline)
       if openDl { backgroundSession.resume(archived: true, priority: 1.0)}

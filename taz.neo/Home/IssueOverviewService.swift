@@ -602,7 +602,7 @@ class IssueOverviewService: NSObject, DoesLog {
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
     self.feederContext = feederContext
-    self.feed = feederContext.storedFeeder.selectedFeed as! StoredFeed
+    self.feed = feederContext.storedFeeder?.selectedFeed as! StoredFeed
     self.publicationDates = feed.publicationDates ?? []
     issues =
     (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
@@ -654,9 +654,10 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     Notification.receive(Const.NotificationNames.feedChange) {[weak self] _ in
-      guard let self else { return }
-      log(">>> Feed Change from \(feed.name) to \(feederContext.storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
-      feed = feederContext.storedFeeder.selectedFeed as! StoredFeed
+      guard let self,
+            let storedFeeder = feederContext.storedFeeder else { return }
+      log(">>> Feed Change from \(feed.name) to \(storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+      feed = storedFeeder.selectedFeed as! StoredFeed
       publicationDates = feed.publicationDates ?? []
       updateIssues()
       log(">>>..now iss#:\(issues.count) pb#: \(self.publicationDates.count)")
@@ -992,7 +993,7 @@ extension Issue {
     let hasLastRead = hasLastReadForCurrentMode
     // Only notify if the last read state actually changed (from no last read to having one, or vice versa)
     guard hadLastRead != hasLastRead else { return }
-    guard let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1 else { return }
+    guard let feed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed else { return }
     
     guard let pubDate = feed.publicationDates?.first(where: { $0.date == self.date }) else { return }
     

@@ -72,7 +72,7 @@ public enum GqlSearchFilter: String {
   static let allItems : [GqlSearchFilter] = {
     #warning("Better Implementation with feeds possible")
     ///wenn ich den Feed tazLMD habe dann kann ich den LMd Filter anzeigen, sonnst nicht, was ist mit nicht angemeldet?
-    return TazAppEnvironment.sharedInstance.feederContext?.masterFeed1.cycle == .weekly
+    return TazAppEnvironment.sharedInstance.feederContext?.masterFeed?.cycle == .weekly
     ? [.all, .taz, .Kontext, .weekend]
     : [.all, .taz, .LMd, .Kontext, .weekend]
    }()

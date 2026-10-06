@@ -679,7 +679,7 @@ class GqlIssue: Issue, GQLObject {
   }
 
   required init(from decoder: Decoder) throws {
-    masterFeed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed1
+    masterFeed = TazAppEnvironment.sharedInstance.feederContext?.masterFeed
     let container = try decoder.container(keyedBy: CodingKeys.self)
     sDate = try container.decode(String.self, forKey: .sDate)
     sValidityDate = try container.decodeIfPresent(String.self, forKey: .sValidityDate)

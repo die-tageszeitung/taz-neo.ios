@@ -1200,7 +1200,7 @@ extension SettingsVC {
     alert.addAction( UIAlertAction.init( title: "Löschen", style: .destructive,
                                          handler:  { [weak self] _ in
       guard let feederContext = TazAppEnvironment.sharedInstance.feederContext,
-            feederContext.storedFeeder != nil else {
+            let masterFeed = feederContext.masterFeed else {
         return
       }
       
@@ -1210,7 +1210,7 @@ extension SettingsVC {
       
       Notification.send(Const.NotificationNames.closeOpenIssues)
       TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
-      StoredIssue.deleteAllIssues(feed: feederContext.masterFeed1)
+      StoredIssue.deleteAllIssues(feed: masterFeed)
       onMainAfter { [weak self] in
         self?.refreshAndReload()
         self?.memoryUsageCell.detailTextLabel?.text = self?.storageDetails

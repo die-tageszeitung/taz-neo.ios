@@ -186,7 +186,7 @@ extension IssueDisplayService {
                  atArticle: Int? = nil,
                  pushDelegate: PushIssueDelegate) {
     ///Download if needed
-    if feederContext.storedFeeder.momentPdfFile(issue: issue) != nil {
+    if feederContext.storedFeeder?.momentPdfFile(issue: issue) != nil {
       pushPdf(issue: issue,
               atPage: atPage,
               atArticle: atArticle,

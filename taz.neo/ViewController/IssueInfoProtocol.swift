@@ -19,7 +19,7 @@ public protocol IssueInfo: AnyObject {
 
 public extension IssueInfo {
   /// The feeder delivering Feeds of Issues
-  var feeder: Feeder { feederContext.storedFeeder }
+  var feeder: Feeder { feederContext.storedFeeder! }
   /// The Downloader to get data from the Feeder
   var dloader: Downloader { feederContext.dloader }
   /// The Feed containing Issues

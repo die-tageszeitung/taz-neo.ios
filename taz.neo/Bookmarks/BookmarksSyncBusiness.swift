@@ -369,7 +369,7 @@ fileprivate extension GqlSingleArticle {
       return storedArticle
     }
     
-    guard let issueDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(date: issueDate) else {
+    guard let issueDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.issueDir(date: issueDate) else {
       error("something went wrong, did not found IssueDir for: \(self)")
       return nil
     }

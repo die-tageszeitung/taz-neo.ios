@@ -2281,7 +2281,7 @@ public final class StoredIssue: Issue, StoredObject {
     let storedPayload = StoredPayload.persist(object: object.payload)
     pr.payload = storedPayload.pr
     pr.payload?.issue = pr
-    if let globalsPath = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir.path {
+    if let globalsPath = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.globalDir.path {
       var globalsSubPath = String(globalsPath.dropFirst(Database.appDir.count + 1))
       globalsSubPath = globalsSubPath.hasSuffix("/") ? String(globalsSubPath.dropLast()) : globalsSubPath
       log("storedPayload.updateGlobalFiles(subdir: \(globalsSubPath)")

@@ -170,7 +170,7 @@ extension BackgroundDownloadService {
     #warning("TODO")
     //    persistJsonData()...nö nicht (mehr?)
     
-    if let storedFeed = feederContext?.masterFeed1,
+    if let storedFeed = feederContext?.masterFeed,
        tempStorage.publicationDates.count > 0
     {
       log("...Persisting \(tempStorage.publicationDates.count) publication dates reset feed to: \(storedFeed.name)\nDates: \(tempStorage.publicationDates.map{ $0.date.short }.joined(separator: ", "))")

@@ -246,8 +246,8 @@ public extension ImageEntry {
                 let feeder = feederContext.storedFeeder {
           dir = feeder.issueDir(date: issueDate)
         }
-      case .global: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.globalDir
-      case .resource: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir
+      case .global: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.globalDir
+      case .resource: dir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.resourcesDir
       case .unknown: break
     }
     return image(dir: dir)

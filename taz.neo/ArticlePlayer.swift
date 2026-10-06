@@ -843,7 +843,7 @@ extension Section {
 fileprivate extension Issue {
   var image:UIImage? {
     guard let momentImageUrl
-            = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.smallMomentImageName(issue: self)
+            = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.smallMomentImageName(issue: self)
     else { return nil }
     return UIImage(contentsOfFile: momentImageUrl)
     
@@ -888,7 +888,7 @@ fileprivate extension Content{
 fileprivate extension FileEntry {
   var resourcesAudioUrl: String? {
     guard self.storageType == .resource else { return nil }
-    guard let resDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.resourcesDir else { return nil }
+    guard let resDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.resourcesDir else { return nil }
     return resDir.path + "/" + self.name
   }
 }

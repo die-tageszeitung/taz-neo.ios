@@ -82,7 +82,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
   }
   
-  public static var masterFeed: StoredFeed? { sharedInstance.feederContext?.masterFeed1 }
+  public static var masterFeed: StoredFeed? { sharedInstance.feederContext?.masterFeed }
   public static var storedFeeder: StoredFeeder? { sharedInstance.feederContext?.storedFeeder }
   
   public static let sharedInstance = TazAppEnvironment()
@@ -314,11 +314,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     log("Connecting to feeder: \(feeder.name)")
     Notification.receiveOnce("feederReady") { [weak self] notification in
       guard let self, let fctx = notification.sender as? FeederContext else { return }
-      self.debug(fctx.storedFeeder.toString())
+      self.debug(fctx.storedFeeder?.toString() ?? "-")
       if isStartup { self.startup() }
       else { self.showHome() }
       
-      if let sf = feederContext?.masterFeed1 {
+      if let sf = feederContext?.masterFeed {
         let latestLocalIssue = StoredIssue.latest(feed: sf)
         if latestLocalIssue?.isComplete == false {
           BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "setupFeeder, latest local issue (\(latestLocalIssue?.date.short ?? "-")) is incompleete")
@@ -712,7 +712,7 @@ extension TazAppEnvironment {
   
   func playLatestIssue(){
     guard let feederContext = feederContext,
-          feederContext.masterFeed1 != nil,
+          feederContext.masterFeed != nil,
           let si = feederContext.getLatestStoredIssue1() else {
       LocalNotifications.notifyOfflineListenNotPossible()
       return
@@ -967,7 +967,7 @@ extension UIDevice.BatteryState {
 
 extension Issue {
   var masterIssueDir : Dir? {
-    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(issue: self)
+    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.issueDir(issue: self)
   }
 }
 
@@ -975,6 +975,6 @@ extension Article {
   var masterIssueDir : Dir? {
     guard let issueDate = (self as? SearchArticle)?.originalIssueDate
             ?? self.issueDate else { return nil }
-      return TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(date: issueDate)
+      return TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.issueDir(date: issueDate)
   }
 }

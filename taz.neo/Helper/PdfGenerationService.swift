@@ -113,8 +113,9 @@ class PdfGenerationService: DoesLog {
       webView.frame = CGRect(x: 0, y: 0, width: 600, height: 900)
     }
       
-    if article is SearchArticle == false {
-      webView?.baseDir =  TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.baseDir.path
+    if article is SearchArticle == false,
+    let baseDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.baseDir.path {
+      webView?.baseDir = baseDir
     }
     webView?.load(url: File(article.path).url)
     debug("HTML loaded.")

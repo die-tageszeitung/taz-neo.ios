@@ -80,8 +80,8 @@ open class FeederContext: DoesLog {
     }
   }
   
-  var selectedFeedName:String { storedFeeder.selectedFeed.name }
-  var feedName:String { masterFeed1.name }
+  var selectedFeedName:String? { storedFeeder?.selectedFeed.name }
+  var feedName:String? { masterFeed?.name }
 
   /// Name (title) of Feeder, base Dir in 
   public var name: String
@@ -107,14 +107,14 @@ open class FeederContext: DoesLog {
       }
     }
   }
-  /// The stored Feeder (from DB)
-  public private(set) var storedFeeder: StoredFeeder! {
-    didSet {
-      log("storedFeeder set")
-    }
-  }
   
-  public var masterFeed1: StoredFeed { storedFeeder.masterFeed as! StoredFeed }
+  /// The stored feeder from the database.
+  /// after app installation, this is `nil`. During initialization, it is ensured
+  /// that at least one stored feeder is persisted and available before
+  /// `feederReady` is sent and external resources can access it.
+  public private(set) var storedFeeder: StoredFeeder?
+  
+  public var masterFeed: StoredFeed? { storedFeeder?.masterFeed as? StoredFeed }
   
   /// The Downloader to use
   public var dloader: Downloader! {
@@ -169,13 +169,11 @@ open class FeederContext: DoesLog {
   var specialArticleSystemSetting: Bool
   
   var latestPublicationDateForMasterFeed:Date? {
-    guard storedFeeder != nil else { return nil }
-    return masterFeed1.lastIssue
+    return masterFeed?.lastIssue
   }
   
   var latestPublicationDateForSelectedFeed:Date? {
-    guard storedFeeder != nil else { return nil }
-    return storedFeeder.selectedFeed.lastIssue
+    return storedFeeder?.selectedFeed.lastIssue
   }
   ///Shortcut
   var isConnected: Bool { netAvailability.isConnected }
@@ -243,9 +241,9 @@ open class FeederContext: DoesLog {
       updateFeeder()
       return
     }
-    else if storedFeeder.pr.feeds?.count == 1,
+    else if storedFeeder?.pr.feeds?.count == 1,
        let oldMasterPersistentFeed
-        = storedFeeder.pr.feeds?.allObjects.first as? PersistentFeed,
+        = storedFeeder?.pr.feeds?.allObjects.first as? PersistentFeed,
        (oldMasterPersistentFeed.type == "publication"
         || oldMasterPersistentFeed.type == FeedType.unknown.rawValue){
       ///Migrate some properties to multi Feed
@@ -264,7 +262,7 @@ open class FeederContext: DoesLog {
       updateFeeder(loadAllPublicationDates: loadAll, loadAllFeeds: loadAllFeeds)
     }
     
-    if let masterFeed = storedFeeder.masterFeed as? StoredFeed {
+    if let masterFeed = storedFeeder?.masterFeed as? StoredFeed {
       BackgroundDownloadService.shared.updateFeed(masterFeed)
       handleSoftDataUpdatesIfNeeded(feed:masterFeed)
     }
@@ -317,10 +315,10 @@ open class FeederContext: DoesLog {
           let initialCall = self.storedFeeder == nil
           ///remember old data due on set storedFeeder  old reference is overwritten
           let publicationDatesChanged
-          = self.storedFeeder != nil
-          && self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count != 1
-          && self.storedFeeder.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count
-          != self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder.selectedFeed.name})?.publicationDates?.count
+          = self.storedFeeder?.selectedFeed.name != nil
+          && self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count != 1
+          && self.storedFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count
+          != self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count
           
 //          for gqlFeed in self.gqlFeeder.feeds {
 //            
@@ -328,18 +326,18 @@ open class FeederContext: DoesLog {
 //            ....nee müsste trivial sein und sich selbst auflösen!?
 //            for issueDate
 //          }
-          let currentFeedCount = self.storedFeeder.feeds.count
+          let currentFeedCount = self.storedFeeder?.feeds.count ?? 0
           self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-          let newFeedsAvailable = self.storedFeeder.feeds.count > currentFeedCount
+          let newFeedsAvailable = self.storedFeeder?.feeds.count ?? 0 > currentFeedCount
 //          for issue in self.storedFeeder
           
-          if newFeedsAvailable {
-            #warning("only update status for new feeds!")
-            ///this is working but slow!
-            ///danach möchte ich noch die neueste issue pro feed laden
-            updateFeeder(loadAllPublicationDates: true, loadAllFeeds: true)
-            return
-          }
+//          if newFeedsAvailable {
+//            #warning("only update status for new feeds!")
+//            ///this is working but slow!
+//            ///danach möchte ich noch die neueste issue pro feed laden
+//            updateFeeder(loadAllPublicationDates: true, loadAllFeeds: true)
+//            return
+//          }
           
           if publicationDatesChanged {
             ArticleDB.save()
@@ -639,11 +637,11 @@ open class FeederContext: DoesLog {
   }
   
   public func getLatestStoredIssue1() -> StoredIssue? {
-    guard masterFeed1 != nil else {
+    guard let masterFeed else {
       error("Stored Feed not found");
       return nil
     }
-    return StoredIssue.issuesInFeed(feed: masterFeed1, count: 1).first
+    return StoredIssue.issuesInFeed(feed: masterFeed, count: 1).first
   }
   
   /// Returns true if the Issue needs to be updated
@@ -711,7 +709,7 @@ open class FeederContext: DoesLog {
 extension Issue {
   /// directory where all issue specific data is stored
   var dir: Dir? {
-    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder.issueDir(issue: self)
+    TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.issueDir(issue: self)
   }
   
   func createGlobalLinksIfNeeded(){

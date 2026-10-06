@@ -140,7 +140,7 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
   lazy var searchSettingsView:SearchSettingsView = {
     let v = SearchSettingsView(frame: .zero,
                                style: .grouped,
-                               minimumSearchDate: feederContext.masterFeed1.firstSearchableIssue ?? Date(timeIntervalSinceReferenceDate: 0))
+                               minimumSearchDate: feederContext.masterFeed?.firstSearchableIssue ?? Date(timeIntervalSinceReferenceDate: 0))
     v.backgroundView = UIView()
     v.backgroundView?.onTapping {[weak self] _ in
       v.toggle(toVisible: false)

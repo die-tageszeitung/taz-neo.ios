@@ -46,7 +46,7 @@ extension Bookmarks {
   static func lowresMomentImage(for article:Article?) -> UIImage? {
     guard let article = article,
           let issueDate = article.issueDate,
-          let feed = Self.shared.feederContext?.masterFeed1,
+          let feed = Self.shared.feederContext?.masterFeed,
           let issue = StoredIssue.get(date: issueDate, inFeed: feed).first,
           let issueDir = issue.dir,
           let image = issue.moment?.lowres
