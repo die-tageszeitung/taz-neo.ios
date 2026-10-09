@@ -116,7 +116,7 @@ extension FeederContext {
             let unexpectedResult : Result<[Issue], Error>
               = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
             Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
-            TazAppEnvironment.sharedInstance.resetApp(.wrongCycleDownloadError)
+            Alert.message(title: "Fehler", message: Localized("error"))
             return
           }
           issue.update(from: dissue)

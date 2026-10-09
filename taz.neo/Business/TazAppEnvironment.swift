@@ -227,47 +227,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
   }
   
-  enum resetAppReason {
-    case cycleChangeWithLogin, wrongCycleDownloadError
-  }
 
-  /// Reset App and delete data
-  /// - Parameter reason: reason to display right message to user
-  /// Warning in some unknown cases a weekend login did not fire resetApp(.cycleChangeWithLogin) then
-  /// it may fired immediately on update an weekday issue
-  public func resetApp(_ reason: resetAppReason) {
-    let weeklyLogin = self.feederContext?.gqlFeeder.feeds.first(where: {$0.name == self.feederContext?.feedName})?.cycle == .weekly
-    var message: String
-    switch (reason, weeklyLogin) {
-      case (.cycleChangeWithLogin, _):
-        message = """
-            Zur Reinitialisierung der App ist ein Neustart erforderlich.
-            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
-            erneut.
-          """
-      case (.wrongCycleDownloadError, true):
-        message = """
-            Es ist ein Fehler aufgetreten.
-            Anscheinend sind Sie mit einem Wochentaz Abo angemeldet,
-            in den lokalen Daten sind jedoch Werktagsausgaben vorhanden.
-            Eine Reinitialisierung und Neustart der App ist erforderlich.
-            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
-            erneut.
-          """
-      case (.wrongCycleDownloadError, false):
-        message = """
-            Es ist ein Fehler aufgetreten.
-            Eine Reinitialisierung und Neustart der App ist erforderlich.
-            Die App wird sich jetzt beenden. Starten Sie sie bitte anschließend
-            erneut.
-          """
-    }
-    Alert.message(title: "Neustart erforderlich",
-      message: message) { [weak self] in
-      self?.reset(isDelete: true)
-    }
-  }
-  
   static var hasValidAuth: Bool { Self.sharedInstance.hasValidAuth }
   static var isAuthenticated: Bool { Self.sharedInstance.isAuthenticated }
   

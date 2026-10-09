@@ -162,8 +162,9 @@ public class DefaultAuthenticator: Authenticator {
   // Returns true if the notification has been sent
   @discardableResult
   public func notifySuccess() -> Bool {
-    if feeder.deliveryChanged() { 
-      TazAppEnvironment.sharedInstance.resetApp(.cycleChangeWithLogin) 
+    if feeder.deliveryChanged() {
+      Toast.show("Lade Ausgaben neu.....")
+//      TazAppEnvironment.sharedInstance.feederContext.updateFeeder()
       return false
     }
     else {

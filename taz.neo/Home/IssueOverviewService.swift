@@ -609,7 +609,7 @@ class IssueOverviewService: NSObject, DoesLog {
       $0[$1.date.issueKey] = $1
     } ?? [:]
     super.init()
-    log(">>>...init IOService for feed: \(feed.name) iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+    log(">>>...init IOService for feed: \(feed.name) iss#:\(issues.count) pd#: \(self.publicationDates.count) feed-issues-count:\(feed.issueCnt)")
     self.ovwHelper.sender = self//required for notification send
     $isFacsimile.onChange {[weak self] _ in
       guard let mode = self?.isFacsimile.mode,

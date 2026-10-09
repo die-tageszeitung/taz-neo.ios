@@ -834,22 +834,6 @@ class GqlFeed: Feed, GQLObject {
           \(GqlValidityDate.fields)
         """
   }
-  
-  static func fields(latestKnownPublicationDate: Date?) -> String {
-    guard let pubDate = latestKnownPublicationDate else {
-      return fields()
-    }
-        return """
-          name cycle momentRatio issueCnt
-          feedId: id
-          feedType: type
-          sLastIssue: issueMaxDate
-          sFirstIssue: issueMinDate
-          sFirstSearchableIssue: issueMinSearchDate
-          gqlPublicationDates:publicationDates(start:"\(pubDate.isoDate(tz: GqlFeeder.tz))")
-        """
-  }
-  
 } // class GqlFeed
 
 /// GqlAppInfo stores data regarding the running App as provided by the server
@@ -900,48 +884,70 @@ class GqlFeederStatus: GQLObject {
   var globalBaseUrl: String
   /// Feeds this Feeder provides
   var feeds: [GqlFeed]
-  static var fields: String {
-    ///What's best? Crash / default == taz? / empty
-    ///=> crash this must be found in qa and future development
-    fatalError("Do not use this without default name!")
-    //Self.fields(feedName: "taz")
-  }
-  static func fields(loadAllPublicationDates: Bool = false, latestKnownPublicationDate: Date? = nil, feedName: String?) -> String {
+  
+  static var fields: String { fields() }///Initial call do not use for updates
+  
+  /// Returns the GraphQL fields for loading the feeder and its feeds.
+  ///
+  /// If a stored feeder exists, publication and validity dates are loaded
+  /// starting at the latest locally known issue. Without a stored feeder,
+  /// all dates are loaded for the initial setup.
+  ///
+  /// If `feedToLoadAllPublicationDates` is set, only that feed is requested
+  /// and all of its publication and validity dates are loaded without a start date.
+  ///
+  /// All feeds are requested when no specific feed is given. This also allows
+  /// newly added feeds to be detected.
+  ///
+  /// `issueVersionsCount` controls how many issue versions are requested.
+  /// If `0`, issue versions are omitted.
+  static func fields(storedFeeder: StoredFeeder? = nil,
+                     feedToLoadAllPublicationDates: Feed? = nil,
+                     issueVersionsCount: Int = 0 ) -> String {
     
-    var feedFields = ""
-    if let pubDate = latestKnownPublicationDate {
-      feedFields = GqlFeed.fields(latestKnownPublicationDate: pubDate)
+    let startArg: String
+
+    if feedToLoadAllPublicationDates == nil,
+       let latestPublicationDate = storedFeeder?.feeds.compactMap(\.lastIssue).max() {
+      startArg = "(start:\"\(latestPublicationDate.isoDate(tz: GqlFeeder.tz))\")"
+    } else {
+      startArg = ""
     }
-    else {
-      feedFields = GqlFeed.fields(loadAllPublicationDates: loadAllPublicationDates)
-    }
-    
-    guard let feedName else {
-      return """
-      authInfo{\(GqlAuthInfo.fields)}
-      resourceVersion
-      resourceBaseUrl
-      resourceZipName: resourceZip,
-      globalBaseUrl
-      feeds: feedList { 
-        \(feedFields)
-        gqlIssueVersions: issueList(limit: 2){\(GqlIssueVersion.fields)}
-      }
-    """
-    }
-    
+    let feedNameArg = feedToLoadAllPublicationDates.map { "(name:\"\($0.name)\")" } ?? ""
+
+    let issueVersions = issueVersionsCount > 0
+      ? """
+        gqlIssueVersions: issueList(limit: \(issueVersionsCount)) {
+          \(GqlIssueVersion.fields)
+        }
+        """
+      : ""
+
     return """
       authInfo{\(GqlAuthInfo.fields)}
       resourceVersion
       resourceBaseUrl
       resourceZipName: resourceZip,
       globalBaseUrl
-      feeds: feedList(name:"\(feedName)") { 
-        \(feedFields)
-        gqlIssueVersions: issueList(limit: 20){\(GqlIssueVersion.fields)}
+      feeds: feedList\(feedNameArg) {
+        name
+        cycle
+        momentRatio
+        issueCnt
+        feedId: id
+        feedType: type
+        sLastIssue: issueMaxDate
+        sFirstIssue: issueMinDate
+        sFirstSearchableIssue: issueMinSearchDate
+        gqlPublicationDates: publicationDates\(startArg)
+        gqlValidityDates: validityDates\(startArg) {
+          sDate: date
+          sValidityDate: validityDate
+        }
+        \(issueVersions)
       }
-    """
-  }//
+      """
+  }
   
   func toString() -> String {
     var ret = """
@@ -1067,13 +1073,17 @@ open class GqlFeeder: Feeder, DoesLog {
   }
   
   //ToDo: Ensure this is just done once not on every net status Change
-  public func updateStatus(loadAllPublicationDates:Bool = false, feedName: String?, closure: @escaping(Result<Feeder,Error>)->()){
-    log(">>> updateStatus loadAllPublicationDates:\(loadAllPublicationDates) for: \(feedName)")
+  public func updateStatus(storedFeeder: StoredFeeder? = nil,
+                           feedToLoadAllPublicationDates: Feed? = nil,
+                           issueVersionsCount: Int = 0,
+                           closure: @escaping(Result<Feeder,Error>)->()){
     isUpdating = true
     let wasAuthenticated: Bool = authToken != nil
-    feederStatus(loadAllPublicationDates:loadAllPublicationDates, feedName: feedName) { [weak self] (res) in
+    feederStatus(storedFeeder: storedFeeder,
+                 feedToLoadAllPublicationDates: feedToLoadAllPublicationDates,
+                 issueVersionsCount: issueVersionsCount) { [weak self] (res) in
       guard let self = self else {
-        print("...deallocated!")
+        self?.debug("...deallocated!")
         let userInfo
         = [NSLocalizedDescriptionKey: "Self deallocated before completion"]
         closure(.failure(NSError(domain: "updateStatus",
@@ -1273,13 +1283,19 @@ open class GqlFeeder: Feeder, DoesLog {
   }
 
   // Get GqlFeederStatus
-  func feederStatus(loadAllPublicationDates:Bool = false, feedName: String?, closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
+  func feederStatus(storedFeeder: StoredFeeder?,
+                    feedToLoadAllPublicationDates: Feed? = nil,
+                    issueVersionsCount: Int = 0,
+                    closure: @escaping(Result<GqlFeederStatus,Error>)->()) {
     guard let gqlSession = self.gqlSession else {
       closure(.failure(fatal("Not connected"))); return
     }
+    
     let request = """
       feederStatus: product {
-        \(GqlFeederStatus.fields(loadAllPublicationDates:loadAllPublicationDates, feedName: feedName))
+        \(GqlFeederStatus.fields(storedFeeder: storedFeeder,
+                feedToLoadAllPublicationDates: feedToLoadAllPublicationDates,
+    issueVersionsCount: issueVersionsCount))
     }
     """
     log("request feeder status with return on\(gqlSession.isBackground ? "Background" : "Main")")
@@ -1390,17 +1406,11 @@ open class GqlFeeder: Feeder, DoesLog {
         keyArg = ",key:\"\(key)\""
       }
       
-      var feedFields = GqlFeed.fields
-      
-      if let latestKnownPublicationDate = latestKnownPublicationDate {
-        feedFields = GqlFeed.fields(latestKnownPublicationDate:latestKnownPublicationDate)
-      }
-      
       return """
       feedRequest: product {
         authInfo { \(GqlAuthInfo.fields) }
         feeds: feedList(name:"\(feedName)") {
-            \(feedFields)
+            \(GqlFeed.fields)
           gqlIssues: issueList(limit:\(count)\(dateArg)\(keyArg)) {
             \(isOverview ? GqlIssue.ovwFields : GqlIssue.fields)
           }

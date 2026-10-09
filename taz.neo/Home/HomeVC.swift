@@ -639,7 +639,21 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     updateAccessibilityOrder()
   }
   
+  var didShowNoIssuesError: Bool = false
+  
   func scrollTo(_ index: Int, animated:Bool = true){
+    guard collectionView.numberOfItems(inSection: 0) > index else {
+      guard !didShowNoIssuesError else { return }
+      let masterFeedSelected = TazAppEnvironment.storedFeeder?.selectedFeed.isMaster ?? false
+      && TazAppEnvironment.storedFeeder?.feeds.count ?? 0 > 1
+      let changeFeed =  masterFeedSelected  ? "" : "\nFalls das Problem weiterhin besteht, können Sie auch die Auswahl der Publikationen im Darstellungs-Menü ändern."
+      let message = "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\(changeFeed)"
+      Alert.confirm(title: "Fehler", message: message) { [weak self] _ in
+        self?.didShowNoIssuesError = false
+      }
+      didShowNoIssuesError = true
+      return
+    }
     updateBottomWrapper(for: index)
     self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
                                      at: isHomeTiles ? .centeredVertically : .centeredHorizontally,

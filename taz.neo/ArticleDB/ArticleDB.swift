@@ -1953,6 +1953,31 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
     request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
     return get(request: request)
   }
+  
+  public static func count(inFeed feed: StoredFeed) -> Int {
+    let request = fetchRequest
+    request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
+    return (try? ArticleDB.context.count(for: request)) ?? 0
+  }
+  
+  /// Return the most recent stored record in the given feed.
+  public static func getLatest(inFeed feed: StoredFeed) -> StoredPublicationDate? {
+      let request = fetchRequest
+      request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
+      request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+      request.fetchLimit = 1
+
+      return get(request: request).first
+  }
+  
+  public static func getOldest(inFeed feed: StoredFeed) -> StoredPublicationDate? {
+      let request = fetchRequest
+      request.predicate = NSPredicate(format: "(ANY feeds = %@)", feed.pr)
+      request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+      request.fetchLimit = 1
+
+      return get(request: request).first
+  }
     
   public static func get(object: PublicationDate, inFeed feed: StoredFeed) -> StoredPublicationDate? {
     return get(date: object.date, inFeed: feed).first
@@ -2334,6 +2359,15 @@ public final class StoredIssue: Issue, StoredObject {
       return get(object: object, inFeed: issueFeed)
     }
     else { return nil }
+  }
+  
+  public static func completeIssueCount(in feed: StoredFeed? = nil) -> Int {
+    let request = fetchRequest
+    request.predicate
+    = feed.map {
+      NSPredicate(format: "(isComplete == YES) AND (ANY feeds = %@)", $0.pr)
+    } ?? NSPredicate(format: "isComplete == YES")
+    return (try? ArticleDB.context.count(for: request)) ?? 0
   }
   
   /// Return an array of Issues in a Feed

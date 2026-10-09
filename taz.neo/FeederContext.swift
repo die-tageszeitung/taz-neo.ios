@@ -9,35 +9,6 @@ import UIKit
 import NorthLib
 
 /**
- - GqlFeeder => Downloader
-    - Start Download after offline start then online
- - online start use Stored...(if any) then connect
- 
- Fehler
- - REGRESSION new installation recheck, mehrfaches update des Feeders 1 reicht
- - DONE kein Onboarding wird angezeigt
- - nicht verbunden verschwindet nicht: offline start, online download, login, karussell!
- - erster Start nach langer Zeit aktuelle Ausgabe wird nicht angezeigt erst nach pull to Refresh
-  - nach Pull to Refresh verschwindet Lade Vorschau nicht
- 
- Check
- - update publicationDates
- - verhalten, bei App Resume etc nach mehreren Stunden!, früher wurde der GqlFeeder+Downloader häufig neu instanziert, jetzt nicht!
- - version checks
- - update set auth
-      * on login
-      * setup poll/push
- 
- TODO:
- - handle fetch new issue header for issuecarousell
- - **DO:**test migration from 0.9.x store
- - test new issue push
- 
- 
- */
-
-
-/**
  A FeederContext manages one Feeder, its GraphQL interface to the backing
  server and its persistent data.
  
@@ -116,6 +87,11 @@ open class FeederContext: DoesLog {
   
   public var masterFeed: StoredFeed? { storedFeeder?.masterFeed as? StoredFeed }
   
+  /// Feeds identified during `updateFeeder` as having fewer locally stored
+  /// issues or publication dates than available remotely and requiring
+  /// background synchronization.
+  public var locallyIncompleteFeeds: [StoredFeed] = []
+  
   /// The Downloader to use
   public var dloader: Downloader! {
     didSet {
@@ -168,6 +144,9 @@ open class FeederContext: DoesLog {
   @Default("specialArticleSystemSetting")
   var specialArticleSystemSetting: Bool
   
+  @Default("lastExtendedIssueUpdateCalled")
+  var lastExtendedIssueUpdateCalled: Date?
+  
   var latestPublicationDateForMasterFeed:Date? {
     return masterFeed?.lastIssue
   }
@@ -219,12 +198,7 @@ open class FeederContext: DoesLog {
       self?.log("applicationWillResignActive: \(UIApplication.shared.stateDescription)")
     }
     
-    var needUpdate = self.storedFeeder == nil
-    var loadAllFeeds = false
-    
-    if needUpdate {
-      storedFeeder = StoredFeeder.get(name: self.name).first
-    }
+    storedFeeder = StoredFeeder.get(name: self.name).first
 
     ///Handle initial App Start
     if storedFeeder == nil {
@@ -246,20 +220,18 @@ open class FeederContext: DoesLog {
         = storedFeeder?.pr.feeds?.allObjects.first as? PersistentFeed,
        (oldMasterPersistentFeed.type == "publication"
         || oldMasterPersistentFeed.type == FeedType.unknown.rawValue){
-      ///Migrate some properties to multi Feed
+      ///Migrate to multi Feed update old local type to new one
       oldMasterPersistentFeed.type = "isMaster"
-      needUpdate = true
-      loadAllFeeds = true
     }
-    
 
-    
-    let loadAll = needLoadAllPublicationDates()
     notify("feederReady")
     cleanupOldIssues(deleteOlder: true)//requires inited bookmarks
     checkAppUpdate()
-    if needUpdate {
-      updateFeeder(loadAllPublicationDates: loadAll, loadAllFeeds: loadAllFeeds)
+    
+    if lastExtendedIssueUpdateCalled.map({ $0 < Date()
+      .addingTimeInterval(-1 * 60) }) ?? true {
+      // lastExtendedIssueUpdateCalled older thean 1 min or not available
+      updateFeeder()
     }
     
     if let masterFeed = storedFeeder?.masterFeed as? StoredFeed {
@@ -283,11 +255,12 @@ open class FeederContext: DoesLog {
         updateFeeder()
     }
   }
-#warning("maybe do not use this in BG Download Stuff!!!")
+  
+  #warning("Do not use this in BG Downloads")
   //if no feed to load given, load all feeds
-  private func updateFeeder(loadAllPublicationDates:Bool = false, loadAllFeeds:Bool = false){
-    if loadAllPublicationDates == false && gqlFeeder.isUpdating {
-      debug(">>>...updateFeeder called BUT CANCELED, loadAllPublicationDates: \(loadAllPublicationDates) isUpdating: \(gqlFeeder.isUpdating)")
+  private func updateFeeder(feedToLoadAllPublicationDates: StoredFeed? = nil){
+    if gqlFeeder.isUpdating {
+      debug(">>>...updateFeeder CANCELED because is already updating")
       return
     }
     
@@ -296,63 +269,54 @@ open class FeederContext: DoesLog {
       log("got a bg SESSION!?")
       log("########################### W A R N I N G #######################")
     }
-    ///LOad all or just given feed?
-    let fName = storedFeeder == nil ? nil : loadAllFeeds ? nil : selectedFeedName
     
-    log(">>> ...updateFeeder called, load: \(fName == nil ? "all Feeds" : "\(fName!) Feed "))loadAllPublicationDates: \(loadAllPublicationDates) is backgroundFeeder? \(gqlFeeder.gqlSession?.isBackground)")
+    /// Load the latest issue after successfully updating and saving the feeder when no stored feeder exists yet
+    let loadLatestIssueInitially = self.storedFeeder == nil
+    
+    var issueVersionsCountLimit = 0
+
+    if storedFeeder != nil,
+       lastExtendedIssueUpdateCalled.map({ $0 < Date().addingTimeInterval(-20 * 60) }) ?? true {
+      /// The stored feeder is initialized and the last extended issue update was more than 20 minutes ago.
+      ///
+      /// Fetch the latest issue versions from the server, using the number of
+      /// complete issues currently stored locally as the limit.
+      ///
+      /// Warning: Older issues may already be complete locally, while the server
+      /// may only return the newest issues within this limit.
+      issueVersionsCountLimit = min(5, StoredIssue.completeIssueCount())
+    }
+    
     Notification.send(Const.NotificationNames.checkForNewIssues,
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
                       sender: self)
-    gqlFeeder.updateStatus(loadAllPublicationDates: loadAllPublicationDates,
-                           feedName: fName) {
-      [weak self] res in
+    
+    gqlFeeder.updateStatus(storedFeeder: storedFeeder,
+                           feedToLoadAllPublicationDates: feedToLoadAllPublicationDates,
+                           issueVersionsCount: issueVersionsCountLimit) { [weak self] res in
       guard let self = self else { return }
       let needInit = self.storedFeeder == nil
       switch res {
-        ///no need to eval res.value due its updated:  self!.gqlFeeder === res.value()
+        ///no need to eval res.value due its updated:  self.gqlFeeder = res.value()
         case .success:
-          let initialCall = self.storedFeeder == nil
-          ///remember old data due on set storedFeeder  old reference is overwritten
-          let publicationDatesChanged
-          = self.storedFeeder?.selectedFeed.name != nil
-          && self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count != 1
-          && self.storedFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count
-          != self.gqlFeeder?.feeds.first(where: {$0.name == self.storedFeeder?.selectedFeed.name})?.publicationDates?.count
-          
-//          for gqlFeed in self.gqlFeeder.feeds {
-//            
-//            die updatefunktion macht mir zu schaffen
-//            ....nee müsste trivial sein und sich selbst auflösen!?
-//            for issueDate
-//          }
-          let currentFeedCount = self.storedFeeder?.feeds.count ?? 0
-          self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
-          let newFeedsAvailable = self.storedFeeder?.feeds.count ?? 0 > currentFeedCount
-//          for issue in self.storedFeeder
-          
-//          if newFeedsAvailable {
-//            #warning("only update status for new feeds!")
-//            ///this is working but slow!
-//            ///danach möchte ich noch die neueste issue pro feed laden
-//            updateFeeder(loadAllPublicationDates: true, loadAllFeeds: true)
-//            return
-//          }
-          
-          if publicationDatesChanged {
+          if Device.isSimulator { logGqlFeederStats() }
+          if feedToLoadAllPublicationDates != nil || self.gqlFeederHasChanges {
+            self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
             ArticleDB.save()
-            log("...publication dates changed, inform UI (if not in background mode)")
+            self.checkStoredFeedsConsistency()
+            log(">>>...publication dates changed, inform UI (if not in background mode)")
             Notification.send(Const.NotificationNames.publicationDatesChanged)
             BackgroundDownloadService
               .downloadNewIssueOnAppForeground(caller: "Feeder Context Update Status: publicationDatesChanged")
           } else {
-            debug("...publication dates NOT changed")///4345 Issues
+            debug(">>>...publication dates NOT changed")
           }
           self.notifyNetStatus(isConnected: true)
-          if initialCall, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
+          if loadLatestIssueInitially, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
             BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "Initially download latestIssue", delay: 5.0)
           }
-          
+          loadIncompleteFeedsIfNeeded()
         case .failure:
           if let err = res.error() as? FeederError {
             if case .minVersionRequired(let smv) = err {
@@ -386,104 +350,113 @@ open class FeederContext: DoesLog {
     }
   }
   
-  /// Returns all feeds whose publicationDates need to be loaded or updated.
-  /// An empty array means that all feeds have complete publicationDates.
-  func feedsToNeedLoadAllPublicationDates() -> [Feed] {
-      guard let storedFeeder = storedFeeder else {
-          log("storedFeeder not initialized yet!")
-          return []
+  private func logGqlFeederStats() {
+      log(">>> GqlFeeder Stats")
+      for feed in self.gqlFeeder.feeds {
+        log(">>> GqlFeed \(feed.name) has \(feed.issueVersions?.count ?? 0) IssueVersions, \(feed.publicationDates?.count ?? 0) PublicationDates (\(feed.publicationDates?.first?.date.short ?? "") - \(feed.publicationDates?.last?.date.short ?? ""))")
       }
-
-      guard !storedFeeder.feeds.isEmpty else {
-          log("no local feeds available => load them")
-          return []
-      }
-
-      var feedsToLoad: [Feed] = []
-
-      for feed in storedFeeder.feeds {
-          let pubDates = feed.publicationDates ?? []
-
-          // No publicationDates available: load all dates for this feed.
-          if pubDates.isEmpty {
-              log("no publicationDates for feed: \(feed.name) available => load them")
-              feedsToLoad.append(feed)
-              continue
-          }
-
-          // Check whether the locally stored dates cover the feed's date range.
-          let first = (pubDates.last?.date.ISO8601 ?? "1980-01-01") == feed.firstIssue.ISO8601
-          let last = (pubDates.first?.date.ISO8601 ?? "1980-01-01") >= feed.lastIssue.ISO8601
-          let count = pubDates.count >= feed.issueCnt
-
-          if pubDates.count != feed.issueCnt {
-              // TODO: Keep an eye on this — shouldn't cause issues.
-              log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
-          }
-
-          // All checks passed: this feed doesn't need an update.
-          if first && last && count {
-              debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
-              continue
-          }
-
-          // At least one check failed: reload publicationDates for this feed.
-          let logString = """
-              Missing some issues: Match pubDates data == feed data
-                firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
-                lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") >= \(feed.lastIssue.short)
-                count (\(count)): \(pubDates.count) >= \(feed.issueCnt)
-          """
-          log(logString)
-          log("Update all publication Dates")
-
-          feedsToLoad.append(feed)
-      }
-
-      return feedsToLoad
   }
+    
   
-  ///empty array means load all feeds publicationDates
-//  func feedsToNeedLoadAllPublicationDates() -> [Feed]{<= new
-  func needLoadAllPublicationDates() -> Bool{
-    guard let storedFeeder = storedFeeder else {
-      log("storedFeeder not initialized yet!")
+  /// Indicates whether the remotely fetched feeder differs from the locally
+  /// persisted feeder.
+  ///
+  /// The GraphQL feeder contains the latest remote data, while `storedFeeder`
+  /// contains the locally persisted data. A change is detected if:
+  /// - a remote feed does not exist locally, or
+  /// - the number of publication dates differs for any feed.
+  private var gqlFeederHasChanges: Bool {
+    guard let gqlFeeder = self.gqlFeeder,
+          let storedFeeder = self.storedFeeder else {
       return true
     }
-    
-    guard storedFeeder.feeds.count > 0 else {
-      log("no local feeds available => load them")
-      return true
-    }
-    
-    for feed in storedFeeder.feeds {
-      let pubDates = feed.publicationDates ?? []
-      if pubDates.count == 0 {
-        log("no publicationDates for feed: \(feed.name) available => load them")
+
+    return gqlFeeder.feeds.contains { gqlFeed in
+      guard let storedFeed = storedFeeder.storedFeeds.first(where: { $0.name == gqlFeed.name }) else {
+        debug(">>> StoredFeed not found for: \(gqlFeed.name)")
         return true
       }
-      let first = pubDates.last?.date.ISO8601 ?? "1980-01-01" == feed.firstIssue.ISO8601
-      let last = pubDates.first?.date.ISO8601 ?? "1980-01-01" >= feed.lastIssue.ISO8601
-      let count = pubDates.count >= feed.issueCnt
-      if pubDates.count != feed.issueCnt {
-        // TODO: Keep an eye on this — shouldn't cause issues.
-        log("⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDates.count) != Issues: \(feed.issueCnt)")
+      let storedCount = StoredPublicationDate.count(inFeed: storedFeed)
+      let gqlCount = gqlFeed.issueCnt
+      if gqlCount != storedCount {
+        debug(">>> StoredFeed \(gqlFeed.name) has: \(storedCount) PublicationDates remote has: \(gqlCount)")
       }
-      if first && last && count {
-        debug("All data matching for feed: \(feed.name) => no new issue or missing old issue")
+      return gqlCount != storedCount
+    }
+  }
+
+  
+  /// Checks all locally stored feeds for missing or inconsistent publication dates.
+  ///
+  /// An empty `locallyIncompleteFeeds` array means that all feeds have
+  /// complete and consistent publication dates.
+  private func checkStoredFeedsConsistency() {
+    guard let storedFeeder else {
+      log(">>> storedFeeder not initialized yet!")
+      return
+    }
+    
+    guard !storedFeeder.feeds.isEmpty else {
+      log(">>> no local feeds available => load them")
+      return
+    }
+    
+    func addIncompleteFeed(_ feed: StoredFeed) {
+      guard !locallyIncompleteFeeds.contains(where: { $0.name == feed.name }) else {
+        return
+      }
+      locallyIncompleteFeeds.append(feed)
+    }
+    
+    for feed in storedFeeder.storedFeeds {
+      let pubDateCount = StoredPublicationDate.count(inFeed: feed)
+      
+      // Podcasts and unknown feeds don't require publication dates.
+      if pubDateCount == 0 && feed.type != .podcast && feed.type != .unknown {
+        log(">>> no publicationDates for feed: \(feed.name) available => load them")
+        addIncompleteFeed(feed)
         continue
       }
-      let logString = """
-          Missing some issues: Match pubDates data == feed data
-            firstIssue (\(first)): \(pubDates.last?.date.short ?? "-") == \(feed.firstIssue.short)
-            lastIssue (\(last)): \(pubDates.first?.date.short ?? "-") == \(feed.lastIssue.short)
-            count (\(count)): \(pubDates.count) == \(feed.issueCnt)
-      """
-      log(logString)
-      log("Update all publication Dates")
-      return true
+      
+      let firstPubDate = StoredPublicationDate.getOldest(inFeed: feed)
+      let latestPubDate = StoredPublicationDate.getLatest(inFeed: feed)
+      
+      var changeMessages: [String] = []
+      
+      if firstPubDate?.date.ISO8601 != feed.firstIssue.ISO8601 {
+        changeMessages.append(">>> first PublicationDate did not match: \(firstPubDate?.date.ISO8601 ?? "-") != \(feed.firstIssue.ISO8601)"
+        )
+      }
+      
+      if latestPubDate?.date.ISO8601 != feed.lastIssue.ISO8601 {
+        changeMessages.append(">>> latest PublicationDate did not match: \(latestPubDate?.date.ISO8601 ?? "-") != \(feed.lastIssue.ISO8601)"
+        )
+      }
+      
+      if pubDateCount != feed.issueCnt {
+        changeMessages.append(">>> local PublicationDate Count and Feed Issue Count did not match: \(pubDateCount) != \(feed.issueCnt)"
+        )
+        log(">>> ⚠️ WARNING ⚠️ for feed: \(feed.name) PubDates: \(pubDateCount) != Issues: \(feed.issueCnt)")
+      }
+      
+      guard !changeMessages.isEmpty else {
+        debug(">>> All data matching for feed: \(feed.name) => no new issue or missing old issue")
+        continue
+      }
+      
+      changeMessages.prependIfPresent(">>> Missing some data for feed \(feed.name) locally:")
+      log(changeMessages.joined(separator: "\n "))
+      addIncompleteFeed(feed)
     }
-    return false
+    
+  }
+  
+  private func loadIncompleteFeedsIfNeeded(){
+    guard let feedToUpdate = locallyIncompleteFeeds.pop()  else { return }
+    onMainAfter {[weak self] in
+      self?.debug(">>> Update Feed: \(feedToUpdate.name) currently has \(StoredPublicationDate.count(inFeed: feedToUpdate)) PublicationDates")
+      self?.updateFeeder(feedToLoadAllPublicationDates: feedToUpdate)
+    }
   }
   
   private func netStatusChanged(isConnected:Bool){
