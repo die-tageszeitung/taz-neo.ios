@@ -164,13 +164,10 @@ public class DefaultAuthenticator: Authenticator {
   public func notifySuccess() -> Bool {
     if feeder.deliveryChanged() {
       Toast.show("Lade Ausgaben neu.....")
-//      TazAppEnvironment.sharedInstance.feederContext.updateFeeder()
-      return false
+      TazAppEnvironment.sharedInstance.feederContext?.checkForNewIssues()
     }
-    else {
-      Notification.send(Const.NotificationNames.authenticationSucceeded)
-      return true
-    }
+    Notification.send(Const.NotificationNames.authenticationSucceeded)
+    return true
   }
   
   //Called if incomming PushNotification comes or Timer fires

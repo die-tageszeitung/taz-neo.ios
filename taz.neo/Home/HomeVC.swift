@@ -384,6 +384,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   func reanchorCarousel(animated: Bool = false, doLayout: Bool = false) {
+    guard service.publicationDates.count > 0 else { return }
     guard initialized else { return }
     guard isHomeTiles == false else { return }
     if doLayout { collectionView.layoutIfNeeded() }
@@ -503,6 +504,9 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
       self?.collectionView.reloadData()
       self?.updateDate()
+    }
+    Notification.receive(Const.NotificationNames.feederChanged) {[weak self] _ in
+      self?.updateButtonMenu()
     }
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in

@@ -301,7 +301,18 @@ open class FeederContext: DoesLog {
         ///no need to eval res.value due its updated:  self.gqlFeeder = res.value()
         case .success:
           if Device.isSimulator { logGqlFeederStats() }
-          if feedToLoadAllPublicationDates != nil || self.gqlFeederHasChanges {
+          
+          let handleSignificantChanges = persistedFeedHasSignificantChanges
+          if handleSignificantChanges {
+            TazAppEnvironment.sharedInstance.service?.resetFeederContext = true
+            Notification.send(Const.NotificationNames.closeOpenIssues)
+            for feed in storedFeeder?.storedFeeds ?? [] { feed.delete() }
+            TazAppEnvironment.sharedInstance.service?.resetFeederContext = false
+          }
+          
+          if feedToLoadAllPublicationDates != nil
+              || handleSignificantChanges
+              || self.gqlFeederHasChanges {
             self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
             ArticleDB.save()
             self.checkStoredFeedsConsistency()
@@ -312,6 +323,14 @@ open class FeederContext: DoesLog {
           } else {
             debug(">>>...publication dates NOT changed")
           }
+          
+          if handleSignificantChanges {
+            Notification.send(Const.NotificationNames.feedChange)
+            Notification.send(Const.NotificationNames.feederChanged)
+            log(">>>...handleSignificantChanges\(locallyIncompleteFeeds.count>0 ? "" : "WARNING locallyIncompleteFeeds is empty!")")
+            ///locallyIncompleteFeeds should not be empty here, otherwise auto refresh did not work!
+          }
+          
           self.notifyNetStatus(isConnected: true)
           if loadLatestIssueInitially, isAuthenticated {///initial app start is quite slow, but this is not the reason; checked 25-06-20 on iPad Air2
             BackgroundDownloadService.downloadNewIssueOnAppForeground(caller: "Initially download latestIssue", delay: 5.0)
@@ -384,7 +403,13 @@ open class FeederContext: DoesLog {
       return gqlCount != storedCount
     }
   }
-
+  
+  var persistedFeedHasSignificantChanges: Bool {
+    gqlFeeder.feeds.contains { gqlFeed in
+      storedFeeder?.storedFeeds.first(where: { $0.name == gqlFeed.name })
+        .map { $0.cycle != gqlFeed.cycle } ?? false
+    }
+  }
   
   /// Checks all locally stored feeds for missing or inconsistent publication dates.
   ///

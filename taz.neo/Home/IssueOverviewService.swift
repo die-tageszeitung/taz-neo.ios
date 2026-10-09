@@ -92,7 +92,12 @@ class IssueOverviewService: NSObject, DoesLog {
   public var isFacsimile: Bool
     
   internal var feederContext: FeederContext
-  var feed: StoredFeed
+  var feed: StoredFeed {
+    didSet {
+      oldFeedName = feed.name
+    }
+  }
+  private var oldFeedName:String = ""
   
   var ovwHelper = LoadOverviewHelperBusiness()
   
@@ -598,6 +603,19 @@ class IssueOverviewService: NSObject, DoesLog {
       _ = reloadPublicationDates(refresh: nil, verticalCv: false)
     }
   }
+  
+  public var resetFeederContext:Bool = false {
+    didSet {
+      guard oldValue != resetFeederContext else { return }
+      if resetFeederContext {
+        isReloadingPublicationDates = true
+        publicationDates = []
+      }
+      else {
+        isReloadingPublicationDates = false
+      }
+    }
+  }
     
   /// Initialize with FeederContext
   public init(feederContext: FeederContext) {
@@ -656,7 +674,7 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive(Const.NotificationNames.feedChange) {[weak self] _ in
       guard let self,
             let storedFeeder = feederContext.storedFeeder else { return }
-      log(">>> Feed Change from \(feed.name) to \(storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+      log(">>> Feed Change from: \(oldFeedName) to \(storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
       feed = storedFeeder.selectedFeed as! StoredFeed
       publicationDates = feed.publicationDates ?? []
       updateIssues()

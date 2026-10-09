@@ -50,7 +50,7 @@ public struct Const {
     static let feederReachable = "NotificationName.feederReachable"
     static let feedChange = "NotificationName.feedChange"
     static let feederUnreachable = "NotificationName.feederUnreachable"
-    static let feederUpdateDone = "NotificationName.feederUpdateDone"
+    static let feederChanged = "NotificationName.feederChanged"
     static let issueUpdate = "NotificationName.issueUpdate"
     static let articleLoaded = "NotificationName.articleLoaded"
     static let removeLoginRefreshDataOverlay = "NotificationName.removeLoginRefreshDataOverlay"
