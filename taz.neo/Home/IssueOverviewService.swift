@@ -114,6 +114,7 @@ class IssueOverviewService: NSObject, DoesLog {
   ///in hard tests due massive parallel write and read (timer, scrolling on Home, whatever) the app crashed with a own async DispatchQueue
   ///thats why this is moved to main thread now, since then no more chrashes
   private var requestedRemoteItems: [String:Date] = [:]
+  private let loadingIssueDataQueue = DispatchQueue( label: "taz.loadingIssueData")
   private var loadingIssueData:[String:Date] = [:]
   ///loading issue images can happen on any thread (hopefully)
   ///but needs to sync (no async) with its queue (the theory)
@@ -162,16 +163,23 @@ class IssueOverviewService: NSObject, DoesLog {
   func removeFromLoadFromRemote(key: String) {
     self.requestedRemoteItems[key] = nil
   }
-    
-  private func loadMissingItems(){
+  
+  private func loadMissingItems() {
     if feederContext.isConnected == false { return }
     guard self.requestedRemoteItems.count > 0 else { return }
-    var missingIssues:[Date] = []
+    
+    var missingIssues: [Date] = []
+    
     for (key, date) in self.requestedRemoteItems {
       if let issue = self.issue(at: date) {
         self.updateIssue(issue: issue, isPdf: key.suffix(1) == "P")
-      } else if self.loadingIssueData[date.issueKey] == nil {
-        missingIssues.append(date)
+      } else {
+        let isLoading = loadingIssueDataQueue.sync {
+          loadingIssueData[date.issueKey] != nil
+        }
+        if !isLoading {
+          missingIssues.append(date)
+        }
       }
     }
     missingIssues = missingIssues.sorted()
@@ -251,11 +259,17 @@ class IssueOverviewService: NSObject, DoesLog {
     else if count >= 10 { count = 10 }//API Limit is currently 20
     var d = date
     var lds:[String] = []
-    
-    for _ in 0...count*feed.cycle.multiplicator {
-      if loadingIssueData[d.issueKey] != nil { break }//prevent load same issue multiple times
-      lds.append(d.issueKey)
-      loadingIssueData[d.issueKey] = d
+        
+    for _ in 0...(count * feed.cycle.multiplicator) {
+      let key = d.issueKey
+      //prevent load same issue multiple times
+      let shouldLoad = loadingIssueDataQueue.sync {
+        guard loadingIssueData[key] == nil else { return false }
+        loadingIssueData[key] = d
+        return true
+      }
+      guard shouldLoad else { break }
+      lds.append(key)
       d.addDays(1)
     }
     
@@ -307,7 +321,9 @@ class IssueOverviewService: NSObject, DoesLog {
         }
       }
       self.ovwHelper.currentOverviewErrorResponse = res.error()
-      for sdate in lds { self.loadingIssueData[sdate] = nil }
+      loadingIssueDataQueue.sync {
+        for sdate in lds { self.loadingIssueData[sdate] = nil      }
+      }
     }
   }
     
