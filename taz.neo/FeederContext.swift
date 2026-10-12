@@ -681,10 +681,10 @@ open class FeederContext: DoesLog {
       log("...DO-NOT-CLEANUP, not foreground user started app start")
       return
     }
-    guard let feed = self.storedFeeder?.feeds.first(where: {$0.name == self.feedName}) as? StoredFeed else { return }
+    guard let storedFeeder = self.storedFeeder else { return }
     migrateFullDownloadedIssuesDatesIfNeeded()
     let persistedIssuesCount:Int = Defaults.singleton["persistedIssuesCount"]?.int ?? 20
-    StoredIssue.removeOldest(feed: feed,
+    StoredIssue.removeOldest(feeder: storedFeeder,
                              keepDownloaded: persistedIssuesCount,
                              deleteOlder: deleteOlder,
                              deleteOrphanFolders: true)

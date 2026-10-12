@@ -2386,13 +2386,14 @@ public final class StoredIssue: Issue, StoredObject {
       return get(request: request).first
   }
   
-  public static func lastComplete(feed: StoredFeed)
+  public static func lastComplete(feed: StoredFeed?)
   -> StoredIssue? {
-    let request = fetchRequest
-    request.predicate = NSPredicate(format: "ANY feeds = %@ AND isComplete = true", feed.pr)
-    request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-    request.fetchLimit = 1
-    return get(request: request).first
+    return issues(feed: feed,
+                  count: 1,
+                  onlyComplete: true,
+                  onlyWithoutCompleteDate: false,
+                  sortedBy: .issueDate,
+                  ascending: false).first
   }
   
   /// Return an array of Issues in a Feed
@@ -2448,7 +2449,7 @@ public final class StoredIssue: Issue, StoredObject {
   ///   - sortedBy: used sorting
   ///   - ascending: descending if false
   /// - Returns: array of Issues
-  public static func issues(feed: StoredFeed,
+  public static func issues(feed: StoredFeed?,
                             count: Int = -1,
                             onlyComplete: Bool,
                             onlyWithoutCompleteDate: Bool = false,
@@ -2456,10 +2457,13 @@ public final class StoredIssue: Issue, StoredObject {
                             ascending:Bool = true) -> [StoredIssue] {
     let request = fetchRequest
     
-    var predicates: [NSPredicate] = [
-        NSPredicate(format: "ANY feeds = %@", feed.pr)
-    ]
+    var predicates: [NSPredicate] = []
 
+    
+    if let feed {
+      predicates.append(NSPredicate(format: "ANY feeds = %@", feed.pr))
+    }
+    
     if onlyComplete {
         predicates.append(NSPredicate(format: "isComplete = true"))
     }
@@ -2526,28 +2530,25 @@ public final class StoredIssue: Issue, StoredObject {
   ///     Starting a download in that state will crash the app.
   ///   - deleteOrphanFolders: Whether to also remove orphaned issue folders
   ///     from the filesystem.
-  public static func removeOldest(feed: StoredFeed,
+  public static func removeOldest(feeder: StoredFeeder,
                                   keepDownloaded: Int,
                                   keepPreviews: Int = 20,
                                   deleteOlder: Bool = false,
                                   deleteOrphanFolders: Bool = false) {
-    #warning("TODO FIX THIS, after Download Issues are removed!")
-    return;
     // User-Setting keepDownloaded:
     // 0 = means keep all issues
     // otherwise user setting, at least 3
     let completeFetchCount: Int = keepDownloaded == 0 ? -1 : max(3, keepDownloaded)
     
-    Log.debug("removeOldest in Feed: \(feed.name) :: keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
+    Log.debug("removeOldest in :: keepDownloaded: \(keepDownloaded), keepPreviews: \(keepPreviews), deleteOrphanFolders: \(deleteOrphanFolders)")
     
     // all issues which should not be deleted
-    var lastCompleteIssues: [StoredIssue] = issues(feed: feed,
+    var lastCompleteIssues: [StoredIssue] = issues(feed: nil,
                                                    count: completeFetchCount,
                                                    onlyComplete: true,
                                                    sortedBy: .fullDownloadedDate,
                                                    ascending: false)
-    
-    if let latestComplete = lastComplete(feed: feed),
+    if let latestComplete = lastComplete(feed: TazAppEnvironment.masterFeed),
        !lastCompleteIssues.contains(latestComplete) {
       lastCompleteIssues.insert(latestComplete, at: 0)
       if lastCompleteIssues.count > max(3, keepDownloaded){
@@ -2555,7 +2556,7 @@ public final class StoredIssue: Issue, StoredObject {
       }
     }
     
-    let allIssues = issues(feed: feed, onlyComplete: false, sortedBy: .issueDate, ascending: false)
+    let allIssues = issues(feed: nil, onlyComplete: false, sortedBy: .issueDate, ascending: false)
     guard !allIssues.isEmpty else {
       Log.log("No Issues > cancel")
       return
@@ -2570,7 +2571,7 @@ public final class StoredIssue: Issue, StoredObject {
     var bookmarkIssue: StoredIssue?
     
     for issue in allIssues {
-      let dir = feed.feeder.issueDir(issue: issue)
+      let dir = feeder.masterFeed.feeder.issueDir(issue: issue)
       let path = dir.exists ? dir.path : nil
       
       // 1. do not delete bookmark issue or its folder
@@ -2619,7 +2620,7 @@ public final class StoredIssue: Issue, StoredObject {
     guard deleteOrphanFolders else { return }
     
     // scan subdirs
-    let allSubdirs = feed.feeder.feedDir(feed.name).scan()
+    let allSubdirs = feeder.feedDir(feeder.masterFeed.name).scan()
     var deletedFolders: [String] = []
     var skippedFolders: [String] = []
 
