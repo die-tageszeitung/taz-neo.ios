@@ -117,6 +117,7 @@ extension FeederContext {
               = .failure(DownloadError(message: "Weekend Login cannot load weekday issues", handled: true))
             Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
             Alert.message(title: "Fehler", message: Localized("error"))
+            TazAppEnvironment.setDownloadDone(issue.date.ISO8601)
             return
           }
           issue.update(from: dissue)
@@ -143,6 +144,7 @@ extension FeederContext {
             = .failure(DownloadError(message: "Unexpected Behaviour", handled: false))
           Notification.send(errorNotificationMessage, result: unexpectedResult, sender: issue)
         }
+        TazAppEnvironment.setDownloadDone(issue.date.ISO8601)
       }
       ///Request autodownload pdf if required
       if requestAutoloadPDF {
@@ -161,6 +163,7 @@ extension FeederContext {
       }
     }
     else {
+      TazAppEnvironment.setDownloadDone(issue.date.ISO8601)
       #warning("ToDO AddRetry here its easily possible!")
       if errorNotificationMessage != "issue" {
         ///show offline alert if not first update request, otherwise 2 Alerts will be shown
