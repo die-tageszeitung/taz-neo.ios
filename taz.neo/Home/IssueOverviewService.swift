@@ -287,6 +287,7 @@ class IssueOverviewService: NSObject, DoesLog {
         for issue in issues {
           let si = StoredIssue.get(date: issue.date, inFeed: feed)
           if let sIssue = si.first {
+            sIssue.update(from: issue)
             newIssues.append(sIssue)
           }
           else {
@@ -332,6 +333,9 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     else if !isPdf, issue.moment?.carouselFiles.count ?? 0 > 0 {
       files = issue.moment?.carouselFiles ?? []
+    } else {
+      log("WARNING: No carouselFiles found for Issue: \(issue.date.issueKey) -> reload overview")
+      apiLoadIssueOverview(for: issue.date, count: 1)
     }
     var dlFiles: [FileEntry] = []
     self.debug(">>> scan dir \(dir.path)")
