@@ -774,11 +774,18 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       filterActions.append(action)
     }
     
-    let filterGroup = UIMenu(title: "Filter", options: .displayInline, children: filterActions)
+    let menuItems:[UIMenu]
+    if filterActions.count > 1 {
+      let filterGroup = UIMenu(title: "Filter", options: .displayInline, children: filterActions)
+      menuItems = [viewGroup, layoutGroup, filterGroup, archiveGroup]
+    }
+    else {
+      menuItems = [viewGroup, layoutGroup, archiveGroup]
+    }
     
     // Komplettes Menü zuweisen
     if #available(iOS 14.0, *) {
-      button.menu = UIMenu(title: "", children: [viewGroup, layoutGroup, filterGroup, archiveGroup])
+      button.menu = UIMenu(title: "", children: menuItems)
       button.showsMenuAsPrimaryAction = true
     }
   }
