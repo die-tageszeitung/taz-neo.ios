@@ -108,10 +108,8 @@ class OfflineAlert {
         sharedInstance.actionButtonTitle = "OK"
         sharedInstance.message = """
         Beim Laden der Ausgabe ist ein Fehler aufgetreten.
-        Bitte versuchen Sie es zu einem späteren Zeitpunkt
-        noch einmal.
-        Sie können bereits heruntergeladene Ausgaben auch
-        ohne Internet-Zugriff lesen.
+        Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut.
+        Bereits heruntergeladene Ausgaben können Sie auch ohne Internetverbindung lesen.
         """
         if let c = closure { sharedInstance.closures.append(c)}
         Usage.track(Usage.event.dialog.IssueDownloadError)
