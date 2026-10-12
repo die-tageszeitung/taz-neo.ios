@@ -1450,7 +1450,8 @@ open class GqlFeeder: Feeder, DoesLog {
           if isBackGround == false {
             self.checkResponse(authInfo: frqResponse.authInfo, wasAuthenticated: wasAuthenticated)
           }
-          if let issues = frqResponse.feeds.first(where: {$0.name == feed.name})?.issues, issues.count > 0 {
+          if let fName = (feed as? StoredFeed)?.pr.name,
+              let issues = frqResponse.feeds.first(where: {$0.name == fName})?.issues, issues.count > 0 {
             for issue in issues {
               if isOverview {
                 (issue as? GqlIssue)?.isOverview = true
