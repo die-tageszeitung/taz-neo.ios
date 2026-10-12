@@ -341,11 +341,15 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     childArticleVC.reopenArticleScrollPos = reopenArticleScrollPos
     let artFile = File(dir: path, fname: name)
     ///check if article file exists, otherwise log and return => do not open wrong article
-    guard artFile.exists || File(dir: path, fname: name.replacingOccurrences(of: ".html", with: ".public.html")).exists else {
+    if artFile.exists || File(dir: path, fname: name.replacingOccurrences(of: ".html", with: ".public.html")).exists {
+      childArticleVC.gotoUrl(path: path, file: name)
+    }
+    else if let idx = issue.allArticles.firstIndex(where: {$0.html?.name == name}) {
+      childArticleVC.gotoIndex(index: idx)
+    } else {
       log("article file \(name) did not exist in \(path.lastPathComponent)")
       return
     }
-    childArticleVC.gotoUrl(path: path, file: name)
     if childArticleVC.navigationController != nil { return }
     self.navigationController?.pushViewController(childArticleVC, animated: true)
   }
