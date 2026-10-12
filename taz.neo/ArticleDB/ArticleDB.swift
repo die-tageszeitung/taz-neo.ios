@@ -2232,6 +2232,9 @@ public final class StoredIssue: Issue, StoredObject {
     ///Set **only** remote version here and **localVersion after Download!**
     self.versionRemote = object.versionRemote
     self.isWeekend = object.isWeekend
+    if object.moment == nil {
+        log("WARNING: Issue has no moment!")
+    }
     self.moment = object.moment
     self.key = object.key
     self.baseUrl = object.baseUrl
