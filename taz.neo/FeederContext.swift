@@ -405,9 +405,17 @@ open class FeederContext: DoesLog {
   }
   
   var persistedFeedHasSignificantChanges: Bool {
-    gqlFeeder.feeds.contains { gqlFeed in
-      storedFeeder?.storedFeeds.first(where: { $0.name == gqlFeed.name })
-        .map { $0.cycle != gqlFeed.cycle } ?? false
+    guard let storedFeeder else { return true }
+
+    let gqlFeeds = gqlFeeder.feeds
+    let storedFeeds = storedFeeder.storedFeeds
+
+    guard gqlFeeds.count == storedFeeds.count else { return true }
+
+    return gqlFeeds.contains { gqlFeed in
+      guard let storedFeed = storedFeeds.first(where: { $0.name == gqlFeed.name })
+      else { return true }
+      return storedFeed.cycle != gqlFeed.cycle
     }
   }
   

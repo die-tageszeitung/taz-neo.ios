@@ -261,6 +261,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
     expiredAccountInfoShown = false
     feederContext?.setupRemoteNotifications(force: true)
+    feederContext?.checkForNewIssues()
   }
   
   func testNotification(type: NotificationType) {
