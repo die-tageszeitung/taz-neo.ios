@@ -63,18 +63,18 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   /// Create a ZoomedImage from a pair of images
   private func zoomedImage(pair: (normal: ImageEntry?, high: ImageEntry?)) -> ZoomedImage? {
     guard let normal = pair.normal,
+          let dir = content.dir,
           let baseUrl = (content as? SearchArticle)?.baseURL
             ?? content.baseURL else { return nil }
     let image = ZoomedImage()
-    let path = content.dir.path
-    image.waitingImage = UIImage(contentsOfFile: "\(path)/\(normal.fileName)")
+    image.waitingImage = UIImage(contentsOfFile: "\(dir.path)/\(normal.fileName)")
     if let high = pair.high {
       image.imageEntry = high
       delegate.dloader.downloadIssueFiles(from: baseUrl,
-        to: content.dir, files: [high])
+        to: dir, files: [high])
       { [weak self] err in
         if err == nil { 
-          image.image = UIImage(contentsOfFile: "\(path)/\(high.fileName)")
+          image.image = UIImage(contentsOfFile: "\(dir.path)/\(high.fileName)")
         } else { image.image = image.waitingImage }
         self?.debug("image \(high.fileName): \(image.image?.size ?? CGSize.zero)")
         image.isAvailable = true 
@@ -89,14 +89,14 @@ public class ContentImageVC: ImageCollectionVC, CanRotate {
   
   /// Create a ZoomedImage from an image file name
   private func zoomedImage(fname: String) -> ZoomedImage? {
+    guard let issueDir = delegate.feeder.issueDir(issue: delegate.issue) else { return nil }
     let image = ZoomedImage()
-    let path = delegate.feeder.issueDir(issue: delegate.issue).path
     let highRes = StoredImageEntry.highRes(fname)
-    if File("\(path)/\(highRes)").exists {
-      image.image = UIImage(contentsOfFile: "\(path)/\(highRes)")
+    if File("\(issueDir.path)/\(highRes)").exists {
+      image.image = UIImage(contentsOfFile: "\(issueDir.path)/\(highRes)")
     }
-    else { image.image = UIImage(contentsOfFile: "\(path)/\(fname)") }
-    image.isAvailable = true 
+    else { image.image = UIImage(contentsOfFile: "\(issueDir.path)/\(fname)") }
+    image.isAvailable = true
     return image
   }
   

@@ -73,7 +73,7 @@ public class VirtualSection: Section {
 }
 
 public class DummyPayload: Payload {
-  public var localDir: String { "" }
+  public var localDir: String? { nil }
   public var remoteBaseUrl: String { "" }
   public var remoteZipName: String? { nil }
   public var files: [FileEntry] { [] }

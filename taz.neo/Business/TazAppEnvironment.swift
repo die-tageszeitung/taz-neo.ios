@@ -362,7 +362,14 @@ class TazAppEnvironment: NSObject, DoesLog {
       log("FeaderContextNot ready!")
       return
     }
-    let issueOverviewService = service ?? IssueOverviewService(feederContext: feederContext)
+    guard let selectedFeed = feederContext.storedFeeder?.selectedFeed as? StoredFeed else {
+      log("StoredFeeder not ready!")
+      Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged){[weak self] _ in
+        self?.showHome()
+      }
+      return
+    }
+    let issueOverviewService = service ?? IssueOverviewService(feederContext: feederContext, selectedFeed: selectedFeed)
     self.service = issueOverviewService
     self.rootViewController = MainTabVC(feederContext: feederContext,
                                         service: issueOverviewService)

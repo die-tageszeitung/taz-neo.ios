@@ -59,12 +59,13 @@ open class Downloader: DoesLog {
     
     public func download(dl: Downloader) {
       var files = payload.files as! [StoredFileEntry]
-      if files.count > 0 {
+      if files.count > 0,
+      let localDir = self.payload.localDir {
         dl.downloadStoredGlobalFiles(files: files) { err in
           guard err == nil else { self.atEnd(err); return }
           let hloader = HttpLoader(session: dl.dlSession, 
                                    baseUrl: self.payload.remoteBaseUrl,
-                                   toDir: self.payload.localDir,
+                                   toDir: localDir,
                                    fromCacheDir: self.fromCacheDir)
           var isComplete = false
           self.payload.downloadStarted = Date()
@@ -120,7 +121,7 @@ open class Downloader: DoesLog {
     guard let feeder else { return }
     createDirs()
     let idir = feeder.issueDir(isoDate: issue)
-    idir.createGlobalLinksIfNeeded(feeder: feeder)
+    idir?.createGlobalLinksIfNeeded(feeder: feeder)
   }
   
   public func createIssueDir(issue: Issue) {
@@ -201,8 +202,8 @@ open class Downloader: DoesLog {
   /// Download files with storage type .issue
   private func downloadIssueFiles(url: String, issue: String,
     files: [FileEntry], closure: @escaping (Error?)->()) {
-    guard let feeder else { return }
-    let idir = feeder.issueDir(isoDate: issue)
+    guard let feeder,
+          let idir = feeder.issueDir(isoDate: issue) else { return }
     downloadIssueFiles(from: url, to: idir, files: files, closure: closure)
   }
 

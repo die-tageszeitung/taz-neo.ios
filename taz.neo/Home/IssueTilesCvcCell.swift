@@ -49,7 +49,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
       return
     }
     
-    if TazAppEnvironment.storedFeeder?.selectedFeed.cycle == .monthly {
+    if TazAppEnvironment.storedFeeder?.selectedFeed?.cycle == .monthly {
       button.label.text = issue.date.gMonthYear(tz: GqlFeeder.tz)
     }
     else {

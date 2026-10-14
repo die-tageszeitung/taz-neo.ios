@@ -121,7 +121,7 @@ extension HomeVC {
   ///if issue outdated try to update before open
   private func _openIssue(_ issue: StoredIssue, openLast: Bool = false, forceOpen: Bool) {
     let skipDownload = forceOpen && issue.versionLocal2 < issue.versionRemote2 && issue.isComplete
-    log("issue: \(issue.date.short) server: \(issue.versionRemote2) localVersion: \(issue.versionLocal2)")
+    log("issue: \(issue.safeDate?.short ?? "-") server: \(issue.versionRemote2) localVersion: \(issue.versionLocal2)")
     if !forceOpen && issue.isComplete && issue.versionLocal2 < issue.versionRemote2 {
       ///try silent update
       ///in case of download errors show popup to request network connection to update or read outdated version
@@ -171,7 +171,7 @@ extension HomeVC {
     ///YES: Which one is selected? What if selected is no reference here?
     ///if  not what happen if i only have
     ///TRY TO BUGFIX MULTIPLE OPEN OF Logged Out not downloaded issue due it causes other errors by saving which issue was tried to open and unset after 10 seconds od push delegate happen
-    if openingIssue?.date.issueKey == issue.date.issueKey { return }
+    if openingIssue?.date.issueKey != nil, openingIssue?.date.issueKey == issue.safeDate?.issueKey { return }
     onMainAfter(10) {[weak self] in self?.openingIssue = nil }
     openingIssue = issue
     let issueInfo = IssueDisplayService(feederContext: feederContext,

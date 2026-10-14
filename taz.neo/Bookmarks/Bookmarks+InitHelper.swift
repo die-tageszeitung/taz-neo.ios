@@ -16,14 +16,42 @@ extension Bookmarks {
   /// Loads an existing bookmark issue or creates a new one if it does not exist.
   ///
   /// - Returns: A `StoredIssue` object representing the bookmark issue.
-  func loadOrCreateBookmarkIssue(in feed: Feed) -> StoredIssue {
-    // Attempt to find an existing bookmark issue in the database
-    let request = StoredIssue.fetchRequest
-    request.predicate = NSPredicate(format: "(baseUrl = %@)", Self.bookmarkURL)
-    if let existingBookmarkIssue = StoredIssue.get(request: request).first {
+  func loadOrCreateBookmarkIssue(in feeder: StoredFeeder) -> StoredIssue {
+    var bookmarksFeed: StoredFeed
+    if let dbFeed = StoredFeed.get(name: "BookmarkFeed", inFeeder: feeder).first {
+      bookmarksFeed = dbFeed
+    } else {
+      bookmarksFeed = StoredFeed.new()
+      bookmarksFeed.name = "BookmarkFeed"
+      bookmarksFeed.feeder = feeder
+      bookmarksFeed.type = .bookmarkFeed
+      bookmarksFeed.cycle = .unknown
+      bookmarksFeed.feedId = 0
+      bookmarksFeed.firstIssue = Date()
+      bookmarksFeed.lastIssue = Date()
+      bookmarksFeed.pr.order = 0
+      bookmarksFeed.issueCnt = 1
+    }
+    
+    /// current way: use bookmarksFeed to find its only bookmarkIssue
+    if let existingBookmarkIssue = (bookmarksFeed.issues ?? []).first as? StoredIssue {
       return existingBookmarkIssue
     }
     
+    // Old Way, need to migrate: Attempt to find an existing bookmark issue in the database
+    let request = StoredIssue.fetchRequest
+    request.predicate = NSPredicate(format: "(baseUrl = %@)", Self.bookmarkURL)
+    if let existingBookmarkIssue = StoredIssue.get(request: request).first {
+      log("Migrate prev bookmarks")
+      ///Migration from none multiFeed App Version
+      for case let feed as StoredFeed in existingBookmarkIssue.pr.feeds ?? [] {
+        feed.pr.removeFromIssues(existingBookmarkIssue.pr)
+      }
+      existingBookmarkIssue.pr.addToFeeds(bookmarksFeed.pr)
+      ArticleDB.save()
+      return existingBookmarkIssue
+    }
+    log("create new bookmark issue")
     // Create a new bookmark issue if none exists and set Default Properties
     let newBookmarkIssue = StoredIssue.new()
     newBookmarkIssue.baseUrl = Self.bookmarkURL
@@ -34,9 +62,7 @@ extension Bookmarks {
     newBookmarkIssue.isWeekend = false
     newBookmarkIssue.isDownloading = false
     newBookmarkIssue.isComplete = false
-    if let masterFeed = TazAppEnvironment.masterFeed {
-      newBookmarkIssue.pr.addToFeeds(masterFeed.pr)
-    }
+    newBookmarkIssue.pr.addToFeeds(bookmarksFeed.pr)
     ///result is fetched in setup/singleton getter
     createBookmarkSection(in: newBookmarkIssue,
                           sectionName: Bookmarks.defaultBookmarkSectionTitle)

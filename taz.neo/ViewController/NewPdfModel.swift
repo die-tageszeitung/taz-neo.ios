@@ -65,7 +65,7 @@ class NewPdfModel : PdfModel, DoesLog, PdfDownloadDelegate {
     let p = images as? [ZoomedPdfPageImage]
     return p?.firstIndex(where: { zoomedPdfPageImage in
       zoomedPdfPageImage.pageReference?.frames?
-        .first(where: { $0.link?.lastPathComponent == article.path.lastPathComponent}) != nil
+        .first(where: { $0.link?.lastPathComponent == article.path?.lastPathComponent}) != nil
     }) ?? nil
   }
   

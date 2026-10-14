@@ -562,14 +562,20 @@ public final class StoredPayload: StoredObject, Payload {
     set { pr.downloadStopped = newValue }
   }
   /// Relative path to destination directory
-  public var subdir: String {
-    get { return pr.localDir! }
+  public var subdir: String? {
+    get { return pr.localDir }
     set { pr.localDir = newValue }
   }
   /// Absolute path to destination directory
-  public var localDir: String {
-    get { "\(Database.appDir)/\(subdir)" }
+  public var localDir: String? {
+    get {
+      guard let subdir else { return nil }
+      return "\(Database.appDir)/\(subdir)" }
     set (ldir) {
+      guard let ldir else {
+        subdir = nil
+        return
+      }
       subdir = String(ldir.dropFirst(Database.appDir.count + 1))
     }
   }
@@ -726,7 +732,7 @@ public final class StoredResources: Resources, StoredObject {
     get { return Int(pr.resourceVersion) }
     set { pr.resourceVersion = Int32(newValue) }
   }
-  public var localDir: String { payload.localDir }
+  public var localDir: String? { payload.localDir }
   public var resourceFiles: [FileEntry] { payload.files }
   public var isDownloading: Bool = false
   public var isComplete: Bool {
@@ -1170,9 +1176,9 @@ public final class StoredArticle: Article, StoredObject {
     return nil
   }
   
-  public var dir: Dir {
+  public var dir: Dir? {
     guard let sdir = (html as? StoredFileEntry)?.dir
-    else { fatalError("FileEntry.dir is undefined") }
+    else { return nil }
     return Dir(sdir)
   }
   
@@ -2028,8 +2034,8 @@ public final class StoredIssue: Issue, StoredObject {
   
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
-  public var masterFeed: Feed {
-    (feeds.first!.feeder as! StoredFeeder).masterFeed
+  public var masterFeed: Feed? {
+    feeds.compactMap { $0.feeder as? StoredFeeder }.first?.masterFeed
   }
   public var feeds: [Feed] {
       var feeds = [Feed]()
@@ -2236,7 +2242,7 @@ public final class StoredIssue: Issue, StoredObject {
         log("WARNING: Issue has no moment!")
     }
     self.moment = object.moment
-    self.key = object.key
+    if object.key?.length ?? 0 > 8 { self.key = object.key }
     self.baseUrl = object.baseUrl
     self.minResourceVersion = object.minResourceVersion
     self.zipName = object.zipName
@@ -2574,15 +2580,17 @@ public final class StoredIssue: Issue, StoredObject {
     var bookmarkIssue: StoredIssue?
     
     for issue in allIssues {
-      let dir = feeder.masterFeed.feeder.issueDir(issue: issue)
-      let path = dir.exists ? dir.path : nil
+      let dir = feeder.masterFeed?.feeder.issueDir(issue: issue)
+      let path = dir?.exists ?? false ? dir?.path : nil
       
       // 1. do not delete bookmark issue or its folder
       if issue.isBookmarkIssue {
         bookmarkIssue = issue ///there is only one Bookmark Issue
         knownDirs.appendIfPresent(path)
         for art in bookmarkIssue?.allArticles ?? [] {
-          knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
+          if let path = art.path {
+            knownDirs.appendIfPresent(path.urlByDeleetingLastPathComponent)
+          }
         }
         continue
       }
@@ -2623,13 +2631,22 @@ public final class StoredIssue: Issue, StoredObject {
     guard deleteOrphanFolders else { return }
     
     // scan subdirs
-    let allSubdirs = feeder.feedDir(feeder.masterFeed.name).scan()
+    let allSubdirs: [String]
+    if let masterFeed = feeder.masterFeed {
+      allSubdirs = feeder.feedDir(masterFeed.name).scan()
+    }
+    else {
+      allSubdirs = []
+    }
+   
     var deletedFolders: [String] = []
     var skippedFolders: [String] = []
 
     //do not delete Bookmark Articles original folders
     for art in bookmarkIssue?.allArticles ?? [] {
-      knownDirs.appendIfPresent(art.path.urlByDeleetingLastPathComponent)
+      if let path = art.path {
+        knownDirs.appendIfPresent(path.urlByDeleetingLastPathComponent)
+      }
     }
     ///remove duplicates and percent encoding
     knownDirs = Array(Set(knownDirs.map { $0.removingPercentEncoding ?? $0 }))
@@ -2880,11 +2897,24 @@ public final class StoredFeed: Feed, StoredObject {
     else { return nil }
   }
   
-  /// Return all Feeds of a Feeder
-  public static func feedsOfFeeder(feeder: StoredFeeder) -> [StoredFeed] {
+  /// Return all Feeds of a Feeder, optionally excluding a feed type.
+  public static func feedsOfFeeder( feeder: StoredFeeder, excludeType: FeedType? = nil) -> [StoredFeed] {
     let request = fetchRequest
-    request.predicate = NSPredicate(format: "feeder = %@", feeder.pr)
+
+    var predicates = [NSPredicate(format: "feeder = %@", feeder.pr)]
+    if let excludeType {
+      predicates.append(NSPredicate(format: "type != %@", excludeType.rawValue))
+    }
+    request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     return get(request: request)
+  }
+  
+  func delete() {
+    for issue in storedIssues {
+      issue.pr.removeFromFeeds(self.pr)
+      if issue.feeds.count == 0 { issue.delete() }
+    }
+    self.deletePersistent()
   }
   
 } // StoredFeed
@@ -2947,14 +2977,18 @@ public final class StoredFeeder: Feeder, StoredObject {
   }
   public var resourceFiles: [StoredFileEntry]
   { storedResources?.storedPayload?.storedFiles ?? [] }
-  public var storedFeeds: [StoredFeed] { StoredFeed.feedsOfFeeder(feeder: self) }
+  public var storedFeeds: [StoredFeed] { StoredFeed.feedsOfFeeder(feeder: self, excludeType: .bookmarkFeed) }
   public var feeds: [Feed] { storedFeeds }
   
-  public var masterFeed: Feed {
-    return feeds.first{ $0.type == .isMaster }!
+  public var masterFeed: Feed? {
+    return feeds.first{ $0.type == .isMaster }
   }
   
-  public var selectedFeed: Feed {
+  public var bookmarkFeed: Feed? {
+    return feeds.first{ $0.type == .bookmarkFeed }
+  }
+  
+  public var selectedFeed: Feed? {
     get {
       if let prFeed = pr.selectedFeed {
         return StoredFeed(persistent: prFeed)
@@ -2962,6 +2996,7 @@ public final class StoredFeeder: Feeder, StoredObject {
       return masterFeed
     }
     set {
+      guard let newValue else { pr.selectedFeed = nil; return }
       if let sfeed = StoredFeed.get(object: newValue) {
         pr.selectedFeed = sfeed.pr
       }
@@ -3045,12 +3080,12 @@ extension StoredFeeder {
   /// This feed is used as the source for both remote API requests
   /// and local database lookups. It does not define the exclusive
   /// feed membership of an issue.
-  public var issueProviderFeed: StoredFeed {
-      if selectedFeed.type == .fullIssue {
-          return masterFeed as! StoredFeed
+  public var issueProviderFeed: StoredFeed? {
+      if selectedFeed?.type == .fullIssue {
+          return masterFeed as? StoredFeed
       }
 
-      return selectedFeed as! StoredFeed
+      return selectedFeed as? StoredFeed
   }
 }
 

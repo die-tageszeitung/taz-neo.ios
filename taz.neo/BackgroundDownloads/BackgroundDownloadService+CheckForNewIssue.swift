@@ -336,10 +336,11 @@ fileprivate extension BackgroundDownloadService {
   /// returns the date
   private func lastFromJsonFile(for feederContext: FeederContext) throws -> Date? {
     guard let issueDateKey = downloadDateKeys.max() else { return nil }
-    guard let feeder = feederContext.storedFeeder else {
+    guard let feeder = feederContext.storedFeeder,
+            let masterFeed = feeder.masterFeed else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    let feedPath = feeder.feedDir(feeder.masterFeed.name).path
+    let feedPath = feeder.feedDir(masterFeed.name).path
     let filePath = "\(feedPath)/\(issueDateKey)/\(BackgroundDownloadService.jsonDataFilename)"
     let file = File(filePath)
     guard file.exists else {

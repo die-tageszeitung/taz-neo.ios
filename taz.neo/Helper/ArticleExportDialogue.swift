@@ -673,8 +673,9 @@ extension Article {
   }
   
   var printPdfLocalUrl: URL? {
-    guard let fileName = pdf?.fileName else { return nil }
-    let file = File(dir: self.dir.path, fname: fileName)
+    guard let fileName = pdf?.fileName,
+    let dir else { return nil }
+    let file = File(dir: dir.path, fname: fileName)
     if file.exists { return file.url }
     return nil
   }

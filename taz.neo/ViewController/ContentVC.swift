@@ -13,7 +13,7 @@ import NorthLib
 public class ContentUrl: WebViewUrl, DoesLog {
 
   public var content: Content
-  public lazy var url: URL = URL(fileURLWithPath: content.path)
+  public lazy var url: URL = URL(fileURLWithPath: content.path ?? "")
 
   private var loadClosure: (ContentUrl)->()
   private var _isAvailable = false
@@ -24,7 +24,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
     get {
       guard !_isAvailable else { return true }
       if content.html == nil { return false }
-      let path = content.dir.path
+      guard let path = content.dir?.path else { return false }
       ///contentFiles no more files! to show article even if icons missing, icons needed in menu
       for f in content.contentFiles {
         if !f.fileNameExists(inDir: path) {
@@ -971,20 +971,27 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
                 let issueDate = curl.content.issueDate,
                 let storedFeeder = self?.feederContext.storedFeeder
           else { return }
-          let issueDir = storedFeeder.issueDir(date: issueDate)
-          issueDir.createGlobalLinksIfNeeded(feeder: storedFeeder)
-          self?.dloader.downloadSearchHitFiles(files: curl.content.files,
-                                              baseUrl: baseUrl,
-                                              targetDir: issueDir) { err in
-            curl.isAvailable = err == nil
+          if let issueDir = storedFeeder.issueDir(date: issueDate){
+            issueDir.createGlobalLinksIfNeeded(feeder: storedFeeder)
+            
+            self?.dloader.downloadSearchHitFiles(files: curl.content.files,
+                                                 baseUrl: baseUrl,
+                                                 targetDir: issueDir) { err in
+              curl.isAvailable = err == nil
+            }
+            return
           }
-          return
         }
         selfSafeDloader.downloadIssueData(issue: selfSafeIssue,
                                           files: curl.content.files) { err in
           curl.isAvailable = err == nil
         }
       }
+    }
+//    _ = curls.map{$0.content.path}
+    for curl in curls {
+      let path = curl.content.dir?.path
+      log("path: \(path)")
     }
     self.pager.urls = curls
   }

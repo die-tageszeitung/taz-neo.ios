@@ -194,7 +194,7 @@ class GqlImage: ImageEntry, GQLObject {
 
 /// The Payload of files from the download server
 class GqlPayload: Payload {
-  var localDir: String
+  var localDir: String?
   var remoteBaseUrl: String
   var remoteZipName: String?
   var files: [FileEntry]
@@ -215,7 +215,7 @@ class GqlPayload: Payload {
        issue: GqlIssue,
        isPages: Bool = false,
        withAudio: Bool = false) {
-    localDir = feeder.issueDir(issue: issue).path
+    localDir = feeder.issueDir(issue: issue)?.path
     remoteBaseUrl = issue.baseUrl
     remoteZipName = issue.zipName
     files = issue.files(isPages: isPages, withAudio: withAudio)
@@ -715,11 +715,11 @@ class GqlIssue: Issue, GQLObject {
   status
   minResourceVersion
   pageList { \(GqlPage.fields) }
+  key 
   """
   
   static var fields = """
   \(ovwFields)
-  key 
   zipName
   zipNamePdf: zipPdfName
   zipAudioName
@@ -966,7 +966,7 @@ class GqlFeederStatus: GQLObject {
 } // GqlFeederStatus
 
 public extension Feeder {
-  var masterFeed: Feed { TazAppEnvironment.masterFeed! }
+  var masterFeed: Feed? { TazAppEnvironment.masterFeed }
 }
 
 /**

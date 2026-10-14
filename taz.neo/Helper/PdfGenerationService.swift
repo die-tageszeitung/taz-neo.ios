@@ -117,7 +117,11 @@ class PdfGenerationService: DoesLog {
     let baseDir = TazAppEnvironment.sharedInstance.feederContext?.storedFeeder?.baseDir.path {
       webView?.baseDir = baseDir
     }
-    webView?.load(url: File(article.path).url)
+    guard let path = article.path else {
+      log("Error: no art path to load!")
+      return
+    }
+    webView?.load(url: File(path).url)
     debug("HTML loaded.")
     loaded = true
   }

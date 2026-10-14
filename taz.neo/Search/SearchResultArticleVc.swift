@@ -85,7 +85,7 @@ class SearchResultArticleVc : ArticleVC {
     header.titletype = .search
     header.subTitleLabel.onTapping { [weak self] _ in
       guard let date = self?.searchHitDate else { return }
-      if date < self?.feed.firstIssue ?? Date() {
+      if date < self?.feed?.firstIssue ?? Date() {
         Toast.show("Die Ausgabe vom \(date.short) ist leider nicht im Archiv verfügbar.")
         return
       }

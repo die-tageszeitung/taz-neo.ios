@@ -901,7 +901,7 @@ extension Issue {
   func page(for art: Article) -> Page? {
     func _page1(for art: Article) -> Page? {
       pages?.first { page in
-        page.frames?.first(where: { $0.link?.lastPathComponent == art.path.lastPathComponent}) != nil
+        page.frames?.first(where: { $0.link?.lastPathComponent == art.path?.lastPathComponent}) != nil
       }
     }
     func _page2(for art: Article) -> Page? {

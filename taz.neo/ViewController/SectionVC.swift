@@ -33,7 +33,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
     
     ct.onArticlePress{[weak self] article in
       guard let self = self else { return }
-      let url = article.dir.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
+      let url = article.dir?.url.absoluteURL.appendingPathComponent(article.html?.name ?? "")
       self.linkPressed(from: nil, to: url)
       self.slider?.close()
       self.articleVC?.slider?.close()

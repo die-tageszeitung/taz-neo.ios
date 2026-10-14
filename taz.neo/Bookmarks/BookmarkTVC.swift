@@ -204,8 +204,9 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
   private var remoteAudioContent: [Article] {
     var dlContent: [Article] = []
     for art in Bookmarks.shared.bookmarkedArticles {
-      guard let fileEntry = art.audioItem?.file else { continue }
-      let localFilePath = art.dir.path + "/" + fileEntry.name
+      guard let fileEntry = art.audioItem?.file,
+      let dir = art.dir else { continue }
+      let localFilePath = dir.path + "/" + fileEntry.name
       let file = File(localFilePath)
       if file.exists == false {  dlContent.append(art) }
     }

@@ -18,8 +18,9 @@ extension BackgroundDownloadService {
                                       localResources: Resources?,
                                       feederContext: FeederContext,
                                       isBackground: Bool) async {
-    guard let storedFeeder = feederContext.storedFeeder else { return }
-    let storedFeed = storedFeeder.masterFeed
+    guard let storedFeeder = feederContext.storedFeeder,
+    let storedFeed = storedFeeder.masterFeed else { return }
+    
     let localResourceFiles = localResources?.resourceFiles ?? []
     guard let lastLocalResourceVersion = localResources?.resourceVersion else {
       log("❌ WARNING: No Local Ressource given")

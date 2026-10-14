@@ -826,16 +826,16 @@ extension Issue {
 // MARK: - Helper
 extension Article {
   var firstImage:UIImage? {
-    guard let fn = images?.first?.fileName else { return nil }
-    let path = "\(self.dir.path)/\(fn)"
+    guard let fn = images?.first?.fileName, let dir else { return nil }
+    let path = "\(dir.path)/\(fn)"
     return UIImage(contentsOfFile: path)
   }
 }
 
 extension Section {
   var firstImage:UIImage? {
-    guard let fn = images?.first?.fileName else { return nil }
-    let path = "\(self.dir.path)/\(fn)"
+    guard let fn = images?.first?.fileName, let dir else { return nil }
+    let path = "\(dir.path)/\(fn)"
     return UIImage(contentsOfFile: path)
   }
 }
@@ -866,17 +866,17 @@ fileprivate extension Content{
   }
   
   var localAudioPathIfExist:String?{
-    if let file = audioItem?.file {
+    if let file = audioItem?.file, let dir {
       var localFilePath:String
       switch file.storageType {
         case .global:
-          localFilePath = self.dir.path + "/global/" + file.name
+          localFilePath = dir.path + "/global/" + file.name
         case .issue:
-          localFilePath = self.dir.path + "/" + file.name
+          localFilePath = dir.path + "/" + file.name
         case .resource:
-          localFilePath = self.dir.path + "/resources/" + file.name
+          localFilePath = dir.path + "/resources/" + file.name
         default:
-          localFilePath = self.dir.path + "/" + file.name
+          localFilePath = dir.path + "/" + file.name
       }
       if File(localFilePath).exists { return localFilePath }
     }

@@ -51,7 +51,7 @@ open class FeederContext: DoesLog {
     }
   }
   
-  var selectedFeedName:String? { storedFeeder?.selectedFeed.name }
+  var selectedFeedName:String? { storedFeeder?.selectedFeed?.name }
   var feedName:String? { masterFeed?.name }
 
   /// Name (title) of Feeder, base Dir in 
@@ -86,6 +86,7 @@ open class FeederContext: DoesLog {
   public private(set) var storedFeeder: StoredFeeder?
   
   public var masterFeed: StoredFeed? { storedFeeder?.masterFeed as? StoredFeed }
+  public var bookmarkFeed: StoredFeed? { storedFeeder?.bookmarkFeed as? StoredFeed }
   
   /// Feeds identified during `updateFeeder` as having fewer locally stored
   /// issues or publication dates than available remotely and requiring
@@ -152,7 +153,7 @@ open class FeederContext: DoesLog {
   }
   
   var latestPublicationDateForSelectedFeed:Date? {
-    return storedFeeder?.selectedFeed.lastIssue
+    return storedFeeder?.selectedFeed?.lastIssue
   }
   ///Shortcut
   var isConnected: Bool { netAvailability.isConnected }
@@ -303,11 +304,14 @@ open class FeederContext: DoesLog {
           if Device.isSimulator { logGqlFeederStats() }
           
           let handleSignificantChanges = persistedFeedHasSignificantChanges
-          if handleSignificantChanges {
+          if handleSignificantChanges && feedToLoadAllPublicationDates == nil {
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = true
             Notification.send(Const.NotificationNames.closeOpenIssues)
-            for feed in storedFeeder?.storedFeeds ?? [] { feed.delete() }
+            for feed in storedFeeder?.storedFeeds ?? [] {
+              if feed.type != .bookmarkFeed { feed.delete() }
+            }
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = false
+            locallyIncompleteFeeds = []
           }
           
           if feedToLoadAllPublicationDates != nil
@@ -672,8 +676,9 @@ open class FeederContext: DoesLog {
   public func needsUpdate(issue: Issue, toShowPdf: Bool = false) -> Bool {
     if issue.versionLocal2 < issue.versionRemote2 { return true }
     var needsUpdate = needsUpdate(issue: issue)
+    guard let issueDir = gqlFeeder.issueDir(issue: issue) else { return true }
     if needsUpdate == false && toShowPdf == true {
-      needsUpdate = !issue.isCompleetePDF(in: gqlFeeder.issueDir(issue: issue))
+      needsUpdate = !issue.isCompleetePDF(in: issueDir)
     }
     return needsUpdate
   }

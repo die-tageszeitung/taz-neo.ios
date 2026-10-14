@@ -19,12 +19,13 @@ extension Bookmarks {
     Toast.show("Lade Audiodateien für \(filesCount) Artikel herunter...")
     for article in dlContent {
       guard let baseUrl = article.baseURL,
-            let audioFile = article.audioItem?.file else { continue }
+            let audioFile = article.audioItem?.file,
+            let targetDir = article.dir else { continue }
       
       context.dloader.downloadSearchHitFiles(
         files: [audioFile],
         baseUrl: baseUrl,
-        targetDir: article.dir
+        targetDir: targetDir
       ) { error in
         if let error = error {
           shared.log("Error downloading \(audioFile.fileName): \(error)")
@@ -56,7 +57,7 @@ extension Bookmarks {
   
   private static func defaultMomentImage(for article:Article?) -> UIImage? {
     guard article?.primaryIssue != nil,
-          let path = article?.dir.path,
+          let path = article?.dir?.path,
           let filename = article?.issueDate?.defaultMomentImageFilename else { return nil }
     return UIImage(contentsOfFile: "\(path)/\(filename)")
   }

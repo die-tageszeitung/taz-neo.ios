@@ -80,7 +80,8 @@ extension BackgroundDownloadService {
         log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         notify(issueDate: issue.date, finished: true)
-        handlePendingTasks(in: storedFeeder.masterFeed)
+        guard let masterFeed = storedFeeder.masterFeed else { return }
+        handlePendingTasks(in: masterFeed)
       }
       return
     }
@@ -97,15 +98,17 @@ extension BackgroundDownloadService {
         self?.log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         self?.notify(issueDate: issue.date, finished: true)
-        self?.handlePendingTasks(in: storedFeeder.masterFeed)
+        guard let masterFeed = storedFeeder.masterFeed else { return }
+        self?.handlePendingTasks(in: masterFeed)
         return
       }
       self?.log("issue not found in database, restore from JSON")
       ///** No valid Entry found, load from JSON ...in a detatched Task
       Task.detached { [weak self] in
+        guard let masterFeed = storedFeeder.masterFeed else { return }
         await self?
           .loadFromJsonAndFinish(feederContext: feederContext,
-                                 feed: storedFeeder.masterFeed,
+                                 feed: masterFeed,
                                  issueDateKey: downloadData.isoDateKey)
       }
     }

@@ -31,7 +31,11 @@ extension FeederContext {
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    markStartDownload(feed: storedFeeder!.issueProviderFeed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
+    guard let issueProviderFeed = storedFeeder?.issueProviderFeed else {
+      log("Error cannot download: no issueProviderFeed")
+      return
+    }
+    markStartDownload(feed: issueProviderFeed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
       issue.isDownloading = true
       self.dloader.downloadPayload(payload: issue.payload as! StoredPayload,
                                    onProgress: { (bytesLoaded,totalBytes) in
@@ -92,7 +96,7 @@ extension FeederContext {
       return
     }
     TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
-    if self.isConnected {
+    if self.isConnected, let issueProviderFeed = storedFeeder?.issueProviderFeed {
       let requestAutoloadPDF ///Request autodownload pdf if required
       = isPages == true ///only for PDF Downloads
       && autoloadPdf == false ///if autoloadPdf is disabled
@@ -100,7 +104,7 @@ extension FeederContext {
       && true ///PDF not loaded yet; guard statement above
       && needsUpdate(issue: issue, toShowPdf: false) == false///"App Ansicht" already downloaded => no update for app ansicht needed
       log("fetch issue: \(issue.date.short)")
-      gqlFeeder.issues(feed: storedFeeder!.issueProviderFeed,
+      gqlFeeder.issues(feed: issueProviderFeed,
                        date: issue.date,
                        key: issue.key,
                        count: 1,

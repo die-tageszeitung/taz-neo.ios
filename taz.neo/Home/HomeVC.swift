@@ -73,6 +73,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   private var statusWrapperWidthConstraint:NSLayoutConstraint?
   
   private var viewModeButtonTopConstraint:NSLayoutConstraint?
+  private var feedSwitchTopConstraint:NSLayoutConstraint?
   
   /// Temporary variable to prevent the same issue from being opened multiple times due to repeated touches.
   var openingIssue: Issue?
@@ -112,7 +113,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
                                        right: gridItemSpacing)
     layout.minimumLineSpacing = lineSpacing
     layout.minimumInteritemSpacing = gridItemSpacing
-    layout.sectionInset = UIEdgeInsets(top: 120, left: layout.sectionInset.left, bottom: layout.sectionInset.bottom, right: layout.sectionInset.right)
+    layout.sectionInset = UIEdgeInsets(top: 165, left: layout.sectionInset.left, bottom: layout.sectionInset.bottom, right: layout.sectionInset.right)
     return layout
   }()
   
@@ -168,6 +169,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
+  lazy var feedSwitchGroup: UIView = createFeedSwitchGroup()
   lazy var datePickerOverlay = createDatePickerWrapperView()
   var datePickerOverlayTitleLabel: UIView?
   
@@ -319,6 +321,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     let dist = headerTopDist(hidden: hidden)
     guard viewModeButtonTopConstraint?.constant != dist else { return }
     viewModeButtonTopConstraint?.constant = dist
+    feedSwitchTopConstraint?.constant = hidden ? 0 : 15
     
     UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut]) {
       self.viewModeButton.imageView?.alpha = hidden ? 0 : 1
@@ -428,6 +431,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     self.view.addSubview(blurView)
     self.view.addSubview(statusHeader)
     self.view.addSubview(viewModeButton)
+    self.view.addSubview(feedSwitchGroup)
     self.view.addSubview(loginButton)
     self.view.addSubview(bottomItemsWrapper)
     self.view.addSubview(downloadButtonTapArea)
@@ -437,11 +441,15 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     
     self.overrideUserInterfaceStyle = .dark
     pin(blurView, to: view, exclude: .bottom)
-    pin(blurView.bottom, to: viewModeButton.bottom, dist: Const.Dist2.s10)
+    pin(blurView.bottom, to: feedSwitchGroup.bottom, dist: 5)
     pin(statusHeader.bottom, to: viewModeButton.bottom, dist: 4.0)
     
     pin(loginButton.right, to: self.view.rightGuide(), dist: -9.0)
     pin(loginButton.bottom, to: viewModeButton.bottom)
+
+    pin(feedSwitchGroup.left, to: viewModeButton.left, dist: 10.0)
+    pin(feedSwitchGroup.right, to: self.view.rightGuide(), dist: -9.0, priority: .defaultLow)
+    feedSwitchTopConstraint = pin(feedSwitchGroup.top, to: viewModeButton.bottom, dist: 15.0)
     
     viewModeButton.pinWidth(75.0)
     loginButton.pinWidth(75.0)
@@ -648,7 +656,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   func scrollTo(_ index: Int, animated:Bool = true){
     guard collectionView.numberOfItems(inSection: 0) > index else {
       guard !didShowNoIssuesError else { return }
-      let masterFeedSelected = TazAppEnvironment.storedFeeder?.selectedFeed.isMaster ?? false
+      let masterFeedSelected = TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster ?? false
       && TazAppEnvironment.storedFeeder?.feeds.count ?? 0 > 1
       let changeFeed =  masterFeedSelected  ? "" : "\nFalls das Problem weiterhin besteht, können Sie auch die Auswahl der Publikationen im Darstellungs-Menü ändern."
       let message = "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\(changeFeed)"
@@ -758,7 +766,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     var filterActions: [UIAction] = []
     for feed in TazAppEnvironment.storedFeeder?.selectableFeeds ?? [] {
       let state: UIMenuElement.State
-      = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed.feedId
+      = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed?.feedId
       ? .on
       : .off
       

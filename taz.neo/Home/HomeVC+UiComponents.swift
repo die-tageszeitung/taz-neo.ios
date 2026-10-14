@@ -38,6 +38,80 @@ extension HomeVC {
     return button
   }
   
+  func createFeedSwitchGroup() -> UIView {
+    guard #available(iOS 15.0, *) else { return UIView() }
+    
+    let feeds = TazAppEnvironment.storedFeeder?.selectableFeeds ?? []
+    guard feeds.count > 1 else { return UIView() }
+    
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.alignment = .center
+    stackView.distribution = .fill
+    stackView.spacing = 16
+    
+    for feed in feeds {
+      let isSelected = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed?.feedId
+      
+      var configuration = UIButton.Configuration.plain()
+      configuration.title = feed.displayName
+      configuration.baseForegroundColor = isSelected ? .white : .systemGray
+      configuration.contentInsets = NSDirectionalEdgeInsets(
+        top: 4, leading: 0, bottom: 4, trailing: 0
+      )
+      configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+        var attributes = attributes
+        attributes.font = Const.Fonts.boldContentFont
+        return attributes
+      }
+      
+      let button = UIButton(configuration: configuration)
+      
+      // Intrinsische Breite bevorzugen
+      button.setContentHuggingPriority(.required, for: .horizontal)
+      button.setContentCompressionResistancePriority(.required, for: .horizontal)
+      
+      button.addAction(
+        UIAction { [weak self, weak stackView] _ in
+          let visibleDate = self?.dateForFeedSwitch
+          
+          if TazAppEnvironment.storedFeeder?.selectedFeed?.displayName == feed.displayName {
+            self?.onHome()
+            return
+          }
+          
+          TazAppEnvironment.storedFeeder?.selectedFeed = feed
+          
+          // Auswahl aktualisieren
+          stackView?.arrangedSubviews
+            .compactMap { $0 as? UIButton }
+            .forEach { button in
+              guard var config = button.configuration else { return }
+              let selected = button === stackView?.arrangedSubviews.first(where: {
+                ($0 as? UIButton)?.configuration?.title == feed.displayName
+              }) as? UIButton
+              
+              config.baseForegroundColor = selected ? .white : .systemGray
+              button.configuration = config
+            }
+          
+          Notification.send(Const.NotificationNames.feedChange)
+          self?.updateButtonMenu()
+          
+          guard let visibleDate,
+                let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
+          
+          self?.scrollTo(newIdx, animated: true)
+        },
+        for: .touchUpInside
+      )
+      
+      stackView.addArrangedSubview(button)
+    }
+    
+    return stackView
+  }
+  
   func createCalendarButton() -> UIButton {
     let button = UIButton(type: .system)
     button.setImage(UIImage(named: "calendar"), for: .normal)
@@ -82,7 +156,7 @@ extension HomeVC {
     wrapper.layer.borderColor = Const.Colors.appIconGrey.cgColor
     wrapper.layer.cornerRadius = 8.0
     
-    datePicker.minimumDate = feederContext.storedFeeder?.selectedFeed.firstIssue ?? Date()
+    datePicker.minimumDate = feederContext.storedFeeder?.selectedFeed?.firstIssue ?? Date()
     datePicker.maximumDate =  Date()
     datePicker.datePickerMode = .date
     

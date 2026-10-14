@@ -66,7 +66,7 @@ class LinkBusiness {
 
 fileprivate extension Article {
   var fileUrl : URL? {
-    return dir.url.absoluteURL.appendingPathComponent(html?.name ?? "")
+    return dir?.url.absoluteURL.appendingPathComponent(html?.name ?? "")
   }
 }
 

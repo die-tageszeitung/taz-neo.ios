@@ -92,9 +92,9 @@ class IssueOverviewService: NSObject, DoesLog {
   public var isFacsimile: Bool
     
   internal var feederContext: FeederContext
-  var feed: StoredFeed {
+  var feed: StoredFeed? {
     didSet {
-      oldFeedName = feed.name
+      oldFeedName = feed?.name ?? ""
     }
   }
   private var oldFeedName:String = ""
@@ -103,8 +103,8 @@ class IssueOverviewService: NSObject, DoesLog {
   
   public private(set) var publicationDates: [PublicationDate]
   
-  public var firstIssueDate: Date { feed.firstIssue }
-  public var lastIssueDate: Date { feed.lastIssue }
+  public var firstIssueDate: Date { feed?.firstIssue ?? Date() }
+  public var lastIssueDate: Date { feed?.lastIssue ?? Date() }
   
   func issue(at date: Date) -> StoredIssue? {
     return issues[date.issueKey]
@@ -128,7 +128,8 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Parameter index: index for requested cell
   /// - Returns: cell data if any with date, issue if locally available, image if locally available
   func cellData(for index: Int) -> IssueCellData? {
-    guard let publicationDate = date(at: index) else {
+    guard let publicationDate = date(at: index),
+          let feed else {
       error("No Entry for: \(index), This should not be requested")
       return nil
     }
@@ -253,6 +254,7 @@ class IssueOverviewService: NSObject, DoesLog {
   ///   - date: newest date to request from API
   ///   - count: additionally count of issues
   func apiLoadIssueOverview(for date: Date, count: Int) {
+    guard let feed else { return }
     self.debug("Start load Issues for: \(date.issueKey), count: \(count)")
     var count = count
     if count < 1 { count = 1 }
@@ -374,10 +376,10 @@ class IssueOverviewService: NSObject, DoesLog {
       }
       return
     }
-    self.debug("do download \(dlFiles.count) Issue files for \(issue.date.issueKey)")
+    self.debug("do download \(dlFiles.count) Issue files for \(issue.safeDate?.issueKey ?? "-")")
     self.feederContext.dloader
       .downloadIssueFiles(issue: issue, files: files) {[weak self] err in
-        self?.debug("done download \(files.count) Issue files for \(issue.date.issueKey) 7XßC3")
+        self?.debug("done download \(files.count) Issue files for \(issue.safeDate?.issueKey ?? "-") 7XßC3")
         let img = self?.storedImage(issue: issue, isPdf: isPdf)
         if img != nil && err == nil {
           self?.notifyIssueOwvAvailable(issue: issue, key: key)
@@ -386,7 +388,7 @@ class IssueOverviewService: NSObject, DoesLog {
           var msg = "something went wrong:"
           msg += img == nil ? " downloaded file did not exist!" : ""
           msg += err != nil ? " Error: \(String(describing: err))" : ""
-          msg += " for: \(issue.date.issueKey) 7XßC3"
+          msg += " for: \(issue.safeDate?.issueKey ?? "-") 7XßC3"
           self?.log(msg)
         }
         ///if everything works as expected this is the place to remove, in case of errors
@@ -415,6 +417,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func notifyIssueOwvAvailable(issue:StoredIssue, key: String){
+    guard let feed else { return }
     removeFromLoadFromRemote(key:key)
     guard let pDate = publicationDates.first(where: { $0.date == issue.date }) else {
       error("Not found the given Publication Date. This Should not happen!")
@@ -452,7 +455,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return false
     }
     #endif
-    
+    guard let feed else { return false }
     // guard reentry
     guard !isReloadingPublicationDates else {
       debug("reloadPublicationDates: already reloading -> skip")
@@ -615,6 +618,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   func updateIssues(){
+    guard let feed else { return }
     issues =
     (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
@@ -638,16 +642,16 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   /// Initialize with FeederContext
-  public init(feederContext: FeederContext) {
+  public init(feederContext: FeederContext, selectedFeed: StoredFeed) {
     self.feederContext = feederContext
-    self.feed = feederContext.storedFeeder?.selectedFeed as! StoredFeed
-    self.publicationDates = feed.publicationDates ?? []
+    self.feed = selectedFeed
+    self.publicationDates = selectedFeed.publicationDates ?? []
     issues =
-    (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
+    (selectedFeed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     } ?? [:]
     super.init()
-    log(">>>...init IOService for feed: \(feed.name) iss#:\(issues.count) pd#: \(self.publicationDates.count) feed-issues-count:\(feed.issueCnt)")
+    log(">>>...init IOService for feed: \(selectedFeed.name) iss#:\(issues.count) pd#: \(self.publicationDates.count) feed-issues-count:\(selectedFeed.issueCnt)")
     self.ovwHelper.sender = self//required for notification send
     $isFacsimile.onChange {[weak self] _ in
       guard let mode = self?.isFacsimile.mode,
@@ -694,9 +698,10 @@ class IssueOverviewService: NSObject, DoesLog {
     Notification.receive(Const.NotificationNames.feedChange) {[weak self] _ in
       guard let self,
             let storedFeeder = feederContext.storedFeeder else { return }
-      log(">>> Feed Change from: \(oldFeedName) to \(storedFeeder.selectedFeed.name) current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
-      feed = storedFeeder.selectedFeed as! StoredFeed
-      publicationDates = feed.publicationDates ?? []
+      log(">>> Feed Change from: \(oldFeedName) to \(storedFeeder.selectedFeed?.name ?? "-") current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+      
+      feed = storedFeeder.selectedFeed as? StoredFeed
+      publicationDates = feed?.publicationDates ?? []
       updateIssues()
       log(">>>..now iss#:\(issues.count) pb#: \(self.publicationDates.count)")
       Notification.send(Const.NotificationNames.refreshOverview)

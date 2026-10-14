@@ -274,7 +274,7 @@ public protocol Payload: ToString {
   /// Date/Time when download finished
   var downloadStopped: Date? { get }
   /// Where to put downloaded files
-  var localDir: String { get }
+  var localDir: String? { get }
   /// URL of remote base directory
   var remoteBaseUrl: String { get }
   /// Name of zip-file containing the comple payload
@@ -393,9 +393,9 @@ public protocol Content {
   /// Issue where Content data is stored
   var primaryIssue: Issue? { get }
   /// Directory where Content is stored
-  var dir: Dir { get }
+  var dir: Dir? { get }
   /// Absolute pathname of content
-  var path: String { get }
+  var path: String? { get }
   /// Date of Issue encompassing this Content
   var issueDate: Date? { get }
   /// Title of Section refering to this content
@@ -421,19 +421,23 @@ public extension Content {
   }
   
   /// Directory where Content is stored
-  var dir: Dir { 
+  var dir: Dir? {
     guard let issue = primaryIssue,
-          let feeder = TazAppEnvironment.storedFeeder
-    else { fatalError("Undefined primaryIssue") }
+          let feeder = TazAppEnvironment.storedFeeder else {
+      return nil
+    }
     return feeder.issueDir(issue: issue)
   }
   
-  #warning("ToDo make path also optional soon")
   /// Absolute pathname of content
-  var path: String {
+  var path: String? {
     guard let html = html else {
       Log.error("html(File) is nil")
-      return ""
+      return nil
+    }
+    guard let dir else {
+      Log.error("dir is nil")
+      return nil
     }
     return "\(dir.path)/\(html.name)"
   }
@@ -1307,6 +1311,7 @@ public enum FeedType: String, CodableEnum {
   case partiallyIssue = "partiallyIssue" /// a feed that contains one or more sections from the master feed, e.g. LMd
   case podcast = "podcast" /// a dedicated feed containing all podcasts
   case unknown = "unknown"
+  case bookmarkFeed = "bookmarkFeed"
 }
 
 /**
@@ -1383,7 +1388,7 @@ public protocol Feeder: ToString, AnyObject {
   /// The Feeds this Feeder is providing
   var feeds: [Feed] { get }
   /// The master Feed this Feeder is providing
-  var masterFeed: Feed { get }
+  var masterFeed: Feed? { get }
   /// Directory where all Feeder specific data is stored
   var dir: Dir { get }
   
@@ -1452,18 +1457,19 @@ extension Feeder {
   public func feedDir(_ feed: String) -> Dir { return Dir(dir: baseDir.path, fname: feed) }
 
   /// Returns directory where all issue specific data is stored
-  public func issueDir(isoDate: String) -> Dir {
+  public func issueDir(isoDate: String) -> Dir? {
+    guard let masterFeed else { return nil }
     return Dir(dir: feedDir(masterFeed.name).path, fname: isoDate)
   }
   
-  public func issueDir(date: Date) -> Dir {
+  public func issueDir(date: Date) -> Dir? {
     return issueDir(isoDate: date2a(date))
   }
   
   /// Returns directory where all issue specific data is stored
-  public func issueDir(issue: Issue) -> Dir {
+  public func issueDir(issue: Issue) -> Dir? {
     if issue is SearchResultIssue { return Dir.searchResults }
-    if issue.isBookmarkIssue { return masterFeed.bookmarksDir }
+    if issue.isBookmarkIssue { return masterFeed?.bookmarksDir }
     return issueDir(date: issue.date)
   }
   
@@ -1488,8 +1494,8 @@ extension Feeder {
       }
       let loadHighres = !isPdf || usePdfAlternative
       if file == nil && loadHighres { file = moment.highres }
-      if let img = file {
-        return "\(issueDir(issue: issue).path)/\(img.fileName)"
+      if let img = file, let issueDir = issueDir(issue: issue) {
+        return "\(issueDir.path)/\(img.fileName)"
       }
       return nil
   }
@@ -1501,8 +1507,8 @@ extension Feeder {
     var file: FileEntry?
     if isPdf { file = moment.facsimile }
     else { file = moment.lowres }
-    if let img = file {
-      return "\(issueDir(issue: issue).path)/\(img.fileName)"
+    if let img = file, let issueDir = issueDir(issue: issue) {
+      return "\(issueDir.path)/\(img.fileName)"
     }
     return nil
   }
@@ -1514,14 +1520,15 @@ extension Feeder {
             let issue = article.primaryIssue,
             let moment = issue.moment,
             let fileName =  moment.lowres?.fileName else { return nil }
-      let dir = issueDir(date: issueDate)
+      guard let dir = issueDir(date: issueDate) else { return nil }
       return "\(dir.path)/\(fileName)"
   }
 
   /// Returns the name of the first PDF page file name (if available)
   public func momentPdfName(issue: Issue) -> String? {
-    if let fac1 = issue.pageOneFacsimile {
-      return "\(issueDir(issue: issue).path)/\(fac1.fileName)"
+    if let fac1 = issue.pageOneFacsimile,
+        let issueDir = issueDir(issue: issue) {
+      return "\(issueDir.path)/\(fac1.fileName)"
     }
     return nil
   }
