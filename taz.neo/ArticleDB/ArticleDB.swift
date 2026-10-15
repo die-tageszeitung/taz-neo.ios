@@ -2895,12 +2895,19 @@ public final class StoredFeed: Feed, StoredObject {
     return get(request: request)
   }
   
-  func delete() {
+  /**
+   Deletes feed and returns issues without feed
+   */
+  func delete() -> [StoredIssue] {
+    var issuesWithoutFeed: [StoredIssue] = []
     for issue in storedIssues {
       issue.pr.removeFromFeeds(self.pr)
-      if issue.feeds.count == 0 { issue.delete() }
+      if issue.feeds.count == 0 {
+        issuesWithoutFeed.append(issue)
+      }
     }
     self.deletePersistent()
+    return issuesWithoutFeed
   }
   
 } // StoredFeed

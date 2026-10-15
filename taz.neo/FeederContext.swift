@@ -302,13 +302,20 @@ open class FeederContext: DoesLog {
         ///no need to eval res.value due its updated:  self.gqlFeeder = res.value()
         case .success:
           if Device.isSimulator { logGqlFeederStats() }
+          var savedIssues: [String:[StoredIssue]] = [:]
           
           let handleSignificantChanges = persistedFeedHasSignificantChanges
           if handleSignificantChanges && feedToLoadAllPublicationDates == nil {
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = true
             Notification.send(Const.NotificationNames.closeOpenIssues)
             for feed in storedFeeder?.storedFeeds ?? [] {
-              if feed.type != .bookmarkFeed { feed.delete() }
+              ///speichere die issues in einem feedName:Issue dict
+              if feed.type != .bookmarkFeed {
+                let feedName = feed.name
+                let issuesWithoutFeed = feed.delete()
+                if issuesWithoutFeed.count == 0 { continue }
+                savedIssues[feedName] = issuesWithoutFeed
+              }
             }
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = false
             locallyIncompleteFeeds = []
@@ -318,6 +325,15 @@ open class FeederContext: DoesLog {
               || handleSignificantChanges
               || self.gqlFeederHasChanges {
             self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
+            
+            for (feedName, issues) in savedIssues {
+              guard let sFeed = storedFeeder?.storedFeeds.first(where: { $0.name == feedName }) else {
+                issues.forEach { $0.delete() }
+                continue
+              }
+              issues.forEach{ $0.pr.addToFeeds(sFeed.pr)}
+            }
+            
             ArticleDB.save()
             self.checkStoredFeedsConsistency()
             log(">>>...publication dates changed, inform UI (if not in background mode)")
