@@ -2799,21 +2799,7 @@ public final class StoredFeed: Feed, StoredObject {
   public var storedPublicationDates: [StoredPublicationDate] {
     let dates = StoredPublicationDate.publicationDatesInFeed(feed: self)
     if !dates.isEmpty { return dates }
-    createPublicationDatesFromStoredIssues()
     return StoredPublicationDate.publicationDatesInFeed(feed: self)
-  }
-  
-  ///Helper for migation from 1.1? to newer version
-  private func createPublicationDatesFromStoredIssues(){
-    var dates: [PublicationDate] = []
-    for issue in storedIssues {
-      let date = GqlPublicationDate(from: issue.date.dbIssueRepresentation)
-      date.validityDate = issue.validityDate
-      dates.append(date)
-    }
-    guard (issues?.first) != nil else { return }
-    StoredPublicationDate.persist(publicationDates: dates, inFeed: self)
-    ArticleDB.save()
   }
   
   public var publicationDates: [PublicationDate]? { storedPublicationDates }
