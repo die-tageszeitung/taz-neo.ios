@@ -274,7 +274,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
     else if adelegate?.issue.isBookmarkIssue == true {
       let idx = articles.firstIndex {$0.serverId == nextArticle.serverId } ?? -2
       ///ensure old value is overwritten to not show wrong section
-      header.title = nextArticle.sectionTitle ?? "" ///empty placeholder required to prevent jumping header ui
+      header.title = nextArticle.sectionTitle ?? " " ///empty placeholder required to prevent jumping header ui
       header.titletype = .search
       header.subTitle = "Ausgabe \(nextArticle.issueDate?.short ?? "")"
       header.pageNumber = "\(idx+1) von \(articles.count)"

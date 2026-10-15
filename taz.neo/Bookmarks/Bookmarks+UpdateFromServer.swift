@@ -29,7 +29,10 @@ extension Bookmarks {
     
     /// workflow: load article data, update "demo" article entity (including: onlineLink, Authors, files (content+images)...
     /// download files
-    let reducedArticles = bookmarkedArticles.filter { $0.isReducedArticle && $0.serverId != nil }
+    let reducedArticles = bookmarkedArticles.filter {
+      $0.isReducedArticle && $0.serverId != nil
+      || $0.sectionTitle == nil
+    }
     
     if reducedArticles.count == 0 {
       log("no articles to load, skip loading")
@@ -71,6 +74,11 @@ extension Bookmarks {
       }
       // Call the update method to sync the StoredArticle with the GqlSingleArticle
       storedArticle.update(from: articleWrapper.gqlArticle)
+      
+      if storedArticle.sectionTitle == nil {
+        storedArticle.sectionTitle = articleWrapper.sectionTitle ?? ""
+      }
+      
       storedArticle.baseURL = articleWrapper.baseUrl
       
       ///2 options: either write file OR download file(s)
