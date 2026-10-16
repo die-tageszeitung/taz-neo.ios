@@ -42,6 +42,7 @@ public extension FeedbackType {
 open class FeedbackComposer : DoesLog{
   
   public static func showWith(logData: Data? = nil,
+                              messageText: String? = nil,
                               screenshot: UIImage? = nil,
                               feederContext: FeederContext?,
                               feedbackType: FeedbackType? = nil,
@@ -58,6 +59,7 @@ open class FeedbackComposer : DoesLog{
       FeedbackComposer.send(type: FeedbackType.error,
                             deviceData: deviceData,
                             screenshot: screenshot,
+                            messageText: messageText,
                             logData: logData,
                             feederContext: feederContext,
                             finishClosure: finishClosure)
@@ -93,6 +95,7 @@ open class FeedbackComposer : DoesLog{
   public static func send(type: FeedbackType,
                           deviceData: DeviceData? = nil,
                           screenshot: UIImage? = nil,
+                          messageText: String? = nil,
                           logData: Data? = nil,
                           feederContext: FeederContext?,
                           finishClosure: @escaping ((Bool) -> ())) {
@@ -166,6 +169,7 @@ open class FeedbackComposer : DoesLog{
       finishClosure(feedbackViewController.sendSuccess)
       feedbackBottomSheet = nil//Important the memory leak!
     })
+    feedbackViewController.feedbackView?.messageTextView.text = messageText
     feedbackBottomSheet?.open()
     Usage.track(screen: type.trackingScreen)
   }

@@ -11,6 +11,34 @@ import MessageUI
 
 extension TazAppEnvironment {
   
+  func requestReportError(message: String, errorReportMessageText: String? = nil) {
+    guard !isErrorReporting else { return }
+    isErrorReporting = true
+    
+    if let topVc = UIViewController.top(),
+       topVc.presentedViewController != nil {
+      topVc.dismiss(animated: false)
+    }
+    
+    let sendAction = UIAlertAction(title: "Fehlerbericht senden",
+                                   style: .default) {[weak self] _ in
+      self?.isErrorReporting = false
+      self?.showFeedbackErrorReport(.error,
+                                    messageText: errorReportMessageText)
+    }
+    
+
+    let cancelAction = UIAlertAction(title: "Abbrechen",
+                                     style: .cancel)  {[weak self] _ in
+      self?.isErrorReporting = false
+    }
+    
+    Alert.message(title: "Fehler",
+                  message: message,
+                  actions: [sendAction, cancelAction] )
+    Usage.track(Usage.event.dialog.FatalError)
+  }
+  
   func reportFatalError(err: Log.Message) {
     guard !isErrorReporting else { return }
     

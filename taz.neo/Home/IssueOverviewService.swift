@@ -720,8 +720,8 @@ extension IssueOverviewService {
   /// check for new issues from pull to refresh (force == true)
   /// and app will enter foreground
   /// - Parameter force: ensure check
-  func checkForNewIssues() {
-    feederContext.checkForNewIssues(force: true)
+  func checkForNewIssues(wasManuallyTriggered: Bool = false) {
+    feederContext.checkForNewIssues(force: true, wasManuallyTriggered: wasManuallyTriggered)
   }
 }
 

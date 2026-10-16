@@ -24,7 +24,10 @@ public class TazTextView : UIView, UITextFieldDelegate, KeyboardToolbarForText {
   }
 
   var text:String? {
-    set { textView.text = newValue }
+    set {
+      textView.text = newValue
+      placeholderLabel.alpha = newValue?.isEmpty == false ? 0.0 : 1.0
+    }
     get { textView.text}
   }
   

@@ -463,10 +463,11 @@ class TazAppEnvironment: NSObject, DoesLog {
     showFeedbackErrorReport(screenshot: UIWindow.screenshot)
   }
   
-  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil) {
+  func showFeedbackErrorReport(_ feedbackType: FeedbackType? = nil, screenshot: UIImage? = nil, messageText: String? = nil) {
     isErrorReporting = true //No Check here to ensure error reporting is available at least from settings
     logRelevantSettings()
     FeedbackComposer.showWith(logData: fileLogger.mem?.data,
+                              messageText: messageText,
                               screenshot: screenshot,
                               feederContext: self.feederContext,
                               feedbackType: feedbackType) {[weak self] didSend in

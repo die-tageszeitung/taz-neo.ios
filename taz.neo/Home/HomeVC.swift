@@ -599,7 +599,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     self.pullToLoadMoreHandler = {   [weak self] in
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
-      self?.service.checkForNewIssues()
+      self?.service.checkForNewIssues(wasManuallyTriggered: true)
     }
   }
   

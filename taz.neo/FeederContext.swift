@@ -104,6 +104,8 @@ open class FeederContext: DoesLog {
     }
   }
   
+  private let reloadMonitor = CallRateMonitor(maxCalls: 10, timeWindow: 60)
+  
   func stopDownloadsAndResetDownloader(){
     guard let gqlFeeder else { return }
     self.dloader = Downloader(feeder: gqlFeeder)
@@ -242,8 +244,8 @@ open class FeederContext: DoesLog {
     onMainAfter(2.0){[weak self] in  self?.handleUnfinshedDownloads() }
   }
   
-  func checkForNewIssues(force: Bool = false){
-    log("checkForNewIssues force: \(force) url: \(netAvailability.url)")
+  func checkForNewIssues(force: Bool = false, wasManuallyTriggered: Bool = false){
+    log("checkForNewIssues force: \(force) \(wasManuallyTriggered ? "manuallyTriggered!" : "")")
     if force || netAvailability.isConnected == false {
       netAvailability.recheck(force: force)
 //      Notification.send(Const.NotificationNames.checkForNewIssues,
@@ -263,6 +265,14 @@ open class FeederContext: DoesLog {
     if gqlFeeder.isUpdating {
       debug(">>>...updateFeeder CANCELED because is already updating")
       return
+    }
+    
+    if reloadMonitor.registerCall() {
+      log("⚠️ Zu viele Aufrufe innerhalb von 1 Minute")
+      let msg = "Die App versucht gerade ungewöhnlich oft, Daten vom Server abzurufen. Die aktuelle Abfrage wurde abgebrochen.\n\nWenn Sie dies nicht selbst ausgelöst haben, senden Sie uns bitte einen Fehlerbericht. Sollte diese Meldung wiederholt erscheinen, setzen Sie die App bitte in den erweiterten Einstellungen zurück."
+      let messagetext = "Fehler, die App hat zu häufig innerhalb kurzer Zeit Daten vom Server abgerufen, bitte prüfen."
+      TazAppEnvironment.sharedInstance.requestReportError(message: msg, errorReportMessageText: messagetext)
+        return
     }
     
     if gqlFeeder.gqlSession?.isBackground == true {
@@ -312,7 +322,28 @@ open class FeederContext: DoesLog {
           ///name:[cycle:[Issue]]
           var savedIssues: [String:[String:[StoredIssue]]] = [:]
           
-          let handleSignificantChanges = persistedFeedHasSignificantChanges
+          var invalidLocalData = false
+          
+          if let feedToLoadAllPublicationDates,
+             let matchingGqlFeed = self.gqlFeeder.feeds.first(where: { $0.name == feedToLoadAllPublicationDates.name }),
+             feedToLoadAllPublicationDates.publicationDates?.count ?? 0 > matchingGqlFeed.publicationDates?.count ?? 0 {
+            /// po storedFeeds.map{"\($0.name) : \($0.publicationDates?.count ?? -1) : \($0.firstIssue.short) : \($0.lastIssue.short)" }
+            /// test with: **po self.createFakePubDate(forFeed: storedFeeder!.masterFeed as! StoredFeed)**
+            invalidLocalData = true
+            log("WARNING invalidLocalData in feed: \(feedToLoadAllPublicationDates.name) has: \(feedToLoadAllPublicationDates.publicationDates?.count ?? 0) publicationDates, server has \(matchingGqlFeed.publicationDates?.count ?? 0) >>> remove invalid publicationDates")
+            
+            let publicationDates = feedToLoadAllPublicationDates.publicationDates?.compactMap {
+              $0 as? StoredPublicationDate
+            }
+
+            for publicationDate in publicationDates ?? [] {
+              publicationDate.pr.removeFromFeeds(feedToLoadAllPublicationDates.pr)
+              if publicationDate.feeds.isEmpty {
+                publicationDate.delete()
+              }
+            }
+          }
+          let handleSignificantChanges = persistedFeedHasSignificantChanges || invalidLocalData
           if handleSignificantChanges && feedToLoadAllPublicationDates == nil {
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = true
             Notification.send(Const.NotificationNames.closeOpenIssues)
@@ -451,6 +482,14 @@ open class FeederContext: DoesLog {
       return storedFeed.cycle != gqlFeed.cycle
     }
   }
+  
+  ///Helper to test some invalid data in local database which caused endless reload loops, never seen again
+//  public func createFakePubDate(forFeed feed: StoredFeed) -> StoredPublicationDate {
+//    let new = StoredPublicationDate.new()
+//    new.pr.addToFeeds(feed.pr)
+//    new.date = Date(timeIntervalSince1970: 0)
+//    return new
+//  }
   
   /// Checks all locally stored feeds for missing or inconsistent publication dates.
   ///
@@ -890,4 +929,30 @@ fileprivate extension Feeder {
     }
     return false
   }
+}
+
+final class CallRateMonitor {
+    private let lock = NSLock()
+    private var callDates: [Date] = []
+
+    private let timeWindow: TimeInterval
+    private let maxCalls: Int
+
+    init(maxCalls: Int = 10, timeWindow: TimeInterval = 120) {
+        self.maxCalls = maxCalls
+        self.timeWindow = timeWindow
+    }
+
+    func registerCall() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+
+        let now = Date()
+        let cutoff = now.addingTimeInterval(-timeWindow)
+
+        callDates.removeAll { $0 < cutoff }
+        callDates.append(now)
+
+        return callDates.count > maxCalls
+    }
 }
