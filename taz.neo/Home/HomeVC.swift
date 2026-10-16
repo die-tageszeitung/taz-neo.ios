@@ -902,6 +902,11 @@ extension HomeVC: ReloadAfterAuthChanged {
   public func reloadOpened(){
     guard let selectedIssue = self.issueInfo?.issue as? StoredIssue else { return }
     navigationController?.popToRootViewController(animated: false)
+    if selectedIssue.pr.isFault
+        || selectedIssue.pr.isDeleted
+        || selectedIssue.safeDate == nil {
+      return // prevent crash after issue delete e.g. due cycle change
+    }
     if selectedIssue.isDownloading == false {
       self.openIssue(selectedIssue, openLast: true)
       return

@@ -80,19 +80,19 @@ extension IssueDisplayService {
     let issue = self.sissue
     
     if issue.sections?.count ?? 0 == 0 || issue.allArticles.count == 0 {
-      debug("Issue: \(issue.date.short) has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
+      debug("Issue: \(issue.safeDate?.short ?? "-") has \(issue.sections?.count ?? 0) Ressorts and \(issue.allArticles.count) articles.")
     }
     let issueStatus = """
-      date: \(issue.date.short) 
-      status: \(issue.status), serverVersion: \(issue.versionRemote)  localVersion: \(issue.versionLocal)
+      date: \(issue.safeDate?.short ?? "-") 
+      status: \(issue.status), serverVersion: \(issue.versionRemote ?? -2)  localVersion: \(issue.versionLocal ?? -2)
       isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete),  isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete)
       articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)
-      downloadStarted: \(issue.payload.downloadStarted?.dateAndTime ?? "-"), downloadStoped: \(issue.payload.downloadStopped?.dateAndTime ?? "-")
+      downloadStarted: \(issue.storedPayload?.downloadStarted?.dateAndTime ?? "-"), downloadStoped: \(issue.storedPayload?.downloadStopped?.dateAndTime ?? "-")
     """
     
     feederContext.openedIssue = issue //remember opened issue to not delete if
     log("*** Action: Entering \(TazAppEnvironment.storedFeeder?.selectedFeed?.name ?? "")-" +
-          "\(issue.date.isoDate(tz: feederContext.storedFeeder!.timeZone))")
+          "\(issue.safeDate?.isoDate(tz: feederContext.storedFeeder!.timeZone) ?? "-")")
     /* Dieser Code verhindert, wenn sich der feeder aufgehangen hat, dass eine andere bereits heruntergeladene Ausgabe geöffnet wird
      ...weil isDownloading == true => das wars!
      ein open issue in dem Fall wäre praktisch,
@@ -162,10 +162,10 @@ extension IssueDisplayService {
           guard let self = self else { return }
           if let err = notif.error {
             self.handleDownloadError(error: err)
-            self.error("Issue \(issue.date.isoDate()) DL Errors: last = \(err)")
+            self.error("Issue \(issue.safeDate?.isoDate() ?? "-") DL Errors: last = \(err)")
           }
           else {
-            self.debug("Issue \(issue.date.isoDate()) DL complete")
+            self.debug("Issue \(issue.safeDate?.isoDate() ?? "-") DL complete")
           }
         }
       }

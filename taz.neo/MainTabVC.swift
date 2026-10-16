@@ -139,6 +139,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     Notification.receive(Const.NotificationNames.closeOpenIssues) { [weak self] _ in
+      self?.feederContext.openedIssue = nil
       (self?.viewControllers?.first as? UINavigationController)?.popToRootViewController(animated: false)
     }
     

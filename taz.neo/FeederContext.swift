@@ -44,8 +44,8 @@ open class FeederContext: DoesLog {
   
   public var openedIssue: Issue? {
     didSet {
-      if let openedIssue = openedIssue,
-         openedIssue.date.issueKey == getLatestStoredIssue1()?.date.issueKey {
+      if let openedIssue = openedIssue as? StoredIssue,
+         openedIssue.safeDate?.issueKey == getLatestStoredIssue1()?.date.issueKey {
         UIApplication.shared.applicationIconBadgeNumber = 0
       }
     }
@@ -292,6 +292,13 @@ open class FeederContext: DoesLog {
                       content: FetchNewStatusHeader.status.fetchNewIssues,
                       error: nil,
                       sender: self)
+    let loadFeederInfo: String
+    if let feedToLoadAllPublicationDates {
+      loadFeederInfo = "load: \(feedToLoadAllPublicationDates.name)"
+    } else {
+      loadFeederInfo = ""
+    }
+    log("UpdateFeeder \(loadFeederInfo)")
     
     gqlFeeder.updateStatus(storedFeeder: storedFeeder,
                            feedToLoadAllPublicationDates: feedToLoadAllPublicationDates,
@@ -302,7 +309,8 @@ open class FeederContext: DoesLog {
         ///no need to eval res.value due its updated:  self.gqlFeeder = res.value()
         case .success:
           if Device.isSimulator { logGqlFeederStats() }
-          var savedIssues: [String:[StoredIssue]] = [:]
+          ///name:[cycle:[Issue]]
+          var savedIssues: [String:[String:[StoredIssue]]] = [:]
           
           let handleSignificantChanges = persistedFeedHasSignificantChanges
           if handleSignificantChanges && feedToLoadAllPublicationDates == nil {
@@ -314,7 +322,8 @@ open class FeederContext: DoesLog {
                 let feedName = feed.name
                 let issuesWithoutFeed = feed.delete()
                 if issuesWithoutFeed.count == 0 { continue }
-                savedIssues[feedName] = issuesWithoutFeed
+                let dict: [String: [StoredIssue]] = [feed.cycle.rawValue: issuesWithoutFeed]
+                savedIssues[feedName] = dict
               }
             }
             TazAppEnvironment.sharedInstance.service?.resetFeederContext = false
@@ -326,12 +335,16 @@ open class FeederContext: DoesLog {
               || self.gqlFeederHasChanges {
             self.storedFeeder = StoredFeeder.persist(object: self.gqlFeeder)
             
-            for (feedName, issues) in savedIssues {
-              guard let sFeed = storedFeeder?.storedFeeds.first(where: { $0.name == feedName }) else {
-                issues.forEach { $0.delete() }
-                continue
+            for (feedName, issuesByCycle) in savedIssues {
+              for (cycle, issues) in issuesByCycle {
+                guard let sFeed = storedFeeder?.storedFeeds.first(where: {
+                  $0.name == feedName && $0.cycle.rawValue == cycle
+                }) else {
+                  issues.forEach { $0.delete() }
+                  continue
+                }
+                issues.forEach { $0.pr.addToFeeds(sFeed.pr) }
               }
-              issues.forEach{ $0.pr.addToFeeds(sFeed.pr)}
             }
             
             ArticleDB.save()
