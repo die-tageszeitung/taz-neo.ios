@@ -102,6 +102,7 @@ class IssueOverviewService: NSObject, DoesLog {
   var ovwHelper = LoadOverviewHelperBusiness()
   
   public private(set) var publicationDates: [PublicationDate]
+//  private var falseRespondeDateKeys: [String] = [] ///Idea to save false responses to not do endless loops
   
   public var firstIssueDate: Date { feed?.firstIssue ?? Date() }
   public var lastIssueDate: Date { feed?.lastIssue ?? Date() }
@@ -315,6 +316,10 @@ class IssueOverviewService: NSObject, DoesLog {
             newIssues.append(sIssue)
           }
           loadedDates.append(issue.date)
+        }
+        if count == 1, loadedDates.contains(where: { $0.ISO8601 != date.ISO8601 }) {
+          log("loaded \(issues.first?.date.ISO8601 ?? "-") but requested: \(date.ISO8601)")
+          if SettingsVC.isSpecialSettingAvailable { Toast.show("Ausgabe \(issues.first?.date.short ?? "-") geladen, aber \(date.short) angefragt")}
         }
         ArticleDB.save()
         self.debug("Finished load&persist Issues for: \(date.issueKey) count: \(count) DB Update duration: \(Date().timeIntervalSince(start))s")
