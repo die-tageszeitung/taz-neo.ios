@@ -56,30 +56,35 @@ public class TrialSubscriptionView : FormView{
                                textContentType: .emailAddress,
                                enablesReturnKeyAutomatically: true,
                                keyboardType: .emailAddress,
-                               autocapitalizationType: .none)
+                               autocapitalizationType: .none,
+                               autocorrectionType: .no)
   
   var passInput = TazTextField(placeholder: Localized("login_password_hint"),
                                textContentType: .password,
                                isSecureTextEntry: true,
-                               enablesReturnKeyAutomatically: true)
+                               enablesReturnKeyAutomatically: true,
+                               autocorrectionType: .no)
   
   var pass2Input = TazTextField(placeholder: Localized("login_password_hint"),
                                 textContentType: .password,
                                 isSecureTextEntry: true,
-                                enablesReturnKeyAutomatically: true)
+                                enablesReturnKeyAutomatically: true,
+                                autocorrectionType: .no)
   
   
   var firstnameInput = TazTextField(placeholder: Localized("login_first_name_hint"),
                                     textContentType: .givenName,
                                     enablesReturnKeyAutomatically: true,
                                     keyboardType: .default,
-                                    autocapitalizationType: .words)
+                                    autocapitalizationType: .words,
+                                    autocorrectionType: .no)
   
   var lastnameInput = TazTextField(placeholder: Localized("login_surname_hint"),
                                    textContentType: .familyName,
                                    enablesReturnKeyAutomatically: true,
                                    keyboardType: .default,
-                                   autocapitalizationType: .words)
+                                   autocapitalizationType: .words,
+                                   autocorrectionType: .no)
   
   var registerButton = Padded.Button(title: Localized("register_button"))
   

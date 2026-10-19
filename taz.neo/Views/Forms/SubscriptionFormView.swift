@@ -18,46 +18,53 @@ public class SubscriptionFormView : FormView{
   var customerType: GqlCustomerType?
   
   var mailInput = TazTextField(placeholder: "E-Mail-Adresse",
-                                    textContentType: .emailAddress,
-                                    enablesReturnKeyAutomatically: true,
-                                    keyboardType: .emailAddress,
-                                    autocapitalizationType: .none)
+                               textContentType: .emailAddress,
+                               enablesReturnKeyAutomatically: true,
+                               keyboardType: .emailAddress,
+                               autocapitalizationType: .none,
+                               autocorrectionType: .no)
     
   var firstName = TazTextField(placeholder: "Vorname",
                                textContentType: .givenName,
                                enablesReturnKeyAutomatically: true,
                                keyboardType: .default,
-                               autocapitalizationType: .words)
+                               autocapitalizationType: .words,
+                               autocorrectionType: .no)
   
   var lastName = TazTextField(placeholder: "Nachname",
-                               textContentType: .familyName,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .default,
-                               autocapitalizationType: .words)
+                              textContentType: .familyName,
+                              enablesReturnKeyAutomatically: true,
+                              keyboardType: .default,
+                              autocapitalizationType: .words,
+                              autocorrectionType: .no)
   
   var street = TazTextField(placeholder: "Straße, Hausnummer",
-                               textContentType: .fullStreetAddress,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .default,
-                               autocapitalizationType: .words)
+                            textContentType: .streetAddressLine1,
+                            enablesReturnKeyAutomatically: true,
+                            keyboardType: .default,
+                            autocapitalizationType: .words,
+                            autocorrectionType: .no)
   
   var city = TazTextField(placeholder: "Ort",
-                               textContentType: .addressCity,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .default,
-                               autocapitalizationType: .words)
+                          textContentType: .addressCity,
+                          enablesReturnKeyAutomatically: true,
+                          keyboardType: .default,
+                          autocapitalizationType: .words,
+                          autocorrectionType: .no)
   
   var postcode = TazTextField(placeholder: "Postleitzahl",
-                               textContentType: .postalCode,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .numberPad,
-                               autocapitalizationType: .none)
+                              textContentType: .postalCode,
+                              enablesReturnKeyAutomatically: true,
+                              keyboardType: .numberPad,
+                              autocapitalizationType: .none,
+                              autocorrectionType: .no)
   
   var aboIdInput = TazTextField(placeholder: "Abo-Nummer (wenn vorhanden)",
-                               textContentType: .none,
-                               enablesReturnKeyAutomatically: true,
-                               keyboardType: .numberPad,
-                               autocapitalizationType: .none)
+                                textContentType: .none,
+                                enablesReturnKeyAutomatically: true,
+                                keyboardType: .numberPad,
+                                autocapitalizationType: .none,
+                                autocorrectionType: .no)
   
   var requestInfoCheckbox: CheckboxWithText = {
     let view = CheckboxWithText()

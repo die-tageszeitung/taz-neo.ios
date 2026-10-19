@@ -40,7 +40,8 @@ public class FeedbackView : UIView {
   
   public let senderMail = TazTextField(textContentType: .emailAddress,
                                        keyboardType: .emailAddress,
-                                       autocapitalizationType: .none)
+                                       autocapitalizationType: .none,
+                                       autocorrectionType: .no)
   public let sendButton = UIButton()
   public let cancelButton = UIButton()
   let attachmentsLabel = UILabel.descriptionLabel

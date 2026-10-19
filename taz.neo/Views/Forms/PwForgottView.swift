@@ -10,10 +10,11 @@ import NorthLib
 
 public class PwForgottView : FormView{
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
-                             textContentType: .emailAddress,
+                             textContentType: .username,
                              enablesReturnKeyAutomatically: true,
                              keyboardType: .emailAddress,
-                             autocapitalizationType: .none)
+                             autocapitalizationType: .none,
+                             autocorrectionType: .no)
   var submitButton =  Padded.Button(title: Localized("login_forgot_password_send"))
   var introLabel = Padded.Label(title: Localized("login_forgot_password_header"))
   

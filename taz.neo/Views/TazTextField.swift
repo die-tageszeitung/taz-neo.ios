@@ -79,11 +79,12 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
                 textColor: UIColor = Const.SetColor.taz2(.text).color,
                 paddingTop: CGFloat = Const.Size.TextFieldPadding,
                 paddingBottom: CGFloat = Const.Size.TextFieldPadding,
-                textContentType: UITextContentType? = .givenName,
+                textContentType: UITextContentType? = nil,
                 isSecureTextEntry: Bool = false,
                 enablesReturnKeyAutomatically: Bool = false,
                 keyboardType: UIKeyboardType = .default,
                 autocapitalizationType: UITextAutocapitalizationType = .none,
+                autocorrectionType: UITextAutocorrectionType? = nil,
                 target: Any? = nil,
                 action: Selector? = nil) {
     super.init(frame:.zero)
@@ -152,6 +153,7 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
              enablesReturnKeyAutomatically: Bool = false,
              keyboardType: UIKeyboardType = .default,
              autocapitalizationType: UITextAutocapitalizationType = .none,
+             autocorrectionType: UITextAutocorrectionType? = nil,
              target: Any? = nil,
              action: Selector? = nil){
     self.text = prefilledText
@@ -164,9 +166,11 @@ public class TazTextField : Padded.TextField, KeyboardToolbarForText{
     placeholderLabel.numberOfLines = 0
     self.textColor = textColor
     self.keyboardType = keyboardType
-    self.textContentType = textContentType
     self.autocapitalizationType = autocapitalizationType
     self.enablesReturnKeyAutomatically = enablesReturnKeyAutomatically
+    self.autocorrectionType = .no
+    if let autocorrectionType { self.autocorrectionType = autocorrectionType }
+    if let textContentType { self.textContentType = textContentType }
     self.isSecureTextEntry = isSecureTextEntry
     if isSecureTextEntry {
       let imgEye = UIImage(name: "eye.fill")

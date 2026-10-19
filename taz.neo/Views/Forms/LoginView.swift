@@ -12,15 +12,17 @@ import WebKit
 
 public class LoginView : FormView{
   var idInput = TazTextField(placeholder: Localized("login_username_hint"),
-                             textContentType: .emailAddress,
+                             textContentType: .username,
                              enablesReturnKeyAutomatically: true,
                              keyboardType: .emailAddress,
-                             autocapitalizationType: .none)
+                             autocapitalizationType: .none,
+                             autocorrectionType: .no)
   
   var passInput = TazTextField(placeholder: Localized("login_password_hint"),
                                textContentType: .password,
                                isSecureTextEntry: true,
-                               enablesReturnKeyAutomatically: true)
+                               enablesReturnKeyAutomatically: true,
+                               autocorrectionType: .no)
   
   var loginButton = Padded.Button(title: Localized("login_button"))
   
