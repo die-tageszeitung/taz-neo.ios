@@ -304,7 +304,13 @@ class IssueOverviewService: NSObject, DoesLog {
         for issue in issues {
           let si = StoredIssue.get(date: issue.date, inFeed: feed)
           if let sIssue = si.first {
-            sIssue.update(from: issue)
+            ///Do not update maybe full issue with overview version!
+//            if sIssue.isComplete {
+//              log("⚠️ WARNING Overwriting full issue with overview for date: \(issue.date.short)")
+//            }
+//            sIssue.update(from: issue)
+//            sIssue.isComplete = false
+            log("! Do not overwrite full issue with overview for date: \(issue.date.short)")
             newIssues.append(sIssue)
           }
           else {
