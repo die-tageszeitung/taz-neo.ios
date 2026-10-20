@@ -254,9 +254,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
 
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
-      var bottomMessage: String? = nil
       showLoadingOverlayIfNeeded(data: data)
-      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      ///WARNING: This is Probably not the correct Issue
+      ///UseCase open Issue from App-Link
+      Notification.receiveOnce("issue") { [weak self] notif in
+        let si = notif.content as? StoredIssue
+        self?.log("OpenIssue> Receive Issue from date: \(si?.date.short ?? "-") loaded: \(issueDate.short)")
+        self?.gotoArticleInIssue(with: data)}
+      log("OpenIssue> Download Issue: \(issueDate.short)")
       service.download(issueAt: issueDate, withAudio: false)
       gotoIssue(at: issueDate)
       return
