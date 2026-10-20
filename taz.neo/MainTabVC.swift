@@ -186,11 +186,25 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     if isLoadingIssueInBackground { return }
     isLoadingIssueInBackground = true
     let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
+    
+    var msg:[String] = ["lade"]
+    
+    if let title = data.articleTitle {
+      msg += "Ausgabe mit Artikel \"\(title)\""
+    } else {
+      msg += "Ausgabe"
+    }
+    
+    if let date = data.articleDate {
+      msg += "vom \(date.short)"
+    }
+    msg += "\nBitte haben Sie einen Moment Geduld!"
+    
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
                            titleMessage: "Aktualisiere Daten",
-                           bottomMessage: "lade \"\(data.articleTitle ?? "Artikel")\" aus Ausgabe: \(data.articleDate.short)\nBitte haben Sie einen Moment Geduld!",
+                           bottomMessage: msg.joined(separator: " "),
                            dismissNotification: Const.NotificationNames.removeRefreshDataOverlay)
     onMainAfter(7.0) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
@@ -198,28 +212,63 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
+  private func syncedLoadAndOpernArticleWith(msid:Int64, data: PushNotification.Payload.ArticlePushData) -> Bool {
+    guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return false }
+    Task {
+      guard let art = try? await gqlFeeder.loadArticles(withMediaSyncIds: ["\(msid)"]).first else {
+        log("Load Article with msid: \(msid) failed, cannot open")
+        return
+      }
+      onMain {[weak self ] in self?.gotoArticle(from: data, in: art.issueDate) }
+    }
+    return true
+  }
+  
+  private func gotoArticle(from data: PushNotification.Payload.ArticlePushData, in issueWithDate: Date){
+    var updatedData = data
+    updatedData.articleDate = issueWithDate
+    gotoArticleInIssue(with: updatedData)
+  }
+  
   func gotoArticleInIssue(with data: PushNotification.Payload.ArticlePushData){
-    log("open issue with date: \(data.articleDate) and Article: \(data.articleTitle ?? "\(data.articleMsId)")")
-    guard let issue = self.service.issue(at: data.articleDate) else {
+    log("open issue with date: \(data.articleDate?.short ?? "-") and Article: \(data.articleTitle ?? "\(data.articleMsId ?? -1)")")
+    
+    guard let issueDate = data.articleDate else {
+      if let artId = data.articleMsId,
+         syncedLoadAndOpernArticleWith(msid: artId, data: data) {
+        showLoadingOverlayIfNeeded(data: data)
+        return
+      } else {
+        ///no issue date, no art id => show home, current issue
+        gotoIssue(at: nil)
+        return
+      }
+    }
+    
+    guard let issue = self.service.issue(at: issueDate) else {
       showLoadingOverlayIfNeeded(data: data)
       Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
-      service.download(issueAt: data.articleDate, withAudio: false)
+      service.download(issueAt: issueDate, withAudio: false)
       gotoIssue(at: data.articleDate)
       return
     }
+
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      var bottomMessage: String? = nil
       showLoadingOverlayIfNeeded(data: data)
       Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: data)}
-      service.download(issueAt: data.articleDate, withAudio: false)
-      gotoIssue(at: data.articleDate)
+      service.download(issueAt: issueDate, withAudio: false)
+      gotoIssue(at: issueDate)
       return
     }
     
-    guard let issueArtIndex = issue.indexOfArticle(with: data.articleMsId),
+    guard let msid = data.articleMsId,
+          let issueArtIndex = issue.indexOfArticle(with: msid),
           let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
-      gotoIssue(at: data.articleDate)
+      openIssue(issue: issue)
       return
     }
+    
     gotoArticleInIssue(article: artInTargetIssue)
     onMainAfter(0.6) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
@@ -277,6 +326,25 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
+  func openIssue(issue: StoredIssue){
+    self.selectedIndex = 0
+    guard let home = ((self.selectedViewController as? UINavigationController)?
+            .viewControllers.first as? HomeVC) else { return }
+    if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
+       let sectIssue = sectVc.issue as? StoredIssue,
+       issue == sectIssue {
+      if sectVc != sectVc.navigationController?.topViewController,
+         sectVc.navigationController?.viewControllers.contains(where: { $0 === sectVc }) == true {
+        sectVc.navigationController?.popToViewController(sectVc, animated: true)
+      }
+      sectVc.displaySection(index: 0)
+    }
+    else {
+      home.navigationController?.popToRootViewController(animated: false)
+      home.openIssue(issue, openLast: false)
+    }
+  }
+  
   func openArticleFromSearch(article: SearchArticle){
     guard let date = article.originalIssueDate else {
       gotoIssue(at: nil)
@@ -305,10 +373,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   func gotoIssue(at date: Date?){
     self.selectedIndex = 0
     (self.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
-    guard let date = date,
-        let home = ((self.selectedViewController as? UINavigationController)?
+    guard let home = ((self.selectedViewController as? UINavigationController)?
               .viewControllers.first as? HomeVC) else { return }
-    let idx = home.service.nextIndex(for: date)
+    var idx = 0
+    if let date = date { idx = home.service.nextIndex(for: date) }
     home.collectionView
       .scrollToItem(at: IndexPath(row: idx, section: 0),
                     at: home.isHomeTiles ? .centeredVertically : .centeredHorizontally,

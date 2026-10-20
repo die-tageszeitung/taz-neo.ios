@@ -112,7 +112,7 @@ extension FeederContext {
                                          response: UNNotificationResponse,
                                          completionHandler:()->()){
     guard let data = response.notification.request.content.userInfo.articlePushData else { return }
-    debug("open article: \(data.articleTitle ?? "\(data.articleMsId)") in issue with date: \(data.articleDate.short)")
+    debug("open article: \(data.articleTitle ?? "\(data.articleMsId ?? -1)") in issue with date: \(data.articleDate?.short ?? "-")")
     Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
   }
   

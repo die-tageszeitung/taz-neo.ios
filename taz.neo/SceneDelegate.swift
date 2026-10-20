@@ -35,6 +35,13 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       Log.appStartContext = .foregroundUserStarted
     }
     
+    // handle Universal Link if any on appstart
+    if let activity = connectionOptions.userActivities.first(
+      where: {$0.activityType == NSUserActivityTypeBrowsingWeb}),
+       let url = activity.webpageURL {
+      TazAppEnvironment.sharedInstance.receiveUniversalLink(url)
+    }
+    
     // handle Shortcut if any
     if let shortcutItem = connectionOptions.shortcutItem {
         TazAppEnvironment.sharedInstance.handleShortcutItem(shortcutItem)
@@ -67,5 +74,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   ) {
       TazAppEnvironment.openedFromNotificationCenter = userInfo.articlePushData
       completionHandler(.noData)
+  }
+
+  // handle Universal Link in running app
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    guard
+      userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+      let url = userActivity.webpageURL
+    else {
+      return
+    }
+    TazAppEnvironment.sharedInstance.receiveUniversalLink(url)
   }
 }

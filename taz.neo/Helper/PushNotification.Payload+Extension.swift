@@ -52,10 +52,10 @@ extension PushNotification.Payload {
     }
   }
   
-  typealias ArticlePushData = (articleMsId:Int64,
+  typealias ArticlePushData = (articleMsId:Int64?,
                                articleTitle:String?,
                                articleBody:String?,
-                               articleDate:Date,
+                               articleDate:Date?,
                                payload: [AnyHashable:Any])
   
   var articlePushData: ArticlePushData? {
@@ -69,7 +69,7 @@ extension PushNotification.Payload {
 extension [AnyHashable:Any] {
   var articlePushData: PushNotification.Payload.ArticlePushData? {
     get {
-      guard let articleMsId = self["articleMsId"] as? Int64 else { return nil }
+      let articleMsId = self["articleMsId"] as? Int64
       let articleTitle = self["articleTitle"] as? String
       let articleBody = self["articleBody"] as? String
       guard let articleDateString = self["articleDate"] as? String else { return nil }

@@ -16,7 +16,6 @@ class AppDelegate: NotifiedDelegate {
     TazAppEnvironment.updateDefaultsIfNeeded()
     TazAppEnvironment.saveLastLog()
     TazAppEnvironment.setupDefaultStyles()
-//    _ = TazAppEnvironment.sharedInstance //configure Logging
 //    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
     /////will be overwritten, on TazAppEnvironment setup, stores data
