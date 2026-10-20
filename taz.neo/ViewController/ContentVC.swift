@@ -988,11 +988,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
         }
       }
     }
-//    _ = curls.map{$0.content.path}
-    for curl in curls {
-      let path = curl.content.dir?.path
-      log("path: \(path)")
-    }
     self.pager.urls = curls
   }
   override public var addtionalBarHeight: CGFloat{
