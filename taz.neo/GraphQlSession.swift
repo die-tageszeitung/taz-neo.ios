@@ -19,15 +19,25 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
   public struct Error: Codable {
     var message: String
     var category: String?
-    var locations: [Location]
+    var locations: [Location]?
+    var path: [String]?
+
     func toString() -> String {
-      var ret = "\(message) "
-      if let cat = category { ret += "[\(cat)] " }
-      var pre = "at"
-      for loc in locations {
-        ret += "\(pre) \(loc.toString())"
-        pre = "&"
+      var ret = message
+
+      if let cat = category {
+        ret += " [\(cat)]"
       }
+
+      if let locations, !locations.isEmpty {
+        ret += " at "
+        ret += locations.map { $0.toString() }.joined(separator: " & ")
+      }
+
+      if let path, !path.isEmpty {
+        ret += " (path: \(path.joined(separator: ".")))"
+      }
+
       return ret
     }
   }  
@@ -38,23 +48,24 @@ public class GraphQlError: LocalizedError, Codable, CustomStringConvertible {
   /// Get GraphQlError from JSON Data
   public static func from(data: Data) -> GraphQlError? {
     let dec = JSONDecoder()
-    let ret = try? dec.decode(self, from: data)
-    return ret
+    return try? dec.decode(self, from: data)
   }
-  
+
   /// Get GraphQlError from JSON String
   public static func from(json: String) -> GraphQlError? {
     guard let data = json.data(using: .utf8) else { return nil }
     return from(data: data)
   }
-  
-  /// Return String describing error
+
   public func toString() -> String {
-    var ret = ""
-    for e in errors {
-      ret += "\(e.toString())\n"
-    }
-    return ret
+    let grouped = Dictionary(grouping: errors, by: { $0.toString() })
+    return grouped
+      .map { message, occurrences in
+        occurrences.count > 1
+          ? "\(message) (\(occurrences.count)x)"
+          : message
+      }
+      .joined(separator: "\n")
   }
   
 } // GraphQlError
