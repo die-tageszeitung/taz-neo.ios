@@ -169,6 +169,8 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
       }
     }
 
+    log("start bookmarks sync")
+    
     headerSyncButton.isHidden = false
     headerSyncButton.startRotating()
     var hasChanges: Bool = false
@@ -179,7 +181,7 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
         try await BookmarksSyncBusiness.sync(localBookmarks: Bookmarks.shared.bookmarkedArticles)
         
       } catch {
-        print("Error due Sync:", error)
+        log("error due sync: \(error)")
       }
       await MainActor.run {[weak self] in
         self?.syncBookmarksFinished(hasChanges, finishNoChangeMessage: finishNoChangeMessage)
