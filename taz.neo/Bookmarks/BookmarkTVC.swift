@@ -144,7 +144,15 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     })
   }
   
+  private let syncBookmarksLock = NSLock()
+  
   private func syncBookmarksIfNeeded(syncReason:SyncReason, finishNoChangeMessage:String? = nil){
+    guard syncBookmarksLock.try() else {
+      log("skip parallel sync")
+      return
+    }
+    defer { syncBookmarksLock.unlock() }
+    
     if syncReason != .manual && autoSyncBookmarks == false { return }
     if TazAppEnvironment.isAuthenticated == false {
       showRequiredLoginToUseBookmarksSyncAlert()
