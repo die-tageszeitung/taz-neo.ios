@@ -2868,7 +2868,7 @@ public final class StoredFeed: Feed, StoredObject {
   
   public static func get(object: Feed, inFeeder feeder: StoredFeeder) -> StoredFeed? {
     let feeds = get(name: object.name, inFeeder: feeder)
-    if feeds.count > 1 {///Problematisch? Es sollte keine 2 Feeds mit gleichem Namen geben.
+    if feeds.count > 1 {///problematic? there should not be 2 feeds with the same name
       Usage.track(Usage.event.errorEvent.UnexpectedFeedCountInDatabase,
                   name: "expected: 1, found: \(feeds.count) for feedName: \(object.name)")
       Log.log("ERROR:: Unexpected Feed Count In Database: expected: 1, found: \(feeds.count) for feedName: \(object.name)", logLevel: Log.LogLevel.Error)
