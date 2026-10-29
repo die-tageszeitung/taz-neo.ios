@@ -1120,6 +1120,11 @@ extension SettingsVC {
                                         preferredStyle:  .alert )
     alert.addAction( UIAlertAction.init( title: "Ja, abmelden", style: .destructive,
                                          handler: { [weak self] _ in
+      if TazAppEnvironment.sharedInstance.feederContext?.dloader.isDownloading == true {
+        TazAppEnvironment.sharedInstance.feederContext?.stopDownloadsAndResetDownloader()
+      }
+      Notification.send(Const.NotificationNames.closeOpenIssues)
+      TazAppEnvironment.sharedInstance.feederContext?.openedIssue = nil
       TazAppEnvironment.sharedInstance.deleteUserData(resetAppState: false)
       self?.refreshAndReload()
     } ) )

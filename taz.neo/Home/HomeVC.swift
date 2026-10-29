@@ -894,7 +894,7 @@ extension HomeVC {
       guard let issue = notif.object as? Issue else { return }
       
       guard let key = self?.centerIssueDateKey,
-            issue.date.issueKey == key else { return }
+            (issue as? StoredIssue)?.safeDate?.issueKey == key else { return }
       if (notif.content as? String) == "deleted" {
         self?.downloadButton.indicator.downloadState = .notStarted
       }

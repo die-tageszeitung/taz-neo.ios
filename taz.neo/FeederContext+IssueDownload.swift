@@ -54,8 +54,9 @@ extension FeederContext {
           Notification.send("issueProgress", content: (Int64(1),Int64(1)), sender: issue)
         }
         else { res = .failure(err!) }
-        TazAppEnvironment.setDownloadDone(issue.date.ISO8601)
         self?.markStopDownload(dlId: dlId, tstart: tstart)
+        guard let issueDate = issue.safeDate else { return }
+        TazAppEnvironment.setDownloadDone(issueDate.ISO8601)
         Notification.send("issue", result: res, sender: issue)
       }
     }

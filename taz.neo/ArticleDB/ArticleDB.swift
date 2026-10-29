@@ -162,7 +162,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   public static var entity = "FileEntry"
   public var pr: PersistentFileEntry // persistent record
   public var name: String {
-    get { pr.name! }
+    get { pr.name ?? "-" }
     set { pr.name = newValue }
   }
   /// Sub directory relative to Database.appDir where the file is stored
@@ -200,10 +200,10 @@ public final class StoredFileEntry: FileEntry, StoredObject {
   }
   public var moTime: Date {
     ///optional unwrap fixed crash occoured everytime on open an issue which had corupt data
-    ///Crash Count in Debug: 2
+    ///Crash Count in Debug: 3
     ///last Time: Logout, open PDF, (was not loaded, App data was loaded)
-    //    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
-    get { pr.moTime! }
+    ///Download taz (with slow connection) meanwhiole login with wochentaz
+    get { pr.moTime ?? Date(timeIntervalSince1970: 0) }
     set { pr.moTime = newValue }
   }
   public var size: Int64 {
