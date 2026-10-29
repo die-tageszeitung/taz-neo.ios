@@ -173,10 +173,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
   lazy var feedSwitchWrapper: UIView = UIView()
-  lazy var datePickerOverlay = createDatePickerWrapperView()
+  var datePickerOverlay:UIView?
   var datePickerOverlayTitleLabel: UIView?
   
-  let datePicker = UIDatePicker()
+  var datePicker = UIDatePicker()
   
   lazy var blurView: UIView = {
     let view = UIView()
@@ -191,18 +191,26 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }
   
   func showDatePicker() {
-    guard datePickerOverlay.superview == nil else { return }
-    datePickerOverlay.isHidden = true
-    datePickerOverlay.accessibilityViewIsModal = true
+    guard datePickerOverlay?.superview == nil else { return }
+    datePicker = UIDatePicker()
+    let wrapper = createDatePickerWrapperView()
+    wrapper.isHidden = true
+    wrapper.accessibilityViewIsModal = true
     Usage.track(Usage.event.dialog.IssueDatePicker)
+
+    datePicker.maximumDate = Date()
+    
+    datePicker.minimumDate = feederContext.storedFeeder?.selectedFeed?.firstIssue ?? Date()
     datePicker.date = service.date(at: carousselFixCenterIndex ?? 0)?.date ?? Date()
-    self.view.addSubview(datePickerOverlay)
-    pin(datePickerOverlay, to: self.view)
-    datePickerOverlay.showAnimated(){[weak self] in
+    
+    self.view.addSubview(wrapper)
+    pin(wrapper, to: self.view)
+    wrapper.showAnimated(){[weak self] in
       self?.updateAccessibilityOrder()
       guard let target = self?.datePickerOverlayTitleLabel ?? self?.datePickerOverlay else { return }
       UIAccessibility.post(notification: .layoutChanged, argument: target)
     }
+    datePickerOverlay = wrapper
   }
   
   var carousselScrollingCenterIndex: Int? {
@@ -355,7 +363,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   // creates the order for accessabillity elements. at first the viewModeButton then visible cells sorted by index path
   func updateAccessibilityOrder() {
     ///if date picker is open this is the accessibilityElement
-    if datePickerOverlay.superview != nil {
+    if let datePickerOverlay, datePickerOverlay.superview != nil {
       self.view.accessibilityElements = [datePickerOverlay]
       return
     }

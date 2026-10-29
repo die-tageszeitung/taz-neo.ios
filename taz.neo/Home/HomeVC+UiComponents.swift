@@ -204,12 +204,8 @@ extension HomeVC {
     wrapper.layer.borderColor = Const.Colors.appIconGrey.cgColor
     wrapper.layer.cornerRadius = 8.0
     
-    datePicker.minimumDate = feederContext.storedFeeder?.selectedFeed?.firstIssue ?? Date()
-    datePicker.maximumDate =  Date()
     datePicker.datePickerMode = .date
-    
     datePicker.tintColor = .white
-    
     datePicker.preferredDatePickerStyle = .inline
     datePicker.translatesAutoresizingMaskIntoConstraints = false
         
@@ -249,8 +245,8 @@ extension HomeVC {
   }
   
   private func closeDatePickerOverlay() {
-    datePickerOverlay.hideAnimated(completion: {[weak self] in
-      self?.datePickerOverlay.removeFromSuperview()
+    datePickerOverlay?.hideAnimated(completion: {[weak self] in
+      self?.datePickerOverlay?.removeFromSuperview()
       ///bring back focus to home
       ///hide&remove sets back overlay.accessibilityViewIsModal to false and evaluates order
       ///now we have
@@ -276,7 +272,7 @@ extension HomeVC: UIGestureRecognizerDelegate {
                          shouldReceive touch: UITouch) -> Bool {
     //Falls der Touch in Wrapper ODER DatePicker liegt → ignorieren
     if let view = touch.view,
-       let wrapper = datePickerOverlay.subviews.first,
+       let wrapper = datePickerOverlay?.subviews.first,
        view.isDescendant(of: wrapper) {
       return false
     }
