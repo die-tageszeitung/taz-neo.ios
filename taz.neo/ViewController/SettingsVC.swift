@@ -79,6 +79,14 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
 
   @Default("useTestServer")
   var useTestServer: Bool
+
+  @DefaultEnum("filterSelectionSetting", default: .buttons)
+  var currentFilterSelection: FilterSelection {
+    didSet {
+      guard oldValue != currentFilterSelection else { return }
+      Notification.send(Const.NotificationNames.feedButtonsChange)
+    }
+  }
   
   @Default("newIssueSystemSetting")
   var newIssueSystemSetting: Bool
@@ -546,6 +554,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
     
   })
   
+  lazy var filterSelectionCell = XSettingsSelectionCell(
+    text: "Filterauswahl",
+    value: currentFilterSelection.title,
+    tapHandler: { [weak self] in
+      self?.showFilterSelection()
+  })
+  
   lazy var contentChangeSettingCellALPHA: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeige Toolbar bei Artikelwechsel",
                   detailText: "Alpha Feature",
@@ -633,6 +648,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    navigationController?.isNavigationBarHidden = true
   }
   
   public override func viewDidAppear(_ animated: Bool) {
@@ -992,6 +1008,10 @@ extension SettingsVC {
       deleteDatabaseCell,
       resetAppCell
     ]
+    
+    if feederContext.storedFeeder?.feeds.count ?? 0 > 1 {
+      cells.insert(filterSelectionCell, at: 0)
+    }
     
     if App.isTAZ {///only for taz
       ///in LMd this is required for page Header, otherwise current page is not displayed correctly
@@ -1398,7 +1418,8 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
        isDestructive: Bool = false,
        tapHandler: (()->())?,
        accessoryView: UIView? = nil,
-       longTapHandler: (()->())? = nil) {
+       longTapHandler: (()->())? = nil,
+       customLayout: Bool = false) {
     super.init(style: detailText == nil ? .default : .subtitle,
                reuseIdentifier: nil)
     self.textLabel?.text = text
@@ -1407,13 +1428,14 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     self.isDestructive = isDestructive
     self.tapHandler = tapHandler
     self.longTapHandler = longTapHandler
-    setupLayout()
+    customLayout ? registerForStyleUpdates() : setupLayout()
   }
   
   init(toggleWithText text: String,
        detailText: String? = nil,
        initialValue value:Bool,
-       onChange: @escaping ((Bool)->())){
+       onChange: @escaping ((Bool)->()),
+       customLayout: Bool = false){
     super.init(style: detailText == nil ? .default : .subtitle,
                reuseIdentifier: nil)
     self.textLabel?.text = text
@@ -1424,7 +1446,7 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
     toggle.addTarget(self, action: #selector(handleToggle(sender:)),
                      for: .valueChanged)
     self.customAccessoryView = toggle
-    setupLayout()
+    customLayout ? registerForStyleUpdates() : setupLayout()
   }
   
   init(text: String,

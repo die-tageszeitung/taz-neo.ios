@@ -23,6 +23,9 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   @Default("isInitialStartup")
   public var isInitialStartup: Bool
   
+  @DefaultEnum("filterSelectionSetting", default: .buttons)
+  var currentFilterSelection: FilterSelection
+  
   /// Are we in facsimile mode
   @Default("isHomeTiles")
   public var isHomeTiles: Bool {
@@ -169,7 +172,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   lazy var loginButton: UIButton = createLoginButton()
   lazy var viewModeButton: UIButton = createViewModeButton()
-  lazy var feedSwitchGroup: UIView = createFeedSwitchGroup()
+  lazy var feedSwitchWrapper: UIView = UIView()
   lazy var datePickerOverlay = createDatePickerWrapperView()
   var datePickerOverlayTitleLabel: UIView?
   
@@ -431,7 +434,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     self.view.addSubview(blurView)
     self.view.addSubview(statusHeader)
     self.view.addSubview(viewModeButton)
-    self.view.addSubview(feedSwitchGroup)
+    self.view.addSubview(feedSwitchWrapper)
     self.view.addSubview(loginButton)
     self.view.addSubview(bottomItemsWrapper)
     self.view.addSubview(downloadButtonTapArea)
@@ -441,15 +444,15 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     
     self.overrideUserInterfaceStyle = .dark
     pin(blurView, to: view, exclude: .bottom)
-    pin(blurView.bottom, to: feedSwitchGroup.bottom, dist: 5)
+    pin(blurView.bottom, to: feedSwitchWrapper.bottom, dist: 5)
     pin(statusHeader.bottom, to: viewModeButton.bottom, dist: 4.0)
     
     pin(loginButton.right, to: self.view.rightGuide(), dist: -9.0)
     pin(loginButton.bottom, to: viewModeButton.bottom)
 
-    pin(feedSwitchGroup.left, to: viewModeButton.left, dist: 10.0)
-    pin(feedSwitchGroup.right, to: self.view.rightGuide(), dist: -9.0, priority: .defaultLow)
-    feedSwitchTopConstraint = pin(feedSwitchGroup.top, to: viewModeButton.bottom, dist: 15.0)
+    pin(feedSwitchWrapper.left, to: viewModeButton.left, dist: 10.0)
+    pin(feedSwitchWrapper.right, to: self.view.rightGuide(), dist: -9.0, priority: .defaultLow)
+    feedSwitchTopConstraint = pin(feedSwitchWrapper.top, to: viewModeButton.bottom, dist: 15.0)
     
     viewModeButton.pinWidth(75.0)
     loginButton.pinWidth(75.0)
@@ -516,6 +519,15 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     Notification.receive(Const.NotificationNames.feederChanged) {[weak self] _ in
       self?.updateButtonMenu()
     }
+       
+    Notification.receive(Const.NotificationNames.feedButtonsChange) {[weak self] _ in
+      self?.handleFeedChange()
+      self?.updateButtonMenu()
+    }
+    
+    ///initial call
+    exchangeFeedSwitchGroup(showAnimated:false)
+    
     ///Handle new issues
     Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
       self?.log("received publicationDatesChanged")
@@ -774,6 +786,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
         let visibleDate = self?.dateForFeedSwitch
         TazAppEnvironment.storedFeeder?.selectedFeed = feed
         Notification.send(Const.NotificationNames.feedChange)
+        Notification.send(Const.NotificationNames.feedButtonsChange)
         self?.updateButtonMenu()
         guard let visibleDate,
               let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
@@ -783,7 +796,8 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
     
     let menuItems:[UIMenu]
-    if filterActions.count > 1 {
+    if currentFilterSelection != .buttons,
+       filterActions.count > 1 {
       let filterGroup = UIMenu(title: "Filter", options: .displayInline, children: filterActions)
       menuItems = [viewGroup, layoutGroup, filterGroup, archiveGroup]
     }

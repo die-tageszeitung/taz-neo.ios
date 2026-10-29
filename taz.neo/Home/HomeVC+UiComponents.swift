@@ -38,11 +38,59 @@ extension HomeVC {
     return button
   }
   
-  func createFeedSwitchGroup() -> UIView {
-    guard #available(iOS 15.0, *) else { return UIView() }
+  var showFeedSwitchButtons:Bool { currentFilterSelection != .menu }
+  
+  func handleFeedChange(){
+    if showFeedSwitchButtons,
+      let feedSwitchGroup = feedSwitchWrapper.subviews.first as? UIStackView {
+      let buttonTitles = feedSwitchGroup.arrangedSubviews
+        .compactMap { ($0 as? UIButton)?.configuration?.title }
+      let currentTitles = feederContext.storedFeeder?.feeds.compactMap { $0.displayName } ?? []
+      
+      guard Set(buttonTitles) == Set(currentTitles),
+        let selectedFeedName = feederContext.storedFeeder?.selectedFeed?.displayName,
+            buttonTitles.contains(selectedFeedName) else {
+        exchangeFeedSwitchGroup()
+        return
+      }
+      for case let btn as UIButton in feedSwitchGroup.arrangedSubviews {
+        btn.configuration?.baseForegroundColor
+        = selectedFeedName == btn.configuration?.title
+        ? .white : .systemGray
+      }
+    }
+    else {
+      exchangeFeedSwitchGroup()
+    }
+  }
+  
+  func exchangeFeedSwitchGroup(showAnimated: Bool = true) {
+      if let feedSwitchGroup = feedSwitchWrapper.subviews.first {
+          feedSwitchGroup.hideAnimated {
+              feedSwitchGroup.removeFromSuperview()
+            self.exchangeFeedSwitchGroup(showAnimated: showAnimated)
+          }
+          return
+      }
+
+      guard let feedSwitch = createFeedSwitchGroup() else { return }
+
+      feedSwitch.isHidden = showAnimated
+      feedSwitchWrapper.addSubview(feedSwitch)
+      pin(feedSwitch, to: feedSwitchWrapper)
+
+      if showAnimated {
+          feedSwitch.showAnimated()
+      } else {
+          updateButtonMenu()
+      }
+  }
+  
+  func createFeedSwitchGroup() -> UIView? {
+    guard showFeedSwitchButtons else { return nil }
     
     let feeds = TazAppEnvironment.storedFeeder?.selectableFeeds ?? []
-    guard feeds.count > 1 else { return UIView() }
+    guard feeds.count > 1 else { return nil }
     
     let stackView = UIStackView()
     stackView.axis = .horizontal
@@ -96,7 +144,7 @@ extension HomeVC {
             }
           
           Notification.send(Const.NotificationNames.feedChange)
-          self?.updateButtonMenu()
+          Notification.send(Const.NotificationNames.feedButtonsChange)
           
           guard let visibleDate,
                 let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
@@ -162,9 +210,7 @@ extension HomeVC {
     
     datePicker.tintColor = .white
     
-    if #available(iOS 14.0, *) {
-      datePicker.preferredDatePickerStyle = .inline
-    }
+    datePicker.preferredDatePickerStyle = .inline
     datePicker.translatesAutoresizingMaskIntoConstraints = false
         
     wrapper.addSubview(titleLabel)

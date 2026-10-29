@@ -39,6 +39,10 @@
 		77048F232F36488900B3A9A9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77048F212F36488300B3A9A9 /* SceneDelegate.swift */; };
 		770544712637FE3D0051F12C /* ContentToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770544702637FE3D0051F12C /* ContentToolbar.swift */; };
 		7708DF66262896D10031C702 /* OfflineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7708DF65262896D10031C702 /* OfflineAlert.swift */; };
+		770B39CF309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770B39CE309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift */; };
+		770B39D0309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770B39CE309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift */; };
+		770B39D230936E9F006F6A6E /* UIViewController+CustomBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770B39D130936E91006F6A6E /* UIViewController+CustomBackButton.swift */; };
+		770B39D330936E9F006F6A6E /* UIViewController+CustomBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770B39D130936E91006F6A6E /* UIViewController+CustomBackButton.swift */; };
 		77128E192EEAFFAF0009B961 /* LinkBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77128E182EEAFFA90009B961 /* LinkBusiness.swift */; };
 		77128E1A2EEAFFAF0009B961 /* LinkBusiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77128E182EEAFFA90009B961 /* LinkBusiness.swift */; };
 		77129FFE2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */; };
@@ -428,6 +432,8 @@
 		77048F212F36488300B3A9A9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		770544702637FE3D0051F12C /* ContentToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentToolbar.swift; sourceTree = "<group>"; };
 		7708DF65262896D10031C702 /* OfflineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineAlert.swift; sourceTree = "<group>"; };
+		770B39CE309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsVC+ChildVcSelection.swift"; sourceTree = "<group>"; };
+		770B39D130936E91006F6A6E /* UIViewController+CustomBackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+CustomBackButton.swift"; sourceTree = "<group>"; };
 		77128E182EEAFFA90009B961 /* LinkBusiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkBusiness.swift; sourceTree = "<group>"; };
 		77129FFD2C21DB2600EB5C55 /* MarketingContainerWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerWrapperView.swift; sourceTree = "<group>"; };
 		7712A0002C21DB5800EB5C55 /* MarketingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingContainerView.swift; sourceTree = "<group>"; };
@@ -769,6 +775,7 @@
 		77CB2D1D2A8148C800021804 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				770B39D130936E91006F6A6E /* UIViewController+CustomBackButton.swift */,
 				77ABEEC12D3AE73400D0F063 /* PdfGenerationService.swift */,
 				777607EC2CE6503D0023D3EF /* ArticleExportDialogue.swift */,
 				777607EB2CE6503D0023D3EF /* CustomUIActivity.swift */,
@@ -888,6 +895,7 @@
 				7738DF632FE2D95D0095BF3A /* NewPdfOverviewCollectionVC.swift */,
 				77499E122EA582BF00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift */,
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
+				770B39CE309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift */,
 				77AB6B042A02653000C42712 /* NotificationsView.swift */,
 				777B3C012FE2E1B000A88BCD /* IconLabelButton.swift */,
 				77296899300E65DE00267550 /* PdfMenuLayout.swift */,
@@ -1341,6 +1349,7 @@
 				77C07FB82FAE1B3B0081AF02 /* ContentVC+JsBridge.swift in Sources */,
 				7758CCBD2B504E7F000B8E30 /* PdfArticleCell.swift in Sources */,
 				AE5131762AFBCADB002289E8 /* ArticleDB.swift in Sources */,
+				770B39D230936E9F006F6A6E /* UIViewController+CustomBackButton.swift in Sources */,
 				77499E132EA582CC00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift in Sources */,
 				77D434012CE694F800AC992A /* Bookmarks.swift in Sources */,
 				AE5131772AFBCADB002289E8 /* LocalNotifications+Extension.swift in Sources */,
@@ -1449,6 +1458,7 @@
 				77F4F1542E98F6AD004AB3FD /* HelpButton.swift in Sources */,
 				AE5131BA2AFBCADB002289E8 /* SliderTest.swift in Sources */,
 				77791EB62BA0602200E9C0D9 /* HelpViewCell.swift in Sources */,
+				770B39D0309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift in Sources */,
 				AE5131BB2AFBCADB002289E8 /* TazAppEnvironment.swift in Sources */,
 				7712A0022C21DB5800EB5C55 /* MarketingContainerView.swift in Sources */,
 				77CAE0A92D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
@@ -1621,6 +1631,7 @@
 				77EF789E2E8537A5009B8655 /* HomeVC+UiComponents.swift in Sources */,
 				7715969425CC605D00508DE8 /* FeedbackComposer.swift in Sources */,
 				773500AE2A1C0A7C00678647 /* IssueOverviewService.swift in Sources */,
+				770B39CF309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift in Sources */,
 				AE21C46C23E710A600F8B811 /* UITests.swift in Sources */,
 				00E3D2A724E68F4600AE075A /* LoginView.swift in Sources */,
 				AE0C32DF246310E500E4AEA8 /* SliderTest.swift in Sources */,
@@ -1653,6 +1664,7 @@
 				AE44F8EB248949B0009DA152 /* ColorTests.swift in Sources */,
 				777607ED2CE6503D0023D3EF /* CustomUIActivity.swift in Sources */,
 				0032A4DB24C89F1100284723 /* PwForgotController.swift in Sources */,
+				770B39D330936E9F006F6A6E /* UIViewController+CustomBackButton.swift in Sources */,
 				774C6F8129CB5BAF001285FB /* KeyboardToolbarForText.swift in Sources */,
 				AECCE11A23FBF07B007C2276 /* SectionVC.swift in Sources */,
 				77E6E99D2CF8520500430B83 /* BookmarkTableHeaderCell.swift in Sources */,
@@ -1883,7 +1895,7 @@
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(BUILD_ROOT)/Release";
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2118,7 +2130,7 @@
 				DEVELOPMENT_TEAM = 3R3GBCY6FA;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2146,7 +2158,7 @@
 				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = "taz.neo/Supporting Files/taz.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.magazines-and-newspapers";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

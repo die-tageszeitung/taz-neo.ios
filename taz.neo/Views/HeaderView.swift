@@ -63,7 +63,8 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
         case .bigLeft:
           pageNumberLabel.isHidden = true
           subTitleLabel.isHidden = true
-          titleLeftConstraint?.constant = -2.0
+          titleLeftConstraint?.constant = -3.0
+          lineLeftConstraint?.constant = 15.0
           titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
           pageNumberLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
           titleLabel.textAlignment = .left
@@ -147,6 +148,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
   private var titleBottomConstraint: NSLayoutConstraint?
   private var titlePageNumberLabelBottomConstraint: NSLayoutConstraint?
   private var titleLeftConstraint: NSLayoutConstraint?
+  private var lineLeftConstraint: NSLayoutConstraint?
   private var titleLineDistConstraint: NSLayoutConstraint?
   
   var leftConstraint: NSLayoutConstraint?
@@ -229,7 +231,7 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     pin(labelsHelpTarget.centerY, to: titleLabel.centerY)
     pin(labelsHelpTarget.right, to: titleLabel.left, dist:-20)
     
-    pin(line.left, to: self.left, dist:sidePadding)
+    lineLeftConstraint = pin(line.left, to: self.left, dist:sidePadding)
     pin(line.right, to: self.right, dist:-sidePadding).priority = .defaultHigh
     titleLineDistConstraint =
     pin(line.top, to: titleLabel.bottom, dist: 0)

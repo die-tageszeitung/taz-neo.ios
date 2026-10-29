@@ -390,6 +390,7 @@ open class FeederContext: DoesLog {
           
           if handleSignificantChanges {
             Notification.send(Const.NotificationNames.feedChange)
+            Notification.send(Const.NotificationNames.feedButtonsChange)
             Notification.send(Const.NotificationNames.feederChanged)
             log(">>>...handleSignificantChanges\(locallyIncompleteFeeds.count>0 ? "" : "WARNING locallyIncompleteFeeds is empty!")")
             ///locallyIncompleteFeeds should not be empty here, otherwise auto refresh did not work!

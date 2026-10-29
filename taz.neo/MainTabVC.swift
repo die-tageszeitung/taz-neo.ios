@@ -426,10 +426,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     searchNc.isNavigationBarHidden = true
     
     let settings = SettingsVC(feederContext: feederContext)
-    settings.title = "Einstellungen"
-    settings.tabBarItem.image = UIImage(named: "settings")?.tabBarSizedIcon()
+    let settingsNc = NavigationController(rootViewController: settings)
+    settingsNc.title = "Einstellungen"
+    settingsNc.tabBarItem.image = UIImage(named: "settings")?.tabBarSizedIcon()
 
-    self.viewControllers = [homeNc, bookmarksNc, searchNc, settings]
+    self.viewControllers = [homeNc, bookmarksNc, searchNc, settingsNc]
     self.selectedIndex = 0
     helpButton.alpha = 1.0
   }
