@@ -173,6 +173,9 @@ extension HomeVC: HelpProviding{
         scrollItem.topImageView = iv
       }
       
+      let feedSwitchItem = HelpItem(title: "Filtern & Finden",
+                                    text: "Wählen Sie über den Filter aus, welche Ausgaben angezeigt werden sollen.", targetView: feedSwitchWrapper)
+            
       let homeMenuItem = HelpItem(title:"Für Profis: das\nKontextmenü",
                                        text: "Tippen Sie länger auf eine Ausgabe, um das Kontextmenü mit weiteren nützlichen Funktionen zu öffnen.")
       if let img = UIImage(named: "Img-HomeMenu"){
@@ -183,6 +186,10 @@ extension HomeVC: HelpProviding{
       }
       
       var items = [viewModeItem, issueStatus, scrollItem, home, bookmarks, search, settings, helpItem, homeMenuItem]
+      
+      if feedSwitchWrapper.subviews.first != nil {
+        items.insert(feedSwitchItem, at: 1)
+      }
       
       if isHomeTiles == false {
         items.insert(calendar, at: 2)///after issueStatus
