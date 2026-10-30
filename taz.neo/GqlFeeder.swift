@@ -246,7 +246,7 @@ class GqlResources: Resources, GQLObject {
     set { _isComplete = newValue }
   }
   var gqlPayload: GqlPayload?
-  var payload: Payload { return gqlPayload! }
+  var payload: Payload? { return gqlPayload! }///force unwrap here to find API Change Errors
   
   static var fields = """
   resourceVersion 

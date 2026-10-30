@@ -349,10 +349,10 @@ class ArticlePlayer: DoesLog {
     
     if let resources = StoredResources.latest() {
       disclaimerUrlFemale
-      = resources.payload.files.first(where: {$0.name == "femaleNote.mp3" })?
+      = resources.payload?.files.first(where: {$0.name == "femaleNote.mp3" })?
         .resourcesAudioUrl
       disclaimerUrlMale
-      = resources.payload.files.first(where: {$0.name == "maleNote.mp3" })?
+      = resources.payload?.files.first(where: {$0.name == "maleNote.mp3" })?
         .resourcesAudioUrl
     }
   }

@@ -195,7 +195,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     }
   }
   public var storageType: FileStorageType {
-    get { FileStorageType(pr.storageType!)! }
+    get { FileStorageType(pr.storageType ?? FileStorageType.unknown.rawValue) ?? FileStorageType.unknown }
     set { pr.storageType = newValue.rawValue }
   }
   public var moTime: Date {
@@ -221,7 +221,7 @@ public final class StoredFileEntry: FileEntry, StoredObject {
     set { pr.storedSize = newValue }
   }
   public var sha256: String {
-    get { pr.sha256! }
+    get { pr.sha256 ?? "" }
     set { pr.sha256 = newValue }
   }
   public var payloads: [StoredPayload] {
@@ -310,14 +310,14 @@ public final class StoredImageEntry: ImageEntry, StoredObject {
   public static var entity = "ImageEntry"
   public var pr: PersistentImageEntry // persistent record
   public var pf: PersistentFileEntry!
-  public var name: String { pf.name! }
+  public var name: String { pf.name ?? "-" }
   public var path: String? { StoredFileEntry(persistent: pf).path }
-  public var storageType: FileStorageType { FileStorageType(pf.storageType!)! }
-  public var moTime: Date { pf.moTime! }
+  public var storageType: FileStorageType { FileStorageType(pf.storageType ?? FileStorageType.unknown.rawValue) ?? FileStorageType.unknown }
+  public var moTime: Date { pf.moTime ?? Date(timeIntervalSince1970: 0) }
   public var size: Int64 { pf.size }
-  public var sha256: String { pf.sha256! }
-  public var resolution: ImageResolution { ImageResolution(pr.resolution!)! }
-  public var type: ImageType { ImageType(pr.type!)! }
+  public var sha256: String { pf.sha256 ?? "-" }
+  public var resolution: ImageResolution { ImageResolution(pr.resolution ?? ImageResolution.unknown.rawValue) ?? ImageResolution.unknown }
+  public var type: ImageType { ImageType(pr.type ?? ImageType.unknown.rawValue) ?? ImageType.unknown }
   public var alpha: Float? { pr.alpha }
   public var sharable: Bool { pr.sharable }
   public var author: StoredAuthor? {
@@ -580,7 +580,7 @@ public final class StoredPayload: StoredObject, Payload {
     }
   }
   public var remoteBaseUrl: String {
-    get { return pr.remoteBaseUrl! }
+    get { return pr.remoteBaseUrl ?? "" }
     set { pr.remoteBaseUrl = newValue }
   }
   public var remoteZipName: String? {
@@ -725,18 +725,18 @@ public final class StoredResources: Resources, StoredObject {
     if let ppl = pr.payload { return StoredPayload(persistent: ppl) }
     else { return nil }
   }
-  public var payload: Payload { storedPayload! }
-  public var resourceBaseUrl: String { payload.remoteBaseUrl }
-  public var resourceZipName: String { payload.remoteZipName! }
+  public var payload: Payload? { storedPayload }
+  public var resourceBaseUrl: String { payload?.remoteBaseUrl ?? "" }
+  public var resourceZipName: String { payload?.remoteZipName ?? "" }
   public var resourceVersion: Int {
     get { return Int(pr.resourceVersion) }
     set { pr.resourceVersion = Int32(newValue) }
   }
-  public var localDir: String? { payload.localDir }
-  public var resourceFiles: [FileEntry] { payload.files }
+  public var localDir: String? { payload?.localDir }
+  public var resourceFiles: [FileEntry] { payload?.files ?? [] }
   public var isDownloading: Bool = false
   public var isComplete: Bool {
-    get { return payload.isComplete }
+    get { return payload?.isComplete ?? true }///not existing payload is compleete
     set {}
   }
   
@@ -762,7 +762,8 @@ public final class StoredResources: Resources, StoredObject {
   }
   
   public func update(from: Resources) {
-    pr.payload = StoredPayload.persist(object: from.payload).pr
+    guard let fromPayload = from.payload else { return }
+    pr.payload = StoredPayload.persist(object: fromPayload).pr
     pr.payload?.resources = pr
     resourceVersion = from.resourceVersion
   }
@@ -1612,7 +1613,7 @@ public final class StoredSection: Section, StoredObject {
     set { pr.text = newValue }
   }
   public var name: String {
-    get { return pr.name! }
+    get { return pr.name ?? "" }
     set { pr.name = newValue }
   }
   public var contentId: Int64? {
@@ -1624,7 +1625,7 @@ public final class StoredSection: Section, StoredObject {
     set { pr.extendedTitle = newValue }
   }
   public var type: SectionType {
-    get { return SectionType(pr.type!)! }
+    get { return SectionType(pr.type ?? SectionType.unknown.rawValue) ?? SectionType.unknown }
     set { pr.type = newValue.representation }
   }
   public var html: FileEntry? {
@@ -1816,7 +1817,7 @@ public final class StoredPublicationDate: PublicationDate, StoredObject {
   }
   
   public var date: Date {
-    get { return pr.date! }
+    get { return pr.date ?? Date(timeIntervalSince1970: 0) }
     set { pr.date = newValue }
   }
   public var validityDate: Date? {
@@ -2046,15 +2047,7 @@ public final class StoredIssue: Issue, StoredObject {
   }
   public var safeDate: Date? { pr.date }
   public var date: Date {
-    get { return pr.date! }
-    ///In case of multiple crashes in different situations may use the following or refactor all to use optional date
-    ///crash seeams to appeared on DemoIssue > FullIssue after login, also after app-restart in new home
-    /*
-     get {
-     if let d = pr.date { return d }
-     error("Prevent Crash Bug!")
-     return Date(timeIntervalSince1970: 0)
-     }*/
+    get { return pr.date ?? Date(timeIntervalSince1970: 0) }
     set { pr.date = newValue }
   }
   public var validityDate: Date? {
@@ -2067,7 +2060,7 @@ public final class StoredIssue: Issue, StoredObject {
     set { pr.fullDownloadedDate = newValue }
   }
   public var moTime: Date {
-    get { return pr.moTime! }
+    get { return pr.moTime ?? Date(timeIntervalSince1970: 0) }
     set { pr.moTime = newValue }
   }
   public var isWeekend: Bool {
@@ -2093,7 +2086,7 @@ public final class StoredIssue: Issue, StoredObject {
     set { pr.key = newValue }
   }
   public var baseUrl: String {
-    get { return pr.baseUrl! }
+    get { return pr.baseUrl ?? "" }
     set { pr.baseUrl = newValue }
   }
   public var status: IssueStatus {
@@ -2346,7 +2339,7 @@ public final class StoredIssue: Issue, StoredObject {
     let withFeeds = get(request: request)
     let woFeeds = get(request: request2)
     
-    Log.log("Issue for \(date.short) in feed: \(feed.name) requested got: \(withFeeds.count) issues with feeds, \(woFeeds.count) issues without feeds")
+    Log.debug("DB :: Issue for \(date.short) in feed: \(feed.name) (\(feed.cycle)) requested got: \(withFeeds.count) issues with feeds, \(woFeeds.count) issues without feeds")
     return withFeeds
   }
   
@@ -2732,11 +2725,11 @@ public final class StoredFeed: Feed, StoredObject {
   public static var entity = "Feed"
   public var pr: PersistentFeed // persistent record
   public var name: String {
-    get { return pr.name! }
+    get { return pr.name ?? "-" }
     set { pr.name = newValue }
   }
   public var cycle: PublicationCycle {
-    get { return PublicationCycle(pr.cycle!)! }
+    get { return PublicationCycle(pr.cycle ?? PublicationCycle.unknown.rawValue) ?? PublicationCycle.unknown }
     set { pr.cycle = newValue.representation }
   }
   public var feedId: Int {
@@ -2744,7 +2737,7 @@ public final class StoredFeed: Feed, StoredObject {
     set { pr.feedId = Int64(newValue) }
   }
   public var type: FeedType {
-    get { return FeedType(pr.type!)! }
+    get { return FeedType(pr.type ?? FeedType.unknown.rawValue) ?? FeedType.unknown }
     set { pr.type = newValue.representation }
   }
   public var momentRatio: Float {
@@ -2756,7 +2749,7 @@ public final class StoredFeed: Feed, StoredObject {
     set { pr.issueCnt = Int64(newValue) }
   }
   public var firstIssue: Date {
-    get { return pr.firstIssue! }
+    get { return pr.firstIssue ?? Date() }
     set { pr.firstIssue = newValue }
   }
   public var firstSearchableIssue: Date? {
@@ -2781,7 +2774,7 @@ public final class StoredFeed: Feed, StoredObject {
     get { return pr.lastUpdated }
     set { pr.lastUpdated = newValue }
   }
-  public var feeder: Feeder {
+  public var feeder: Feeder {///in case of crash make it optional
     get { return StoredFeeder(persistent: pr.feeder!) }
     set {
       if let sfeeder = StoredFeeder.get(object: newValue) {
@@ -2932,23 +2925,23 @@ public final class StoredFeeder: Feeder, StoredObject {
   public static var entity = "Feeder"
   public var pr: PersistentFeeder // persistent record
   public var title: String {
-    get { return pr.title! }
+    get { return pr.title ?? "unknown/deleted" }
     set { pr.title = newValue }
   }
   public var timeZone: String {
-    get { return pr.timeZone! }
+    get { return pr.timeZone ?? "Europe/Berlin" }
     set { pr.timeZone = newValue }
   }
   public var baseUrl: String {
-    get { return pr.baseUrl! }
+    get { return pr.baseUrl ?? "" }
     set { pr.baseUrl = newValue }
   }
   public var globalBaseUrl: String {
-    get { return pr.globalBaseUrl! }
+    get { return pr.globalBaseUrl ?? "" }
     set { pr.globalBaseUrl = newValue }
   }
   public var resourceBaseUrl: String {
-    get { return pr.resourceBaseUrl! }
+    get { return pr.resourceBaseUrl ?? "" }
     set { pr.resourceBaseUrl = newValue }
   }
   public var authToken: String? {

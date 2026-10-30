@@ -124,11 +124,11 @@ extension FeederContext {
       }
     }
     
-    let globalFiles = resources.payload.files.filter {
+    let globalFiles = resources.payload?.files.filter {
       $0.storageType != .global
     }
     
-    for globalFile in globalFiles {
+    for globalFile in globalFiles ?? [] {
       let bundledFiles = bundledResourceFiles.filter{ $0.basename == globalFile.name }
       if bundledFiles.count > 1 { log("Warning found multiple matching Files!")}
       guard let bundledFile = bundledFiles.first else {

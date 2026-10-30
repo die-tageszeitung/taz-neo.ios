@@ -315,7 +315,7 @@ public protocol Resources: ToString, AnyObject {
   /// List of files
   var resourceFiles: [FileEntry] { get }
   /// Payload of files
-  var payload: Payload { get }
+  var payload: Payload? { get }
 } // ResourceList
 
 public extension Resources {
