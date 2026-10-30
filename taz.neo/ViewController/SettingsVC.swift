@@ -634,6 +634,10 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
       guard let self = self else { return }
       (self.showHelpCell.customAccessoryView as? UISwitch)?.isOn = self.showHelp
     }
+    $autoloadPdf.onChange{[weak self] _ in
+      guard let self = self else { return }
+      (self.epaperLoadCell.customAccessoryView as? UISwitch)?.isOn = self.autoloadPdf
+    }
   }
   
   public override func viewWillAppear(_ animated: Bool) {
