@@ -19,7 +19,7 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
   let titleLabel = UILabel()
   let teaserLabel = UILabel()
   let authorLabel = UILabel()
-  private let bookmarkButton = UIImageView()
+  let bookmarkButton = UIImageView()
   private var bookmarkIcon: UIImage? {
     didSet {
       guard oldValue != bookmarkIcon else { return }

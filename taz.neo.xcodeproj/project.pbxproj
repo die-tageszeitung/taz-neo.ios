@@ -134,6 +134,8 @@
 		777DF43F2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */; };
 		777DF4412DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
 		777DF4422DDC9708002966E9 /* BackgroundDownloadService+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */; };
+		777F050E309552AB005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777F050D30955299005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift */; };
+		777F050F309552AB005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777F050D30955299005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift */; };
 		77828D1627444FF500DCD3BE /* BuildConst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77828D1327444FF500DCD3BE /* BuildConst.swift */; };
 		778599B42E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
 		778599B52E12C55D00EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */; };
@@ -497,6 +499,7 @@
 		777DF43A2DDC968E002966E9 /* BackgroundDownloadService+AppRestart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+AppRestart.swift"; sourceTree = "<group>"; };
 		777DF43D2DDC96BC002966E9 /* BackgroundDownloadService+AppResume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+AppResume.swift"; sourceTree = "<group>"; };
 		777DF4402DDC9708002966E9 /* BackgroundDownloadService+Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+Helper.swift"; sourceTree = "<group>"; };
+		777F050D30955299005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NewPdfOverviewCollectionVC+HelpProviding.swift"; sourceTree = "<group>"; };
 		77828D1327444FF500DCD3BE /* BuildConst.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildConst.swift; sourceTree = "<group>"; };
 		778599B32E12C55600EC9665 /* BackgroundDownloadService+RessourcesUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackgroundDownloadService+RessourcesUpdate.swift"; sourceTree = "<group>"; };
 		7789FA222FB1BAD0009BA8A7 /* ContentVC+PlayButtonUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentVC+PlayButtonUpdate.swift"; sourceTree = "<group>"; };
@@ -893,6 +896,7 @@
 				77E1818B2FEC16D4001E46DD /* NewPdfModel.swift */,
 				7738DF602FE2D94F0095BF3A /* PdfOverviewMenuHeaderView.swift */,
 				7738DF632FE2D95D0095BF3A /* NewPdfOverviewCollectionVC.swift */,
+				777F050D30955299005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift */,
 				77499E122EA582BF00BC9A33 /* TazPdfPagesViewController+HelpProviding.swift */,
 				779DE96026FA3D790056187B /* SettingsVC.swift */,
 				770B39CE309365F1006F6A6E /* SettingsVC+ChildVcSelection.swift */,
@@ -1427,6 +1431,7 @@
 				775153DF2DD33A5D0089E9FD /* BackgroundDownloadService+Persistance.swift in Sources */,
 				773E74C12D55235700570E46 /* VirtualIssue.swift in Sources */,
 				7758CCB32B504DAA000B8E30 /* LMdSliderHeader.swift in Sources */,
+				777F050F309552AB005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift in Sources */,
 				AE5131A72AFBCADB002289E8 /* FeederContext+Notifications.swift in Sources */,
 				77713BF22FDA9F8800FF4803 /* BackgroundTaskRegistrar.swift in Sources */,
 				77E839922CED2F55001CBB35 /* BookmarkTVC.swift in Sources */,
@@ -1682,6 +1687,7 @@
 				777607EE2CE6503D0023D3EF /* ArticleExportDialogue.swift in Sources */,
 				77CAE0AA2D76F63D00F6A5FC /* BackgroundDownloadService.swift in Sources */,
 				7738DF622FE2D94F0095BF3A /* PdfOverviewMenuHeaderView.swift in Sources */,
+				777F050E309552AB005ACDCA /* NewPdfOverviewCollectionVC+HelpProviding.swift in Sources */,
 				77E2636B2E277B4100ED5CDE /* BackgroundDownloadService+LocalNotifications.swift in Sources */,
 				778F741825CC60C80017E426 /* TazTextField.swift in Sources */,
 				7772D5652DDF639A00A930C5 /* BackgroundDownloadService+CheckForNewIssue.swift in Sources */,
