@@ -18,11 +18,13 @@ extension SettingsVC{
     let items = [
       SettingsSelectionViewController<FilterSelection>.Item(
         .menu,
-        title: FilterSelection.menu.title
+        title: FilterSelection.menu.title,
+        detailText: FilterSelection.menu.detailText
       ),
       SettingsSelectionViewController<FilterSelection>.Item(
         .buttons,
-        title: FilterSelection.buttons.title
+        title: FilterSelection.buttons.title,
+        detailText: FilterSelection.buttons.detailText
       ),
       SettingsSelectionViewController<FilterSelection>.Item(
         .both,
@@ -33,7 +35,7 @@ extension SettingsVC{
     
     let controller = SettingsSelectionViewController(
       title: "Filterauswahl",
-      explanation: "Lege fest, wie die Filterauswahl in der Ausgabenübersicht, also auf Home, angezeigt wird.",
+      explanation: "Lege fest, wie die Filterauswahl in der Ausgabenübersicht (Home) angezeigt wird.",
       items: items,
       selectedOption: currentFilterSelection
     ) { [weak self] selection in
@@ -66,8 +68,10 @@ enum FilterSelection: String, CaseIterable {
     switch self {
       case .both:
         return "Zeigt die Filterauswahl sowohl im Darstellungsmenü als auch direkt als Schaltflächen in der Ausgabenübersicht an."
-      case .menu, .buttons:
-        return nil
+      case .menu:
+        return "Zeigt die Filterauswahl ausschließlich im Darstellungsmenü der Ausgabenübersicht an."
+      case .buttons:
+        return "Zeigt die Filterauswahl ausschließlich als Schaltflächen in der Ausgabenübersicht an. (Standard)"
     }
   }
 }
@@ -221,9 +225,10 @@ class SettingsSelectionViewController<Option: Hashable>: UITableViewController {
     
     var content = UIListContentConfiguration.subtitleCell()
     content.text = item.title
+    content.textProperties.font = Const.Fonts.contentFont(size: Const.Size.DefaultFontSize)
     content.secondaryText = item.detailText
-    content.secondaryTextProperties.color =
-    Const.SetColor.ios(.secondaryLabel).color
+    content.secondaryTextProperties.font = Const.Fonts.contentFont(size: Const.Size.SmallerFontSize)
+    content.secondaryTextProperties.color = Const.SetColor.ios(.secondaryLabel).color
     
     cell.contentConfiguration = content
     cell.tintColor = .label
@@ -315,8 +320,7 @@ final class XSettingsSelectionCell: XSettingsCell {
   
   override func applyStyles() {
     super.applyStyles()
-    
-    valueLabel.contentFont()
+    valueLabel.contentFont(size: Const.Size.SmallerFontSize)
     valueLabel.textColor = Const.SetColor.ios(.secondaryLabel).color
     chevronView.tintColor = .label
   }
