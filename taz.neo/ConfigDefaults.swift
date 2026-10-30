@@ -97,9 +97,7 @@ private let configValues = [
   "reopenAutomaticSetting" : "false",
   "reopenRessortSetting" : "false",
   "newIssueSystemSetting" : "true",
-  "specialArticleSystemSetting" : "true",
-  //"defaultToastsDisabled" : "false" NO Default Setting to persist/restore setting over reset!
-
+  "specialArticleSystemSetting" : "true"
 ]
 
 private let configValuesLMD = [

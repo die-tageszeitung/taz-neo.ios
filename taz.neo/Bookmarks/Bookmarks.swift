@@ -155,9 +155,6 @@ extension Bookmarks {
       changesSinceLastSync = true
       ArticleDB.save()
       Notification.send(Const.NotificationNames.bookmarkChanged, sender: storedArticle)
-      
-      let msg = "Der Artikel wurde in ihrer Leseliste gespeichert."
-      Toast.show("<h3>\(article.title ?? "")</h3>\(msg)", isDefaultToast: true)
     } else if let storedArticle = bookmarkedArticle {
       removeBookmarked(article: storedArticle, from: bookmarkSection)
     } else {
@@ -187,13 +184,8 @@ extension Bookmarks {
   private func removeBookmarked(article: StoredArticle, from section: StoredSection){
     guard let serverId = article.serverId else { return }
     bookmarkedArticles.removeAll{ $0.serverId == serverId }
-    
-    let completion = { [weak self] wasTapped in
-      if wasTapped {///do not delete
-        self?.bookmarkedArticles.append(article)
-        Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
-        return
-      }
+    Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
+    onMainAfter(2.0) {
       // Deactivate the bookmark
       article.pr.removeFromSections(section.pr)
       section.pr.removeFromArticles(article.pr)
@@ -204,12 +196,6 @@ extension Bookmarks {
       BookmarksSyncBusiness.appendLocalDeletedBookmarkMediaSyncId(article.serverId)
       ArticleDB.save()
     }
-    let msg = "Der Artikel wurde aus ihrer Leseliste entfernt.<br/>Löschen rückgängig durch Antippen"
-    Toast.show("<h3>\(article.title ?? "")</h3>\(msg)",
-               isDefaultToast: true,
-               minDuration: 0,
-               completion: completion)
-    Notification.send(Const.NotificationNames.bookmarkChanged, sender: article)
   }
 }
 

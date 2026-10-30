@@ -58,9 +58,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   @Default("reopenRessortSetting")
   public var reopenRessortSetting: Bool
   
-  @Default("defaultToastsDisabled")
-  public var defaultToastsDisabled: Bool
-  
   private var orgOvwFields = GqlIssue.ovwFields
   private lazy var failureOvwFields : String = {
     ///WARNING AT FIRST Init Issue Fields, that this would be correct for later Access!!
@@ -287,13 +284,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
                   onChange: {[weak self] newValue in
     self?.reopenRessortSetting = newValue
   })
-  
-  lazy var defaultToastsDisabledCell: XSettingsCell
-  = XSettingsCell(toggleWithText: "Standard Toast Nachrichten",
-                  detailText: "Zeige Toasts bei Bookmarks (nur für @taz.de Accounts)",
-                  initialValue: !defaultToastsDisabled,
-                  onChange: {[weak self] newValue in
-    self?.defaultToastsDisabled = !newValue })
   
   lazy var epaperLoadCell: XSettingsCell
   = XSettingsCell(toggleWithText: "Zeitungsansicht immer mit laden",
@@ -1035,12 +1025,6 @@ extension SettingsVC {
       cells.append(contentChangeSettingCellALPHA)
       cells.append(tabbarInSectionCellALPHA)
       cells.append(animateArticleSectionChangeCell)
-    }
-
-    if DefaultAuthenticator.isTazLogin
-        || Self.isSpecialSettingAvailable
-    {
-      cells.append(defaultToastsDisabledCell)
     }
     
     if DefaultAuthenticator.isTazLogin
