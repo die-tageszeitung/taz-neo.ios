@@ -286,12 +286,36 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
         section.toggleAudio()
         return
       }
-      if self.articleFromPdf == false { return }
+      if self.articleFromPdf == false {
+        checkDisabledArticleTap()
+        return
+      }
       guard let zpdfi = oimg as? ZoomedPdfPageImage else { return }
       guard let link = zpdfi.pageReference?.tap2link(x: Float(x), y: Float(y)),
             let path = zpdfi.issueDir?.path else { return }
       self.openArticle(name: link, path: path, reopenArticleScrollPos: nil)
    
+    }
+  }
+  
+  private var articleTapCount = 0
+
+  private func checkDisabledArticleTap() {
+    articleTapCount += 1
+
+    if articleTapCount == 4 {
+      articleTapCount = 0
+      let activate = UIAlertAction(title: "Aktivieren",
+                                     style: .default) {[weak self] _ in
+        self?.articleFromPdf = true
+      }
+      Alert.message(title: "Artikelansicht deaktiviert",
+                    message: "Möchten Sie die Artikelansicht aktivieren?",
+                    actions: [activate, Alert.cancelAction])
+    }
+
+    onMainAfter(15) { [weak self] in
+      self?.articleTapCount = max(0, (self?.articleTapCount ?? 0) - 1)
     }
   }
   
