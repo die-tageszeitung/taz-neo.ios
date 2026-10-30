@@ -333,6 +333,9 @@ class IssueOverviewService: NSObject, DoesLog {
           self.updateIssue(issue: si, isPdf: isFacsimile)
         }
       }
+      else {
+        self.removeFromLoadFromRemote(key: date.key(pdf: self.isFacsimile))
+      }
       self.ovwHelper.currentOverviewErrorResponse = res.error()
       loadingIssueDataQueue.sync {
         for sdate in lds { self.loadingIssueData[sdate] = nil      }
@@ -418,7 +421,10 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func updateIssue(issue:StoredIssue, isPdf: Bool){
-    if issue.isFault {  return }
+    if issue.isFault {
+      removeFromLoadFromRemote(key:issue.key(pdf: isFacsimile))
+      return
+    }
     if self.storedImage(issue: issue, isPdf: isPdf) == nil {
       apiLoadMomentImages(for: issue, isPdf: isPdf)
     } else {
