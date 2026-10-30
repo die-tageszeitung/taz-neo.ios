@@ -59,6 +59,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     menuHeaderView.waitingSpinner.color = textColor
     menuHeaderView.loadInfoLabel.textColor = textColor
     menuHeaderView.modeSwitchButton.label.textColor = textColor
+    menuHeaderView.dateLabel.textColor = textColor
     menuHeaderView.listenButton.label.textColor = textColor
     menuHeaderView.modeSwitchButton.imageView.tintColor = textColor
     menuHeaderView.listenButton.imageView.tintColor = textColor

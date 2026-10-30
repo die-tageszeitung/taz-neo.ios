@@ -98,21 +98,21 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
     pin(bookmarkButton.centerY, to: titleLabel.centerY, dist: -3)
     pin(bookmarkButton.right, to: self.contentView.right)
     pin(titleLabel.top, to: self.contentView.top, dist: 0.0)
-    pin(titleLabel.left, to: self.contentView.left)
-    pin(bookmarkButton.left, to: titleLabel.right, dist: 10)
-    pin(teaserLabel.left, to: self.contentView.left)
-    pin(teaserLabel.right, to: self.contentView.right)
+    pin(titleLabel.left, to: self.contentView.left, dist: 6)
+    pin(bookmarkButton.left, to: titleLabel.right, dist: 6)
+    pin(teaserLabel.left, to: self.contentView.left, dist: 6)
+    pin(teaserLabel.right, to: titleLabel.right)
     pin(teaserLabel.top, to: titleLabel.bottom)
     pin(authorLabel.top, to: teaserLabel.bottom, dist: -6.0)
     
-    pin(authorLabel.left, to: self.contentView.left)
+    pin(authorLabel.left, to: self.contentView.left, dist: 6)
     pin(authorLabel.right, to: self.contentView.right)
     pin(authorLabel.bottom, to: self.contentView.bottom, dist: -35.0)
     
     bottomBorder.pinHeight(0.7)
     bottomBorder.isHidden = true
     bottomBorder.backgroundColor = Const.SetColor.taz2(.text).color
-    pin(bottomBorder, to: self.contentView, exclude: .top)
+    pin(bottomBorder, to: self.contentView, exclude: .top).left?.constant = 6.0
     
     bookmarkButton.onTapping {[weak self] _ in
       Usage.track(Usage.event.drawer.action_tap.Bookmark)

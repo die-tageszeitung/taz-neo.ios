@@ -56,7 +56,6 @@ class PdfOverviewMenuHeaderView: UIView {
     
     // Date label - top, spanning right of cover
     dateLabel.numberOfLines = 8
-    dateLabel.textColor = Const.Colors.appIconGrey
     dateLabel.translatesAutoresizingMaskIntoConstraints = false
     addSubview(dateLabel)
     pageLabel.text = "seite 1"
@@ -86,7 +85,7 @@ class PdfOverviewMenuHeaderView: UIView {
       pageLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       coverImageView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0.0),
       //...top
-      dateLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: PdfDisplayOptions.Overview.interItemSpacing),
+      dateLabel.leadingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: 10.0),
       dateLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
       //...bottom
       modeSwitchButton.leadingAnchor.constraint(equalTo: self.centerXAnchor),
