@@ -237,7 +237,7 @@ public class SearchItem: DoesLog {
       saveArticles(hits: lastResponse?.search.searchHitList)
       noMoreSearchResults 
       = (lastResponse?.search.searchHitList?.count ?? 0) == 0
-      || (lastResponse?.search.searchHitList?.count ?? 0) == lastResponse?.search.total
+      || (lastResponse?.search.searchHitList?.count ?? 0) == lastResponse?.search.totalFound
       sessionId = lastResponse?.search.sessionId
     }
   }
