@@ -200,7 +200,7 @@ class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
     }
     
     textSettings.settingsButton.onPress { _ in
-      Notification.send(Const.NotificationNames.gotoSettings)
+      Notification.send(Const.NotificationNames.gotoTabByIndex, content: 3)
     }
    
     textSettings.dayModeButton.onPress { [weak self] _ in

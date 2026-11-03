@@ -68,7 +68,7 @@ public struct Const {
     static let audioPlaybackStateChanged = "Const.NotificationNames.audioPlaybackStateChanged"
     static let audioPlaybackFinished = "Const.NotificationNames.audioPlaybackFinished"
     static let gotoIssue = "Const.NotificationNames.gotoIssue"
-    static let gotoSettings = "Const.NotificationNames.gotoSettings"
+    static let gotoTabByIndex = "Const.NotificationNames.gotoTabByIndex"
     static let closeOpenIssues = "Const.NotificationNames.closeOpenIssues"
     static let refreshOverview = "Const.NotificationNames.refreshOverview"
     static let showLatestIssue = "Const.NotificationNames.showLatestIssue"

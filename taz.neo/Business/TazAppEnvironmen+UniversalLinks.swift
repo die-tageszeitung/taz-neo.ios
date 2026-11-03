@@ -9,208 +9,237 @@
 import NorthLib
 import Foundation
 
+struct UniversalLinkOpenIssueData {
+    let issueDate: Date
+    let articleCID: Int64?
+    let pageID: String?
+    let sectionCID: Int64?
+
+    init(issueDate: Date, articleCID: Int64? = nil, pageID: String? = nil, sectionCID: Int64? = nil) {
+        self.issueDate = issueDate
+        self.articleCID = articleCID
+        self.pageID = pageID
+        self.sectionCID = sectionCID
+    }
+}
+
 extension TazAppEnvironment {
   
   func receiveUniversalLink(_ url: URL) {
     guard let destination = AppLinkParser.parse(url) else {
-      log("TazAppEnvironment.receiveUniversalLink: cannot parse valid universallink with: \(url)")
+      log("TazAppEnvironment.receiveUniversalLink: cannot parse universal link: \(url)")
       return
     }
-
+    
     if TazAppEnvironment.sharedInstance.feederContext?.masterFeed != nil {
-      log("TazAppEnvironment.receiveUniversalLink parsed universallink with: \(url)")
+      log("TazAppEnvironment.receiveUniversalLink parsed universal link: \(url)")
       navigate(to: destination)
       return
     }
-    log("TazAppEnvironment.receiveUniversalLink parsed universallink with: \(url), waiting for feederReady")
-    Notification.receiveOnce("feederReady") { _ in
-      onMainAfter { [weak self] in self?.navigate(to: destination)}
+    
+    log("TazAppEnvironment.receiveUniversalLink parsed universal link: \(url), waiting for feederReady")
+    
+    Notification.receiveOnce("feederReady") { [weak self] _ in
+      onMainAfter {
+        self?.navigate(to: destination)
+      }
     }
   }
   
   private func navigate(to destination: AppLinkDestination) {
+    
     switch destination {
-      case .home:
-        log("TazAppEnvironment.receiveUniversalLink.navigate: to home")
-        let data = PushNotification.Payload.ArticlePushData(nil, nil, nil ,nil, [:])
-        Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
-        ///maybe switch tab and pop to rrot
+      case let .home(date):
+        log("UniversalLink.navigate: home, date: \(date?.short ?? "-")")
+        Notification.send(Const.NotificationNames.gotoIssue, content: date, sender: self)
       case let .issue(date):
-        log("TazAppEnvironment.receiveUniversalLink.navigate: to issue with date: \(date)")
-        let data = PushNotification.Payload.ArticlePushData(nil, nil, nil ,date, [:])
+        guard let date = date else {
+          Notification.send(Const.NotificationNames.gotoIssue, content: nil, sender: self)
+          return
+        }
+        log("UniversalLink.navigate: issue, date: \(date.short)")
+        let data = UniversalLinkOpenIssueData(issueDate: date)
         Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
-      case let .section(date, _):
-      log("TazAppEnvironment.receiveUniversalLink.navigate: to issue with date: \(date?.short ?? "-")")
-        let data = PushNotification.Payload.ArticlePushData(nil, nil, nil ,date, [:])
+      case let .section(date, sectionCID):
+        log("UniversalLink.navigate issue: \(date.short) section \(sectionCID ?? -1)")
+        let data = UniversalLinkOpenIssueData(issueDate: date, sectionCID: sectionCID)
         Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
-      case let .article(msid, date, _):
-        log("TazAppEnvironment.receiveUniversalLink.navigate: to art: \(msid) in issue with date: \(date?.short ?? "-")")
-        let data = PushNotification.Payload.ArticlePushData(msid, nil, nil ,date, [:])
+        
+      case let .article(date, artCID):
+        log("UniversalLink.navigate issue: \(date.short) art \(artCID ?? -1)")
+        let data = UniversalLinkOpenIssueData(issueDate: date, articleCID: artCID)
         Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
+        
+      case let .page(date, pageID):
+        log("UniversalLink.navigate issue: \(date.short) page \(pageID ?? "-")")
+        let data = UniversalLinkOpenIssueData(issueDate: date, pageID: pageID)
+        Notification.send(Const.NotificationNames.gotoArticleInIssue, content: data, sender: self)
+      case .search:
+        log("UniversalLink.navigate: search")
+        Notification.send(Const.NotificationNames.gotoTabByIndex, content: 2)
+      case .bookmarks:
+        log("UniversalLink.navigate: bookmarks")
+        Notification.send(Const.NotificationNames.gotoTabByIndex, content: 1)
     }
   }
 }
 
+
 enum AppLinkDestination {
-  case home
-  case issue(date: Date)
-  case section(date: Date?, id: Int64?)
-  case article(
-    id: Int64,
-    date: Date?,
-    sectionID: Int64?
-  )
+  case home(date: Date?)                   // Without date: current issue
+  case search
+  case bookmarks
+  case issue(date: Date?)                   // Without date: current issue
+  case section(date: Date, sectionCID: Int64?)  // Without sectId: title section / first section
+  case article(date: Date, articleCID: Int64?)  // Without artId: first article
+  case page(date: Date, pageID: String?)   // Without pageId: first page
 }
+
 
 enum AppLinkParser {
   
-  static func parse(_ url: URL) -> AppLinkDestination? {
-    ///All Domains or just given domains?
-    guard url.scheme?.lowercased() == "https",
-          url.host?.lowercased() == "epaper.taz.de",
-          let components = URLComponents(
-            url: url,
-            resolvingAgainstBaseURL: false
-          )
-    else { return nil }
-    
-    let path = components.path
-    let parts = path
-      .split(separator: "/")
-      .map(String.init)
-    
-    let query = Dictionary(
-      components.queryItems?.map {
-        ($0.name, $0.value ?? "")
-      } ?? [],
-      uniquingKeysWith: { first, _ in first }
-    )
-    
-    // ID's and date from path or query
-    let queryDate:Date?
-    let querySection:Int64?
-    let queryArticleMsid:Int64?
-    if let val = query["date"] { queryDate = date(from: val) } else { queryDate = nil }
-    if let val = query["section"] { querySection = Int64(val) } else { querySection = nil }
-    if let val = query["art"] { queryArticleMsid = Int64(val) } else { queryArticleMsid = nil }
-    
-    // 1. article link: /article/400171
-    if parts.count == 2, parts[0] == "article" {
-      let val =  parts[1]
-      if !val.isEmpty, val.allSatisfy(\.isNumber), let artMsid:Int64 = Int64(val) {
-        return article(artMsid, date: queryDate, section: querySection)
-      }
-      else { Log.log("AppLinkParser.parse: Parse failed: invalid article"); return nil }
-    }
-    
-    // 2. article-ID from query, e.g. /?art=400171
-    if let articleMsid = queryArticleMsid {
-      return article(
-        articleMsid,
-        date: queryDate,
-        section: querySection
-      )
-    }
-    
-    // 3. date and optional path parts
-    let date: Date? = date(from: parts.first) ?? queryDate
-   
-    // 4. title-section.
-    if parts.count == 1, parts[0] == "section" {
-      return .section(date: queryDate, id: nil)
-    }
-    
-    // 5. title-page
-    if parts.count == 1, parts[0] == "page" {
-      guard let date else { Log.log("AppLinkParser.parse: Parse failed: invalid page"); return nil }
-      ///maybe missing: open issue in page mode
-      return .issue(date: date)
-    }
-    
-    // 6. query-variation /issue?date=...
-    if parts.first == "issue" {
-      guard let date else{ Log.log("AppLinkParser.parse: Parse failed: invalid issue date"); return nil }
-      return .issue(date: date)
-    }
-    
-    // 7. query-variation sect/art: /2026-09-23/section/338491[/400171]
-    if let date, parts.count >= 2, parts[1] == "section" {
-      if parts.count >= 3, let sectId = Int64(parts[2]) {
-        return .section(date: date, id: sectId)
-      }
-      return .section(date: date, id: nil)
-    }
-    
-    // 8. query-variation with section id
-    if let sectionID = querySection {
-      return .section(date: date, id: sectionID)
-    }
-    
-    // 9. query page: /2026-09-23/page
-    if let date, parts.count == 2, parts[1] == "page" {
-      ///maybe missing: open issue in page mode
-      return .issue(date: date)
-    }
-    
-    // 10. query /2026-09-23/section without section id
-    if let date, parts.count == 2, parts[1] == "section" {
-      return .section(date: date, id: nil)
-    }
-    
-    // 11. pure date link open section or page, depends on current pdf mode
-    if let date, parts.count == 1 {
-      return .issue(date: date)
-    }
-    
-    // 12. domain without params or path, just open app
-    if path == "/" && query.isEmpty {
-      return .home
-    }
-    
-    // unknown or invalid url
-    Log.log("AppLinkParser.parse: Parse failed: unknown pattern")
-    return nil
-  }
-  
-  private static func article(
-    _ id: Int64,
-    date: Date?,
-    section: Int64?
-  ) -> AppLinkDestination? {
-    return .article(
-      id: id,
-      date: date,
-      sectionID: section
-    )
-  }
-  
-  private static func date(from dateString: String?) -> Date? {
-    guard let dateString else { return nil }
-    let pattern = #"^\d{4}-\d{2}-\d{2}$"#
-    
-    guard dateString.range(
-      of: pattern,
-      options: .regularExpression
-    ) != nil else {
-      Log.log("AppLinkParser.date: unexpected date in: \(dateString)")
-      return nil
-    }
-    
+  private static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.calendar = Calendar(identifier: .gregorian)
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(secondsFromGMT: 0)
     formatter.dateFormat = "yyyy-MM-dd"
     formatter.isLenient = false
+    return formatter
+  }()
+  
+  static func parse(_ url: URL) -> AppLinkDestination? {
     
-    guard let date = formatter.date(from: dateString) else {
-      Log.log("AppLinkParser.date: unexpected date format: \(dateString)")
+    guard url.scheme?.lowercased() == "https",
+          url.host?.lowercased() == "epaper.taz.de"
+    else {
+      return fail("invalid scheme or host")
+    }
+    
+    let parts = url.path
+      .split(separator: "/")
+      .map(String.init)
+    
+    // 1. Search tab
+    // /search
+    if parts == ["search"] {
+      return .search
+    }
+    
+    // 2. Bookmarks tab
+    // /bookmarks
+    if parts == ["bookmarks"] {
+      return .bookmarks
+    }
+    
+    // 3. Home, maybe with issue date
+    // /home/2024-11-02
+    if parts[0] == "home" {
+      return .home(date: date(from: parts.valueAt(1)))
+    }
+    
+    // All remaining links require a date as first component
+    guard let dateString = parts.first,
+          let date = date(from: dateString)
+    else {
+      return fail("invalid date or unknown pattern")
+    }
+    
+    // 4. Issue
+    // /2024-11-02
+    if parts.count == 1 { return .issue(date: date) }
+    
+    // 5. Section
+    // /2024-11-02/section.339235
+    if parts.count == 2,
+       let sectionCID = numericSuffix(of: parts[1], prefix: "section.") {
+      return .section(date: date, sectionCID: sectionCID)
+    }
+    
+    // 6. Page with server ID
+    // /2024-11-02/page/s00941365
+    if parts.count == 3, parts[1] == "page" {
+      let pageID = parts[2]
+      
+      guard pageID.count > 1,
+            pageID.first == "s",
+            pageID.dropFirst().allSatisfy(\.isNumber)
+      else {
+        return .page(date: date, pageID: nil)
+      }
+      
+      return .page(date: date, pageID: pageID)
+    }
+    
+    // 7. Article
+    // /2024-11-02/art04008786
+    // This is the article ID, NOT the MediaSyncID/MSID.
+    if parts.count == 2,
+       let articleCID = numericSuffix(of: parts[1], prefix: "art") {
+      return .article(date: date, articleCID: articleCID)
+    }
+    
+    return fail("unknown path pattern")
+  }
+  
+  
+  // MARK: - Helpers
+  
+  private static func numericSuffix(
+    of value: String,
+    prefix: String
+  ) -> Int64? {
+    
+    guard value.hasPrefix(prefix) else { return nil }
+    
+    let suffix = value.dropFirst(prefix.count)
+    
+    guard !suffix.isEmpty,
+          suffix.allSatisfy(\.isNumber)
+    else {
       return nil
     }
-    guard formatter.string(from: date) == dateString else {
-      Log.log("AppLinkParser.date: unexpected date: \(dateString)")
-      return nil
+    
+    return Int64(suffix)
+  }
+  
+  private static func date(from dateString: String?) -> Date? {
+    
+    guard let dateString else { return nil }
+    
+    let pattern = #"^\d{4}-\d{2}-\d{2}$"#
+    
+    guard dateString.range(
+      of: pattern,
+      options: .regularExpression
+    ) != nil else {
+      return failDate(dateString, reason: "unexpected format")
     }
+    
+    guard let date = dateFormatter.date(from: dateString) else {
+      return failDate(dateString, reason: "invalid date")
+    }
+    
+    // Reject dates that DateFormatter might normalize.
+    guard dateFormatter.string(from: date) == dateString else {
+      return failDate(dateString, reason: "date mismatch")
+    }
+    
     return date
+  }
+  
+  
+  private static func failDate(
+    _ value: String,
+    reason: String
+  ) -> Date? {
+    Log.log("AppLinkParser.date: \(reason): \(value)")
+    return nil
+  }
+  
+  
+  private static func fail(_ reason: String) -> AppLinkDestination? {
+    Log.log("AppLinkParser.parse: Parse failed: \(reason)")
+    return nil
   }
 }

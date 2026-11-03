@@ -228,8 +228,28 @@ extension IssueDisplayService {
 }
 
 extension Issue {
-  func indexOfArticle(with id: Int64) -> Int? {
-    return allArticles.firstIndex(where: { art in art.serverId == id })
+  func indexOfArticle(withContentId: Int64) -> Int? {
+    return allArticles.firstIndex(where: { art in art.contentId == withContentId })
+  }
+  
+  func pageIndex(pageFilename: String) -> Int? {
+    return (pages ?? []).firstIndex{ page in page.pdf?.name == pageFilename}
+  }
+
+  func article(withContentId: Int64) -> Article? {
+    return allArticles.first{ art in art.contentId == withContentId}
+  }
+
+  func indexOfArticle(withMsid: Int64) -> Int? {
+    return allArticles.firstIndex(where: { art in art.serverId == withMsid })
+  }
+  
+  func indexOfSection(withContentId: Int64) -> Int? {
+    return (sections ?? []).firstIndex(where: { sect in sect.contentId == withContentId })
+  }
+  
+  func section(withContentId: Int64) -> Section? {
+    return (sections ?? []).first(where: { sect in sect.contentId == withContentId })
   }
   
   func indexOfArticle(with url: URL) -> Int? {
@@ -244,5 +264,8 @@ extension Issue {
     return pages?.firstIndex(where: { page in
       return article?.pageNames?.contains{ $0 == page.pdf?.name } ?? false
     })
+  }
+  func pageIndexOf(section: Section?) -> Int? {
+    return pages?.firstIndex{ page in page.title == section?.title }
   }
 }

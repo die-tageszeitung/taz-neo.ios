@@ -134,8 +134,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       searchCtrl.searchFor(searchString: searchString)
     }
 
-    Notification.receive(Const.NotificationNames.gotoSettings) { [weak self] notif in
-      self?.selectedIndex = 3
+    Notification.receive(Const.NotificationNames.gotoTabByIndex) { [weak self] notif in
+      guard let index = notif.content as? Int,
+            let navCtrl = self?.viewControllers?.valueAt(index) as? UINavigationController else { return }
+      navCtrl.popToRootViewController(animated: false)
+      self?.selectedIndex = index
     }
     
     Notification.receive(Const.NotificationNames.closeOpenIssues) { [weak self] _ in
@@ -157,8 +160,12 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
         self?.gotoArticleInIssue(with: data.issueDate, articleUrl: data.articleUrl)
         return
       }
+      else if let data = notif.content as? UniversalLinkOpenIssueData {
+        self?.gotoArticleInIssue(with: data)
+        return
+      }
       guard let article = notif.content as? Article else { return }
-      self?.gotoArticleInIssue(article: article)
+      self?.gotoContentInIssue(content: article)
     }
     
     Notification.receive("issue") { [weak self] notification in
@@ -183,10 +190,6 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   var isLoadingIssueInBackground = false
   
   func showLoadingOverlayIfNeeded(data: PushNotification.Payload.ArticlePushData){
-    if isLoadingIssueInBackground { return }
-    isLoadingIssueInBackground = true
-    let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
-    
     var msg:[String] = ["lade"]
     
     if let title = data.articleTitle {
@@ -199,12 +202,19 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       msg += "vom \(date.short)"
     }
     msg += "\nBitte haben Sie einen Moment Geduld!"
+    showLoadingOverlayIfNeeded(message: msg.joined(separator: " "))
+  }
+  
+  func showLoadingOverlayIfNeeded(message: String){
+    if isLoadingIssueInBackground { return }
+    isLoadingIssueInBackground = true
+    let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
     
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
                            titleMessage: "Aktualisiere Daten",
-                           bottomMessage: msg.joined(separator: " "),
+                           bottomMessage: message,
                            dismissNotification: Const.NotificationNames.removeRefreshDataOverlay)
     onMainAfter(7.0) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
@@ -212,7 +222,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
-  private func syncedLoadAndOpernArticleWith(msid:Int64, data: PushNotification.Payload.ArticlePushData) -> Bool {
+  private func syncedLoadAndOpenArticleWith(msid:Int64, data: PushNotification.Payload.ArticlePushData) -> Bool {
     guard let gqlFeeder = TazAppEnvironment.sharedInstance.feederContext?.gqlFeeder else { return false }
     Task {
       guard let art = try? await gqlFeeder.loadArticles(withMediaSyncIds: ["\(msid)"]).first else {
@@ -235,7 +245,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     guard let issueDate = data.articleDate else {
       if let artId = data.articleMsId,
-         syncedLoadAndOpernArticleWith(msid: artId, data: data) {
+         syncedLoadAndOpenArticleWith(msid: artId, data: data) {
         showLoadingOverlayIfNeeded(data: data)
         return
       } else {
@@ -268,18 +278,70 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     guard let msid = data.articleMsId,
-          let issueArtIndex = issue.indexOfArticle(with: msid),
+          let issueArtIndex = issue.indexOfArticle(withMsid: msid),
           let artInTargetIssue = issue.allArticles.valueAt(issueArtIndex) else {
       openIssue(issue: issue)
       return
     }
     
-    gotoArticleInIssue(article: artInTargetIssue)
+    gotoContentInIssue(content: artInTargetIssue)
     onMainAfter(0.6) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
       self?.isLoadingIssueInBackground = false
     }
   }
+  
+  func gotoArticleInIssue(with data: UniversalLinkOpenIssueData){
+    log("open issue with date: \(data.issueDate.short) on \(data.articleCID == nil ? "" : "Article: \(data.articleCID!)") \(data.pageID == nil ? "" : "Page with ID: \(data.pageID!)") \(data.sectionCID == nil ? "" : "Section with ID: \(data.sectionCID!)"))")
+    
+    guard let issue = self.service.issue(at: data.issueDate) else {
+      let msg = "lade Ausgabe vom \(data.issueDate.short)\nBitte haben Sie einen Moment Geduld!"
+      showLoadingOverlayIfNeeded(message: msg)
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      service.download(issueAt: data.issueDate, withAudio: false)
+      gotoIssue(at: data.issueDate)
+      return
+    }
+
+    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+      let msg = "lade Ausgabe vom \(data.issueDate.short)\nBitte haben Sie einen Moment Geduld!"
+      showLoadingOverlayIfNeeded(message: msg)
+      ///WARNING: This is Probably not the correct Issue; UseCase open Issue from App-Link
+      Notification.receiveOnce("issue") { [weak self] notif in
+        let si = notif.content as? StoredIssue
+        self?.log("OpenIssue> Receive Issue from date: \(si?.date.short ?? "-") loaded: \(data.issueDate.short)")
+        self?.gotoArticleInIssue(with: data)}
+      log("OpenIssue> Download Issue: \(data.issueDate.short)")
+      service.download(issueAt: data.issueDate, withAudio: false)
+      gotoIssue(at: data.issueDate)
+      return
+    }
+    if let artCID = data.articleCID, let art = issue.article(withContentId: artCID){
+      gotoContentInIssue(content: art)
+    }
+    else if let sectCID = data.sectionCID, let sect = issue.section(withContentId: sectCID) {
+      if isFacsimile,
+         let pageIndex = issue.pageIndexOf(article: sect.articles?.first!) {
+        issue.lastPage = pageIndex
+        openIssue(issue: issue, openLast: true)
+      }
+      else {
+        gotoContentInIssue(content: sect)
+      }
+    }
+    else if let pageID = data.pageID, let pageIndex = issue.pageIndex(pageFilename: pageID) {
+      log("Undefined, should open Page at idx: \(pageIndex) maybe in mobile view? ...just open")
+      openIssue(issue: issue)
+    }
+    else {
+      openIssue(issue: issue)
+    }
+    onMainAfter(0.6) {[weak self] in
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      self?.isLoadingIssueInBackground = false
+    }
+  }
+  
   
   func gotoArticleInIssue(with issueDate: Date, articleUrl: URL) {
     log("open issue with date: \(issueDate) and Article: \(articleUrl)")
@@ -303,35 +365,50 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       gotoIssue(at: issueDate)
       return
     }
-    gotoArticleInIssue(article: artInTargetIssue)
+    gotoContentInIssue(content: artInTargetIssue)
   }
   
   
-  func gotoArticleInIssue(article: Article){
-    if let art = article as? SearchArticle {
+  func gotoContentInIssue(content: Content){
+    if let art = content as? SearchArticle {
       self.openArticleFromSearch(article: art)
       return
     }
     self.searchArticleToOpen = nil
-    guard let issue = article.primaryIssue as? StoredIssue,
+    
+    guard let issue = content.primaryIssue as? StoredIssue,
           let home = ((self.selectedViewController as? UINavigationController)?
             .viewControllers.first as? HomeVC) else { return }
+    
     if let sectVc = home.navigationController?.viewControllers.valueAt(1) as? SectionVC,
        let sectIssue = sectVc.issue as? StoredIssue,
        issue == sectIssue {
-      sectVc.showArticle(article, animated: true)
-    }
-    else {
-      home.navigationController?.popToRootViewController(animated: false)
-      if issue.allArticles.contains(where: { $0.serverId == article.serverId }) {
-        issue.lastContent = article
+      if let art = content as? Article {
+        sectVc.showArticle(art, animated: true)
+        return
+      } else if let cid = content.contentId,
+                let sectIdx = issue.indexOfSection(withContentId: cid) {
+        sectVc.displaySection(index: sectIdx)
+        sectVc.navigationController?.popToViewController(sectVc, animated: false)
+        return
       }
-      if isFacsimile, let page = issue.pageIndexOf(article: article) { issue.lastPage = page }
-      home.openIssue(issue, openLast: true)
     }
+    home.navigationController?.popToRootViewController(animated: false)
+    if issue.allArticles.contains(where: { $0.contentId == content.contentId })
+        || (issue.sections ?? []).contains(where: { $0.contentId == content.contentId }){
+      issue.lastContent = content
+    }
+    
+    if isFacsimile,
+       let art = content as? Article,
+       let page = issue.pageIndexOf(article: art) {
+      issue.lastPage = page
+    }
+    home.openIssue(issue, openLast: true)
+    
   }
   
-  func openIssue(issue: StoredIssue){
+  func openIssue(issue: StoredIssue, openLast: Bool = false){
     self.selectedIndex = 0
     guard let home = ((self.selectedViewController as? UINavigationController)?
             .viewControllers.first as? HomeVC) else { return }
@@ -346,7 +423,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     else {
       home.navigationController?.popToRootViewController(animated: false)
-      home.openIssue(issue, openLast: false)
+      home.openIssue(issue, openLast: openLast)
     }
   }
   
@@ -372,7 +449,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       gotoIssue(at: date)
       return
     }
-    gotoArticleInIssue(article: artInTargetIssue)
+    gotoContentInIssue(content: artInTargetIssue)
   }
   
   func gotoIssue(at date: Date?){
