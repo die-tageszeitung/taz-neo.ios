@@ -64,6 +64,8 @@ public class CustomUIActivity: UIActivity, DoesLog {
         Usage.xtrack.share.article(article: article, event: Usage.event.share.Info)
       case .copyToPasteboard:
         Usage.xtrack.share.article(article: article, event: Usage.event.share.Copy2Clipboard)
+      case .copyEpaperToPasteboard:
+        Usage.xtrack.share.article(article: article, event: Usage.event.share.CopyEpaperLink2Clipboard)
       case .mail:
         Usage.xtrack.share.article(article: article, event: Usage.event.share.Mail)
       case .message:
@@ -130,6 +132,9 @@ public enum CustomUIActivityType {
   /// Display more information about the sharing options.
   case moreInfo
   
+  /// Display share target
+  case copyEpaperToPasteboard
+  
   /// copy
   case copyToPasteboard
   
@@ -147,6 +152,7 @@ public enum CustomUIActivityType {
       case .paperPdfSave:  return "Zeitungs PDF laden und in Dateien sichern"  // "Save Newspaper PDF in Files"
       case .paperPdfPrint:  return "Zeitungs PDF laden und drucken"  // "Print Newspaper PDF"
       case .moreInfo:  return "Informationen zum teilen"  // "More Information about Sharing"
+      case .copyEpaperToPasteboard:  return  "App-Link Kopieren"
       case .copyToPasteboard:  return  "Kopieren"
       case .print:  return  "Drucken"
       case .mail:  return  "Als E-Mail versenden"
@@ -164,6 +170,7 @@ public enum CustomUIActivityType {
       case .paperPdfPrint:  return UIActivity.ActivityType(rawValue: "de.taz.paperPdf.print")
       case .moreInfo:  return UIActivity.ActivityType(rawValue: "de.taz.share.moreinfo")
       case .copyToPasteboard:  return UIActivity.ActivityType(rawValue: "de.taz.share.copyToPasteboard")
+      case .copyEpaperToPasteboard:  return UIActivity.ActivityType(rawValue: "de.taz.share.copyEpaperToPasteboard")
       case .print:  return UIActivity.ActivityType.print
       case .mail:  return UIActivity.ActivityType(rawValue: "de.taz.share.mail")
       case .message:  return UIActivity.ActivityType(rawValue: "de.taz.share.message")
@@ -181,6 +188,7 @@ public enum CustomUIActivityType {
       case .paperPdfPrint: return UIImage(systemName: "printer")  // SF Symbol: Printer icon
       case .moreInfo: return UIImage(systemName: "info")  // SF Symbol: Information icon
       case .copyToPasteboard: return UIImage(systemName: "doc.on.doc")  // SF Symbol: Copy icon
+      case .copyEpaperToPasteboard: return UIImage(systemName: "doc.on.doc")  // SF Symbol: Copy icon
       case .print: return UIImage(systemName: "printer")  // SF Symbol: Copy icon
       case .mail:  return UIImage(systemName: "envelope")
       case .message:  return UIImage(systemName: "message")
@@ -221,6 +229,9 @@ class CustomUIActivityFactory {
       items.append(CustomUIActivity(type: .paperPdfSave, delegate: delegate))
     }
     
+    if article.epaperShareTextIfLinkAvailable != nil{
+      items.append(CustomUIActivity(type: .copyEpaperToPasteboard, delegate: delegate))
+    }
     if article.shareInfoMessage != nil{
       items.append(CustomUIActivity(type: .moreInfo, delegate: delegate))
     }

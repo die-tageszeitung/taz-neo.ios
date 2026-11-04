@@ -123,6 +123,8 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
   public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
     debug("activity type: \(String(describing: activityType))")
     switch activityType {
+      case _ where activityType?.rawValue == CustomUIActivityType.copyEpaperToPasteboard.type.rawValue:
+        return article.epaperShareTextIfLinkAvailable ?? article.onlineLink
         /** **Share Text+Link; if no link local PDF* */
       case _ where activityType?.rawValue.hasPrefix("com.apple.mobilenotes.") == true,
         _ where activityType?.rawValue.hasPrefix("com.apple.reminders.") == true,
@@ -194,6 +196,7 @@ extension ArticleExportDialogueItemSource: UIActivityItemSource {
       text.append(authors.prepend("\nvon "))
     }
     if let online = article.onlineLink { text.append(online.prepend("\nonline unter:\n"))}
+    if let appLink = article.epaperShareTextIfLinkAvailable { text.append(appLink.prepend("\n\noder in der App: "))}
     return text
   }
   
@@ -298,7 +301,17 @@ extension ArticleExportDialogueItemSource: CustomUIActivityActionDelegate {
           return
         }
         saveToFiles(documentUrl: pdfFileUrl, caller: caller)
+      case .copyEpaperToPasteboard:
+        handleCopyEpaperLinkToPasteboard(for: caller)
     }
+  }
+}
+
+extension Article {
+  var epaperShareTextIfLinkAvailable: String? {
+    guard let date = primaryIssue?.date,
+          let cid = contentId else { return nil }
+    return "https://epaper.taz.de/issue/\(date.ISO8601)/art\(cid)"
   }
 }
 
@@ -320,6 +333,7 @@ extension ArticleExportDialogueItemSource {
     if let authors = article.authors(), !authors.isEmpty { intro.append(authors.prepend("\nvon "))
     }
     if let online = article.onlineLink { intro.append(online.prepend("\nonline unter:\n")) }
+    if let appLink = article.epaperShareTextIfLinkAvailable { intro.append(appLink.prepend("\n\noder in der App: "))}
     
     let mailComposer = MFMailComposeViewController()
     self.caller = caller
@@ -348,6 +362,7 @@ extension ArticleExportDialogueItemSource {
     if let authors = article.authors(), !authors.isEmpty { intro.append(authors.prepend("\nvon "))
     }
     if let online = article.onlineLink { intro.append(online.prepend("\nonline unter:\n")) }
+    if let appLink = article.epaperShareTextIfLinkAvailable { intro.append(appLink.prepend("\n\noder in der App: "))}
     
     let messageComposer = MFMessageComposeViewController()
     self.caller = caller
@@ -377,6 +392,7 @@ extension ArticleExportDialogueItemSource {
     if let authors = article.authors(), !authors.isEmpty { text.append(authors.prepend("\nvon "))
     }
     if let online = article.onlineLink { text.append(online.prepend("\nonline unter:\n"))}
+    if let appLink = article.epaperShareTextIfLinkAvailable { text.append(appLink.prepend("\n\noder in der App: "))}
     
     var pasteboardItems: [[String: Any]]
     if let pdfURL = article.generatedArticlePdfURL, let pdfData = try? Data(contentsOf: pdfURL) {
@@ -387,6 +403,23 @@ extension ArticleExportDialogueItemSource {
       pasteboardItems = [[UTType.plainText.identifier: text]]
     }
     UIPasteboard.general.items = pasteboardItems
+    caller.activityDidFinish(true)
+  }
+  
+  // MARK: - Copy to Pasteboard Helper
+  /// Copies the article's text and PDF to the system clipboard.
+  /// - Parameter caller: The activity caller that initiated the action.
+  func handleCopyEpaperLinkToPasteboard(for caller: CustomUIActivity) {
+    guard #available(iOS 14.0, *) else {
+      caller.activityDidFinish(false)
+      return
+    }
+    guard let urlString = article.epaperShareTextIfLinkAvailable,
+          let url = URL(string: urlString) else {
+      caller.activityDidFinish(false)
+      return
+    }
+    UIPasteboard.general.items = [[UTType.url.identifier: url]]
     caller.activityDidFinish(true)
   }
   

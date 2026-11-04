@@ -511,6 +511,7 @@ extension Usage {
            ArticleAppPDF2Print = "Share Article App PDF to Print",
            ArticlePDF2Print = "Share Article PDF to Print",
            Copy2Clipboard = "Share Copy to Clipboard (PDF+Link)",
+           CopyEpaperLink2Clipboard = "Share Copy Epaper to Clipboard",
            Mail = "Share Mail (App PDF+Link)",
            Message = "Share Message (App PDF+Link)",
            Browser = "Share Open in Browser",
