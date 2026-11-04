@@ -237,7 +237,10 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func nextIndex(for date: Date) -> Int {
-    return publicationDates.firstIndex(where: { $0.date <= date }) ?? 0
+    let calendar = Calendar.current
+    return publicationDates.firstIndex {
+        calendar.startOfDay(for: $0.date) <= calendar.startOfDay(for: date)
+    } ?? 0
   }
   
   func downloadState(for issue: StoredIssue?) -> DownloadStatusIndicatorState {

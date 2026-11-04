@@ -12,6 +12,8 @@ import BackgroundTasks
 
 class TazAppEnvironment: NSObject, DoesLog {
   
+  var invalidUniversalLinkOpenPopup = false
+  
   @Default("autoSyncBookmarks")
   var autoSyncBookmarks: Bool
   
@@ -196,6 +198,10 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   func appWillTerminate() {
+    if let masterFeed = TazAppEnvironment.storedFeeder?.masterFeed,
+       TazAppEnvironment.storedFeeder?.selectedFeed?.feedId != masterFeed.feedId {
+      TazAppEnvironment.storedFeeder?.selectedFeed = masterFeed
+    }
     ArticleDB.save()//You have 5 Seconds!!
     debug("App is going to be terminated")
   }

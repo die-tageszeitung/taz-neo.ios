@@ -673,7 +673,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   var didShowNoIssuesError: Bool = false
   
-  func scrollTo(_ index: Int, animated:Bool = true){
+  func scrollTo(_ index: Int, animated:Bool? = nil){
     guard collectionView.numberOfItems(inSection: 0) > index else {
       guard !didShowNoIssuesError else { return }
       let masterFeedSelected = TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster ?? false
@@ -686,10 +686,12 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       didShowNoIssuesError = true
       return
     }
+    let animated = animated ?? shouldScrollAnimatedTo(index)
+    debug("scroll to index: \(index) animated: \(animated)")
     updateBottomWrapper(for: index)
     self.collectionView.scrollToItem(at: IndexPath(row: index, section: 0),
                                      at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
-                                     animated: shouldScrollAnimatedTo(index))
+                                     animated: animated)
   }
   
   func updateBottomWrapper(for cidx: Int, force: Bool = false){

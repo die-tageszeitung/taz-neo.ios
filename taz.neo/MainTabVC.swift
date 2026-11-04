@@ -147,7 +147,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
     
     Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
-      self?.gotoIssue(at: notif.content as? Date)
+      self?.gotoIssue(at: notif.content as? Date, animated: false)
     }
     
     Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
@@ -291,12 +291,26 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
+  func switchToMasterFeed() {
+    TazAppEnvironment.storedFeeder?.selectedFeed
+    = TazAppEnvironment.storedFeeder?.masterFeed
+    Notification.send(Const.NotificationNames.feedChange)
+    Notification.send(Const.NotificationNames.feedButtonsChange)
+  }
+  
   func gotoArticleInIssue(with data: UniversalLinkOpenIssueData){
+    guard TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster == true else {
+      switchToMasterFeed()
+      onMainAfter {[weak self] in self?.gotoArticleInIssue(with: data) }
+      return
+    }
+    
     log("open issue with date: \(data.issueDate.short) on \(data.articleCID == nil ? "" : "Article: \(data.articleCID!)") \(data.pageID == nil ? "" : "Page with ID: \(data.pageID!)") \(data.sectionCID == nil ? "" : "Section with ID: \(data.sectionCID!)"))")
     
+    let overlayMessage = "lade Ausgabe vom \(data.issueDate.short)\nBitte haben Sie einen Moment Geduld!"
+    
     guard let issue = self.service.issue(at: data.issueDate) else {
-      let msg = "lade Ausgabe vom \(data.issueDate.short)\nBitte haben Sie einen Moment Geduld!"
-      showLoadingOverlayIfNeeded(message: msg)
+      showLoadingOverlayIfNeeded(message: overlayMessage)
       Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
       service.download(issueAt: data.issueDate, withAudio: false)
       gotoIssue(at: data.issueDate)
@@ -304,18 +318,21 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
 
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
-      let msg = "lade Ausgabe vom \(data.issueDate.short)\nBitte haben Sie einen Moment Geduld!"
-      showLoadingOverlayIfNeeded(message: msg)
+      showLoadingOverlayIfNeeded(message: overlayMessage)
       ///WARNING: This is Probably not the correct Issue; UseCase open Issue from App-Link
       Notification.receiveOnce("issue") { [weak self] notif in
         let si = notif.content as? StoredIssue
         self?.log("OpenIssue> Receive Issue from date: \(si?.date.short ?? "-") loaded: \(data.issueDate.short)")
-        self?.gotoArticleInIssue(with: data)}
+        self?.gotoArticleInIssue(with: data)
+      }
       log("OpenIssue> Download Issue: \(data.issueDate.short)")
       service.download(issueAt: data.issueDate, withAudio: false)
       gotoIssue(at: data.issueDate)
       return
     }
+    
+    gotoIssue(at: data.issueDate)
+    
     if let artCID = data.articleCID, let art = issue.article(withContentId: artCID){
       gotoContentInIssue(content: art)
     }
@@ -333,15 +350,29 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       log("Undefined, should open Page at idx: \(pageIndex) maybe in mobile view? ...just open")
       openIssue(issue: issue)
     }
-    else {
+    else if data.hasTargetInIssue == false {
       openIssue(issue: issue)
     }
-    onMainAfter(0.6) {[weak self] in
+    else {
+      TazAppEnvironment.sharedInstance.requestOpenLinkInBrowser(for: data.originalUrl,
+                                                                contentNotFound: true)
+    }
+    Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+    isLoadingIssueInBackground = false
+  }
+  
+  func removeRefreshDataOverlay(delay: TimeInterval? = nil){
+    guard let delay else {
+      Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
+      isLoadingIssueInBackground = false
+      return
+    }
+    onMainAfter(delay) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
       self?.isLoadingIssueInBackground = false
     }
+    
   }
-  
   
   func gotoArticleInIssue(with issueDate: Date, articleUrl: URL) {
     log("open issue with date: \(issueDate) and Article: \(articleUrl)")
@@ -452,17 +483,43 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     gotoContentInIssue(content: artInTargetIssue)
   }
   
-  func gotoIssue(at date: Date?){
-    self.selectedIndex = 0
-    (self.selectedViewController as? UINavigationController)?.popToRootViewController(animated: false)
-    guard let home = ((self.selectedViewController as? UINavigationController)?
-              .viewControllers.first as? HomeVC) else { return }
-    var idx = 0
-    if let date = date { idx = home.service.nextIndex(for: date) }
-    home.collectionView
-      .scrollToItem(at: IndexPath(row: idx, section: 0),
-                    at: home.isHomeTiles ? .centeredVertically : .centeredHorizontally,
-                    animated: true)
+  func gotoIssue(at date: Date?, openUrlIfNotFound: URL? = nil, animated: Bool = true){
+    guard TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster == true else {
+      switchToMasterFeed()
+      onMainAfter {[weak self] in self?.gotoIssue(at: date, openUrlIfNotFound: openUrlIfNotFound)}
+      return
+    }
+
+    selectedIndex = 0
+
+    guard let navigationController = selectedViewController as? UINavigationController else {
+        return
+    }
+
+    navigationController.popToRootViewController(animated: false)
+
+    guard let home = navigationController.viewControllers.first as? HomeVC else {
+        return
+    }
+        
+    if let date = date,
+       let url = openUrlIfNotFound,
+       home.service.issue(at: date) == nil {
+      ///given link refers unavailable issue, request open in Browser
+      TazAppEnvironment.sharedInstance.requestOpenLinkInBrowser(for: url, contentNotFound: true)
+      return
+    }
+    
+    let idx = date.map { home.service.nextIndex(for: $0) } ?? 0
+    home.collectionView.layoutIfNeeded()
+    
+    debug("Scroll to index: \(idx) for date: \(date?.short ?? "-") animated: \(animated)")
+    ///ensure layout available for scrolling in carousselview
+    onMainAfter {
+      home.scrollTo(idx, animated: false)
+      home.updateBottomWrapper(for: idx, force: true)
+    }
+    
   }
   
   func setupTabbar() {
