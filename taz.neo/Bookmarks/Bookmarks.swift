@@ -19,9 +19,6 @@ public class Bookmarks: DoesLog {
   
   static let defaultBookmarkSectionTitle = "Leseliste"
   
-  /// Singleton instance for managing bookmarks.
-  private static let sharedInstance = Bookmarks()
-  
   /// Persistent issue for bookmark storage.
   var bookmarkIssue: StoredIssue?
   
@@ -62,14 +59,18 @@ public class Bookmarks: DoesLog {
   /// initialize environment if default StoredFeed and FeederContext is available
   /// dev/null if not; means no database no bookmark functionallity,
   /// no worry initial Popup "Server not reachable" block every user interaction
+  private static var sharedInstance = Bookmarks()
+  
   static var shared: Bookmarks {
-    get {
-      if sharedInstance.bookmarkSection == nil {
-        ///initialize if needed
-        sharedInstance.setup()
-      }
-      return sharedInstance
+    if sharedInstance.bookmarkSection == nil {
+      sharedInstance.setup()
     }
+    return sharedInstance
+  }
+  
+  static func reinitialize() {
+    BookmarksSyncBusiness.lastBookmarkSyncDate = nil
+    sharedInstance = Bookmarks()
   }
   
   func reloadBookmarksFromDatabase(){

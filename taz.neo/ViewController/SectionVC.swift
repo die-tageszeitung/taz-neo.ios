@@ -279,7 +279,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
       LinkBusiness.handleLinkPressed(from: from, to: to,
                                      with: self)
     }
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       #warning("Error: off-Screen rendered/loaded Sections wount update bookmark state")
       if let art = msg.sender as? StoredArticle {
         guard let name = art.html?.name.nonPublic() else { return }
@@ -296,7 +296,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
         }
       }
     }
-    Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+    Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
       guard let nIssue = notif.content as? Issue else { return }
       guard self?.delegate != nil && self?.delegate.issue != nil else { return }
       if (self?.issue as? StoredIssue)?.safeDate ?? nil == nil { return }

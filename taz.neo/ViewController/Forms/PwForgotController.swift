@@ -51,7 +51,7 @@ class PwForgottController: FormsController {
     
   // MARK: mutatePasswordReset
   func mutatePasswordReset(_ id: String){
-    auth.feeder.passwordReset(email: id, closure: { [weak self]  (result) in
+    auth.feeder?.passwordReset(email: id, closure: { [weak self]  (result) in
       guard let self = self else { return }
       switch result {
         case .success(let info):

@@ -13,7 +13,10 @@ import MediaPlayer
 enum PlayerEnqueueType { case replaceCurrent, enqueueNext, enqueueLast/*, enqueueOneNext, enqueueOneNextAndPlay*/}
 
 /// The ArticlePlayer plays one or more Articles as audio streams
-class ArticlePlayer: DoesLog {
+class ArticlePlayer: DoesLog, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("audioDisclosurePlayCount")
   private var audioDisclosurePlayCount: Int
@@ -262,15 +265,15 @@ class ArticlePlayer: DoesLog {
       self?.userInterface.totalSeconds = item.asset.duration.seconds
       self?.userInterface.currentSeconds = item.currentTime().seconds
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.goingForeground()
     }
     ///Handle reachability changes: show offline status
-    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.feederReachable, observer: self) {[weak self] _ in
       self?.feederReachable()
     }
     
-    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.authenticationSucceeded, observer: self) { [weak self] notif in
       guard TazAppEnvironment.hasValidAuth else { return }
       self?.handleAuthenticationSucceeded()
     }
@@ -688,7 +691,7 @@ class ArticlePlayer: DoesLog {
       if loadIssueIfNeeded {
         Toast.show(msg)
       }
-      Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
+      Notification.receiveOnce("issueStructure", from: issue, observer: self) { [weak self] notif in
         guard notif.userInfo?["error"] == nil else {
           Toast.show(Localized("error"))
           return

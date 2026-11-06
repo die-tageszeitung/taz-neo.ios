@@ -11,7 +11,10 @@ import NorthLib
 
 enum ArticlePlayerUIStates { case mini, maxi}
 
-class ArticlePlayerUI: UIView {
+class ArticlePlayerUI: UIView, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("playbackRate")
   public var playbackRate: Double
@@ -553,7 +556,7 @@ class ArticlePlayerUI: UIView {
     self.layer.borderWidth = 0.3
     self.layer.borderColor = Const.Colors.appIconGrey.cgColor
     
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
+    Notification.receive(Const.NotificationNames.viewSizeTransition, observer: self) {   [weak self] notification in
       guard let newSize = notification.content as? CGSize else { return }
       self?.viewSize = newSize
     }

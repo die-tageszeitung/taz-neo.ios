@@ -24,7 +24,11 @@ import NorthLib
 ///     - 30 Seconds in Issue and left Issue
 ///     **OR**
 ///     - 30 Seconds after finished Audioplayback
-class Rating: NSObject, DoesLog{
+class Rating: NSObject, DoesLog, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   private var canRate: Bool
   
   private func canRate(lastRateRequestDate: Date) -> Bool{
@@ -148,10 +152,10 @@ class Rating: NSObject, DoesLog{
     
     if canRate == false { return }
     
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.goingForeground()
     }
-    Notification.receive(Const.NotificationNames.audioPlaybackFinished) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.audioPlaybackFinished, observer: self) { [weak self] _ in
       self?.valueableActionFinished = true
       onMainAfter(30.0) {[weak self] in
         self?.requestReview()

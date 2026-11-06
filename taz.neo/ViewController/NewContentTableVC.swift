@@ -112,7 +112,11 @@ extension NewContentTableVC {
 /// tableHedaer = moment + date
 /// section Header = section title + chevron > or ^
 /// cell as Article Preview (like in serach or bookmarks
-public class NewContentTableVC: UIViewController {
+public class NewContentTableVC: UIViewController, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   var tableView = UITableView(frame: .zero, style: .plain)
   ///for SectionVc the highlighted SectionHeader
   private var sectIndex: Int?
@@ -248,7 +252,7 @@ extension NewContentTableVC {
     pin(tableView.top, to: header.bottom)
     
     audioPlaybackStateChangedObserver =
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged, observer: self) { [weak self] _ in
       ///prevent crash bug; better remove observer
       ///if ArticlePlayer.singleton.currentContent?.primaryIssue?.date.issueKey == nil { return }
       self?.header.listenIconActive =
@@ -272,7 +276,7 @@ extension NewContentTableVC {
   public override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard self.issue?.sections?.count ?? 0 > 0 else {
-      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
         self?.tableView.reloadData()
       }      
       return
@@ -601,7 +605,10 @@ fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
   }
 }
 
-class NewContentTableVcCell: UITableViewCell {
+class NewContentTableVcCell: UITableViewCell, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   static let ReuseIdentifier = "NewContentTableVcCellIdentifier"
   
@@ -803,7 +810,7 @@ class NewContentTableVcCell: UITableViewCell {
     }
     pin(content, to: contentView, dist: Const.Size.DefaultPadding)
     selectionStyle = .none
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle,
             art.html?.name == self?.articleIdentifier else { return }
       self?.bookmarkButton.image = art.bookmarkIcon

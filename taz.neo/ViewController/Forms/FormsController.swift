@@ -352,15 +352,16 @@ extension FormsResultController{
 // MARK: - ext: FormsController:UITextViewDelegate
 extension FormsController: UITextViewDelegate {
   func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange) -> Bool {
+    guard let feeder = auth.feeder else { return false }
     var localResource:File?
     if URL.absoluteString.contains("taz.de/\(Const.Filename.dataPolicy)"){
-      localResource = File(auth.feeder.dataPolicy)
+      localResource = File(feeder.dataPolicy)
     }
     else if URL.absoluteString.contains("taz.de/\(Const.Filename.revocation)"){
-      localResource = File(auth.feeder.revocation)
+      localResource = File(feeder.revocation)
     }
     else if URL.absoluteString.contains("taz.de/\(Const.Filename.terms)"){
-      localResource = File(auth.feeder.terms)
+      localResource = File(feeder.terms)
     }
     
     if let localResource = localResource, localResource.exists {

@@ -11,7 +11,6 @@ import NorthLib
 
 /// WaitingAppOverlay with static call and dismiss by notification
 public class WaitingAppOverlay {
-  
   /// add overlay to app's window
   /// - Parameters:
   ///   - alpha: alpha of black gackground layer
@@ -19,12 +18,13 @@ public class WaitingAppOverlay {
   /// - Returns: true|false, true if added false if not
   public static func show(alpha:CGFloat = 0.8, backbround:UIView? = nil, showSpinner:Bool = true, titleMessage:String? = nil, bottomMessage:String? = nil, dismissNotification:String) {
     guard UIApplication.shared.activeKeyWindow != nil else { return }
+    var viewSizeTransitionObserver: Notification.Observer?
     
     ///show layer
     onMain {
       let layer = UIView(frame: CGRect(origin: .zero, size: UIWindow.size))
       
-      Notification.receive(Const.NotificationNames.viewSizeTransition) { notification in
+      viewSizeTransitionObserver = Notification.receive(Const.NotificationNames.viewSizeTransition) { notification in
         guard let newSize = notification.content as? CGSize else { return }
         layer.frame = CGRect(origin: .zero, size: newSize)
       }
@@ -80,6 +80,9 @@ public class WaitingAppOverlay {
       
       Notification.receiveOnce(dismissNotification) { _ in
         Log.log("dismiss WaitingAppOverlay")
+        if let vsObserver = viewSizeTransitionObserver as? Any {
+          NotificationCenter.default.removeObserver(vsObserver)
+        }
         onMainAfter(1.3) {
           UIView.animate(withDuration: 0.7,
                          delay: 0,

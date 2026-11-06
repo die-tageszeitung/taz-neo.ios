@@ -16,7 +16,11 @@ protocol PushIssueDelegate {
 }
 
 
-class IssueDisplayService: NSObject, IssueInfo, DoesLog {
+class IssueDisplayService: NSObject, IssueInfo, DoesLog, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   var issue: Issue {
     return sissue
   }
@@ -123,7 +127,7 @@ extension IssueDisplayService {
     //      isDownloading = true
     //      issueCarousel.index = index
     //      issueCarousel.setActivity(idx: index, isActivity: true)
-    Notification.receiveOnce("issueStructure", from: issue) { [weak self] notif in
+    Notification.receiveOnce("issueStructure", from: issue, observer: self) { [weak self] notif in
       guard let self = self else { return }
       let issue = self.sissue
       if let err = notif.error {
@@ -158,7 +162,7 @@ extension IssueDisplayService {
                   atArticle: atArticle,
                   atPage: atPage,
                   pushDelegate: pushDelegate)
-        Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+        Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
           guard let self = self else { return }
           if let err = notif.error {
             self.handleDownloadError(error: err)

@@ -9,7 +9,10 @@
 import NorthLib
 import UIKit
 
-class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
+class BookmarkTVC: UIViewController, ContextMenuItemPrivider, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("autoSyncBookmarks")
   var autoSyncBookmarks: Bool
@@ -387,18 +390,18 @@ class BookmarkTVC: UIViewController, ContextMenuItemPrivider {
     headerPlayButtonContextMenu = ContextMenu(view: headerPlayButton.buttonView)
     headerPlayButtonContextMenu?.itemPrivider = self
     
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged, observer: self) { [weak self] _ in
       self?.updateAudioButton()
     }
     
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       self?.syncBookmarksIfNeeded(syncReason: .goingBackgroundForeground)
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.syncBookmarksIfNeeded(syncReason: .goingBackgroundForeground)
     }
     
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       if let art = msg.sender as? StoredArticle {
         self?.handleBookmarkChanged(for: art)
       } else {
@@ -459,7 +462,7 @@ extension BookmarkTVC {
   ///handler for tap in List on demo Article
   private func loadAndOpen(article: Article){
     let serverId = article.serverId ///remember bevore reload article
-    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) { [weak self] _ in
+    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded, observer: self) { [weak self] _ in
       ///ensure Tabledata is refreshed earlier
       onMainAfter(0.2) {[weak self] in
         guard let avc = self?.articleVC else { return }
@@ -615,7 +618,7 @@ extension BookmarkTVC: ReloadAfterAuthChanged {
     
     _articleVC = nil///ensure re-init; set articles, content and updateWebwiews() did not worked
     
-    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded) { [weak self] _ in
+    Notification.receiveOnce(Const.NotificationNames.bookmarksLoaded, observer: self) { [weak self] _ in
       ///Reload Overview Table
       self?.updateData()
       self?.bookmarksTable.reloadData()

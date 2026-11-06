@@ -23,7 +23,7 @@ import NorthLib
 public protocol Authenticator: DoesLog {
   
   /// Ref to feeder providing Data 
-  var feeder: GqlFeeder { get set }
+  var feeder: GqlFeeder? { get set }
   /// Temporary Id to identify client if no AuthToken is available
   var installationId: String  { get }
   /// Push token for silent notifications (poll request),

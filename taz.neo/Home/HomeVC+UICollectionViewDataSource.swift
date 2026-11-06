@@ -125,7 +125,7 @@ extension HomeVC {
     if !forceOpen && issue.isComplete && issue.versionLocal2 < issue.versionRemote2 {
       ///try silent update
       ///in case of download errors show popup to request network connection to update or read outdated version
-      Notification.receive("issue"){[weak self] notif in
+      Notification.receive("issue", observer: self){[weak self] notif in
         guard let issue = notif.object as? StoredIssue,
               let observer = notif.userInfo?["observer"] as? Notification.Observer else { return }
         let error: Error? = notif.userInfo?["error"] as? Error

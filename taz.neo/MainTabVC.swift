@@ -8,7 +8,10 @@
 import NorthLib
 import UIKit
 
-class MainTabVC: UITabBarController, UIStyleChangeDelegate {
+class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
 
   @Default("showHelp")
   var showHelp: Bool
@@ -121,11 +124,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     setupTabbar()
     self.navigationController?.isNavigationBarHidden = true
     registerForStyleUpdates()
-    Notification.receive(Const.NotificationNames.authenticationSucceeded) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.authenticationSucceeded, observer: self) { [weak self] notif in
       self?.authenticationSucceededCheckReload(alertMessage: (notif.content as? String))
     }
     
-    Notification.receive(Const.NotificationNames.searchSelectedText) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.searchSelectedText, observer: self) { [weak self] notif in
       guard let searchString = notif.content as? String,
       let searchCtrl
               = ((self?.viewControllers?.valueAt(2) as? UINavigationController)?
@@ -134,23 +137,23 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       searchCtrl.searchFor(searchString: searchString)
     }
 
-    Notification.receive(Const.NotificationNames.gotoTabByIndex) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.gotoTabByIndex, observer: self) { [weak self] notif in
       guard let index = notif.content as? Int,
             let navCtrl = self?.viewControllers?.valueAt(index) as? UINavigationController else { return }
       navCtrl.popToRootViewController(animated: false)
       self?.selectedIndex = index
     }
     
-    Notification.receive(Const.NotificationNames.closeOpenIssues) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.closeOpenIssues, observer: self) { [weak self] _ in
       self?.feederContext.openedIssue = nil
       (self?.viewControllers?.first as? UINavigationController)?.popToRootViewController(animated: false)
     }
     
-    Notification.receive(Const.NotificationNames.gotoIssue) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.gotoIssue, observer: self) { [weak self] notif in
       self?.gotoIssue(at: notif.content as? Date, animated: false)
     }
     
-    Notification.receive(Const.NotificationNames.gotoArticleInIssue) { [weak self] notif in
+    Notification.receive(Const.NotificationNames.gotoArticleInIssue, observer: self) { [weak self] notif in
       self?.selectedIndex = 0
       if let data = notif.content as? PushNotification.Payload.ArticlePushData {
         self?.gotoArticleInIssue(with: data)
@@ -168,10 +171,10 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       self?.gotoContentInIssue(content: article)
     }
     
-    Notification.receive("issue") { [weak self] notification in
+    Notification.receive("issue", observer: self) { [weak self] notification in
       self?.handleIssueDownloadNotification(notification: notification)
     }
-    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+    Notification.receive(Const.NotificationNames.issueUpdate, observer: self) { [weak self] notification in
       self?.handleIssueDownloadNotification(notification: notification)
     }
   } // viewDidLoad
@@ -257,7 +260,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     guard let issue = self.service.issue(at: issueDate) else {
       showLoadingOverlayIfNeeded(data: data)
-      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate, observer: self) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
       service.download(issueAt: issueDate, withAudio: false)
       gotoIssue(at: data.articleDate)
       return
@@ -267,7 +270,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
       showLoadingOverlayIfNeeded(data: data)
       ///WARNING: This is Probably not the correct Issue
       ///UseCase open Issue from App-Link
-      Notification.receiveOnce("issue") { [weak self] notif in
+      Notification.receiveOnce("issue", observer: self) { [weak self] notif in
         let si = notif.content as? StoredIssue
         self?.log("OpenIssue> Receive Issue from date: \(si?.date.short ?? "-") loaded: \(issueDate.short)")
         self?.gotoArticleInIssue(with: data)}
@@ -311,7 +314,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     
     guard let issue = self.service.issue(at: data.issueDate) else {
       showLoadingOverlayIfNeeded(message: overlayMessage)
-      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate, observer: self) { [weak self] _ in self?.gotoArticleInIssue(with: data)}
       service.download(issueAt: data.issueDate, withAudio: false)
       gotoIssue(at: data.issueDate)
       return
@@ -320,7 +323,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
       showLoadingOverlayIfNeeded(message: overlayMessage)
       ///WARNING: This is Probably not the correct Issue; UseCase open Issue from App-Link
-      Notification.receiveOnce("issue") { [weak self] notif in
+      Notification.receiveOnce("issue", observer: self) { [weak self] notif in
         let si = notif.content as? StoredIssue
         self?.log("OpenIssue> Receive Issue from date: \(si?.date.short ?? "-") loaded: \(data.issueDate.short)")
         self?.gotoArticleInIssue(with: data)
@@ -377,14 +380,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   func gotoArticleInIssue(with issueDate: Date, articleUrl: URL) {
     log("open issue with date: \(issueDate) and Article: \(articleUrl)")
     guard let issue = self.service.issue(at: issueDate) else {
-      Notification.receiveOnce(Const.NotificationNames.issueUpdate) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      Notification.receiveOnce(Const.NotificationNames.issueUpdate, observer: self) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
       }
       service.download(issueAt: issueDate, withAudio: false)
       gotoIssue(at: issueDate)
       return
     }
     if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
-      Notification.receiveOnce("issue") { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
+      Notification.receiveOnce("issue", observer: self) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
       }
       service.download(issueAt: issueDate, withAudio: false)
       gotoIssue(at: issueDate)
@@ -681,10 +684,10 @@ extension MainTabVC {
                            titleMessage: "\(alertMessage ?? "")\nAktualisiere Daten",
                            bottomMessage: "Bitte haben Sie einen Moment Geduld!",
                            dismissNotification: Const.NotificationNames.removeLoginRefreshDataOverlay)
-    Notification.receiveOnce(Const.NotificationNames.articleLoaded) { _ in
+    Notification.receiveOnce(Const.NotificationNames.articleLoaded, observer: self) { _ in
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
     }
-    Notification.receiveOnce(Const.NotificationNames.feederUnreachable) { _ in
+    Notification.receiveOnce(Const.NotificationNames.feederUnreachable, observer: self) { _ in
       /// popToRootViewController is no more needed here due its done by reloadTarget.reloadOpened
       Notification.send(Const.NotificationNames.removeLoginRefreshDataOverlay)
       Toast.show(Localized("error"))

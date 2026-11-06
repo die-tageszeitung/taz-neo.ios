@@ -10,8 +10,11 @@ import UIKit
 import NorthLib
 
 /// self sizing cell with some labels and boockmark icon
-class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
+class PdfArticleCell: UICollectionViewCell, LMdSliderCell, NotificationObserving {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   static let reuseIdentifier = "PdfArticleCellIdentifier"
   
   var bottomBorder: UIView = UIView()
@@ -121,7 +124,7 @@ class PdfArticleCell: UICollectionViewCell, LMdSliderCell {
       }
       
     }
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle,
             let articleIdentifier = self?.articleIdentifier,
             !articleIdentifier.isEmpty,

@@ -15,7 +15,11 @@ protocol OpenIssueDelegate {
   func openIssue(_ issue:StoredIssue, openLast: Bool)
 }
 
-class HomeVC: UICollectionViewController, OpenIssueDelegate {
+class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   /// Are we in facsimile mode
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -515,21 +519,21 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     pin(downloadButtonTapArea.centerY, to: downloadButton.centerY)
     statusWrapperBottomConstraint = pin(bottomItemsWrapper.top, to: self.view.bottom, dist: 0)
     
-    Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
+    Notification.receive(Const.NotificationNames.authenticationSucceeded, observer: self) { _ in
       onMainAfter {[weak self] in self?.updateLoginButton() }
     }
-    Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
+    Notification.receive(Const.NotificationNames.logoutUserDataDeleted, observer: self) { _ in
       onMainAfter {[weak self] in self?.updateLoginButton() }
     }
-    Notification.receive(Const.NotificationNames.refreshOverview) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.refreshOverview, observer: self) { [weak self] _ in
       self?.collectionView.reloadData()
       self?.updateDate()
     }
-    Notification.receive(Const.NotificationNames.feederChanged) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.feederChanged, observer: self) {[weak self] _ in
       self?.updateButtonMenu()
     }
        
-    Notification.receive(Const.NotificationNames.selectedFeedChange) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.selectedFeedChange, observer: self) {[weak self] _ in
       self?.handleFeedChange()
       self?.updateButtonMenu()
     }
@@ -538,7 +542,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     exchangeFeedSwitchGroup(showAnimated:false)
     
     ///Handle new issues
-    Notification.receive(Const.NotificationNames.publicationDatesChanged) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.publicationDatesChanged, observer: self) {[weak self] _ in
       self?.log("received publicationDatesChanged")
       if self?.view.superview == nil {
         _ = self?.service.reloadPublicationDates(refresh: nil, verticalCv: true)
@@ -560,15 +564,15 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     }
     
     ///Handle reachability changes: show offline status
-    Notification.receive(Const.NotificationNames.feederUnreachable) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.feederUnreachable, observer: self) {[weak self] _ in
       self?.statusHeader.currentStatus = .offline
     }
     ///Handle reachability changes: show offline status
-    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.feederReachable, observer: self) {[weak self] _ in
       self?.statusHeader.currentStatus = .online
     }
     
-    Notification.receive(Const.NotificationNames.newAutolIssueLoaded) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.newAutolIssueLoaded, observer: self) {[weak self] _ in
       self?.log("received newAutolIssueLoaded on Main-Thread: \(Thread.isMainThread) send reload to ctrl's")
       self?.service.updateIssues()
       _ = self?.service.reloadPublicationDates(refresh: nil, verticalCv: false)
@@ -586,7 +590,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       }
     }
     
-    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+    Notification.receive(Const.NotificationNames.issueUpdate, observer: self) { [weak self] notification in
       guard self?.isHomeTiles == false,
             let nData = notification.content as? IssueCellData,
             nData.date.date.issueKey == self?.centerIssueDateKey else { return }
@@ -611,7 +615,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   
   fileprivate func setupPullToRefresh() {
     Notification.receive(Const.NotificationNames.checkForNewIssues,
-                         from: self.service) { [weak self] notification in
+                         from: self.service, observer: self) { [weak self] notification in
       if let status = notification.content as? FetchNewStatusHeader.status {
         print("receive status: \(status)")
         self?.statusHeader.currentStatus = status
@@ -936,7 +940,7 @@ extension HomeVC: ReloadAfterAuthChanged {
       self.openIssue(selectedIssue, openLast: true)
       return
     } else {
-      Notification.receiveOnce("issue", from: selectedIssue) { [weak self] notif in
+      Notification.receiveOnce("issue", from: selectedIssue, observer: self) { [weak self] notif in
         self?.openIssue(selectedIssue, openLast: true)
       }
     }

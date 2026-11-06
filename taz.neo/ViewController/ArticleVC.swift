@@ -131,7 +131,7 @@ open class ArticleVC: ContentVC, ContextMenuItemPrivider {
       self.articles = arts
     }
     super.setup(contents: articles, isLargeHeader: false)
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       guard let self = self else {return}
       if let cart = msg.sender as? StoredArticle,
          let art = self.article,

@@ -11,7 +11,10 @@ import NorthLib
 
 /// A horizontally scrolling help/onboarding UICollectionView with page control.
 /// Self-contained: no need for a view controller.
-class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   static let cellYoffset: CGFloat = UIWindow.activeKeyWindow?.isTinyHeight ?? false ? -20.0 : -40.0
   
@@ -162,7 +165,7 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     doNotShowHelpInThisAreaAnymore.centerX()
     pin(doNotShowHelpInThisAreaAnymore.top, to: controlsContainer.bottom, dist: 7.0)
     
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.viewSizeTransition, observer: self) {[weak self] _ in
       onMainAfter {[weak self] in
         self?.frame = UIApplication.shared.activeKeyWindow?.bounds ?? .zero
         self?.collectionView.collectionViewLayout.invalidateLayout()

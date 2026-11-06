@@ -54,7 +54,7 @@ class TrialSubscriptionController : FormsController {
     let installationId = dfl["installationId"] ?? App.installationId
     
     //Start mutationSubscriptionId2tazId
-    auth.feeder.trialSubscription(tazId: tazId, password: tazIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
+    auth.feeder?.trialSubscription(tazId: tazId, password: tazIdPassword, surname: lastName, firstName: firstName, installationId: installationId, pushToken: pushToken, closure: { (result) in
       switch result {
         case .success(let info):
           switch info.status {

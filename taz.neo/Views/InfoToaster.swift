@@ -47,7 +47,11 @@ import NorthLib
 
 /// Helper to "toast" any view
 /// will display view on top of current window with animation from bottom
-class InfoToasterView: UIView{
+class InfoToasterView: UIView, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   /// Closure will be called when dismissed
   fileprivate var dismissHandler: (()->())? = nil
   fileprivate var xButtonHandler: (()->())? = nil
@@ -238,12 +242,12 @@ fileprivate extension InfoToasterView {
   
   
   func setupLayoutChange(){
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
+    Notification.receive(Const.NotificationNames.viewSizeTransition, observer: self) {   [weak self] notification in
       guard let self = self else { return }
       guard let newSize = notification.content as? CGSize else { return }
       handleLayoutChange(newAppSize: newSize)
     }
-    Notification.receive(Const.NotificationNames.traitCollectionDidChange) {   [weak self] notification in
+    Notification.receive(Const.NotificationNames.traitCollectionDidChange, observer: self) {   [weak self] notification in
       guard let self = self else { return }
       guard let traitCollection = notification.content as? UITraitCollection else { return }
       self.pinBottom = traitCollection.horizontalSizeClass == .compact

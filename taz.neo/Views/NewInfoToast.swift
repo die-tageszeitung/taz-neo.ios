@@ -10,7 +10,10 @@
 import UIKit
 import NorthLib
 
-public class NewInfoToast : UIView {
+public class NewInfoToast : UIView, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   /// Helper to generate and show Info Toast on Application Window
   /// - Parameters:
@@ -170,7 +173,7 @@ public class NewInfoToast : UIView {
     self.addSubview(scrollView)
     self.scrollViewYConstraint = scrollView.centerAxis().y
     
-    Notification.receive(Const.NotificationNames.viewSizeTransition) {   [weak self] notification in
+    Notification.receive(Const.NotificationNames.viewSizeTransition, observer: self) {   [weak self] notification in
       guard let self = self else { return }
       guard let newSize = notification.content as? CGSize else { return }
       if newSize.height < self.maxHeight {

@@ -124,10 +124,10 @@ public class DefaultAuthenticator: Authenticator {
   }
   
   /// Ref to feeder providing Data
-  public var feeder: GqlFeeder {
+  public var feeder: GqlFeeder? {
     didSet {
       guard let token = Self.token else { return }
-      feeder.authToken = token
+      feeder?.authToken = token
     }
   }
   
@@ -162,7 +162,7 @@ public class DefaultAuthenticator: Authenticator {
   // Returns true if the notification has been sent
   @discardableResult
   public func notifySuccess() -> Bool {
-    if feeder.deliveryChanged() {
+    if feeder?.deliveryChanged() ?? false {
       Toast.show("Lade Ausgaben neu.....")
       TazAppEnvironment.sharedInstance.feederContext?.checkForNewIssues()
     }
@@ -172,7 +172,7 @@ public class DefaultAuthenticator: Authenticator {
   
   //Called if incomming PushNotification comes or Timer fires
   public func pollSubscription(closure: @escaping (_ continue: Bool)->()) {
-    feeder.subscriptionPoll(installationId: installationId) { [weak self] (result) in
+    feeder?.subscriptionPoll(installationId: installationId) { [weak self] (result) in
       guard let self = self else { return;}
       switch result{
         case .success(let info):
@@ -188,7 +188,7 @@ public class DefaultAuthenticator: Authenticator {
               Self.storeUserData(id: tempData.tmpId ?? "",
                                  password: tempData.tmpPassword ?? "",
                                  token: token)
-              self.feeder.authToken = token
+              self.feeder?.authToken = token
               Self.deleteTempUserData()
               Usage.track(Usage.event.subscription.TrialConfirmed)
               /// Present Result to User, if Login shown!
@@ -266,7 +266,7 @@ public class DefaultAuthenticator: Authenticator {
     }
     
     var authController:FormsController
-    if self.feeder.isAuthenticated,
+    if self.feeder?.isAuthenticated == true,
       let expiredDate = Defaults.expiredAccountDate {
       let formType = Defaults.customerType?.formDataType ?? .expiredDigiSubscription
       authController = SubscriptionFormController(formType: formType,

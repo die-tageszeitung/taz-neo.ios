@@ -12,8 +12,11 @@ import UIKit
  A SettingsVC is a view controller to edit app's user Settings; Cells are not re-used!
  */
 // MARK: - SettingsVC
-open class SettingsVC: UIViewController, UIStyleChangeDelegate {
+open class SettingsVC: UIViewController, UIStyleChangeDelegate, NotificationObserving {
   
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   @Default("persistedIssuesCount")
   var persistedIssuesCount: Int
   
@@ -168,13 +171,13 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   }()
   
   lazy var logoutCell: XSettingsCell = {
-    Notification.receive(Const.NotificationNames.authenticationSucceeded) { _ in
+    Notification.receive(Const.NotificationNames.authenticationSucceeded, observer: self) { _ in
       onMainAfter {[weak self] in self?.updateLogoutCell() }
     }
-    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {  _ in
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged, observer: self) {  _ in
       onMainAfter {[weak self] in self?.updateLogoutCell() }
     }
-    Notification.receive(Const.NotificationNames.logoutUserDataDeleted) { _ in
+    Notification.receive(Const.NotificationNames.logoutUserDataDeleted, observer: self) { _ in
       onMainAfter {[weak self] in self?.refreshAndReload() }
     }
     return logoutCellPrototype
@@ -541,7 +544,6 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
 //    let feedDir = feeder.feedDir(feeder.masterFeed.name)
 //    self?.log("remove: \(feedDir.path)")
 //    feedDir.remove()
-    
   })
   
   lazy var filterSelectionCell = XSettingsSelectionCell(

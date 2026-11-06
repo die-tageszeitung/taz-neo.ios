@@ -67,7 +67,7 @@ extension TazAppEnvironment {
     
     log("TazAppEnvironment.receiveUniversalLink parsed universal link: \(url), waiting for feederReady")
     
-    Notification.receiveOnce("feederReady") { [weak self] _ in
+    Notification.receiveOnce("feederReady", observer: self) { [weak self] _ in
       onMainAfter {
         self?.navigate(to: destination, originalUrl: url)
       }

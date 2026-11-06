@@ -11,7 +11,10 @@ import NorthLib
 import MatomoTracker
 import UIKit
 
-public class Usage: NSObject, DoesLog{
+public class Usage: NSObject, DoesLog, NotificationObserving{
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("usageTrackingCurrentVersion")
   fileprivate var usageTrackingCurrentVersion: String
@@ -65,19 +68,19 @@ public class Usage: NSObject, DoesLog{
     trackAuthStatus()
     trackSubscriptionStatusIfNeeded(isChange: false)
 
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       self?.goingBackground()
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.goingForeground()
     }
-    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willTerminateNotification, observer: self) { [weak self] _ in
       self?.appWillTerminate()
     }
-    Notification.receive(Const.NotificationNames.expiredAccountDateChanged) {[weak self]  _ in
+    Notification.receive(Const.NotificationNames.expiredAccountDateChanged, observer: self) {[weak self]  _ in
       self?.trackSubscriptionStatusIfNeeded(isChange: true)
     }
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle else { return }
       self?.trackEvent(art.hasBookmark ? event.bookmarks.AddArticle : event.bookmarks.RemoveArticle, name: art.trackingPathWithID)
     }

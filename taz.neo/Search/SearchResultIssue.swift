@@ -27,19 +27,22 @@ public class SearchResultIssue: VirtualIssue {
   
   public var search:SearchItem?
   
-  func createDirsIfNeeded(){
+  func createDirsIfNeeded(for feederContext: FeederContext){
     dir.create()
     let rlink = File(dir: dir.path, fname: "resources")
     let glink = File(dir: dir.path, fname: "global")
-    if !rlink.isLink { rlink.link(to: _feederContext.gqlFeeder.resourcesDir.path) }
-    if !glink.isLink { glink.link(to: _feederContext.gqlFeeder.globalDir.path) }
+    if !rlink.isLink { rlink.link(to: feederContext.gqlFeeder.resourcesDir.path) }
+    if !glink.isLink { glink.link(to: feederContext.gqlFeeder.globalDir.path) }
   }
-  private var _feederContext: FeederContext
   static let shared = SearchResultIssue(TazAppEnvironment.sharedInstance.feederContext!)
+  
+  func setup(with feederContext: FeederContext){
+    createDirsIfNeeded(for: feederContext)
+  }
+  
   private init(_ feederContext: FeederContext){
-    _feederContext = feederContext
     super.init(feed: feederContext.masterFeed!)
-    createDirsIfNeeded()
+    setup(with: feederContext)
   }
 }
 

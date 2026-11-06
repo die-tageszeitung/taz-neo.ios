@@ -10,7 +10,10 @@ import WebKit
 import NorthLib
 
 // A ContentUrl provides a WebView URL for Articles and Sections
-public class ContentUrl: WebViewUrl, DoesLog {
+public class ContentUrl: WebViewUrl, DoesLog, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
 
   public var content: Content
   public lazy var url: URL = URL(fileURLWithPath: content.path ?? "")
@@ -50,7 +53,7 @@ public class ContentUrl: WebViewUrl, DoesLog {
       else if errorCount > 5,
         TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
         _waitingView?.bottomText = "\(errorCount) Ladefehler...\nBitte überprüfen Sie Ihre Internetverbindung."
-        Notification.receiveOnce(Const.NotificationNames.feederReachable)  { [weak self] _ in
+        Notification.receiveOnce(Const.NotificationNames.feederReachable, observer: self)  { [weak self] _ in
           guard let self = self else { return }
           self.loadClosure(self)
         }
@@ -108,8 +111,11 @@ extension String {
   }
 }
 
-open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
+open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, NotificationObserving {
   
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   @Default("multiColumnSnap")
   public var multiColumnSnap: Bool
   
@@ -1052,15 +1058,15 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       }
     }
     
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       self?.persistReadProgress()
       ArticleDB.save()
     }
-    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willTerminateNotification, observer: self) { [weak self] _ in
       self?.persistReadProgress()
       ArticleDB.save()
     }
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged, observer: self) { [weak self] _ in
       self?.updateAudioButton()
       self?.updateAudioInWebview()
       
@@ -1215,7 +1221,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate {
       Notification.remove(observer: io)
     }
     
-    issueObserver = Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+    issueObserver = Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
       self?.reloadAllWebViews()
     }
   }

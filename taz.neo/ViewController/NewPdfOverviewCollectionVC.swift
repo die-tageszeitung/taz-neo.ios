@@ -17,7 +17,10 @@ public enum PdfOverviewMode {
 /// New overview menu with animated shrinking header and two switchable modes:
 /// - List mode: 2 cell types (like LMdSliderContentVC)
 /// - Pages mode: 1 cell type (like PdfOverviewCollectionVC)
-public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChangeDelegate {
+public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChangeDelegate, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("isPdfPageMode")
   public var isPdfPageMode: Bool {
@@ -147,7 +150,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     }
     if pdfModel.issueInfo?.issue.isComplete == true { return }
     menuHeaderView.isLoading = true
-    Notification.receive("issue") { [weak self] notification in
+    Notification.receive("issue", observer: self) { [weak self] notification in
       pdfModel.prepareData()
       (self?.collectionView.collectionViewLayout as? PdfMenuLayout)?.forceUpdate = true
       self?.collectionView.collectionViewLayout.invalidateLayout()

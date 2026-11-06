@@ -1780,7 +1780,7 @@ extension FeederError {
         
         // Update the subscription status and attempt re-authentication
         TazAppEnvironment.sharedInstance.feederContext?.updateSubscriptionStatus { _ in
-          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator?.authenticate(with: nil)
         }
         return // Prevent default alert popup
 
@@ -1795,7 +1795,7 @@ extension FeederError {
         Log.debug("OLD Token: ...\((Defaults.singleton["token"] ?? "").suffix(20)) used: \(Defaults.singleton["token"] == gqlFeeder?.authToken) 4ses: \(gqlFeeder?.gqlSession?.authToken == gqlFeeder?.authToken)")
         
         let loginAction = UIAlertAction(title: "Anmelden", style: .default) { _ in ///OK/ABbrechen already has cancel 2 will crash
-          TazAppEnvironment.sharedInstance.feederContext?.authenticator.authenticate(with: nil)
+          TazAppEnvironment.sharedInstance.feederContext?.authenticator?.authenticate(with: nil)
         }
         additionalActions = [loginAction]
         // Log out and clear user data while keeping the app state

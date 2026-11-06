@@ -40,6 +40,7 @@ import NorthLib
 open class FeederContext: DoesLog, NotificationObserving {
   
   public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
@@ -69,20 +70,20 @@ open class FeederContext: DoesLog, NotificationObserving {
   /// URL of Feeder (as String)
   public var url: String
   /// Authenticator object
-  public var authenticator: Authenticator! {
+  public var authenticator: Authenticator? {
     didSet { setupPolling() }
   }
   /// The token for remote notifications
   public var pushToken: String?
   /// The GraphQL Feeder (from server)
-  public var gqlFeeder: GqlFeeder!{
+  public private(set) var gqlFeeder: GqlFeeder!{
     didSet {
       guard gqlFeeder != nil else { return }///required currently on reset
       self.dloader = Downloader(feeder: gqlFeeder)
       if authenticator == nil {
         authenticator = DefaultAuthenticator(feeder: gqlFeeder)
       } else {
-        authenticator.feeder = gqlFeeder
+        authenticator?.feeder = gqlFeeder
       }
     }
   }
@@ -435,7 +436,7 @@ open class FeederContext: DoesLog, NotificationObserving {
   /// Request authentication from Authenticator
   /// Authenticator will send Const.NotificationNames.authenticationSucceeded Notification if successful
   public func authenticate(with targetVC:UIViewController? = nil) {
-    authenticator.authenticate(with: targetVC)
+    authenticator?.authenticate(with: targetVC)
     Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded, observer: self) {[weak self] _ in
       self?.endPolling()
     }
@@ -695,6 +696,7 @@ open class FeederContext: DoesLog, NotificationObserving {
   /// if isRemove == true. Also all other resources are released.
   public func release(isRemove: Bool, onRelease: @escaping ()->()) {
     notify("feederRelease")
+    removeObservers()
     onMain(after: 0.5) { [weak self] in
       guard let self else { return }
       let feederDir = self.gqlFeeder?.dir
@@ -703,6 +705,9 @@ open class FeederContext: DoesLog, NotificationObserving {
       self.dloader?.release()
       self.dloader = nil
       self.closeDB()
+      self.endPolling()
+      authenticator?.feeder = nil
+      authenticator = nil
       if let dir = feederDir, isRemove {
         for f in dir.scan() { File(f).remove() }
       }

@@ -27,7 +27,11 @@ class TestView: SimpleLogView {
   }  
 }
 
-class TestController: PageCollectionVC {
+class TestController: PageCollectionVC, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   var feederContext: FeederContext!
   var feed: StoredFeed!
   var testDate = UsTime(iso: "2020-09-14", tz: "Europe/Berlin").date
@@ -77,7 +81,7 @@ class TestController: PageCollectionVC {
   
   // Load single overview issue of data 2020-09-14 and delete it 
   func testSingleOverview(result: @escaping (Bool)->()) {
-    Notification.receiveOnce("issueOverview") { notification in
+    Notification.receiveOnce("issueOverview", observer: self) { notification in
       if let issue = notification.content as? StoredIssue {
         self.debug("OVW \(issue)")
         guard self.checkIssueCount(1) else { result(false); return }
@@ -94,7 +98,7 @@ class TestController: PageCollectionVC {
   // Load single overview issue of data 2020-09-14 and overwrite it with demo issue 
   func testOverwriteOverview(result: @escaping (Bool)->()) {
     var issue: StoredIssue!
-    Notification.receiveOnce("issueOverview") { notification in
+    Notification.receiveOnce("issueOverview", observer: self) { notification in
       issue = notification.content as? StoredIssue
       guard self.check(issue != nil, "Invalid Notification") 
         else { result(false); return }
@@ -102,19 +106,19 @@ class TestController: PageCollectionVC {
       guard self.checkIssueCount(1) else { result(false); return }
       self.feederContext.getCompleteIssue(issue: issue, isAutomatically: false)
     }
-    Notification.receiveOnce("issue") { notification in
+    Notification.receiveOnce("issue", observer: self) { notification in
       issue = notification.content as? StoredIssue
       guard self.check(issue != nil, "Invalid Notification") 
         else { result(false); return }
       self.debug("Complete \(issue!)")
       guard self.checkIssueCount(1) else { result(false); return }      
       guard self.checkFileCount(145, inIssue: issue) else { result(false); return }
-      Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {_ in 
+      Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded, observer: self) {_ in 
         var gqlIssue: GqlIssue? = nil 
-        Notification.receiveOnce("gqlIssue", from: issue) { notification in
+        Notification.receiveOnce("gqlIssue", from: issue, observer: self) { notification in
           gqlIssue = notification.content as? GqlIssue
         }
-        Notification.receiveOnce("issue", from: issue) { notification in
+        Notification.receiveOnce("issue", from: issue, observer: self) { notification in
           guard self.checkIssueCount(1) else { result(false); return }      
           guard self.checkFileCount(178, inIssue: issue) else { result(false); return }
           if let gis = gqlIssue { result(self.checkFiles(from: gis, to: issue)) }
@@ -162,16 +166,16 @@ class TestController: PageCollectionVC {
     debug("Base directory: \(Dir.appSupportPath)")
     ArticleDB.dbRemove(name: "taz")
     self.feederContext = FeederContext(name: "taz", url: "https://dl.taz.de/appGraphQl")
-    Notification.receive("issueProgress") { notif in
+    Notification.receive("issueProgress", observer: self) { notif in
       if let (loaded,total) = notif.content as? (Int64,Int64) {
         print("issue progress: \(loaded)/\(total)")
       }        
     }
-    Notification.receive("resourcesProgress") { notification in
+    Notification.receive("resourcesProgress", observer: self) { notification in
       guard let (loaded, total) = notification.content as? (Int64,Int64) else {return }
       print("resource progress: \(loaded)/\(total)")
     }
-    Notification.receive("feederReady") { notification in 
+    Notification.receive("feederReady", observer: self) { notification in 
       guard let fctx = notification.sender as? FeederContext,
       let storedFeeder = fctx.storedFeeder else { return }
       self.feederContext = fctx
@@ -191,10 +195,10 @@ class TestController: PageCollectionVC {
         else { self.error("testSingleOverview failed") }
       } 
     }
-    Notification.receive(Const.NotificationNames.feederReachable) {_ in 
+    Notification.receive(Const.NotificationNames.feederReachable, observer: self) {_ in 
       self.debug("feeder is reachable")
     }
-    Notification.receive("feederNotReachable") {_ in 
+    Notification.receive("feederNotReachable", observer: self) {_ in 
       self.debug("feeder is not reachable")
     }
   }

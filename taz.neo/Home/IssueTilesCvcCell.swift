@@ -112,7 +112,7 @@ class IssueTilesCvcCell : IssueCollectionViewCell {
     $isHomeTiles.onChange{[weak self] _ in self?.updateButtonVisibillity() }
     updateButtonVisibillity()
     
-    Notification.receive("issueProgress", closure: {   [weak self] notif in
+    Notification.receive("issueProgress", observer: self, closure: {   [weak self] notif in
       guard let self = self else { return }
       guard let safeDate = self.data?.issue?.safeDate else { return }
       if (notif.object as? Issue)?.date != safeDate { return }

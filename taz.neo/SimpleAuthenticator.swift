@@ -11,7 +11,7 @@ import NorthLib
 public class SimpleAuthenticator: Authenticator {
   
   /// Ref to feeder providing Data 
-  public var feeder: GqlFeeder
+  public var feeder: GqlFeeder?
   /// Root view controller
   private lazy var rootVC: UIViewController? = {
     return TazAppEnvironment.sharedInstance.rootViewController
@@ -68,7 +68,7 @@ public class SimpleAuthenticator: Authenticator {
     withLoginData { [weak self] (id, password) in
       guard let self = self else { return }
       if let id = id, let password = password {
-        self.feeder.authenticate(account: id, password: password) { res in
+        self.feeder?.authenticate(account: id, password: password) { res in
           switch res {
             case .success(let token): 
               SimpleAuthenticator.storeUserData(id: id, password: password, 

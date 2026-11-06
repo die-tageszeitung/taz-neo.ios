@@ -9,7 +9,11 @@
 import UIKit
 import NorthLib
 
-class SubscriptionFormController : FormsController {
+class SubscriptionFormController : FormsController, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   var onMissingNameRequested:(()->())?
   
   private var contentView:SubscriptionFormView
@@ -49,7 +53,7 @@ class SubscriptionFormController : FormsController {
       subscriptionId = sid
     }
     
-    auth.feeder.subscriptionFormData(type: ui.formType,
+    auth.feeder?.subscriptionFormData(type: ui.formType,
                                      mail: ui.mailInput.text,
                                      surname: ui.lastName.text,
                                      firstName: ui.firstName.text,
@@ -93,10 +97,10 @@ class SubscriptionFormController : FormsController {
   }
   
   func setupDismissOnAccountReactivation(){
-    Notification.receive(Const.NotificationNames.removeLoginRefreshDataOverlay) {_ in
+    Notification.receive(Const.NotificationNames.removeLoginRefreshDataOverlay, observer: self) {_ in
       onMainAfter(1.7) {[weak self] in self?.dismiss() }
     }
-    Notification.receive(Const.NotificationNames.dismissExpiredForm) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.dismissExpiredForm, observer: self) {[weak self] _ in
       self?.dismiss()
     }
   }

@@ -10,8 +10,11 @@ import NorthLib
 import CoreGraphics
 import UIKit
 
-class SearchResultsTableView : UITableView, UIStyleChangeDelegate {
+class SearchResultsTableView : UITableView, UIStyleChangeDelegate, NotificationObserving{
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+
   var beginDragOffset:CGFloat?
   
   var searchClosure: (()->())?
@@ -157,7 +160,10 @@ extension SearchResultsTableView: UITableViewDataSource {
 }
 
 // MARK: - SearchResultsCell
-class SearchResultsCell: UITableViewCell {
+class SearchResultsCell: UITableViewCell, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   /// closure to call in case of error
   func onShare(closure:  ((GqlSearchHit, UIView)->())?) { _shareClosure = closure }
@@ -274,7 +280,7 @@ class SearchResultsCell: UITableViewCell {
     pin(bookmarkButton.centerY, to: dateLabel.centerY)
     pin(shareButton.centerY, to: dateLabel.centerY)
     
-    Notification.receive(Const.NotificationNames.bookmarkChanged) { [weak self] msg in
+    Notification.receive(Const.NotificationNames.bookmarkChanged, observer: self) { [weak self] msg in
       guard let art = msg.sender as? StoredArticle else { return }
       self?.updateBookmarkButton(for: art)
     }

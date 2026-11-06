@@ -251,6 +251,7 @@ class SearchController: UIViewController, UIStyleChangeDelegate {
   required init(feederContext: FeederContext) {
     self.feederContext = feederContext
     searchResultIssue = SearchResultIssue.shared
+    searchResultIssue.setup(with: feederContext)
     defaultSection = SearchSection(name: "Suche",
                                    issue: searchResultIssue,
                                    html: TmpFileEntry(name: "SearchTempSection.tmp"))

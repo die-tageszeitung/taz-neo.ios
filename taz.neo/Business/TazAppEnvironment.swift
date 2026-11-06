@@ -10,7 +10,10 @@ import NorthLib
 import UIKit
 import BackgroundTasks
 
-class TazAppEnvironment: NSObject, DoesLog {
+class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   var invalidUniversalLinkOpenPopup = false
   
@@ -98,8 +101,8 @@ class TazAppEnvironment: NSObject, DoesLog {
   lazy var consoleLogger = Log.Logger()
   public static let fileLogger = Log.FileLogger()
   var fileLogger:Log.FileLogger  {  Self.fileLogger }
-  var feederContext: FeederContext?
-  var service: IssueOverviewService?
+  var feederContext: FeederContext? { didSet { oldValue?.removeObservers() }}
+  var service: IssueOverviewService? { didSet { oldValue?.removeObservers() }}
   let net = NetAvailability()
   
   var authenticator: Authenticator? { return feederContext?.authenticator }
@@ -141,13 +144,13 @@ class TazAppEnvironment: NSObject, DoesLog {
   override init(){
     nextWindowSize = UIWindow.size
     super.init()
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       self?.goingBackground()
     }
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.goingForeground()
     }
-    Notification.receive(UIApplication.willTerminateNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willTerminateNotification, observer: self) { [weak self] _ in
       self?.appWillTerminate()
     }
     setup()
@@ -223,13 +226,21 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   func reset(isDelete: Bool = true) {
+    let oldRoot = rootViewController
     rootViewController = Spinner()
+    oldRoot.removeObserversRecursively()
+    oldRoot.dismiss(animated: false)
+    service = nil
+    
     feederContext?.release(isRemove: isDelete) { [weak self] in
       guard let self else { return }
+      Bookmarks.reinitialize()
+      Defaults.reinitialize()
+      CloudDefaults.reinitialize()
       self.feederContext = nil
       if isDelete { self.deleteData() }
         // TODO: reinitialize feederContext when this no longer crashes
-      self.setupFeeder(isStartup: true)
+      self.setupFeeder(isStartup: false)
 //      onMain(after: 2.0) {
 //        // until feederContext is removed properly
 //        exit(0)
@@ -283,7 +294,7 @@ class TazAppEnvironment: NSObject, DoesLog {
   func setupFeeder(isStartup: Bool = true) {
     let feeder = Defaults.currentFeeder
     log("Connecting to feeder: \(feeder.name)")
-    Notification.receiveOnce("feederReady") { [weak self] notification in
+    Notification.receiveOnce("feederReady", observer: self) { [weak self] notification in
       guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder?.toString() ?? "-")
       if isStartup { self.startup() }
@@ -374,7 +385,7 @@ class TazAppEnvironment: NSObject, DoesLog {
     }
     guard let selectedFeed = feederContext.selectedFeed as? StoredFeed else {
       log("StoredFeeder not ready!")
-      Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged){[weak self] _ in
+      Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged, observer: self){[weak self] _ in
         self?.showHome()
       }
       return

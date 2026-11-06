@@ -16,11 +16,11 @@ extension FeederContext {
   /// send
   func doPolling(_ fetchCompletionHandler: FetchCompletionHandler? = nil) {
     ///prevent login with another acount
-    if authenticator.feeder.authToken?.isEmpty == false {
+    if authenticator?.feeder?.authToken?.isEmpty == false {
       log("still logged in, prevent login with another acount")
       return
     }
-    authenticator.pollSubscription { [weak self] doContinue in
+    authenticator?.pollSubscription { [weak self] doContinue in
       ///No matter if continue or not, iusually activate account takes more than 30s
       ///so its necessary to call push fetchCompletionHandler after first attempt
       fetchCompletionHandler?(.noData)
@@ -51,7 +51,7 @@ extension FeederContext {
   
   /// Start Polling if necessary
   public func setupPolling() {
-    authenticator.whenPollingRequired { self.startPolling() }
+    authenticator?.whenPollingRequired { self.startPolling() }
     if let peStr = Defaults.singleton["pollEnd"]  {
       if self.isAuthenticated {
         endPolling()

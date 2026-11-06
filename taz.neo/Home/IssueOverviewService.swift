@@ -86,7 +86,10 @@ extension Date {
   }
 }
 
-class IssueOverviewService: NSObject, DoesLog {
+class IssueOverviewService: NSObject, DoesLog, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("isFacsimile")
   public var isFacsimile: Bool
@@ -685,35 +688,35 @@ class IssueOverviewService: NSObject, DoesLog {
     }
     
     ///Update downloaded Issue Reference
-    Notification.receive("issue"){ notif in
+    Notification.receive("issue", observer: self){ notif in
       guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)
     }
     ///Update downloaded Issue Reference
-    Notification.receive("issueStructure"){ notif in
+    Notification.receive("issueStructure", observer: self){ notif in
       guard notif.userInfo!["error"] is Error else { return }
       Notification.send("issueProgress",
                         content: DownloadStatusIndicatorState.notStarted,
                         sender: notif.object)
     }
     
-    Notification.receive("issueOverview") { [weak self] notif in
+    Notification.receive("issueOverview", observer: self) { [weak self] notif in
       self?.updateIssues()
     }
     
-    Notification.receive("issueDelete") { [weak self] notif in
+    Notification.receive("issueDelete", observer: self) { [weak self] notif in
       guard let issueDate = notif.content as? Date else { return }
       self?.issues[issueDate.issueKey] = nil
     }
     
-    Notification.receive(Const.NotificationNames.feederReachable) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.feederReachable, observer: self) {[weak self] _ in
       guard let self else { return }
       updateIssues()
     }
     
-    Notification.receive(Const.NotificationNames.selectedFeedChange) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.selectedFeedChange, observer: self) {[weak self] _ in
       guard let self else { return }
       log(">>> Feed Change from: \(oldFeedName) to \(feederContext.selectedFeed?.name ?? "-") current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
       

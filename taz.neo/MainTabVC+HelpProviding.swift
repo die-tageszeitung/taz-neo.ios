@@ -25,7 +25,7 @@ extension MainTabVC {
         dist: -7.0) //Const.Dist2.s5 m15???
     helpButton.onTapHelp { HelpBusiness.shared.openHelp()}
     helpButton.onDisableCurrentHelp { HelpBusiness.shared.disableCurrentHelp()}
-    Notification.receive(Const.NotificationNames.helpProviderChanged, closure: {[weak self] _ in
+    Notification.receive(Const.NotificationNames.helpProviderChanged, observer: self, closure: {[weak self] _ in
       self?.helpProviderChanged()
     })
   }

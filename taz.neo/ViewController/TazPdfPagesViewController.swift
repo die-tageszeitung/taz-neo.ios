@@ -82,7 +82,10 @@ public class ZoomedPdfPageImage: ZoomedPdfImage {
 
 // MARK: - TazPdfPagesViewController
 /// Provides functionallity to interact between PdfOverviewCollectionVC and Pages with PdfPagesCollectionVC
-open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate {
+open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, UIStyleChangeDelegate, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   @Default("autoHideToolbar")
   var autoHideToolbar: Bool
@@ -442,7 +445,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
     self.collectionView.backgroundColor = Const.SetColor.HomeBackground.dynamicColor
     registerForStyleUpdates()
     Rating.issueOpened()
-    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged) { [weak self] _ in
+    Notification.receive(Const.NotificationNames.audioPlaybackStateChanged, observer: self) { [weak self] _ in
       self?.updateAudioButtons()
     }
     

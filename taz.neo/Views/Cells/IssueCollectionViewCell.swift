@@ -9,7 +9,10 @@
 import UIKit
 import NorthLib
 
-class IssueCollectionViewCell: UICollectionViewCell {
+class IssueCollectionViewCell: UICollectionViewCell, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
 
   let momentView = MomentView()
   let emptyView = UIView()
@@ -38,7 +41,7 @@ class IssueCollectionViewCell: UICollectionViewCell {
     emptyView.layer.borderColor = UIColor.lightGray.cgColor
     pin(emptyView, to: momentView)
     
-    Notification.receive(Const.NotificationNames.issueUpdate) { [weak self] notification in
+    Notification.receive(Const.NotificationNames.issueUpdate, observer: self) { [weak self] notification in
       guard let selfKey = self?.data?.date.date.issueKey,
             let nData = notification.content as? IssueCellData,
             nData.date.date.issueKey == selfKey else { return }
