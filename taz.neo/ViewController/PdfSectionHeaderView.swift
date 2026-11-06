@@ -12,6 +12,10 @@ import UIKit
 import NorthLib
 
 class PdfSectionHeaderView: UICollectionReusableView {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   static let reuseIdentifier = "PdfSectionHeaderView"
   let label = UILabel()
   let dottedLine = DottedLineView()

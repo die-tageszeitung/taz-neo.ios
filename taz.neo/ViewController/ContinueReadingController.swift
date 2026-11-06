@@ -10,6 +10,10 @@ import UIKit
 import NorthLib
 
 class ContinueReadingController: UIViewController, UIStyleChangeDelegate, CanRotateFromUnderlying {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   func applyStyles() {
     bottomSheet?.color = Const.SetColor.taz(.popoverSheetBackground).color
     if Defaults.darkMode{

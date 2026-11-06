@@ -1346,6 +1346,13 @@ extension SettingsVC {
 
 // MARK: -
 class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit {
+    debug("XSettingsCell deinit \(self.textLabel?.text ?? "-")")
+    removeObservers()
+  }
+  
   var padding = 10.0
   var tapHandler:(()->())?
   var isDestructive: Bool = false
@@ -1375,10 +1382,6 @@ class XSettingsCell:UITableViewCell, UIStyleChangeDelegate {
   override var accessoryView: UIView? {
     set { self.customAccessoryView = newValue }
     get { return nil }//ensure custom layout
-  }
-  
-  deinit {
-    debug("XSettingsCell deinit \(self.textLabel?.text ?? "-")")
   }
   
   override func prepareForReuse() {
@@ -1590,6 +1593,9 @@ class SaveLastCountIssuesSettings: TextSizeSetting {
 // MARK: -
 class TextSizeSetting: CustomHStack, UIStyleChangeDelegate {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   let leftButton = Button<ImageView>()
   let rightButton = Button<ImageView>()
   let label = UILabel()
@@ -1662,6 +1668,9 @@ class CustomHStack: UIStackView {
 
 // MARK: -
 class SectionHeader: UIView, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   let label = UILabel()
   var chevron: UIImageView?

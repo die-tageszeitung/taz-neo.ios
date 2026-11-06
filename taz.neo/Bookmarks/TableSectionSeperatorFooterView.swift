@@ -15,6 +15,9 @@ import NorthLib
 /// A simple black/white line used as a separator between table sections.
 class TableSectionSeperatorFooterView: UITableViewHeaderFooterView, UIStyleChangeDelegate {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   // Reuse identifier for the view
   static let ReuseIdentifier = "TableSectionSeparatorFooterViewIdentifier"
   

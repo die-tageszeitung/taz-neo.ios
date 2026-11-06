@@ -11,6 +11,9 @@ import UIKit
 
 class SearchSettingsView: UITableView, UIStyleChangeDelegate {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   // MARK: *** Closures ***
   var propertyChanged: (()->())?
   
@@ -234,6 +237,10 @@ extension SearchSettingsView: UITableViewDelegate {
 }
 
 fileprivate class SimpleFooterView: UIView, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   func applyStyles() {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
   }
@@ -386,6 +393,10 @@ class RadioButtonCell: TazCell {
 
 /// A custom table view cell
 class TazCell: UITableViewCell, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   func applyStyles() {
     self.backgroundColor = Const.SetColor.ios(.systemBackground).color
   }
@@ -409,6 +420,10 @@ class TazCell: UITableViewCell, UIStyleChangeDelegate {
 // MARK: *** UIComponents ***
 /// A custom table view cell with TextInput
 class TazHeaderFooterView: UITableViewHeaderFooterView {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   var label: UILabel = UILabel()
   let chevron = UIImageView(image: UIImage(named: "chevron-up"))
   let chevronTapArea = UIView()
@@ -487,6 +502,9 @@ extension TazHeaderFooterView:UIStyleChangeDelegate{
 }
 
 class CustomRangeDatePickerView: UIView, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
   
   public let fromPicker = UIDatePicker()
   public let toPicker = UIDatePicker()

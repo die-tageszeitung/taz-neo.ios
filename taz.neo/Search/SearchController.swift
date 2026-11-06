@@ -11,6 +11,9 @@ import UIKit
 
 class SearchController: UIViewController, UIStyleChangeDelegate {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   // MARK: *** Properties ***
   var feederContext: FeederContext
   

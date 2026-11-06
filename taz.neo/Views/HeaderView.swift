@@ -12,6 +12,10 @@ enum TitleType { case bigLeft, article, section, section0, search  }
 
 /// The Header to show on top of sections and articles
 open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
+  
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   let maxOffset = 40.0
   
   private var beginScrollOffset: CGFloat?

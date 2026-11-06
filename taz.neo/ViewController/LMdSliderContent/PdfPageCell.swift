@@ -28,6 +28,9 @@ fileprivate extension UIImage {
 /// page cell displaying page image and page number
 class PdfPageCell: UICollectionViewCell, LMdSliderCell {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   var imageAspectConstraint: NSLayoutConstraint?
   
   @Default("isPdfPageMode")

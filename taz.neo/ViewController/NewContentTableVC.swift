@@ -446,6 +446,10 @@ extension NewContentTableVC: UITableViewDataSource,  UITableViewDelegate{
 }
 
 fileprivate class NewContentTableVcHeader: UIView, UIStyleChangeDelegate {
+  
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   func applyStyles() {
     self.backgroundColor = Const.SetColor.HBackground.color
     self.imageView.layer.shadowOpacity

@@ -14,6 +14,9 @@ import NorthLib
  */
 class TextSettingsVC: UIViewController, UIStyleChangeDelegate {
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   /// View responsible for text settings representation
   private var textSettings = TextSettingsView()
   

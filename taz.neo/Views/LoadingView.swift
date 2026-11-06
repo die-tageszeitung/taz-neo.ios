@@ -13,6 +13,9 @@ fileprivate var BottomFont = UIFont.boldSystemFont(ofSize: 18)
 
 open class LoadingView: UIView, UIStyleChangeDelegate {
   
+  public var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   private var stack = UIStackView()
   private var topLabel = UILabel()
   private var bottomLabel = UILabel()

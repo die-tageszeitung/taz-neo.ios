@@ -12,6 +12,9 @@ import NorthLib
 /// Tableview cell as section header to prevent section header stacking
 class BookmarkTableHeaderCell: UITableViewCell, UIStyleChangeDelegate{
   
+  var notificationObservers: [Notification.Observer] = []
+  deinit { removeObservers() }
+  
   static let ReuseIdentifier = "BookmarkTableHeaderViewIdentifier"
   
   var dateLabel: UILabel = UILabel()
