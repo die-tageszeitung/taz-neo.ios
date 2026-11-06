@@ -37,7 +37,9 @@ import NorthLib
    - resourcesProgress((bytesLoaded, totalBytes))
      Resource loading progress indicator
  */
-open class FeederContext: DoesLog {
+open class FeederContext: DoesLog, NotificationObserving {
+  
+  public var notificationObservers: [Notification.Observer] = []
   
   /// Number of seconds to wait until we stop polling for email confirmation
   let PollTimeout: Int64 = 25*3600
@@ -51,7 +53,13 @@ open class FeederContext: DoesLog {
     }
   }
   
-  var selectedFeedName:String? { storedFeeder?.selectedFeed?.name }
+  var selectedFeed: StoredFeed? {
+    didSet {
+      Notification.send(Const.NotificationNames.feedButtonsNeedUpdate)
+      Notification.send(Const.NotificationNames.selectedFeedChange)
+    }
+  }
+  var selectedFeedName:String? { selectedFeed?.name }
   var feedName:String? { masterFeed?.name }
 
   /// Name (title) of Feeder, base Dir in 
@@ -83,7 +91,15 @@ open class FeederContext: DoesLog {
   /// after app installation, this is `nil`. During initialization, it is ensured
   /// that at least one stored feeder is persisted and available before
   /// `feederReady` is sent and external resources can access it.
-  public private(set) var storedFeeder: StoredFeeder?
+  public private(set) var storedFeeder: StoredFeeder? {
+    didSet {
+      if storedFeeder == nil { return }
+      if selectedFeed == nil
+      || storedFeeder?.feeds.contains(where: { $0.feedId == selectedFeed!.feedId}) == false {
+        selectedFeed = storedFeeder?.masterFeed as? StoredFeed
+      }
+    }
+  }
   
   public var masterFeed: StoredFeed? { storedFeeder?.masterFeed as? StoredFeed }
   public var bookmarkFeed: StoredFeed? { storedFeeder?.bookmarkFeed as? StoredFeed }
@@ -155,7 +171,7 @@ open class FeederContext: DoesLog {
   }
   
   var latestPublicationDateForSelectedFeed:Date? {
-    return storedFeeder?.selectedFeed?.lastIssue
+    return selectedFeed?.lastIssue ?? masterFeed?.lastIssue
   }
   ///Shortcut
   var isConnected: Bool { netAvailability.isConnected }
@@ -192,11 +208,11 @@ open class FeederContext: DoesLog {
                                  token: DefaultAuthenticator.token)
     }
     
-    Notification.receive(UIApplication.willEnterForegroundNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
       self?.handleEnterForeground()
     }
     
-    Notification.receive(UIApplication.willResignActiveNotification) { [weak self] _ in
+    Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       UIApplication.shared.shortcutItems = Shortcuts.currentItems()
       self?.log("applicationWillResignActive: \(UIApplication.shared.stateDescription)")
     }
@@ -389,8 +405,8 @@ open class FeederContext: DoesLog {
           }
           
           if handleSignificantChanges {
-            Notification.send(Const.NotificationNames.feedChange)
-            Notification.send(Const.NotificationNames.feedButtonsChange)
+            Notification.send(Const.NotificationNames.feedButtonsNeedUpdate)
+            Notification.send(Const.NotificationNames.selectedFeedChange)
             Notification.send(Const.NotificationNames.feederChanged)
             log(">>>...handleSignificantChanges\(locallyIncompleteFeeds.count>0 ? "" : "WARNING locallyIncompleteFeeds is empty!")")
             ///locallyIncompleteFeeds should not be empty here, otherwise auto refresh did not work!
@@ -420,7 +436,7 @@ open class FeederContext: DoesLog {
   /// Authenticator will send Const.NotificationNames.authenticationSucceeded Notification if successful
   public func authenticate(with targetVC:UIViewController? = nil) {
     authenticator.authenticate(with: targetVC)
-    Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded) {[weak self] _ in
+    Notification.receiveOnce(Const.NotificationNames.authenticationSucceeded, observer: self) {[weak self] _ in
       self?.endPolling()
     }
   }

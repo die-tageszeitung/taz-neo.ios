@@ -86,6 +86,10 @@ class TazAppEnvironment: NSObject, DoesLog {
   
   public static var masterFeed: StoredFeed? { sharedInstance.feederContext?.masterFeed }
   public static var storedFeeder: StoredFeeder? { sharedInstance.feederContext?.storedFeeder }
+  public static var selectedFeed: StoredFeed? {
+    get {  sharedInstance.feederContext?.selectedFeed }
+    set {  sharedInstance.feederContext?.selectedFeed = newValue }
+  }
   
   public static let sharedInstance = TazAppEnvironment()
   ///shared startup info
@@ -198,10 +202,10 @@ class TazAppEnvironment: NSObject, DoesLog {
   }
   
   func appWillTerminate() {
-    if let masterFeed = TazAppEnvironment.storedFeeder?.masterFeed,
-       TazAppEnvironment.storedFeeder?.selectedFeed?.feedId != masterFeed.feedId {
-      TazAppEnvironment.storedFeeder?.selectedFeed = masterFeed
-    }
+//    if let masterFeed = TazAppEnvironment.storedFeeder?.masterFeed,
+//       TazAppEnvironment.selectedFeed?.feedId != masterFeed.feedId {
+//      TazAppEnvironment.selectedFeed = masterFeed
+//    }
     ArticleDB.save()//You have 5 Seconds!!
     debug("App is going to be terminated")
   }
@@ -225,11 +229,11 @@ class TazAppEnvironment: NSObject, DoesLog {
       self.feederContext = nil
       if isDelete { self.deleteData() }
         // TODO: reinitialize feederContext when this no longer crashes
-//      self.setupFeeder(isStartup: false)
-      onMain(after: 2.0) {
-        // until feederContext is removed properly
-        exit(0)
-      }
+      self.setupFeeder(isStartup: true)
+//      onMain(after: 2.0) {
+//        // until feederContext is removed properly
+//        exit(0)
+//      }
     }
   }
   
@@ -368,7 +372,7 @@ class TazAppEnvironment: NSObject, DoesLog {
       log("FeaderContextNot ready!")
       return
     }
-    guard let selectedFeed = feederContext.storedFeeder?.selectedFeed as? StoredFeed else {
+    guard let selectedFeed = feederContext.selectedFeed as? StoredFeed else {
       log("StoredFeeder not ready!")
       Notification.receiveOnce(Const.NotificationNames.publicationDatesChanged){[weak self] _ in
         self?.showHome()

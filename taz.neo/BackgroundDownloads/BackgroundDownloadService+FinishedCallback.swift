@@ -51,7 +51,7 @@ extension BackgroundDownloadService {
       log("...No DownloadData for url: \(downloadUrl). Audio or Resources Download")
       return
     }
-        
+    
     guard downloadData.isDownloaded == false else {
       log("⚠️WARNING: ...already downloaded, nothing to do")
       return
@@ -66,8 +66,8 @@ extension BackgroundDownloadService {
     
     ///** collect some environment
     guard let feederContext = feederContext,
-          let storedFeeder = feederContext.storedFeeder else {
-      log("⚠️ WARNING: no storedFeed available")
+          let masterFeed = feederContext.masterFeed else {
+      log("⚠️ WARNING: target feed available")
       return
     }
     
@@ -80,36 +80,31 @@ extension BackgroundDownloadService {
         log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         notify(issueDate: issue.date, finished: true)
-        guard let masterFeed = storedFeeder.masterFeed else { return }
         handlePendingTasks(in: masterFeed)
       }
       return
     }
     ///App Restarted by system!?
     log("...issue NOT FOUND in tempStorage, try to fetch from database")
-       
+    
     ///** lookup in Database#
     ensureMain {[weak self] in
-      if let issue = StoredIssue.get(baseUrl: serverBaseUrl,
-                                     inFeed: storedFeeder.masterFeed as! StoredFeed),
+      if let issue = StoredIssue.get(baseUrl: serverBaseUrl, inFeed: masterFeed),
          issue.isAutodownloading == true {
         self?.log("...found issue in databse: \(issue.date.short)")
         /// If auto-downloading is true, full data is available—not just overview data.
         self?.log("...set isAutodownloading compleete!")
         issue.setAutodownloadCompleete()
         self?.notify(issueDate: issue.date, finished: true)
-        guard let masterFeed = storedFeeder.masterFeed else { return }
         self?.handlePendingTasks(in: masterFeed)
         return
       }
       self?.log("issue not found in database, restore from JSON")
       ///** No valid Entry found, load from JSON ...in a detatched Task
       Task.detached { [weak self] in
-        guard let masterFeed = storedFeeder.masterFeed else { return }
-        await self?
-          .loadFromJsonAndFinish(feederContext: feederContext,
-                                 feed: masterFeed,
-                                 issueDateKey: downloadData.isoDateKey)
+        await self?.loadFromJsonAndFinish(feederContext: feederContext,
+                                          masterFeed: masterFeed,
+                                          issueDateKey: downloadData.isoDateKey)
       }
     }
   }
@@ -128,23 +123,19 @@ fileprivate extension BackgroundDownloadService {
   ///   - feederContext: The context containing configuration and access info for loading the feed.
   ///   - feedName: The name of the feed to load.
   ///   - issueDateKey: The key used to determine the relevant issue by date.
-  func loadFromJsonAndFinish(
-    feederContext: FeederContext,
-    feed: Feed,
-    issueDateKey: String
-  ) async {
+  func loadFromJsonAndFinish(feederContext: FeederContext, masterFeed: StoredFeed, issueDateKey: String) async {
     do {
-      let feed = try await loadFeedFromJsonFile(
+      let jsonFeed = try await loadFeedFromJsonFile(
         feederContext: feederContext,
-        feedName: feed.name,
+        feedName: masterFeed.name,
         issueDateKey: issueDateKey
       )
       
-      guard let issue = feed.issues?.first else {
+      guard let issue = jsonFeed.issues?.first else {
         throw BackgroundDownloadError("No issue found in feed.")
       }
       
-      if let publicationDates = feed.publicationDates {
+      if let publicationDates = jsonFeed.publicationDates {
         tempStorage.add(publicationDates)
       }
 #warning("CHECK: try")
@@ -152,8 +143,7 @@ fileprivate extension BackgroundDownloadService {
       log("...set isAutodownloading compleete!")
       issue.setAutodownloadCompleete()
       notify(issueDate: issue.date, finished: true)
-      handlePendingTasks(in: feed)
-      
+      handlePendingTasks(in: masterFeed)
     } catch {
       log("⚠️ Failed to process JSON for date \(issueDateKey): \(error)")
     }

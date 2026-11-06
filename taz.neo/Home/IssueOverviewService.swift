@@ -92,9 +92,9 @@ class IssueOverviewService: NSObject, DoesLog {
   public var isFacsimile: Bool
     
   internal var feederContext: FeederContext
-  var feed: StoredFeed? {
+  var selectedFeed: StoredFeed? {
     didSet {
-      oldFeedName = feed?.name ?? ""
+      oldFeedName = selectedFeed?.name ?? ""
     }
   }
   private var oldFeedName:String = ""
@@ -104,8 +104,8 @@ class IssueOverviewService: NSObject, DoesLog {
   public private(set) var publicationDates: [PublicationDate]
 //  private var falseRespondeDateKeys: [String] = [] ///Idea to save false responses to not do endless loops
   
-  public var firstIssueDate: Date { feed?.firstIssue ?? Date() }
-  public var lastIssueDate: Date { feed?.lastIssue ?? Date() }
+  public var firstIssueDate: Date { selectedFeed?.firstIssue ?? Date() }
+  public var lastIssueDate: Date { selectedFeed?.lastIssue ?? Date() }
   
   func issue(at date: Date) -> StoredIssue? {
     return issues[date.issueKey]
@@ -130,7 +130,7 @@ class IssueOverviewService: NSObject, DoesLog {
   /// - Returns: cell data if any with date, issue if locally available, image if locally available
   func cellData(for index: Int) -> IssueCellData? {
     guard let publicationDate = date(at: index),
-          let feed else {
+          let selectedFeed else {
       error("No Entry for: \(index), This should not be requested")
       return nil
     }
@@ -151,7 +151,7 @@ class IssueOverviewService: NSObject, DoesLog {
                          date: publicationDate,
                          issue: issue,
                          image: img,
-                         publicationCycle: feed.cycle,
+                         publicationCycle: selectedFeed.cycle,
                          downloadState: downloadState(for: issue)
     )
   }
@@ -258,7 +258,7 @@ class IssueOverviewService: NSObject, DoesLog {
   ///   - date: newest date to request from API
   ///   - count: additionally count of issues
   func apiLoadIssueOverview(for date: Date, count: Int) {
-    guard let feed else { return }
+    guard let selectedFeed else { return }
     self.debug("Start load Issues for: \(date.issueKey), count: \(count)")
     var count = count
     if count < 1 { count = 1 }
@@ -266,7 +266,7 @@ class IssueOverviewService: NSObject, DoesLog {
     var d = date
     var lds:[String] = []
         
-    for _ in 0...(count * feed.cycle.multiplicator) {
+    for _ in 0...(count * selectedFeed.cycle.multiplicator) {
       let key = d.issueKey
       //prevent load same issue multiple times
       let shouldLoad = loadingIssueDataQueue.sync {
@@ -281,9 +281,9 @@ class IssueOverviewService: NSObject, DoesLog {
     
     if lds.count == 0 { return }//prevent multiple times enqueued same item
     
-    count = max(1, lds.count/feed.cycle.multiplicator)//prevent load same issue multiple times
+    count = max(1, lds.count/selectedFeed.cycle.multiplicator)//prevent load same issue multiple times
     
-    self.feederContext.gqlFeeder.issues(feed: feed,
+    self.feederContext.gqlFeeder.issues(feed: selectedFeed,
                                         date: date,
                                         count: count,
                                         isOverview: true,
@@ -305,7 +305,7 @@ class IssueOverviewService: NSObject, DoesLog {
         var loadedDates:[Date] = []
         let start = Date()
         for issue in issues {
-          let si = StoredIssue.get(date: issue.date, inFeed: feed)
+          let si = StoredIssue.get(date: issue.date, inFeed: selectedFeed)
           if let sIssue = si.first {
             ///Do not update maybe full issue with overview version!
 //            if sIssue.isComplete {
@@ -319,9 +319,7 @@ class IssueOverviewService: NSObject, DoesLog {
           else {
             (issue as? GqlIssue)?.isOverview = true
             let sIssue = StoredIssue.persist(object: issue)
-            if let sFeeder = TazAppEnvironment.storedFeeder {
-              sIssue.applyFeeds(for: sFeeder)
-            }
+            sIssue.assignFeeds(for: selectedFeed)
             newIssues.append(sIssue)
           }
           loadedDates.append(issue.date)
@@ -437,7 +435,7 @@ class IssueOverviewService: NSObject, DoesLog {
   }
   
   func notifyIssueOwvAvailable(issue:StoredIssue, key: String){
-    guard let feed else { return }
+    guard let selectedFeed else { return }
     removeFromLoadFromRemote(key:key)
     guard let pDate = publicationDates.first(where: { $0.date == issue.date }) else {
       error("Not found the given Publication Date. This Should not happen!")
@@ -450,7 +448,7 @@ class IssueOverviewService: NSObject, DoesLog {
                              date: pDate,
                              issue: issue,
                              image: img,
-                             publicationCycle: feed.cycle,
+                             publicationCycle: selectedFeed.cycle,
                              downloadState: downloadState(for: issue))
     Notification.send(Const.NotificationNames.issueUpdate,
                       content: data)
@@ -475,7 +473,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return false
     }
     #endif
-    guard let feed else { return false }
+    guard let selectedFeed else { return false }
     // guard reentry
     guard !isReloadingPublicationDates else {
       debug("reloadPublicationDates: already reloading -> skip")
@@ -489,7 +487,7 @@ class IssueOverviewService: NSObject, DoesLog {
       return result
     }
     
-    guard let newPubDates = feed.publicationDates else {
+    guard let newPubDates = selectedFeed.publicationDates else {
       return finishAndReturn(false)
     }
     
@@ -638,12 +636,12 @@ class IssueOverviewService: NSObject, DoesLog {
   }
     
   func updateIssues(){
-    guard let feed else { return }
+    guard let selectedFeed else { return }
     issues =
-    (feed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
+    (selectedFeed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
       $0[$1.date.issueKey] = $1
     } ?? [:]
-    if (feed.publicationDates?.count ?? -1) > self.publicationDates.count {
+    if (selectedFeed.publicationDates?.count ?? -1) > self.publicationDates.count {
       _ = reloadPublicationDates(refresh: nil, verticalCv: false)
     }
   }
@@ -664,7 +662,7 @@ class IssueOverviewService: NSObject, DoesLog {
   /// Initialize with FeederContext
   public init(feederContext: FeederContext, selectedFeed: StoredFeed) {
     self.feederContext = feederContext
-    self.feed = selectedFeed
+    self.selectedFeed = selectedFeed
     self.publicationDates = selectedFeed.publicationDates ?? []
     issues =
     (selectedFeed.issues as? [StoredIssue])?.reduce(into: [String: StoredIssue]()) {
@@ -715,13 +713,12 @@ class IssueOverviewService: NSObject, DoesLog {
       updateIssues()
     }
     
-    Notification.receive(Const.NotificationNames.feedChange) {[weak self] _ in
-      guard let self,
-            let storedFeeder = feederContext.storedFeeder else { return }
-      log(">>> Feed Change from: \(oldFeedName) to \(storedFeeder.selectedFeed?.name ?? "-") current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
+    Notification.receive(Const.NotificationNames.selectedFeedChange) {[weak self] _ in
+      guard let self else { return }
+      log(">>> Feed Change from: \(oldFeedName) to \(feederContext.selectedFeed?.name ?? "-") current iss#:\(issues.count) pb#: \(self.publicationDates.count)")
       
-      feed = storedFeeder.selectedFeed as? StoredFeed
-      publicationDates = feed?.publicationDates ?? []
+      self.selectedFeed = feederContext.selectedFeed
+      publicationDates = self.selectedFeed?.publicationDates ?? []
       updateIssues()
       log(">>>..now iss#:\(issues.count) pb#: \(self.publicationDates.count)")
       Notification.send(Const.NotificationNames.refreshOverview)

@@ -1500,7 +1500,17 @@ open class GqlFeeder: Feeder, DoesLog {
     let wasAuthenticated: Bool = authToken != nil
     let request = FeedRequest.request(feedName: feed.name, date: date, key: key,
                                       count: count, isOverview: isOverview, latestKnownPublicationDate: latestKnownPublicationDate)
-    //debug("request \(request)")    
+    let params = """
+            :::feedWithIssues passed params :::
+      feedname: \(feed.name) 
+      date: \(date?.short ?? "-") 
+      key: \(key ?? "nil") 
+      count:\(count) 
+      isOverview: \(isOverview)
+      latestKnownPublicationDate: \(latestKnownPublicationDate?.short ?? "-")
+      """
+    debug(params)
+    debug("request \(request)")
     gqlSession.query(graphql: request,
       type: [String:FeedRequest].self, returnOnMain: returnOnMain) {[weak self]  (res, data) in
       self?.log("Request done with return on main?: \(returnOnMain) isBg  \(isBackGround)")

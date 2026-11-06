@@ -31,8 +31,8 @@ extension FeederContext {
   /// Download complete Payload of Issue
   func downloadCompleteIssue(issue: StoredIssue, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)")
-    guard let issueProviderFeed = storedFeeder?.issueProviderFeed else {
-      log("Error cannot download: no issueProviderFeed")
+    guard let issueProviderFeed = selectedFeed else {
+      log("Error cannot download: currently no selectedFeed")
       return
     }
     markStartDownload(feed: issueProviderFeed, issue: issue, isAutomatically: isAutomatically) { (dlId, tstart) in
@@ -84,7 +84,7 @@ extension FeederContext {
 
     if issue.isDownloading
         || TazAppEnvironment.isDownloading(issue.date.ISO8601) {
-      Notification.receiveOnce("issue", from: issue) { [weak self] notif in
+      Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
         self?.getCompleteIssue(issue: issue, isPages: isPages, isAutomatically: isAutomatically, force: force, withAudio: withAudio)
       }
       log("not downloading twice, due active download")
@@ -97,7 +97,7 @@ extension FeederContext {
       return
     }
     TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
-    if self.isConnected, let issueProviderFeed = storedFeeder?.issueProviderFeed {
+    if self.isConnected, let selectedFeed = selectedFeed {
       let requestAutoloadPDF ///Request autodownload pdf if required
       = isPages == true ///only for PDF Downloads
       && autoloadPdf == false ///if autoloadPdf is disabled
@@ -105,7 +105,7 @@ extension FeederContext {
       && true ///PDF not loaded yet; guard statement above
       && needsUpdate(issue: issue, toShowPdf: false) == false///"App Ansicht" already downloaded => no update for app ansicht needed
       log("fetch issue: \(issue.date.short)")
-      gqlFeeder.issues(feed: issueProviderFeed,
+      gqlFeeder.issues(feed: selectedFeed,
                        date: issue.date,
                        key: issue.key,
                        count: 1,
@@ -130,7 +130,7 @@ extension FeederContext {
           issue.versionLocal = issue.versionRemote
           issue.isAudioComplete = withAudio && res.error() == nil
           ArticleDB.save()
-          Notification.receiveOnce("resourcesReady") { _ in
+          Notification.receiveOnce("resourcesReady", observer: self) { _ in
             ///Not errorNotificationMessage here!
             Notification.send("issueStructure", result: .success(issue), sender: issue)
           }
@@ -240,7 +240,7 @@ extension FeederContext {
   /// Download Issue files and resources if necessary
   private func downloadIssue(issue: StoredIssue, isComplete: Bool = false, isAutomatically: Bool) {
     self.debug("isConnected: \(isConnected) isAuth: \(isAuthenticated)\(Defaults.expiredAccount ? " Expired!" : "") isComplete: \(isComplete) issueDate: \(issue.date.short) isDownloading: \(issue.isDownloading)")
-    Notification.receiveOnce("resourcesReady") { [weak self] err in
+    Notification.receiveOnce("resourcesReady", observer: self) { [weak self] err in
       guard let self = self else { return }
       self.dloader.createIssueDir(issue: issue)
       if self.isConnected {

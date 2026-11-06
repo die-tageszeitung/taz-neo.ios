@@ -72,7 +72,7 @@ extension BackgroundDownloadService {
     
     if isPush == false &&
         Self.shared.isLastFullyDownloadedIssueOutdated == false {
-      Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
+      Self.shared.log("...static checkForNewIssue skipped, last fully downloaded issue is current from: \(Self.shared.lastFullyDownloadedIssueDate?.short ?? "-")")
       fetchCompletionHandler?(.noData)
       ///maybe enqueued not downloaded, not saved to db
       Self.shared.handlePendingTasks(in: feed)//persist stuff

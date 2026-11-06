@@ -19,7 +19,12 @@ class BackgroundDownloadsTempStorage: DoesLog {
 
   // MARK: - Internal Data
   
-  fileprivate var publicationDates: [PublicationDate] = []
+  fileprivate var publicationDates: [PublicationDate] = [] {
+    didSet {
+      log("set \(publicationDates.count)")
+      _ = ""
+    }
+  }
   fileprivate var issues: [Issue] = []
 
   // MARK: - Queues
@@ -154,13 +159,13 @@ extension BackgroundDownloadService {
   }
   
   /// execute tasks that need to be performed to persist data, generate facsimile or inform UI
-  func handlePendingTasks(in masterFeed: Feed) {
+  func handlePendingTasks(in masterFeed: StoredFeed) {
     ensureMain { [weak self] in
       self?.handlePendingTasksOnMain(in: masterFeed)
     }
   }
   
-  private func handlePendingTasksOnMain(in masterFeed: Feed) {
+  private func handlePendingTasksOnMain(in masterFeed: StoredFeed) {
     log("handlePendingTasks")
     
     let finishedStoredIssues = persistCurrentIssues(in: masterFeed)
@@ -237,7 +242,7 @@ extension BackgroundDownloadService {
   /// - Marks the database as needing to be saved if any issues were processed.
   ///
   /// - Returns: An array of completed (finished) `StoredIssue` instances.
-  private func persistCurrentIssues(in feed: Feed) -> [StoredIssue] {
+  private func persistCurrentIssues(in feed: StoredFeed) -> [StoredIssue] {
     log("wait for persistCurrentIssues...")
     return self.tempStorage.issuesQueue.sync(flags: .barrier) { [weak self] in
       
@@ -249,7 +254,7 @@ extension BackgroundDownloadService {
       var unfinishedIssues = [StoredIssue]()
       
       for issue in tempStorage.issues {
-        let storedIssue = persistIssue(issue: issue)
+        let storedIssue = persistIssue(issue: issue, in: feed)
         
         if storedIssue.isComplete {
           finishedIssues.append(storedIssue)
@@ -278,7 +283,7 @@ extension BackgroundDownloadService {
   ///
   /// - Parameter issue: The `Issue` object to persist, which may or may not already be a `StoredIssue`.
   /// - Returns: The corresponding `StoredIssue` instance, newly created or updated.
-  private func persistIssue(issue: Issue) -> StoredIssue {
+  private func persistIssue(issue: Issue, in feed: StoredFeed) -> StoredIssue {
     if issue is StoredIssue {
       log("Updating persisted issue: (\(issue.date.short))")
     } else {
@@ -286,10 +291,7 @@ extension BackgroundDownloadService {
     }
     
     let storedIssue = issue as? StoredIssue ?? StoredIssue.persist(object: issue)
-    
-    if let storedFeeder = TazAppEnvironment.storedFeeder{
-      storedIssue.applyFeeds(for: storedFeeder)
-    }
+    storedIssue.assignFeeds(for: feed)
     
     if storedIssue.payload.downloadStarted == nil {
       if let startTime = getDownloadData(forDateKey: storedIssue.date.ISO8601)?.startTime {
@@ -311,7 +313,7 @@ extension BackgroundDownloadService {
       if storedIssue.payload.downloadStopped == nil {
         storedIssue.pr.payload?.downloadStopped = Date()
       }
-      if let feed = TazAppEnvironment.storedFeeder?.selectedFeed {
+      if let feed = TazAppEnvironment.selectedFeed {
         storedIssue.fixMoTime(feed: feed)
       }
       

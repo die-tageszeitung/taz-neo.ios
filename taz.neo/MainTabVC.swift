@@ -291,19 +291,19 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
     }
   }
   
-  func switchToMasterFeed() {
-    TazAppEnvironment.storedFeeder?.selectedFeed
-    = TazAppEnvironment.storedFeeder?.masterFeed
-    Notification.send(Const.NotificationNames.feedChange)
-    Notification.send(Const.NotificationNames.feedButtonsChange)
-  }
+//  func switchToMasterFeed() {
+//    TazAppEnvironment.selectedFeed
+//    = TazAppEnvironment.storedFeeder?.masterFeed
+//    Notification.send(Const.NotificationNames.feedChange)
+//    Notification.send(Const.NotificationNames.feedButtonsChange)
+//  }
   
   func gotoArticleInIssue(with data: UniversalLinkOpenIssueData){
-    guard TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster == true else {
-      switchToMasterFeed()
-      onMainAfter {[weak self] in self?.gotoArticleInIssue(with: data) }
-      return
-    }
+//    guard TazAppEnvironment.selectedFeed?.isMaster == true else {
+//      switchToMasterFeed()
+//      onMainAfter {[weak self] in self?.gotoArticleInIssue(with: data) }
+//      return
+//    }
     
     log("open issue with date: \(data.issueDate.short) on \(data.articleCID == nil ? "" : "Article: \(data.articleCID!)") \(data.pageID == nil ? "" : "Page with ID: \(data.pageID!)") \(data.sectionCID == nil ? "" : "Section with ID: \(data.sectionCID!)"))")
     
@@ -484,11 +484,11 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate {
   }
   
   func gotoIssue(at date: Date?, openUrlIfNotFound: URL? = nil, animated: Bool = true){
-    guard TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster == true else {
-      switchToMasterFeed()
-      onMainAfter {[weak self] in self?.gotoIssue(at: date, openUrlIfNotFound: openUrlIfNotFound)}
-      return
-    }
+//    guard TazAppEnvironment.selectedFeed?.isMaster == true else {
+//      switchToMasterFeed()
+//      onMainAfter {[weak self] in self?.gotoIssue(at: date, openUrlIfNotFound: openUrlIfNotFound)}
+//      return
+//    }
 
     selectedIndex = 0
 

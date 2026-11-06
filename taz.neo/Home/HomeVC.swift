@@ -185,6 +185,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   }()
   
   func onHome(){
+    guard service.publicationDates.count > 0 else { return }
     collectionView.scrollToItem(at: IndexPath(row: 0, section: 0),
                                 at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
                                 animated: true)
@@ -200,7 +201,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
 
     datePicker.maximumDate = Date()
     
-    datePicker.minimumDate = feederContext.storedFeeder?.selectedFeed?.firstIssue ?? Date()
+    datePicker.minimumDate = feederContext.selectedFeed?.firstIssue ?? Date()
     datePicker.date = service.date(at: carousselFixCenterIndex ?? 0)?.date ?? Date()
     
     self.view.addSubview(wrapper)
@@ -528,7 +529,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
       self?.updateButtonMenu()
     }
        
-    Notification.receive(Const.NotificationNames.feedButtonsChange) {[weak self] _ in
+    Notification.receive(Const.NotificationNames.selectedFeedChange) {[weak self] _ in
       self?.handleFeedChange()
       self?.updateButtonMenu()
     }
@@ -676,7 +677,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
   func scrollTo(_ index: Int, animated:Bool? = nil){
     guard collectionView.numberOfItems(inSection: 0) > index else {
       guard !didShowNoIssuesError else { return }
-      let masterFeedSelected = TazAppEnvironment.storedFeeder?.selectedFeed?.isMaster ?? false
+      let masterFeedSelected = TazAppEnvironment.selectedFeed?.isMaster ?? false
       && TazAppEnvironment.storedFeeder?.feeds.count ?? 0 > 1
       let changeFeed =  masterFeedSelected  ? "" : "\nFalls das Problem weiterhin besteht, können Sie auch die Auswahl der Publikationen im Darstellungs-Menü ändern."
       let message = "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.\(changeFeed)"
@@ -788,15 +789,15 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate {
     var filterActions: [UIAction] = []
     for feed in TazAppEnvironment.storedFeeder?.selectableFeeds ?? [] {
       let state: UIMenuElement.State
-      = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed?.feedId
+      = feed.feedId == TazAppEnvironment.selectedFeed?.feedId
       ? .on
       : .off
       
       let action = UIAction(title: feed.displayName, state: state) {[weak self] _ in
         let visibleDate = self?.dateForFeedSwitch
-        TazAppEnvironment.storedFeeder?.selectedFeed = feed
-        Notification.send(Const.NotificationNames.feedChange)
-        Notification.send(Const.NotificationNames.feedButtonsChange)
+        if let tappedFeed = feed as? StoredFeed {
+          TazAppEnvironment.selectedFeed = feed as? StoredFeed
+        }
         self?.updateButtonMenu()
         guard let visibleDate,
               let newIdx = self?.service.nextIndex(for: visibleDate) else { return }

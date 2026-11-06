@@ -662,8 +662,10 @@ public final class StoredPayload: StoredObject, Payload {
   }
   
   public static func get(object: Payload) -> StoredPayload? {
-    if let issue = object.issue {
-      return StoredIssue.get(object: issue)?.storedPayload
+    if let issue = object.issue,
+       let masterFeed = TazAppEnvironment.sharedInstance.feederContext?.selectedFeed
+        ?? (issue as? StoredIssue)?.masterFeed as? StoredFeed {
+      return StoredIssue.get(object: issue, inFeed: masterFeed)?.storedPayload
     }
     if let res = object.resources {
       return StoredResources.get(object: res)?.storedPayload
@@ -2035,9 +2037,11 @@ public final class StoredIssue: Issue, StoredObject {
   
   public static var entity = "Issue"
   public var pr: PersistentIssue // persistent record
-  public var masterFeed: Feed? {
-    feeds.compactMap { $0.feeder as? StoredFeeder }.first?.masterFeed
-  }
+//  public var masterFeed: Feed? {///jede issue hat den masterFeed! d.h. bei db kaputt wurden evtl. lmd der taz zugeordnet ...oder andersherum
+//    feeds.compactMap { $0.feeder as? StoredFeeder }.first?.masterFeed
+//  }
+  var masterFeed: Feed? { feeds.first { $0.isMaster }}
+  
   public var feeds: [Feed] {
       var feeds = [Feed]()
       for case let pFeed as PersistentFeed in pr.feeds ?? [] {
@@ -2357,8 +2361,8 @@ public final class StoredIssue: Issue, StoredObject {
   }
   
   public static func get(object: Issue) -> StoredIssue? {
-    if let issueFeed = TazAppEnvironment.storedFeeder?.issueProviderFeed {
-      return get(object: object, inFeed: issueFeed)
+    if let selectedFeed = TazAppEnvironment.sharedInstance.feederContext?.selectedFeed {
+      return get(object: object, inFeed: selectedFeed)
     }
     else { return nil }
   }
@@ -2974,21 +2978,6 @@ public final class StoredFeeder: Feeder, StoredObject {
     return feeds.first{ $0.type == .bookmarkFeed }
   }
   
-  public var selectedFeed: Feed? {
-    get {
-      if let prFeed = pr.selectedFeed {
-        return StoredFeed(persistent: prFeed)
-      }
-      return masterFeed
-    }
-    set {
-      guard let newValue else { pr.selectedFeed = nil; return }
-      if let sfeed = StoredFeed.get(object: newValue) {
-        pr.selectedFeed = sfeed.pr
-      }
-    }
-  }
-
   public required init(persistent: PersistentFeeder) { self.pr = persistent }
   
   /// Overwrite the persistent values
@@ -3049,81 +3038,45 @@ public final class StoredFeeder: Feeder, StoredObject {
   
 } // StoredFeeder
 
-extension StoredFeeder {
-  /// The feed used to provide issues for remote fetching
-  /// and local Core Data lookups.
-  ///
-  /// For full-issue feeds, the master feed is used as the provider,
-  /// regardless of which full-issue feed was selected.
-  /// This ensures that issues can be fetched and found consistently
-  /// across full-issue feeds.
-  ///
-  /// For master and partiallyIssue feeds, the selected feed
-  /// is used directly. PartiallyIssue feeds provide feed-specific
-  /// content that may not be available in the master feed,
-  /// e.g. an LMd issue containing only LMd sections.
-  ///
-  /// This feed is used as the source for both remote API requests
-  /// and local database lookups. It does not define the exclusive
-  /// feed membership of an issue.
-  public var issueProviderFeed: StoredFeed? {
-      if selectedFeed?.type == .fullIssue {
-          return masterFeed as? StoredFeed
-      }
-
-      return selectedFeed as? StoredFeed
-  }
-}
 
 extension StoredIssue {
-  /// Associates this issue with the feeds determined by the feeder.
+
+  /// Associates this issue with all of its feeds.
   ///
-  /// Full issues are associated with both the selected feed and
-  /// the master feed. Other issue types are associated only with
-  /// the selected feed.
+  /// The issue is always associated with the feed it was downloaded from.
+  /// Full issues are additionally associated with the master feed.
+  /// Weekend issues are also associated with the "taz-weekly" feed,
+  /// if it exists and is a fullIssue feed.
   ///
-  /// Weekend issues are additionally associated with the
-  /// "taz-weekly" feed, if it exists and is a fullIssue feed.
+  /// Duplicate feeds are avoided using their FeedId
+  /// Missing optional feeds are simply ignored.
   ///
-  /// Missing feeds are ignored, e.g. if they have been removed
-  /// concurrently. If no applicable feeds are available, the issue
-  /// remains without feed associations.
-  ///
-  /// - Parameter feeder: The feeder used to determine the target feeds.
-  func applyFeeds(for feeder: StoredFeeder) {
-    var feeds = persistingFeeds(for: feeder)
-    
+  /// - Parameter downloadWithFeed: The feed from which the issue was downloaded.
+  func assignFeeds(for downloadWithFeed: StoredFeed) {
+    var feeds: [StoredFeed] = [downloadWithFeed]
+
+    let feeder = downloadWithFeed.feeder
+
+    // Full issues are also associated with the master feed.
+    if downloadWithFeed.type == .fullIssue,
+       let masterFeed = feeder.masterFeed as? StoredFeed,
+       !feeds.contains(where: { $0.feedId == masterFeed.feedId }) {
+      feeds.append(masterFeed)
+    }
+
+    // Weekend issues are additionally associated with the weekly feed.
     if isWeekend,
        let weeklyFeed = feeder.feeds.first(where: {
          $0.type == .fullIssue && $0.name == "taz-weekly"
-       }) as? StoredFeed {
+       }) as? StoredFeed,
+       !feeds.contains(where: { $0.feedId == weeklyFeed.feedId }) {
       feeds.append(weeklyFeed)
     }
-    
+
+    // Establish the Core Data relationships.
     for feed in feeds {
       feed.pr.addToIssues(pr)
-      pr.addToFeeds(feed.pr)
       log(">>>> add issue \(date.short) to feed \(feed.name)")
     }
-  }
-  
-  /// Determines the feeds this issue should be associated with.
-  ///
-  /// Full issues belong to both the selected feed and the master feed.
-  /// All other issue types belong only to the selected feed.
-  private func persistingFeeds(for feeder: StoredFeeder) -> [StoredFeed] {
-    guard let selected = feeder.selectedFeed as? StoredFeed else {
-      return []
-    }
-    
-    guard selected.type == .fullIssue else {
-      return [selected]
-    }
-    
-    guard let master = feeder.masterFeed as? StoredFeed else {
-      return [selected]
-    }
-    
-    return [master, selected]
   }
 }

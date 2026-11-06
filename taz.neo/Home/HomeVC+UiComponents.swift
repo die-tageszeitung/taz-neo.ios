@@ -48,7 +48,7 @@ extension HomeVC {
       let currentTitles = feederContext.storedFeeder?.feeds.compactMap { $0.displayName } ?? []
       
       guard Set(buttonTitles) == Set(currentTitles),
-        let selectedFeedName = feederContext.storedFeeder?.selectedFeed?.displayName,
+        let selectedFeedName = feederContext.selectedFeed?.displayName,
             buttonTitles.contains(selectedFeedName) else {
         exchangeFeedSwitchGroup()
         return
@@ -99,7 +99,7 @@ extension HomeVC {
     stackView.spacing = 16
     
     for feed in feeds {
-      let isSelected = feed.feedId == TazAppEnvironment.storedFeeder?.selectedFeed?.feedId
+      let isSelected = feed.feedId == TazAppEnvironment.selectedFeed?.feedId
       
       var configuration = UIButton.Configuration.plain()
       configuration.title = feed.displayName
@@ -123,12 +123,14 @@ extension HomeVC {
         UIAction { [weak self, weak stackView] _ in
           let visibleDate = self?.dateForFeedSwitch
           
-          if TazAppEnvironment.storedFeeder?.selectedFeed?.displayName == feed.displayName {
+          if TazAppEnvironment.selectedFeed?.displayName == feed.displayName {
             self?.onHome()
             return
           }
           
-          TazAppEnvironment.storedFeeder?.selectedFeed = feed
+          if let tappedFeed = feed as? StoredFeed {
+            TazAppEnvironment.selectedFeed = feed as? StoredFeed
+          }
           
           // Auswahl aktualisieren
           stackView?.arrangedSubviews
@@ -142,9 +144,6 @@ extension HomeVC {
               config.baseForegroundColor = selected ? .white : .systemGray
               button.configuration = config
             }
-          
-          Notification.send(Const.NotificationNames.feedChange)
-          Notification.send(Const.NotificationNames.feedButtonsChange)
           
           guard let visibleDate,
                 let newIdx = self?.service.nextIndex(for: visibleDate) else { return }

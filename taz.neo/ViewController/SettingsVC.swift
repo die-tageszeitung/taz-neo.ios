@@ -81,7 +81,7 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate {
   var currentFilterSelection: FilterSelection {
     didSet {
       guard oldValue != currentFilterSelection else { return }
-      Notification.send(Const.NotificationNames.feedButtonsChange)
+      Notification.send(Const.NotificationNames.selectedFeedChange)
     }
   }
   
