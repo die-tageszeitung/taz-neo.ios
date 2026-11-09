@@ -507,8 +507,8 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
   func setupSlider(sliderContent:UIViewController){
     slider = MyButtonSlider(slider: sliderContent, into: self)
     guard let slider = slider else { return }
-    let logo = App.isTAZ ? "logo" : "logoLMD"
-    slider.setImage( UIImage(named: logo),
+    let logo = App.isTAZ ? "BurgerMenu" : "logoLMD"
+    slider.setImage( UIImage(named: logo)?.withTintColor(.white, renderingMode: .alwaysOriginal),
                       menuImage: UIImage(named: "BurgerMenu")?.withTintColor(.white, renderingMode: .alwaysOriginal),
                       closeImage: UIImage(named: "closeX")?.withTintColor(.white, renderingMode: .alwaysOriginal))
     slider.button.accessibilityLabel = "Inhalt"
