@@ -239,12 +239,7 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
       CloudDefaults.reinitialize()
       self.feederContext = nil
       if isDelete { self.deleteData() }
-        // TODO: reinitialize feederContext when this no longer crashes
       self.setupFeeder(isStartup: false)
-//      onMain(after: 2.0) {
-//        // until feederContext is removed properly
-//        exit(0)
-//      }
     }
   }
   
