@@ -212,14 +212,14 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
     if isLoadingIssueInBackground { return }
     isLoadingIssueInBackground = true
     let snap = UIWindow.activeKeyWindow?.snapshotView(afterScreenUpdates: false)
-    
+    #warning("TODO: IMPROVE for App Links & Downloads")
     WaitingAppOverlay.show(alpha: 1.0,
                            backbround: snap,
                            showSpinner: true,
                            titleMessage: "Aktualisiere Daten",
                            bottomMessage: message,
                            dismissNotification: Const.NotificationNames.removeRefreshDataOverlay)
-    onMainAfter(7.0) {[weak self] in
+    onMainAfter(12.0) {[weak self] in
       Notification.send(Const.NotificationNames.removeRefreshDataOverlay)
       self?.isLoadingIssueInBackground = false
     }
