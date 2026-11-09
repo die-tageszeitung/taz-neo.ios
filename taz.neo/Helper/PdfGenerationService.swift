@@ -151,9 +151,13 @@ class PdfGenerationService: DoesLog {
       }
     }
     
+    if let title = (article as? StoredArticle)?.firstValidSectionTitle {
+      renderer.headerText = "• \(title) •"
+    }
+    
     // Define A4 page size and margins.
     let pageSize = CGSize(width: 595.2, height: 841.8) // A4 at 72 DPI
-    let margin = UIEdgeInsets(top: 30, left: 30, bottom: 60, right: 30)
+    let margin = UIEdgeInsets(top: 40, left: 30, bottom: 60, right: 30)
     
     renderer.setValue(NSValue(cgRect: CGRect(origin: .zero, size: pageSize)), forKey: "paperRect")
     renderer.setValue(NSValue(cgRect: CGRect(x: margin.left,
@@ -212,6 +216,40 @@ class CustomPrintPageRenderer: UIPrintPageRenderer {
   override init() {
     super.init()
     self.footerHeight = defaultFooterHeight
+  }
+  
+  var headerText: String?
+  
+  override func drawPage(at pageIndex: Int, in printableRect: CGRect) {
+    super.drawPage(at: pageIndex, in: printableRect)
+
+    let headerRect = CGRect(
+      x: printableRect.minX,
+      y: 10,
+      width: printableRect.width,
+      height: 20
+    )
+
+    drawHeaderForPage(at: pageIndex, in: headerRect)
+  }
+
+  override func drawHeaderForPage(at pageIndex: Int, in headerRect: CGRect) {
+    guard let headerText else { return }
+
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.systemFont(ofSize: 10),
+      .foregroundColor: UIColor.darkGray
+    ]
+
+    let textSize = headerText.size(withAttributes: attributes)
+    let rect = CGRect(
+      x: headerRect.midX - textSize.width / 2,
+      y: headerRect.midY - textSize.height / 2,
+      width: textSize.width,
+      height: textSize.height
+    )
+
+    headerText.draw(in: rect, withAttributes: attributes)
   }
   
   /// Draws the footer on the printed page at the given index.

@@ -78,9 +78,9 @@ extension Array where Element == StoredArticle {
       }
       // 2nd. sections order
       let section0MinOrder
-      = $0.nonBookmarkSections.map { Int($0.pr.order) }.min() ?? Int.max
+      = $0.nonBookmarkSectionsDIDNOTWORK.map { Int($0.pr.order) }.min() ?? Int.max
       let section1MinOrder
-      = $1.nonBookmarkSections.map { Int($0.pr.order) }.min() ?? Int.max
+      = $1.nonBookmarkSectionsDIDNOTWORK.map { Int($0.pr.order) }.min() ?? Int.max
       
       if section0MinOrder != section1MinOrder {
         return section0MinOrder < section1MinOrder

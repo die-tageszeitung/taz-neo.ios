@@ -1144,8 +1144,12 @@ public final class StoredArticle: Article, StoredObject {
     get { return pr.pageNames as? [String] }
     set { pr.pageNames = newValue as? NSArray }
   }
+
+  public var firstValidSectionTitle: String? {
+    pr.sections?.compactMap { ($0 as? PersistentSection)?.name }.first
+  }
   
-  public var nonBookmarkSections: [StoredSection] {
+  public var nonBookmarkSectionsDIDNOTWORK: [StoredSection] {
     var ret: [StoredSection] = []
     for case let s as PersistentSection in pr.sections ?? [] {
       for case let issue as StoredIssue in s.issues ?? [] {
@@ -1198,10 +1202,11 @@ public final class StoredArticle: Article, StoredObject {
   public var sectionTitle: String? {
     get {
       if let s = pr.sectionTitle { return s }
-      for s in nonBookmarkSections {
+      #warning("MAY NOT WORK ANYMORE")
+      for s in nonBookmarkSectionsDIDNOTWORK {
         if let t = s.title { return t }
       }
-      return nil
+      return firstValidSectionTitle
     }
     set { pr.sectionTitle = newValue }
   }
