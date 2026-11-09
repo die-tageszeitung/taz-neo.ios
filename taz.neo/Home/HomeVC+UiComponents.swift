@@ -124,7 +124,7 @@ extension HomeVC {
           let visibleDate = self?.dateForFeedSwitch
           
           if TazAppEnvironment.selectedFeed?.displayName == feed.displayName {
-            self?.onHome()
+            self?.onHome(isFromFeedSelection: true)
             return
           }
           
