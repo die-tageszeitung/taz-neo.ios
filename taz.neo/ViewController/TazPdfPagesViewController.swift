@@ -821,7 +821,7 @@ extension TazPdfPagesViewController: ScreenTracking {
   private var pagina: String { page()?.pagina ?? "\((index ?? -2) + 1)"}
   public var screenUrl: URL? {
     guard index != nil else { return nil }///prevent initial track on idx -1
-    return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/pdf/\(pagina)")
+    return URL(path: "issue/\(self.feederContext.masterFeedName)/\(self.issue.date.ISO8601)/pdf/\(pagina)")
   }
   
   public var screenTitle: String? {  return "PDF Page: \(pagina)"}

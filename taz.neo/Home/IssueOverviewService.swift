@@ -780,7 +780,7 @@ extension IssueOverviewService {
       let file = File(fn)
       let ext = file.extname
       let dialogue = ExportDialogue<Any>()
-      let feedName = TazAppEnvironment.sharedInstance.feederContext?.feedName ?? App.name
+      let feedName = TazAppEnvironment.sharedInstance.feederContext?.masterFeedName ?? App.name
       let name = "\(feedName)-\(issue.date.isoDate(tz: feeder.timeZone)).\(ext ?? "")"
       let img = UIImage(data: file.data)
       dialogue.present(item: file.url,

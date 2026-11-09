@@ -188,7 +188,19 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
     return view
   }()
   
+  func highlightSelectedFeed(){
+    guard feederContext.selectedFeedName != feederContext.masterFeedName else { return }
+    if feedSwitchWrapper.subviews.isEmpty {
+      viewModeButton.animateFocus(color: Const.Colors.ciColor)
+      return
+    }
+    (feedSwitchWrapper.subviews.first as? UIStackView)?.arrangedSubviews.first(where: { ($0 as? UIButton)?.isSelected == true })?.animateFocus(color: Const.Colors.ciColor)
+  }
+  
   func onHome(){
+    if feederContext.selectedFeedName != feederContext.masterFeedName && collectionView.indexPathsForVisibleItems.contains(where: { $0.row == 0 }) {
+      highlightSelectedFeed()
+    }
     guard service.publicationDates.count > 0 else { return }
     collectionView.scrollToItem(at: IndexPath(row: 0, section: 0),
                                 at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
@@ -622,6 +634,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
       }
     }
     self.pullToLoadMoreHandler = {   [weak self] in
+      self?.highlightSelectedFeed()
       self?.statusHeader.currentStatus = .fetchNewIssues
       URLCache.shared.removeAllCachedResponses()
       self?.service.checkForNewIssues(wasManuallyTriggered: true)
@@ -805,7 +818,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
         self?.updateButtonMenu()
         guard let visibleDate,
               let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
-        self?.scrollTo(newIdx, animated: true)
+        self?.scrollTo(newIdx, animated: false)
       }
       filterActions.append(action)
     }

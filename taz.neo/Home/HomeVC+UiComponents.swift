@@ -128,11 +128,9 @@ extension HomeVC {
             return
           }
           
-          if let tappedFeed = feed as? StoredFeed {
-            TazAppEnvironment.selectedFeed = feed as? StoredFeed
-          }
+          TazAppEnvironment.selectedFeed = feed as? StoredFeed
           
-          // Auswahl aktualisieren
+          // refresh selection
           stackView?.arrangedSubviews
             .compactMap { $0 as? UIButton }
             .forEach { button in
@@ -142,13 +140,17 @@ extension HomeVC {
               }) as? UIButton
               
               config.baseForegroundColor = selected ? .white : .systemGray
+              config.background.backgroundColor = .clear
+              config.background.backgroundColorTransformer
+              = UIConfigurationColorTransformer { _ in .clear }
+              config.automaticallyUpdateForSelection = false
               button.configuration = config
+              button.isSelected = selected
             }
-          
+          //show same issue in newly seleted feed, if applyable
           guard let visibleDate,
                 let newIdx = self?.service.nextIndex(for: visibleDate) else { return }
-          
-          self?.scrollTo(newIdx, animated: true)
+          self?.scrollTo(newIdx, animated: false)
         },
         for: .touchUpInside
       )

@@ -18,7 +18,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   open var sectionPath:[String]? {
     guard let section = section,
           let sectFileName = section.html?.name,
-            let feedName = self.feederContext.feedName else { return nil}
+            let feedName = self.feederContext.masterFeedName else { return nil}
     return ["issue", feedName, self.issue.date.ISO8601, "section", sectFileName]
   }
   

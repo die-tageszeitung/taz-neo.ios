@@ -61,7 +61,7 @@ open class FeederContext: DoesLog, NotificationObserving {
     }
   }
   var selectedFeedName:String? { selectedFeed?.name }
-  var feedName:String? { masterFeed?.name }
+  var masterFeedName:String? { masterFeed?.name }
 
   /// Name (title) of Feeder, base Dir in 
   public var name: String
@@ -794,7 +794,7 @@ open class FeederContext: DoesLog, NotificationObserving {
   }
   
   func migrateFullDownloadedIssuesDatesIfNeeded(){
-    guard let feed = self.storedFeeder?.feeds.first(where: {$0.name == self.feedName}) as? StoredFeed else { return }
+    guard let feed = self.storedFeeder?.feeds.first(where: {$0.name == self.masterFeedName}) as? StoredFeed else { return }
     let faultIssues = StoredIssue.issues(feed: feed, onlyComplete: true, onlyWithoutCompleteDate: true)
     guard faultIssues.count > 0 else { return }
     log("WARNING: FIX MISSING COMPLETE DATES for \(faultIssues.count) issues")

@@ -819,7 +819,7 @@ class TazIntroVC: IntroVC, DefaultScreenTracking {
 extension SectionVC: ScreenTracking {
   public var screenUrl:URL? {
     guard let trackingPath = section?.trackingPath else { return nil }
-    return URL(path: "issue/\(self.feederContext.feedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
+    return URL(path: "issue/\(self.feederContext.masterFeedName)/\(self.issue.date.ISO8601)/\(trackingPath)")
   }
   public var screenTitle:String? {
     return section?.title
@@ -834,7 +834,7 @@ extension ArticleVC: ScreenTracking {
     let sectionFileName = adelegate?.article2section[artFileName]?.first?.html?.name
     else { return nil }
     let date = (article as? SearchArticle)?.originalIssueDate ?? self.issue.date
-    return URL(path: "issue/\(self.feederContext.feedName)/\(date.ISO8601)/section/\(sectionFileName)/\(artPath)",
+    return URL(path: "issue/\(self.feederContext.masterFeedName)/\(date.ISO8601)/section/\(sectionFileName)/\(artPath)",
                id: article.serverId)
   }
   public var screenTitle:String? {
