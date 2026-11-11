@@ -396,7 +396,6 @@ extension Usage {
     enum application: String, TrackingEvent {
       var category: String { "Application" }
       case downloaded = "Downloaded"
-      case downloaded = "Downloaded"
     }
     enum audio: String, TrackingEvent {
       var category: String { "Audio Player" }
