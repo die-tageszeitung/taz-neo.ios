@@ -38,11 +38,13 @@ extension TazAppEnvironment {
     let openInBrowser =  UIAlertAction.init( title: "Im Browser öffnen",
                                              style: .default) {[weak self] _ in
       UIApplication.shared.open(url)
+      Usage.track(Usage.event.dialog.UnknownAppLink, name: "Open URL")
       self?.invalidUniversalLinkOpenPopup = false
     }
     let cancelAction =  UIAlertAction.init( title: "Abbrechen",
                                             style: .cancel){[weak self] _ in
       self?.invalidUniversalLinkOpenPopup = false
+      Usage.track(Usage.event.dialog.UnknownAppLink, name: "Cancel")
     }
     
     let actions = [openInBrowser, cancelAction]
@@ -50,9 +52,12 @@ extension TazAppEnvironment {
     ? "Der Link kann in der App leider nicht geöffnet werden.\nMöglicherweise ist der Link ungültig oder der angeforderte Inhalt nicht mehr verfügbar.\nMöchten Sie den Link stattdessen im Browser öffnen?"
     : "Der Link kann in der App leider nicht geöffnet werden.\nMöchten Sie den Link stattdessen im Browser öffnen?"
     Alert.message(message: message, actions: actions)
+    Usage.track(Usage.event.dialog.UnknownAppLink, name: "Show Dialog for: ".appending(url.absoluteString))
+
   }
   
   func receiveUniversalLink(_ url: URL) {
+    Usage.track(Usage.event.various.OpenByLink, name: url.absoluteString)
     guard let destination = AppLinkParser.parse(url) else {
       log("TazAppEnvironment.receiveUniversalLink: cannot parse universal link: \(url)")
       requestOpenLinkInBrowser(for: url, contentNotFound: false)

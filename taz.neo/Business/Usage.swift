@@ -396,11 +396,7 @@ extension Usage {
     enum application: String, TrackingEvent {
       var category: String { "Application" }
       case downloaded = "Downloaded"
-    }
-    enum appMode: String, TrackingEvent {
-      var category: String { "AppMode" }
-      case SwitchToMobileMode = "Switch to Mobile Mode",
-           SwitchToPDFMode = "Switch to PDF Mode"
+      case downloaded = "Downloaded"
     }
     enum audio: String, TrackingEvent {
       var category: String { "Audio Player" }
@@ -460,6 +456,7 @@ extension Usage {
            AllowNotificationsInfo = "Allow Notifications Info",
            pdfArticleViewByTapDeactivatedAlert = "Pdf Article view by Tap deactivated Alert",
            IssueActions = "Issue Actions",
+           UnknownAppLink = "Unknown App-Link",
            IssueDatePicker = "Issue Date Picker",
            TextSettings = "Text Settings",
            SharingNotPossible = "Sharing Not Possible",
@@ -573,6 +570,7 @@ extension Usage {
     enum various: String, TrackingEvent {
       var category: String { "Various" }
       case ImageGalery = "Image Galery"
+      case OpenByLink = "Open App by Link"
     }
   }
 }
