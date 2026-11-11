@@ -91,7 +91,10 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
   public static var storedFeeder: StoredFeeder? { sharedInstance.feederContext?.storedFeeder }
   public static var selectedFeed: StoredFeed? {
     get {  sharedInstance.feederContext?.selectedFeed }
-    set {  sharedInstance.feederContext?.selectedFeed = newValue }
+    set {
+      Usage.track(Usage.event.home.showFeed, name: newValue?.displayName)
+      sharedInstance.feederContext?.selectedFeed = newValue
+    }
   }
   
   public static let sharedInstance = TazAppEnvironment()
@@ -386,6 +389,7 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
       return
     }
     let issueOverviewService = service ?? IssueOverviewService(feederContext: feederContext, selectedFeed: selectedFeed)
+    Usage.track(Usage.event.home.showFeed, name: selectedFeed.displayName.appending(" (initial)"))
     self.service = issueOverviewService
     self.rootViewController = MainTabVC(feederContext: feederContext,
                                         service: issueOverviewService)

@@ -436,10 +436,22 @@ extension Usage {
       case AddArticle = "Add Article",
            RemoveArticle = "Remove Article"
     }
-//    enum coachmark: String, TrackingEvent {
-//      var category: String { "Coachmark" }
-//      case slider = "Slider"
-//    }
+    enum home: String, TrackingEvent {
+      var category: String { "Home" }
+//      case openMenu = "Open Display Menu"
+//      case closeMenu = "Close Display Menu"
+      case showFeed = "Show Feed"
+      case switchLayout = "Switch Layout"
+      case switchViewMode = "Switch ViewMode"
+    }
+    enum help: String, TrackingEvent {
+      var category: String { "Help" }
+      case showHelpFor = "show"
+      case closeHelpFor = "close"
+      case disableHelpFor = "disable"
+      case contectMenuDisableHelpFor = "disable (Help Button Context Menu)"
+      case contextMenu = "Long Tap (Help Button Context Menu)"
+    }
     enum dialog: String, TrackingEvent {
       var category: String { "Dialog" }
       case LoginHelp = "Login Help",

@@ -42,6 +42,7 @@ extension MainTabVC {
       return
     }
     helpButton.badgeValue = helpProvider.newItemsCount
+    helpButton.trackingName = helpProvider.trackingName
     helpButton.showAnimated()
   }
   

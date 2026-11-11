@@ -46,6 +46,30 @@ extension HelpProviding {
     }
   }
   
+  var trackingName: String {
+    switch self {
+      case is HomeVC:
+        return "Home"
+      case is SectionVC:
+        return "Ressortübersicht"
+      case is ArticleVC:
+        return "Artikelansicht"
+      case is TazPdfPagesViewController:
+        return "Zeitungsansicht"
+      case is ArticlePlayer:
+        return "Player"
+      case is NewContentTableVC:
+        return "Drawer:AppView"
+      case is NewPdfOverviewCollectionVC:
+        let viewMode
+        = Defaults.singleton["isPdfPageMode"]?.bool == true
+        ? "Seitenansicht" : "Listenansicht"
+        return "Drawer:PdfView (\(viewMode))"
+      default:
+        return "N/A: \(typeName)"
+    }
+  }
+  
   var lastIndex: Int? {
     switch self {
       case is HomeVC:
@@ -137,6 +161,7 @@ class HelpBusiness {
   func disableCurrentHelp(){
     guard let mainTabVc = TazAppEnvironment.sharedInstance.rootViewController as? MainTabVC,
     var helpProvider = mainTabVc.currentHelpProvider else { return }
+    Usage.track(Usage.event.help.disableHelpFor, name: helpProvider.trackingName)
     helpProvider.doNotShowHelpInThisAreaAnymore = true
     Notification.send(Const.NotificationNames.helpProviderChanged)
   }
@@ -157,15 +182,6 @@ class HelpBusiness {
     if helpProvider is ArticlePlayer {
       helpView.pageControllBottomOffset = -250
     }
-    
-//    switch helpProvider {
-//      case is ArticlePlayer:
-//        helpView.pageControllBottomOffset = -250
-//      case is HomeVC:
-//        break
-//      default:
-//        break //no defaults here
-//    }
     
     (helpProvider as? HomeVC)?.isInitialStartup = false
     
@@ -194,6 +210,7 @@ class HelpBusiness {
         helpView.doNotShowHelpInThisAreaAnymore.showAnimated()
         helpView.doNotShowHelpInThisAreaAnymore.onTapping { _ in
           helpProvider.doNotShowHelpInThisAreaAnymore = true
+          Usage.track(Usage.event.help.disableHelpFor, name: helpProvider.trackingName)
           close()
           Notification.send(Const.NotificationNames.helpProviderChanged)
         }
@@ -219,7 +236,11 @@ class HelpBusiness {
       helpView.accessibilityViewIsModal = true
       UIAccessibility.post(notification: .layoutChanged, argument: helpView)
     })
-    helpView.onClose { close() }
+    Usage.track(Usage.event.help.showHelpFor, name: helpProvider.trackingName)
+    helpView.onClose {
+      Usage.track(Usage.event.help.closeHelpFor, name: helpProvider.trackingName.appending(" Slide: \(helpView.currentIndex + 1)/\(helpView.items.count)"))
+      close()
+    }
   }
   
   private func lastHelpItemIndex(for helpProvider: HelpProviding) -> Int?{

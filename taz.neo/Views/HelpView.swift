@@ -93,6 +93,8 @@ class HelpView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLa
     collectionView.doLayout()
   }
   
+  var currentIndex: Int { collectionView.currentIndex }
+  
   var items: [HelpItem] = []{
     didSet {
       pageControl.numberOfPages = items.count

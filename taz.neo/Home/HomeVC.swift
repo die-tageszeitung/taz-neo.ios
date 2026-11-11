@@ -22,7 +22,13 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
   
   /// Are we in facsimile mode
   @Default("isFacsimile")
-  public var isFacsimile: Bool
+  public var isFacsimile: Bool {
+    didSet {
+      guard oldValue != isFacsimile else { return }
+      Usage.track(Usage.event.home.switchViewMode,
+                  name: isFacsimile ? "Zeitungsansicht" : "Mobile Ansicht")
+    }
+  }
   
   @Default("isInitialStartup")
   public var isInitialStartup: Bool
@@ -35,6 +41,8 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
   public var isHomeTiles: Bool {
     didSet {
       guard oldValue != isHomeTiles else { return }
+      Usage.track(Usage.event.home.switchLayout,
+                  name: isHomeTiles ? "Kacheln" : "Karussell")
       applyScrollDirection(reload: scrollFromLeftToRight)
       if isHomeTiles == false {
         updateHeader(hidden: false)
@@ -775,7 +783,8 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
       state: isHomeTiles ? .on : .off
     ) {[weak self] _ in
       if self?.isHomeTiles == true { return }
-      self?.isHomeTiles.toggle()  }
+      self?.isHomeTiles.toggle()
+    }
     
     let carouselAction = UIAction(
       title: "Karussell",
@@ -815,7 +824,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
       let action = UIAction(title: feed.displayName, state: state) {[weak self] _ in
         let visibleDate = self?.dateForFeedSwitch
         if let tappedFeed = feed as? StoredFeed {
-          TazAppEnvironment.selectedFeed = feed as? StoredFeed
+          TazAppEnvironment.selectedFeed = tappedFeed
         }
         self?.updateButtonMenu()
         guard let visibleDate,

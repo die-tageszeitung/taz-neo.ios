@@ -37,6 +37,8 @@ class HelpButton: UIView {
     }
   }
   
+  var trackingName: String?
+  
   private var onTapHelpHandler: (() -> ())?
   
   // MARK: - onClose/onCloseHandler
@@ -66,11 +68,15 @@ class HelpButton: UIView {
     iv.backgroundColor = Const.Colors.darkPrimaryBG
     iv.layer.cornerRadius = 16.0
     iv.onTapping { [weak self] _ in self?.handleTap() }
-    buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden.")
+    buttonContextMenu = ContextMenu(view: iv, title: "Hilfe ausblenden\nDie Hilfe kann jederzeit in den Einstellungen wieder aktiviert werden."){[weak self] in
+      Usage.track(Usage.event.help.contextMenu, name: self?.trackingName ?? "-")
+    }
     buttonContextMenu?.addMenuItem(title: "Hilfe in diesem Bereich ausblenden", icon: "", closure: {[weak self] _ in
       self?.onDisableCurrentHelpClosure?()
+      Usage.track(Usage.event.help.contectMenuDisableHelpFor, name: self?.trackingName ?? "-")
     })
     buttonContextMenu?.addMenuItem(title: "Hilfe überall ausblenden", icon: "", closure: { [weak self] _ in
+      Usage.track(Usage.event.help.contectMenuDisableHelpFor, name: "ALL SCREENS")
       self?.showHelp = false
       Notification.send(Const.NotificationNames.helpProviderChanged)
     })
