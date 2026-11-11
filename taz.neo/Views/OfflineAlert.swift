@@ -104,6 +104,7 @@ class OfflineAlert {
         if let c = closure { sharedInstance.closures = [c]}
         Usage.track(Usage.event.dialog.ConnectionError)
       case .issueDownload:
+        Log.log("Issue Download Error Alert shown")
         sharedInstance.title = "Warnung"
         sharedInstance.actionButtonTitle = "OK"
         sharedInstance.message = """

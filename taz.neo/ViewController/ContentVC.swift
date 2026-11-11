@@ -1174,6 +1174,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   
   open override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    log("\(currentWebView?.originalUrl?.lastPathComponent ?? "-")")
     ensureToolbarInFrontOfTapButtons()
   }
   
