@@ -458,6 +458,7 @@ extension Usage {
            SubscriptionHelp = "Subscription Help",
            SubscriptionElapsed = "Subscription Elapsed",
            AllowNotificationsInfo = "Allow Notifications Info",
+           pdfArticleViewByTapDeactivatedAlert = "Pdf Article view by Tap deactivated Alert",
            IssueActions = "Issue Actions",
            IssueDatePicker = "Issue Date Picker",
            TextSettings = "Text Settings",

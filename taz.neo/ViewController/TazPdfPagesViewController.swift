@@ -310,11 +310,21 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       articleTapCount = 0
       let activate = UIAlertAction(title: "Aktivieren",
                                      style: .default) {[weak self] _ in
+        Usage.track(Usage.event.dialog.pdfArticleViewByTapDeactivatedAlert,
+                    name: "activate")
         self?.articleFromPdf = true
       }
+      let cancelAction = UIAlertAction(title: "Abbrechen", style: .cancel){_ in
+        Usage.track(Usage.event.dialog.pdfArticleViewByTapDeactivatedAlert,
+                    name: "cancel")
+      }
+      
       Alert.message(title: "Artikelansicht deaktiviert",
                     message: "Möchten Sie die Artikelansicht aktivieren?",
-                    actions: [activate, Alert.cancelAction])
+                    actions: [activate, cancelAction])
+      Usage.track(Usage.event.dialog.pdfArticleViewByTapDeactivatedAlert,
+                  name: "show")
+
     }
 
     onMainAfter(15) { [weak self] in
