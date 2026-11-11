@@ -191,10 +191,10 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
   func highlightSelectedFeed(){
     guard feederContext.selectedFeedName != feederContext.masterFeedName else { return }
     if feedSwitchWrapper.subviews.isEmpty {
-      viewModeButton.animateFocus(color: Const.Colors.ciColor)
+      viewModeButton.animateFocus()
       return
     }
-    (feedSwitchWrapper.subviews.first as? UIStackView)?.arrangedSubviews.first(where: { ($0 as? UIButton)?.isSelected == true })?.animateFocus(color: Const.Colors.ciColor)
+    (feedSwitchWrapper.subviews.first as? UIStackView)?.arrangedSubviews.first(where: { ($0 as? UIButton)?.isSelected == true })?.animateFocus()
   }
   
   func onHome(isFromFeedSelection: Bool = false){
