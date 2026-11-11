@@ -14,8 +14,7 @@ import UIKit
  */
 
 private let configValues = [
-  // Default Feeder & Server
-  "defaultFeeder" : "taz",
+  // Default Feeder & Server OUTDATED: "defaultFeeder" : "taz",
   // shall text notifications be displayed on notification screen
   "isTextNotification" : "true", 
   // number of starts since installation
