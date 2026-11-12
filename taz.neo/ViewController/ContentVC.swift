@@ -236,16 +236,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     ? "audio-active"
     : "audio"
   }
-  
 
-//  private var currentContents : [Content] {
-//    var currentItems: [Content] = []
-//    let currentIndex = index
-//    currentItems.appendIfPresent(contents.valueAt(currentIndex-1))
-//    currentItems.appendIfPresent(contents.valueAt(currentIndex))
-//    currentItems.appendIfPresent(contents.valueAt(currentIndex+1))
-//    return currentItems
-//  }
   
   var mcoBottomSheet:BottomSheet2?
   
@@ -771,7 +762,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
       }
       """
   }
- 
+  
   /// Define the closure to call when the back button is tapped
   public func onBack(closure: @escaping (ContentVC)->()) 
     { backClosure = closure }
@@ -1058,6 +1049,10 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
       }
     }
     
+    Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
+      self?.handleEnterForeground()
+    }
+    
     Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       self?.persistReadProgress()
       ArticleDB.save()
@@ -1072,6 +1067,47 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
       
     }
     registerForStyleUpdates()
+  }
+  
+  func handleEnterForeground(){
+    log("current url: \(currentWebView?.url?.lastPathComponent ?? "-")")
+    self.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = true }
+    onMain(after: 1.0) {[weak self] in
+      self?.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = false }
+    }
+  }
+  
+  ///This version works in testcase moved ressources folder
+  ///- initially
+  ///- or after connected safari reload
+  ///app bg, app fg, reloading article, restores scroll pos!
+  func checkWebViewsAfterResume() {
+    Task {@MainActor [weak self]  in
+      guard let self, let currentWebView else { return }
+      guard await self.isArticleJavaScriptAvailable(webView: currentWebView) else {
+        self.log("Article JavaScript missing – reloading WebViews")
+        self.pager.allWebviews.forEach{ $0.forceReload()}
+        return
+      }
+      self.log("Article JavaScript available, do nothing")
+      return
+    }
+  }
+  
+  func isArticleJavaScriptAvailable(webView: WebView) async -> Bool {
+    let js = """
+          typeof tazApi !== "undefined" &&
+          typeof tazApi.hasDynamicStyles === "function" &&
+          tazApi.hasDynamicStyles() === true
+      """
+    
+    do {
+      let result = try await webView.jsexec(js)
+      return (result as? Bool) == true
+    } catch {
+      log("Article JavaScript unavailable: \(error)")
+      return false
+    }
   }
   
   func persistReadProgress() {}///overwrite in Subclass
