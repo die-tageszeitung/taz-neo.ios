@@ -1071,10 +1071,12 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   
   func handleEnterForeground(){
     log("current url: \(currentWebView?.url?.lastPathComponent ?? "-")")
-    self.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = true }
-    onMain(after: 1.0) {[weak self] in
-      self?.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = false }
-    }
+    checkWebViewsAfterResume()
+    /// tested allowAnyReloadOnce did not work, webview is blank after resume, now testing checkWebViewsAfterResume
+//    self.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = true }
+//    onMain(after: 1.0) {[weak self] in
+//      self?.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = false }
+//    }
   }
   
   ///This version works in testcase moved ressources folder
@@ -1082,6 +1084,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   ///- or after connected safari reload
   ///app bg, app fg, reloading article, restores scroll pos!
   func checkWebViewsAfterResume() {
+    self.log("check WebViews after Resume")
     Task {@MainActor [weak self]  in
       guard let self, let currentWebView else { return }
       guard await self.isArticleJavaScriptAvailable(webView: currentWebView) else {
