@@ -215,7 +215,7 @@ open class FeederContext: DoesLog, NotificationObserving {
     
     Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
       UIApplication.shared.shortcutItems = Shortcuts.currentItems()
-      self?.log("applicationWillResignActive: \(UIApplication.shared.stateDescription)")
+      self?.log("Going Background: applicationWillResignActive with State: \(UIApplication.shared.stateDescription) \(DeviceData.DeviceDataCollect.appUsedRam()?.formattedStorage?.prepend(", RAM used:") ?? "")")
     }
     
     storedFeeder = StoredFeeder.get(name: self.name).first
@@ -679,16 +679,20 @@ open class FeederContext: DoesLog, NotificationObserving {
 
   ///used in VersionCheck, Check NetworkConnection, Update PublicationDates
   func handleEnterForeground(){
+    var status = ""
     if self.minVersionOK == false {
+      status = "minVersion not OK, enforceUpdate"
       enforceUpdate()
     }
     else if netAvailability.isConnected == false {
+      status = "offline"
       netAvailability.recheck()
     }
     else {
-      log("Enter Foreground, updateFeeder")
+      status = "online: updateFeeder"
       updateFeeder()
     }
+    log("Enter Foreground, \(status)\(DeviceData.DeviceDataCollect.appUsedRam()?.formattedStorage?.prepend(" RAM used:") ?? "")")
     BackgroundDownloadService.shared.handleEnterForeground()
   }
   

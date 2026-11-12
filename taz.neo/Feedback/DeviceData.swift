@@ -45,7 +45,7 @@ public struct DeviceData : DoesLog {
       ramAvailable = "\(freeRam)"
       ramAvailableRaw = UInt64(max(0, freeRam))
       
-      if let used = dc.appUsedRam() {
+      if let used = DeviceDataCollect.appUsedRam() {
         ramUsed = "\(used)"
         ramUsedRaw = used
       }
@@ -93,7 +93,7 @@ public struct DeviceData : DoesLog {
     }
     
     // MARK:  appUsedRam
-    func appUsedRam() -> UInt64? {
+    static func appUsedRam() -> UInt64? {
       // From Quinn the Eskimo at Apple.
       // https://forums.developer.apple.com/thread/105088#357415
       // The `TASK_VM_INFO_COUNT` and `TASK_VM_INFO_REV1_COUNT` macros are too
