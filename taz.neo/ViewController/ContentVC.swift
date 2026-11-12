@@ -1084,15 +1084,15 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   ///- or after connected safari reload
   ///app bg, app fg, reloading article, restores scroll pos!
   func checkWebViewsAfterResume() {
-    self.log("check WebViews after Resume")
+    self.log("##>> check WebViews after Resume")
     Task {@MainActor [weak self]  in
       guard let self, let currentWebView else { return }
-      guard await self.isArticleJavaScriptAvailable(webView: currentWebView) else {
-        self.log("Article JavaScript missing – reloading WebViews")
+      guard await self.hasGetBookmarksJsFunction(webView: currentWebView) else {
+        self.log("##>> hasGetBookmarksJsFunction missing – reloading WebViews")
         self.pager.allWebviews.forEach{ $0.forceReload()}
         return
       }
-      self.log("Article JavaScript available, do nothing")
+      self.log("##>> JavaScript available, do nothing")
       return
     }
   }
@@ -1103,12 +1103,27 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
           typeof tazApi.hasDynamicStyles === "function" &&
           tazApi.hasDynamicStyles() === true
       """
-    
     do {
       let result = try await webView.jsexec(js)
+      log("##>> result of isArticleJavaScriptAvailable: \(result ?? "-")")
       return (result as? Bool) == true
     } catch {
-      log("Article JavaScript unavailable: \(error)")
+      log("##>> JavaScript unavailable: \(error)")
+      return false
+    }
+  }
+  
+  func hasGetBookmarksJsFunction(webView: WebView) async -> Bool {
+    let js = """
+          typeof tazApi !== "undefined" &&
+          typeof tazApi.getBookmarks === "function"
+    """
+    do {
+      let result = try await webView.jsexec(js)
+      log("##>> result of hasGetBookmarksJsFunction: \(result ?? "-")")
+      return (result as? Bool) == true
+    } catch {
+      log("##>> JavaScript unavailable: \(error)")
       return false
     }
   }
