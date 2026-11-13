@@ -1078,9 +1078,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   private func doCheckWebViewOnDisplay(){
     guard let currentWebView = currentWebView else { return }
     hasGetBookmarksJsFunction(webView: currentWebView) {[weak self] res in
-      self?.log("hasGetBookmarksJsFunction: \(res ?? "-")")
       if (res as? Bool) == true { return }
-      self?.log("no bookmarks: reload")
+      self?.log("no bookmarks js: reload")
       self?.currentWebView?.forceReload()
     }
   }
