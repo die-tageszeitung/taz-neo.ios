@@ -1047,6 +1047,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
                        bottom: UIWindow.bottomInset + 30,
                        right: 0)
       }
+      self?.checkWebViewOnDisplay()
     }
     
     Notification.receive(UIApplication.willEnterForegroundNotification, observer: self) { [weak self] _ in
@@ -1071,39 +1072,31 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   
   func handleEnterForeground(){
     log("current url: \(currentWebView?.url?.lastPathComponent ?? "-")")
-    checkWebViewsAfterResume()
+    checkWebViewOnDisplay()
   }
   
-  ///This version works in testcase moved ressources folder
-  ///- initially
-  ///- or after connected safari reload
-  ///app bg, app fg, reloading article, restores scroll pos!
-  func checkWebViewsAfterResume() {
-    self.log("check WebViews after Resume")
-    Task {@MainActor [weak self]  in
-      guard let self, let currentWebView else { return }
-      guard await self.hasGetBookmarksJsFunction(webView: currentWebView) else {
-        self.log("hasGetBookmarksJsFunction missing – reloading WebViews")
-        self.pager.allWebviews.forEach{ $0.forceReload()}
-        return
-      }
-      self.log("JavaScript available, do nothing")
-      return
+  private func doCheckWebViewOnDisplay(){
+    guard let currentWebView = currentWebView else { return }
+    hasGetBookmarksJsFunction(webView: currentWebView) {[weak self] res in
+      self?.log("hasGetBookmarksJsFunction: \(res ?? "-")")
+      if (res as? Bool) == true { return }
+      self?.log("no bookmarks: reload")
+      self?.currentWebView?.forceReload()
     }
   }
   
-  func hasGetBookmarksJsFunction(webView: WebView) async -> Bool {
+  func checkWebViewOnDisplay() {
+    guard self.navigationController?.viewControllers.last == self else { return }
+    if Thread.isMainThread { doCheckWebViewOnDisplay(); return }
+    onMain {[weak self] in self?.doCheckWebViewOnDisplay() }
+  }
+  
+  func hasGetBookmarksJsFunction(webView: WebView, closure: @escaping ((Any?)->Void)) {
     let js = """
           typeof tazApi !== "undefined" &&
           typeof tazApi.getBookmarks === "function"
     """
-    do {
-      let result = try await webView.jsexec(js)
-      return (result as? Bool) == true
-    } catch {
-      log("JavaScript unavailable: \(error)")
-      return false
-    }
+    webView.jsexec(js, closure: closure)
   }
   
   func persistReadProgress() {}///overwrite in Subclass
@@ -1208,6 +1201,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     super.viewDidAppear(animated)
     log("\(currentWebView?.originalUrl?.lastPathComponent ?? "-")")
     ensureToolbarInFrontOfTapButtons()
+    checkWebViewOnDisplay()
   }
   
   /// ensures that left/right tap buttons are behind tollbar and content slider
