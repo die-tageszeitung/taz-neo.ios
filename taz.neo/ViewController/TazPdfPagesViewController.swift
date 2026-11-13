@@ -417,6 +417,7 @@ open class TazPdfPagesViewController : PdfPagesCollectionVC, ArticleVCdelegate, 
       self.slider?.close()
       self.childArticleVC.slider?.close()
       if let art {
+        Usage.track(Usage.event.drawer.action_tap.Article)
         openArticle(name: art.html?.name, path: issue.dir?.path ?? "", reopenArticleScrollPos: nil)
         return
       }

@@ -200,6 +200,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     
     menuHeaderView.modeSwitchButton.onTapping {[weak self] _ in
       self?.isPdfPageMode.toggle()
+      Usage.track(Usage.event.drawer.action_tap.ToggleViewMode)
     }
     
     _ = pdfModel.thumbnail(atIndex: 0) { [weak self] image in
@@ -210,6 +211,7 @@ public class NewPdfOverviewCollectionVC: UICollectionViewController, UIStyleChan
     applyStyles()
     menuHeaderView.coverImageView.onTapping {[weak self] _ in
       guard let self else { return }
+      Usage.track(Usage.event.drawer.action_tap.Page)
       if isPdfPageMode,
         pdfModel.currentPage != 0 {
         pdfModel.currentPage = 0
@@ -392,6 +394,7 @@ extension NewPdfOverviewCollectionVC: UICollectionViewDelegateFlowLayout {
     header.onTapping {[weak self] _ in
       guard let self else { return }
       pdfModel.currentPage = indexPath.section
+      Usage.track(Usage.event.drawer.action_tap.Pagesection)
       updateSelection()
       clickCallback?(pdfModel, nil)
     }

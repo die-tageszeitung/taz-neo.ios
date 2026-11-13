@@ -479,12 +479,14 @@ extension Usage {
         var category: String { "Drawer" }
         var action: String { "Tap" }
         case Page = "Tap Page",
+             Pagesection = "Tap Page Section",
              Section = "Tap Section",
              Article = "Tap Article",
              Imprint = "Tap Imprint",
              Moment = "Tap Moment",
              Bookmark = "Tap Bookmark",
-             PlayIssue = "Tap Play Issue"
+             PlayIssue = "Tap Play Issue",
+             ToggleViewMode = "Tap Toggle ViewMode"
       }
       enum action_toggle: String, TrackingEvent{
         var action: String { "Toggle" }
