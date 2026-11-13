@@ -1072,11 +1072,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   func handleEnterForeground(){
     log("current url: \(currentWebView?.url?.lastPathComponent ?? "-")")
     checkWebViewsAfterResume()
-    /// tested allowAnyReloadOnce did not work, webview is blank after resume, now testing checkWebViewsAfterResume
-//    self.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = true }
-//    onMain(after: 1.0) {[weak self] in
-//      self?.pager.allWebviews.forEach{ $0.allowAnyReloadOnce = false }
-//    }
   }
   
   ///This version works in testcase moved ressources folder
@@ -1084,32 +1079,16 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
   ///- or after connected safari reload
   ///app bg, app fg, reloading article, restores scroll pos!
   func checkWebViewsAfterResume() {
-    self.log("##>> check WebViews after Resume")
+    self.log("check WebViews after Resume")
     Task {@MainActor [weak self]  in
       guard let self, let currentWebView else { return }
       guard await self.hasGetBookmarksJsFunction(webView: currentWebView) else {
-        self.log("##>> hasGetBookmarksJsFunction missing – reloading WebViews")
+        self.log("hasGetBookmarksJsFunction missing – reloading WebViews")
         self.pager.allWebviews.forEach{ $0.forceReload()}
         return
       }
-      self.log("##>> JavaScript available, do nothing")
+      self.log("JavaScript available, do nothing")
       return
-    }
-  }
-  
-  func isArticleJavaScriptAvailable(webView: WebView) async -> Bool {
-    let js = """
-          typeof tazApi !== "undefined" &&
-          typeof tazApi.hasDynamicStyles === "function" &&
-          tazApi.hasDynamicStyles() === true
-      """
-    do {
-      let result = try await webView.jsexec(js)
-      log("##>> result of isArticleJavaScriptAvailable: \(result ?? "-")")
-      return (result as? Bool) == true
-    } catch {
-      log("##>> JavaScript unavailable: \(error)")
-      return false
     }
   }
   
@@ -1120,10 +1099,9 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     """
     do {
       let result = try await webView.jsexec(js)
-      log("##>> result of hasGetBookmarksJsFunction: \(result ?? "-")")
       return (result as? Bool) == true
     } catch {
-      log("##>> JavaScript unavailable: \(error)")
+      log("JavaScript unavailable: \(error)")
       return false
     }
   }
