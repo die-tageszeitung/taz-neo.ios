@@ -495,30 +495,7 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
       self?.isErrorReporting = false
     }
   }
-  
-  static func saveLastLog(){
-    /** copy last logfile before overwrite
-     not solving:
-     - multiple starts before send feedback
-     - app did not start, overwrite "interesting" logfile
-     Ideas:
-     - do not overwrite with mini file
-     - use kind of log rotataion next: which logfile to add?
-     - use app context menu to acces last logfile?
-    @see also FeedbackViewController adds this in feedback request
-     Question: is this called for incomming push notification?
-     */
-    let currentLogEndTime = File(Log.FileLogger.tmpLogfile).mTime
-    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
-    
-    File(Log.FileLogger.lastLogfile)
-      .copy(to: Log.FileLogger.secondLastLogfile, isOverwrite: true)
-    File(Log.FileLogger.tmpLogfile)
-      .copy(to: Log.FileLogger.lastLogfile, isOverwrite: true)
-    ///restore mTime to have correct times in logfiles header parts
-    File(Log.FileLogger.secondLastLogfile).mTime = lastLogEndTime
-    File(Log.FileLogger.lastLogfile).mTime = currentLogEndTime
-  }
+
   
   static func updateDefaultsIfNeeded(){
     let dfl = Defaults.singleton

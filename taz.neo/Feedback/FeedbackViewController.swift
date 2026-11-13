@@ -155,6 +155,8 @@ public class FeedbackViewController : UIViewController{
     self.logData = nil
     self.doCloseClosure = nil
     self.requestCancel = nil
+    let prevLastLog = File(Log.FileLogger.prevLastLogfile)
+    if prevLastLog.exists { prevLastLog.remove() }
     self.log("FeedbackViewController closed")
   }
   
@@ -560,21 +562,17 @@ extension Log.FileLogger {
     return uid?.hasSuffix("@taz.de") ?? false
   }
   
-  /// Logfile from last execution
-  public static var secondLastLogfile: String = tmpLogfile + ".2old"
+
   
   public static func string(data: Data?, includeOldLog: Bool = false) -> String? {
     var log = ""
     // remember mTime before it gets overwritten by access
-    let secondLastLogEndTime = File(Log.FileLogger.secondLastLogfile).mTime
-    let lastLogEndTime = File(Log.FileLogger.lastLogfile).mTime
-    
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
     if isThirdLogAvailable, secondLastLog.exists,
        let lString = String(data:secondLastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     2nd L A S T - E X E C U T I O N"
-      log += "\n     Last: \(secondLastLogEndTime.dateAndTime)"
+      log += "\n     2nd LAST - LOG"
+      log += "\n     Last: \(secondLastLog.mTime.dateAndTime)"
       //for @taz.de useraccounts add 3 app session logs
       if DefaultAuthenticator.getUserData().id?.hasSuffix("@taz.de") == true {
         log += "\n###################################\n\n"
@@ -585,13 +583,23 @@ extension Log.FileLogger {
         log += "\n###################################"
       }
     }
+
+    let prevLastLog = File(Log.FileLogger.prevLastLogfile)
+    if prevLastLog.exists,
+       let lString = String(data:prevLastLog.data, encoding: .utf8) {
+      log += "\n###################################"
+      log += "\n     2nd PREV LAST - LOG"
+      log += "\n     Last: \(prevLastLog.mTime.dateAndTime)"
+      log += "\n###################################\n\n"
+      log += lString
+    }
     
     let lastLog = File(Log.FileLogger.lastLogfile)
     if lastLog.exists,
        let lString = String(data:lastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     L A S T - E X E C U T I O N"
-      log += "\n     Last: \(lastLogEndTime.dateAndTime)"
+      log += "\n     LAST - LOG"
+      log += "\n     Last: \(lastLog.mTime.dateAndTime)"
       log += "\n###################################\n\n"
       log += lString
     }

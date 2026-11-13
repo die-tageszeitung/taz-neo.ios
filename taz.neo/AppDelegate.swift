@@ -14,7 +14,7 @@ class AppDelegate: NotifiedDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     TazAppEnvironment.updateDefaultsIfNeeded()
-    TazAppEnvironment.saveLastLog()
+    TazAppEnvironment.fileLogger.rotateIfNeeded()
     TazAppEnvironment.setupDefaultStyles()
 //    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running

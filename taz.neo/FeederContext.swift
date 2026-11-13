@@ -679,6 +679,7 @@ open class FeederContext: DoesLog, NotificationObserving {
 
   ///used in VersionCheck, Check NetworkConnection, Update PublicationDates
   func handleEnterForeground(){
+    TazAppEnvironment.fileLogger.rotateIfNeeded()
     var status = ""
     if self.minVersionOK == false {
       status = "minVersion not OK, enforceUpdate"
