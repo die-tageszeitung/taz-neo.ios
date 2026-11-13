@@ -179,6 +179,14 @@ open class HeaderView: UIView,  Touchable, UIStyleChangeDelegate {
     line.setNeedsDisplay()
   }
   
+  func release() {
+    onTitleClosure = nil
+    self.pageNumberLabel.onTap{_ in}
+    self.pageNumberLabel.onTap{_ in}
+    removeObservers()
+  }
+
+  
   private var onTitleClosure: ((String?)->())?
   
   /// Define closure to call if a title has been touched

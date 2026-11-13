@@ -328,6 +328,15 @@ extension NewContentTableVC {
 
 ///actions
 extension NewContentTableVC {
+  
+  func release() {
+    sectionPressedClosure = nil
+    articlePressedClosure = nil
+    imagePressedClosure = nil
+    feeder = nil
+    issue = nil
+  }
+  
   /// Define closure to call when a content label has been pressed
   public func onSectionPress(closure: @escaping (Int)->()) {
     sectionPressedClosure = closure

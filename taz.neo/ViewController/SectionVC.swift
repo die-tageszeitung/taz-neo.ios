@@ -420,7 +420,23 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   open override func releaseOnDisappear() {
     articleVC?.cleanup()
     articleVC = nil
+    $whenLoaded.removeAll()
+    $whenLinkPressed.removeAll()
+    $whenScrolled.removeAll()
+    $atEndOfContent.removeAll()
+    $scrollViewDidScroll.removeAll()
+    $scrollViewDidEndDragging.removeAll()
+    pager.removeAllonDisplayClosures()
+    $scrollViewDidEndScrolling.removeAll()
+    $scrollViewWillBeginDragging.removeAll()
     cleanup()
+    contentTable.release()
+    sections = []
+    article2section = [:]
+    article2sectionHtml = [:]
+    article = nil
+    header.release()
+    removeObservers()
     super.releaseOnDisappear()
   }
    
