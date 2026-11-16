@@ -751,14 +751,22 @@ open class FeederContext: DoesLog, NotificationObserving {
   
   /// Returns true if the Issue needs to be updated
   public func needsUpdate(issue: Issue) -> Bool {
-    ///ensure manual download while automatic download is queued in the background.
-    ///Warning RaceCondition with autodownload on app resume, solved with
-    ///TazAppEnvironment.isDownloading....
+    // allow manual downloads even if an automatic download is already queued
+    // prevents a race condition when automatic downloads resume with the app
     if issue.isAutodownloading {
       issue.isDownloading = false
       issue.isAutodownloading = false
       return true
     }
+    
+    if TazAppEnvironment.isDownloading(issue.date.ISO8601) {
+      log("WARNING: Issue is already downloading, but flag not set")
+      issue.isDownloading = false
+      issue.isAutodownloading = false
+      return true
+    }
+    
+    // return false (and may skip update) if the Issue is already being downloaded
     guard !issue.isDownloading else { return false }
     
     if issue.isReduced, isAuthenticated, !Defaults.expiredAccount {

@@ -638,11 +638,13 @@ extension MainTabVC {
       if let home = firstVc as? HomeVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
         if let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue,
-           feederContext.needsUpdate(issue: issue, toShowPdf: false) == false {
+           feederContext.needsUpdate(issue: issue, toShowPdf: false) == false,
+           issue.isDownloading == false { /// catch race condition if download starts before this check
           continue
         }
         else if let issue = (tabNav.viewControllers.valueAt(1) as? TazPdfPagesViewController)?.issue,
-           feederContext.needsUpdate(issue: issue, toShowPdf: true) == false {
+                feederContext.needsUpdate(issue: issue, toShowPdf: true) == false,
+                issue.isDownloading == false { /// catch race condition if download starts before this check
           continue
         }
         ///Facsimile/PDF View or Article/Section VC wich need Update
