@@ -21,6 +21,7 @@ private let configValues = [
   "nStarted" : "0", 
   // last time app has been started (as UsTime)
   "lastStarted": "0", 
+  "lastTerminated": "0",// last time app has been terminated (as UsTime)
   // has our data policy been accepted
   "dataPolicyAccepted" : "false",
   // Article/Section font size in percent (100% => 18px)
@@ -255,6 +256,7 @@ extension Defaults {
     let dfl = Defaults.singleton
     dfl["nStarted"] = "0"
     dfl["lastStarted"] = "0"
+    dfl["lastTerminated"] = "0"
     dfl["installationId"] = nil
     dfl["pushToken"] = nil
     

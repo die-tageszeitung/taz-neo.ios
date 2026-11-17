@@ -176,12 +176,19 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
     let dfl = Defaults.singleton
     let nStarted = dfl["nStarted"]!.int!
     let lastStarted = dfl["lastStarted"]!.usTime
-    debug("Startup: #\(nStarted), last: \(lastStarted.toString())")
+    var lastTerminated = " killed (no time)"
+    if let last = dfl["lastTerminated"] {
+      let lastTime = last.usTime
+      if lastTime.sec > 1 { lastTerminated = lastTime.toString() }
+    }
+    log("Startup: #\(nStarted), last: \(lastStarted.toString()) - \(lastTerminated)")
+    log("=========================================================================")
     logKeychain(msg: "initial")
     logSystemEvents()
     let now = UsTime.now
     dfl["nStarted"] = "\(nStarted + 1)"
     dfl["lastStarted"] = "\(now.sec)"
+    dfl["lastTerminated"] = "0"
     SharedTazFont.register(Const.Fonts.tazFont())
     showHome()
     feederContext?.updateResources(toVersion: -1)
@@ -208,12 +215,9 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
   }
   
   func appWillTerminate() {
-//    if let masterFeed = TazAppEnvironment.storedFeeder?.masterFeed,
-//       TazAppEnvironment.selectedFeed?.feedId != masterFeed.feedId {
-//      TazAppEnvironment.selectedFeed = masterFeed
-//    }
     ArticleDB.save()//You have 5 Seconds!!
-    debug("App is going to be terminated")
+    log("App is going to be terminated")
+    Defaults.singleton["lastTerminated"] = "\(UsTime.now.sec)"
   }
  
   func deleteAll() {
@@ -908,12 +912,14 @@ extension Log {
     let appSupportPath:String = Dir.appSupportPath
     let isTAZ:String = App.isTAZ ? "true" : "false"
     let logString = """
+      ============================= Appstart =================================
       App: \(appName) \(bundleVersion)-\(buildNumber)
       \(bundleIdentifier)
       Device: \(systemName) \(systemVersion)
       git-hash: \(gitHash)
       Path: \(appSupportPath)
       isTAZ: \(isTAZ)
+      ========================================================================
       """
     log(logString)
   }
