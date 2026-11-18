@@ -96,7 +96,10 @@ extension FeederContext {
       Notification.send("issue", result: .success(issue), sender: issue)
       return
     }
-    TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
+    if issue.date.timeIntervalSinceReferenceDate >= (masterFeed?.lastIssue.timeIntervalSinceReferenceDate ?? 0){
+      ///only remember the latest issuedate to prevent an additional background download
+      TazAppEnvironment.setDownloadStart(issue.date.ISO8601)
+    }
     if self.isConnected, let selectedFeed = selectedFeed {
       let requestAutoloadPDF ///Request autodownload pdf if required
       = isPages == true ///only for PDF Downloads

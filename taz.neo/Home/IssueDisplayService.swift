@@ -90,7 +90,7 @@ extension IssueDisplayService {
       date: \(issue.safeDate?.short ?? "-") 
       status: \(issue.status), serverVersion: \(issue.versionRemote ?? -2)  localVersion: \(issue.versionLocal ?? -2)
       isComplete: \(issue.isComplete), isAudioComplete: \(issue.isAudioComplete),  isReduced: \(issue.isReduced), needUpdateAudio: \(issue.needUpdateAudio), isDownloading: \(issue.isDownloading), isAutodownloading: \(issue.isAutodownloading), isOvwComplete: \(issue.isOvwComplete)
-      articleCount: \(issue.allArticles.count), pageCount: \(issue.pages?.count ?? 0)
+      articleCount: \(issue.realArticleCount), pageCount: \(issue.pages?.count ?? 0)
       downloadStarted: \(issue.storedPayload?.downloadStarted?.dateAndTime ?? "-"), downloadStoped: \(issue.storedPayload?.downloadStopped?.dateAndTime ?? "-")
     """
     

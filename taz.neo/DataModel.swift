@@ -1092,10 +1092,18 @@ public extension Issue {
     return ret
   }
   
-  /// All Articles in one Issue (one Article may appear multiple
-  /// times in the resulting array if it is referenced in more than
-  /// one section).
-  var allArticles: [Article] {
+  /// All articles in the issue, including TOM articles.
+  /// An article may appear multiple times if it is referenced in
+  /// more than one section.
+  var allArticles: [Article] { allArticles(withTom: true) }
+
+  /// The number of actual articles in the issue, excluding TOM articles.
+  var realArticleCount: Int { allArticles(withTom: false).count }
+
+  /// Returns all articles in the issue, optionally including TOM articles.
+  /// An article may appear multiple times if it is referenced in
+  /// more than one section.
+  func allArticles(withTom tom: Bool) -> [Article] {
     var ret: [Article] = []
     if let sects = sections, sects.count > 0 {
       for sect in sects { 
