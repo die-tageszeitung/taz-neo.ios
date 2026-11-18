@@ -176,6 +176,7 @@ public class DefaultAuthenticator: Authenticator {
       guard let self = self else { return;}
       switch result{
         case .success(let info):
+          log("pollSubscription Result: \(info.status.rawValue)")
           switch info.status {
             case .valid:
               /// Check if we have a token otherwise continue polling and return
