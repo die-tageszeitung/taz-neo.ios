@@ -212,9 +212,11 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
       highlightSelectedFeed()
     }
     guard service.publicationDates.count > 0 else { return }
-    collectionView.scrollToItem(at: IndexPath(row: 0, section: 0),
-                                at: isHomeTiles ? .centeredVertically : .centeredHorizontally,
-                                animated: true)
+    scrollTo(0, animated: true)
+    onMainAfter(0.7) {[weak self] in
+      guard let self else { return }
+      updateBottomWrapper(for: carousselFixCenterIndex ?? 0)
+    }
   }
   
   func showDatePicker() {
@@ -311,8 +313,7 @@ class HomeVC: UICollectionViewController, OpenIssueDelegate, NotificationObservi
     guard let idx = carouselCenterIssueIndex else { return }
     ///do not make big jumps
     if let cidx = carousselScrollingCenterIndex,
-       abs(cidx - idx) > 2 { return
-    }
+       abs(cidx - idx) > 2 { return }
     onMainAfter {[weak self] in self?.scrollTo(idx, animated: true)  }
   }
   
