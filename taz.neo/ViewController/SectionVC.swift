@@ -195,6 +195,7 @@ open class SectionVC: ContentVC, ArticleVCdelegate, SFSafariViewControllerDelega
   }
   
   public func closeIssue() {
+    log("close issue")
     self.navigationController?.popViewController(animated: false)
     self.articleVC?.releaseOnDisappear()
     self.releaseOnDisappear()
