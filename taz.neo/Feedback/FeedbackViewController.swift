@@ -575,7 +575,7 @@ extension Log.FileLogger {
       //for @taz.de useraccounts add 3 app session logs
       if tazUser {
         log += "\n###################################"
-        log += "\n     2nd LAST - LOG :: Modified: \(secondLastLog.mTime.dateAndTime)"
+        log += "\n     2nd LAST - LOG :: Modified: \(secondLastLog.mTime.dateAndTimeIfValid)"
         log += "\n###################################\n\n"
         log += lString
       }
@@ -585,7 +585,7 @@ extension Log.FileLogger {
     if tazUser, prevLastLog.exists,
        let lString = String(data:prevLastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     2nd PREV LAST - LOG :: Modified: \(prevLastLog.mTime.dateAndTime)"
+      log += "\n     2nd PREV LAST - LOG :: Modified: \(prevLastLog.mTime.dateAndTimeIfValid)"
       log += "\n###################################\n\n"
       log += lString
     }
@@ -594,7 +594,7 @@ extension Log.FileLogger {
     if lastLog.exists,
        let lString = String(data:lastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     LAST - LOG :: Modified: \(lastLog.mTime.dateAndTime)"
+      log += "\n     LAST - LOG :: Modified: \(lastLog.mTime.dateAndTimeIfValid)"
       log += "\n###################################\n\n"
       log += lString
     }
@@ -602,7 +602,7 @@ extension Log.FileLogger {
     if let data = data,
        let lString = String(data:data , encoding: .utf8) {
       log += "\n###################################"
-      log += "\n  Current - LOG :: Created: \(lastLog.cTime.dateAndTime)"
+      log += "\n  Current - LOG :: Created: \(lastLog.cTime.dateAndTimeIfValid)"
       log += "\n###################################"
       log += "\n Last: \(lString)"
     }
@@ -610,3 +610,15 @@ extension Log.FileLogger {
   }
   
 } // extension Log.FileLogger
+
+extension Date {
+  var dateAndTimeIfValid:String{
+    get{
+      guard self.timeIntervalSince1970 > 0 else { return "-" }
+      let dateFormatterGet = DateFormatter()
+      dateFormatterGet.dateFormat = "dd.MM.yy HH:mm:ss"
+      return dateFormatterGet.string(from: self)
+    }
+  }
+  
+}
