@@ -762,7 +762,11 @@ open class FeederContext: DoesLog, NotificationObserving {
     ///Prevent multiple downloads
     if issue.isDownloading { return false }
     
-    if issue.realArticleCount == 0 { return true }
+    if issue.realArticleCount == 0 {
+      issue.isDownloading = false
+      issue.isAutodownloading = false
+      return true
+    }
     
     if issue.isReduced, isAuthenticated, !Defaults.expiredAccount {
       issue.isComplete = false
