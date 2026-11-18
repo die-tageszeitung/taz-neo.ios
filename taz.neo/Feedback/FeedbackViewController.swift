@@ -568,28 +568,24 @@ extension Log.FileLogger {
     var log = ""
     // remember mTime before it gets overwritten by access
     let secondLastLog = File(Log.FileLogger.secondLastLogfile)
+    let tazUser = DefaultAuthenticator.getUserData().id?.hasSuffix("@taz.de") == true
+    
     if isThirdLogAvailable, secondLastLog.exists,
        let lString = String(data:secondLastLog.data, encoding: .utf8) {
-      log += "\n###################################"
-      log += "\n     2nd LAST - LOG"
-      log += "\n     Last: \(secondLastLog.mTime.dateAndTime)"
       //for @taz.de useraccounts add 3 app session logs
-      if DefaultAuthenticator.getUserData().id?.hasSuffix("@taz.de") == true {
+      if tazUser {
+        log += "\n###################################"
+        log += "\n     2nd LAST - LOG :: Modified: \(secondLastLog.mTime.dateAndTime)"
         log += "\n###################################\n\n"
         log += lString
-      }
-      else {
-        log += "\n not appending 2nd last log"
-        log += "\n###################################"
       }
     }
 
     let prevLastLog = File(Log.FileLogger.prevLastLogfile)
-    if prevLastLog.exists,
+    if tazUser, prevLastLog.exists,
        let lString = String(data:prevLastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     2nd PREV LAST - LOG"
-      log += "\n     Last: \(prevLastLog.mTime.dateAndTime)"
+      log += "\n     2nd PREV LAST - LOG :: Modified: \(prevLastLog.mTime.dateAndTime)"
       log += "\n###################################\n\n"
       log += lString
     }
@@ -598,8 +594,7 @@ extension Log.FileLogger {
     if lastLog.exists,
        let lString = String(data:lastLog.data, encoding: .utf8) {
       log += "\n###################################"
-      log += "\n     LAST - LOG"
-      log += "\n     Last: \(lastLog.mTime.dateAndTime)"
+      log += "\n     LAST - LOG :: Modified: \(lastLog.mTime.dateAndTime)"
       log += "\n###################################\n\n"
       log += lString
     }
@@ -607,7 +602,7 @@ extension Log.FileLogger {
     if let data = data,
        let lString = String(data:data , encoding: .utf8) {
       log += "\n###################################"
-      log += "\n  C U R R E N T - E X E C U T I O N"
+      log += "\n  Current - LOG :: Created: \(lastLog.cTime.dateAndTime)"
       log += "\n###################################"
       log += "\n Last: \(lString)"
     }
