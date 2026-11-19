@@ -1077,24 +1077,24 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     checkWebViewOnDisplay()
   }
   
-  private func doCheckWebViewOnDisplay(){
-    guard let currentWebView = currentWebView else {
-      log("no current webview, nothing to reload! index is: \(index)/\(count)")
-      return
-    }
-    reloadAllWebViewsIfNeeded()
-    
-    hasGetBookmarksJsFunction(webView: currentWebView) {[weak self] res in
-      if (res as? Bool) == true { return }
-      self?.log("no bookmarks js: reload")
-      self?.currentWebView?.forceReload()
-    }
-  }
+//  private func doCheckWebViewOnDisplay(){
+//    guard let currentWebView = currentWebView else {
+//      log("no current webview, nothing to reload! index is: \(index)/\(count)")
+//      return
+//    }
+//    reloadAllWebViewsIfNeeded()
+//    
+//    hasGetBookmarksJsFunction(webView: currentWebView) {[weak self] res in
+//      if (res as? Bool) == true { return }
+//      self?.log("no bookmarks js: reload")
+//      self?.currentWebView?.forceReload()
+//    }
+//  }
   
   func checkWebViewOnDisplay() {
-    guard self.navigationController?.viewControllers.last == self else { return }
-    if Thread.isMainThread { doCheckWebViewOnDisplay(); return }
-    onMain {[weak self] in self?.doCheckWebViewOnDisplay() }
+//    guard self.navigationController?.viewControllers.last == self else { return }
+    if Thread.isMainThread { reloadAllWebViewsIfNeeded(); return }
+    onMain {[weak self] in self?.reloadAllWebViewsIfNeeded() }
   }
   
   func hasGetBookmarksJsFunction(webView: WebView, closure: @escaping ((Any?)->Void)) {
