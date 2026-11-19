@@ -340,7 +340,7 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
     let settings = """
         Current app settings for diagnostics
         ---
-        \(Defaults.singleton.currentValues.joined(separator: ", "))
+        \(Defaults.singleton.currentValues.sorted().joined(separator: ", "))
         ---
         \(self.deviceDiagnostics)
         ---

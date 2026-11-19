@@ -505,11 +505,16 @@ open class SettingsVC: UIViewController, UIStyleChangeDelegate, NotificationObse
     }
   })
   
+  private var memoryUsageCellTapCount: Int = 0
+  
   lazy var memoryUsageCell: XSettingsCell
   = XSettingsCell(text: "Speichernutzung",
                   detailText: storageDetails,
                   tapHandler: {[weak self] in
     self?.log("StorageDetails tapped")
+    self?.memoryUsageCellTapCount += 1
+    if (self?.memoryUsageCellTapCount ?? 0) > 4 { self?.resetLog() }
+    onMainAfter(4.0) {[weak self] in self?.memoryUsageCellTapCount = 0 }
   })
   
   lazy var deleteDatabaseCell: XSettingsCell
@@ -1267,6 +1272,16 @@ extension SettingsVC {
     
     alert.addAction( UIAlertAction.init( title: "Abbrechen", style: .cancel) { _ in } )
     alert.presentAt(self.resetAppCell)
+  }
+  
+  func resetLog(){
+    TazAppEnvironment.fileLogger.rotateIfNeeded(force: true)
+    memoryUsageCellTapCount = 0
+    log("...reset Log done!")
+    File(Log.FileLogger.lastLogfile).remove()
+    File(Log.FileLogger.prevLastLogfile).remove()
+    File(Log.FileLogger.secondLastLogfile).remove()
+    Toast.show("...Logdaten zurückgesetzt")
   }
   
   func showPrivacy(){
