@@ -233,12 +233,12 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
   }
   
   func reset(isDelete: Bool = true) {
+    log("⚠️ RESET CALLED \(isDelete)")
     let oldRoot = rootViewController
     rootViewController = Spinner()
     oldRoot.removeObserversRecursively()
     oldRoot.dismiss(animated: false)
     service = nil
-    
     feederContext?.release(isRemove: isDelete) { [weak self] in
       guard let self else { return }
       Bookmarks.reinitialize()
@@ -300,7 +300,11 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
       guard let self, let fctx = notification.sender as? FeederContext else { return }
       self.debug(fctx.storedFeeder?.toString() ?? "-")
       if isStartup { self.startup() }
-      else { self.showHome() }
+      else {
+        log("Setup Feeder after App Reset...rotate logfile")
+        TazAppEnvironment.fileLogger.rotateIfNeeded(force: true)
+        self.showHome()
+      }
       
       if let sf = feederContext?.masterFeed {
         let latestLocalIssue = StoredIssue.latest(feed: sf)

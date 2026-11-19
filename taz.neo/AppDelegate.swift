@@ -11,10 +11,15 @@ import Darwin
 
 @UIApplicationMain
 class AppDelegate: NotifiedDelegate {
+  
+  @Default("rotateLogfileOnStartup")
+  var rotateLogfileOnStartup: Bool
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     TazAppEnvironment.updateDefaultsIfNeeded()
-    TazAppEnvironment.fileLogger.rotateIfNeeded()
+    ///forcerotate logfile on every 2nd app restart
+    TazAppEnvironment.fileLogger.rotateIfNeeded(force: rotateLogfileOnStartup)
+    rotateLogfileOnStartup = !rotateLogfileOnStartup
     TazAppEnvironment.setupDefaultStyles()
 //    log("starting with #launchOptions: \(launchOptions?.count ?? 0)")///still not in File Logger
     ///handle application started from NotificationCenter, if app not running
