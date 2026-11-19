@@ -1056,6 +1056,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     }
     
     Notification.receive(UIApplication.willResignActiveNotification, observer: self) { [weak self] _ in
+      self?.rememberScrollPositions()
       self?.persistReadProgress()
       ArticleDB.save()
     }
