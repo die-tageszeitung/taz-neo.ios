@@ -1081,6 +1081,8 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
       log("no current webview, nothing to reload! index is: \(index)/\(count)")
       return
     }
+    reloadAllWebViewsIfNeeded()
+    
     hasGetBookmarksJsFunction(webView: currentWebView) {[weak self] res in
       if (res as? Bool) == true { return }
       self?.log("no bookmarks js: reload")
