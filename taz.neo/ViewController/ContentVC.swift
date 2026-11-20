@@ -1092,6 +1092,10 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
 //  }
   
   func checkWebViewOnDisplay() {
+    if currentWebView?.url == nil {
+      reopenArticleDocName = nil
+      reopenArticleScrollPos = nil
+    }
 //    guard self.navigationController?.viewControllers.last == self else { return }
     if Thread.isMainThread { reloadAllWebViewsIfNeeded(); return }
     onMain {[weak self] in self?.reloadAllWebViewsIfNeeded() }
