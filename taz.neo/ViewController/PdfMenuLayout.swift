@@ -96,9 +96,10 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     
     let spacing = self.pageInterItemSpacing
     let panoItemWidth
-    = collectionView.bounds.inset(by: collectionView.layoutMargins).width
+    = collectionView.bounds.width
     - self.sectionInset.left
     - self.sectionInset.right
+    - PdfDisplayOptions.Overview.sideSpacing
     let singleItemWidth =  max(1, panoItemWidth/2 - spacing/2)
     ///+ labelHeight!, label/image dist, bottom Dist (lineSpacing)
     let itemHeight = singleItemWidth * singlePageRatio + 53.0
@@ -106,7 +107,7 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     panoPageItemSize = CGSize(width: panoItemWidth, height: itemHeight)
     let rowHeight = itemHeight + self.minimumLineSpacing
     var yOffset = self.sectionInset.top
-    let xLeft = self.sectionInset.left + collectionView.layoutMargins.left
+    let xLeft = PdfDisplayOptions.Overview.sideSpacing
     /// UI:  |-sectionInset.left-[cell]-spacing-[cell]-sectionInset.right-|
     let xRight = singleItemWidth + spacing + xLeft
     var prevPageType : PageType?
@@ -152,16 +153,13 @@ class PdfMenuLayout: UICollectionViewFlowLayout, DoesLog {
     cachedListHeaderAttributes = []
 
     var yOffset = 0.0
-    let xLeft = self.sectionInset.left + collectionView.layoutMargins.left
+    let xLeft = PdfDisplayOptions.Overview.sideSpacing
     
     let cvWidth = collectionView.frame.size.width
     
     guard cvWidth > 0 else { return }///remove negative width warnings
     
     let leftCellWidth = cvWidth * Const.Size.taz.Slider.xLeft
-    
-    ///min header image width!
-    log(">>> list mode leftCellWidth \(leftCellWidth)  cvWidth: \(collectionView.frame.size.width)")
     
     let rightCellWidth = cvWidth - leftCellWidth - xLeft - sectionInset.right - minimumInteritemSpacing
     let rightCellXOffset = leftCellWidth + xLeft + minimumInteritemSpacing
