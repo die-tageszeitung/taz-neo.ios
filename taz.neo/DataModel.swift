@@ -1117,6 +1117,9 @@ public extension Issue {
     }
     
     if let imp = imprint { ret += imp }
+    
+    if tom == false { return ret }
+    
     #if TAZ
     for tom in Tom.toms(issue: self) {
       ret += tom
