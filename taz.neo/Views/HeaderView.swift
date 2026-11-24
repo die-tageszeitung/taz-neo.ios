@@ -333,9 +333,7 @@ extension HeaderView {
     let labelSize = labelsFontSize ?? subTitleFontSizeDefault
     let isWochentazTitle = isWochentaz && (titletype != .section0 || titletype == .article)
     
-    let contentFont = isWochentazTitle
-      ? Const.Fonts.knileRegularFont(size: labelSize)
-      : Const.Fonts.contentFont(size: labelSize)
+    let contentFont = Const.Fonts.contentFont(size: labelSize)
     
     let titleFont = isWochentazTitle
       ? Const.Fonts.knileSemiBoldFont(size: titleSize)
