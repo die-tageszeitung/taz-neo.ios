@@ -30,7 +30,7 @@ public class ContentUrl: WebViewUrl, DoesLog, NotificationObserving {
       guard let path = content.dir?.path else { return false }
       ///contentFiles no more files! to show article even if icons missing, icons needed in menu
       for f in content.contentFiles {
-        if f.fileNameExists(inDir: path, ignoringTime: true) == false {
+        if f.fileWithNameExists(inDir: path, logIgnoringTime: true) == false {
           self.loadClosure(self)
           return false
         }
@@ -50,17 +50,23 @@ public class ContentUrl: WebViewUrl, DoesLog, NotificationObserving {
           $whenAvailable.notify(sender: self)
         }
       }
-      else if errorCount > 5,
+      else if errorCount > 3,
         TazAppEnvironment.sharedInstance.feederContext?.isConnected == false {
-        _waitingView?.bottomText = "\(errorCount) Ladefehler...\nBitte überprüfen Sie Ihre Internetverbindung."
+        _waitingView?.bottomText = "Ladefehler,\nBitte überprüfen Sie Ihre Internetverbindung!"
         Notification.receiveOnce(Const.NotificationNames.feederReachable, observer: self)  { [weak self] _ in
           guard let self = self else { return }
+          self.errorCount -= 1
           self.loadClosure(self)
         }
       }
+      else if errorCount > 3 {
+        _waitingView?.stop()
+        _waitingView?.bottomText = "Ladefehler,\nBitte versuchen Sie es später noch einmal."
+        log("download failed for: \(url.absoluteString), stop trying")
+      }
       else {
         errorCount += 1
-        _waitingView?.bottomText = "\(errorCount) Ladefehler..."
+        _waitingView?.bottomText = "\(errorCount) Ladefehler...\n "
         delay(seconds: 0.2 * Double(errorCount)) { [weak self] in
           guard let self = self else { return }
           self.loadClosure(self)
