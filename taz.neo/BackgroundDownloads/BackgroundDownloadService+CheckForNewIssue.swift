@@ -252,7 +252,8 @@ fileprivate extension BackgroundDownloadService {
     }
     
     
-    let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext)
+    let lastLocalIssueDate = try lastLocalIssueDate(feederContext: feederContext,
+                                                    masterFeedName: masterFeed.name)
     log("lastLocalIssueDate: \(lastLocalIssueDate?.short ?? "-")")
     
     // MARK: fetch latest issue and publication Dates from server
@@ -314,33 +315,32 @@ fileprivate extension BackgroundDownloadService {
   /// - `lastFromDatabase`: The latest issue date stored in the local database.
   /// - `lastFromJsonFile`: The latest issue date loaded from a local JSON file.
   /// - `lastFromSingleton`: The latest issue date held in memory (e.g., a singleton).
-  func lastLocalIssueDate(feederContext: FeederContext) throws -> Date? {
+  func lastLocalIssueDate(feederContext: FeederContext, masterFeedName: String) throws -> Date? {
     let dbDate = try lastFromDatabase(for: feederContext)
-    let lastFromJsonFile = try lastFromJsonFile(for: feederContext)
+    let lastFromJsonFile = try lastFromJsonFile(for: feederContext, masterFeedName: masterFeedName)
     let allDates = [dbDate, lastFromJsonFile, lastFromSingleton]
     log("db: \(String(describing: dbDate?.short)), json: \(String(describing: lastFromJsonFile?.short)), singleton: \(String(describing: lastFromSingleton?.short))")
     return allDates.compactMap { $0 }.max()
   }
   
   private func lastFromDatabase(for feederContext: FeederContext) throws -> Date? {
-    guard let feeder = feederContext.storedFeeder else {
+    guard let feeder = feederContext.storedFeeder,
+    let masterFeed = feeder.masterFeed as? StoredFeed else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    #warning("todo not this way")
-    return StoredIssue.lastComplete(feed: feeder.masterFeed as! StoredFeed,
+    return StoredIssue.lastComplete(feed: masterFeed,
                                      isPages: autoloadPdf,
                                      withAudio: autoloadAudio)?.date
   }
   
   /// check userDefault for last downloaded in earlier session, check if json is available **current feed!** TODO FEED SWITCH is not supported here ...for autodownload!
   /// returns the date
-  private func lastFromJsonFile(for feederContext: FeederContext) throws -> Date? {
+  private func lastFromJsonFile(for feederContext: FeederContext, masterFeedName: String) throws -> Date? {
     guard let issueDateKey = downloadDateKeys.max() else { return nil }
-    guard let feeder = feederContext.storedFeeder,
-            let masterFeed = feeder.masterFeed else {
+    guard let feeder = feederContext.storedFeeder else {
       throw BackgroundDownloadError("db not initialized yet, try again later")
     }
-    let feedPath = feeder.feedDir(masterFeed.name).path
+    let feedPath = feeder.feedDir(masterFeedName).path
     let filePath = "\(feedPath)/\(issueDateKey)/\(BackgroundDownloadService.jsonDataFilename)"
     let file = File(filePath)
     guard file.exists else {
