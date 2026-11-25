@@ -30,7 +30,7 @@ public class ContentUrl: WebViewUrl, DoesLog, NotificationObserving {
       guard let path = content.dir?.path else { return false }
       ///contentFiles no more files! to show article even if icons missing, icons needed in menu
       for f in content.contentFiles {
-        if !f.fileNameExists(inDir: path) {
+        if f.fileNameExists(inDir: path, ignoringTime: true) == false {
           self.loadClosure(self)
           return false
         }

@@ -160,14 +160,31 @@ public extension FileEntry {
     }  
   }
   
-  func fileNameExists(inDir: String) -> Bool {
+  func fileNameExists(inDir: String, ignoringTime: Bool = false) -> Bool {
     let f = File(dir: inDir, fname: fileName)
-    let exists = f.exists 
+    if f.exists == false  {
+      log("* Warning: File \(fileName) not exists")
+      return false
+    }
+    else if (f.size != size){
+      log("* Warning: File \(fileName) exists but size is wrong \(f.size) !=? \(size)")
+      return false
+    }
+    else if ignoringTime == false && (f.mTime != moTime){
+      log("* Warning: File \(fileName) exists but mtime is wrong \(f.mTime) !=? \(moTime)")
+      return false
+    }
+    return true
+  }
+  
+  func fileNameExistsIgnotingTime(inDir: String) -> Bool {
+    let f = File(dir: inDir, fname: fileName)
+    let exists = f.exists
     if exists && ((f.mTime != moTime) || (f.size != size)) {
       log("* Warning: File \(fileName) exists but mtime and/or size are wrong \(f.mTime) !=? \(moTime) || \(f.size) !=? \(size)")
     }
     return exists
-  }  
+  }
 
 }
 
