@@ -16,7 +16,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
   @Default("showHelp")
   var showHelp: Bool
   
-  var feederContext: FeederContext
+  var feederContext: FeederContext?
   var service: IssueOverviewService
   
   lazy var helpButton = HelpButton()
@@ -118,6 +118,29 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
       }
     }
   }
+    
+  func cleanup() {
+    Notification.remove(observer: self)
+    removeObservers()
+    
+    
+    let navigationControllers = viewControllers?
+      .compactMap { $0 as? NavigationController } ?? []
+
+    for navigationController in navigationControllers {
+      navigationController.navigationDelegate = nil
+      navigationController.delegate = nil
+      navigationController.setViewControllers([], animated: false)
+    }
+    
+    delegate = nil
+    moreNavigationController.delegate = nil
+    moreNavigationController.setViewControllers([], animated: false)
+    
+    setViewControllers(nil, animated: false)
+    customizableViewControllers = nil
+    // "-[UITabBarController setSelectedViewController:] only a view controller in the tab bar controller's list of view controllers can be selected."
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -145,7 +168,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
     }
     
     Notification.receive(Const.NotificationNames.closeOpenIssues, observer: self) { [weak self] _ in
-      self?.feederContext.openedIssue = nil
+      self?.feederContext?.openedIssue = nil
       (self?.viewControllers?.first as? UINavigationController)?.popToRootViewController(animated: false)
     }
     
@@ -266,7 +289,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
       return
     }
 
-    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+    if feederContext?.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) == true {
       showLoadingOverlayIfNeeded(data: data)
       ///WARNING: This is Probably not the correct Issue
       ///UseCase open Issue from App-Link
@@ -320,7 +343,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
       return
     }
 
-    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+    if feederContext?.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) == true {
       showLoadingOverlayIfNeeded(message: overlayMessage)
       ///WARNING: This is Probably not the correct Issue; UseCase open Issue from App-Link
       Notification.receiveOnce("issue", observer: self) { [weak self] notif in
@@ -386,7 +409,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
       gotoIssue(at: issueDate)
       return
     }
-    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+    if feederContext?.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) == true {
       Notification.receiveOnce("issue", observer: self) { [weak self] _ in self?.gotoArticleInIssue(with: issueDate, articleUrl: articleUrl)
       }
       service.download(issueAt: issueDate, withAudio: false)
@@ -472,7 +495,7 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
       gotoIssue(at: date)
       return
     }
-    if feederContext.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) {
+    if feederContext?.needsUpdate(issue: issue, toShowPdf: self.service.isFacsimile) == true {
       service.download(issueAt: date, withAudio: false)
       gotoIssue(at: date)
       return
@@ -530,6 +553,16 @@ class MainTabVC: UITabBarController, UIStyleChangeDelegate , NotificationObservi
     self.tabBar.backgroundColor = Const.Colors.iOSDark.secondarySystemBackground
     self.tabBar.isTranslucent = false
     self.tabBar.tintColor = .white
+    guard let feederContext else {
+      log("Initialisierungsfehler no feederContext available", logLevel: .Error)
+      
+      let killButton = UIAlertAction(title: "App beenden", style: .destructive) { _ in   exit(0) }
+      Alert.message(title: "Initialisierungsfehler",
+                    message: "Bitte starte die App neu.",
+                    additionalActions: [killButton],
+                    buttonTitle: "Abbrechen")
+      return
+    }
     
     let home = HomeVC(service: service, feederContext: feederContext)
     home.title = "Home"
@@ -628,7 +661,7 @@ extension MainTabVC {
   /// Check whether it's necessary to reload the current Issue
   /// - Parameter alertMessage: optional alert message e.g. shown if reactivated subscription
   public func authenticationSucceededCheckReload(alertMessage: String? = nil) {
-    feederContext.updateAuthIfNeeded()
+    feederContext?.updateAuthIfNeeded()
     
     var reloadTargets: [ReloadAfterAuthChanged] = []
         
@@ -638,12 +671,12 @@ extension MainTabVC {
       if let home = firstVc as? HomeVC {
         ///if full issue > text settngs > settings > login no more refresh data will appear for compleete issue
         if let issue = (tabNav.viewControllers.valueAt(1) as? SectionVC)?.issue,
-           feederContext.needsUpdate(issue: issue, toShowPdf: false) == false,
+           feederContext?.needsUpdate(issue: issue, toShowPdf: false) == false,
            issue.isDownloading == false { /// catch race condition if download starts before this check
           continue
         }
         else if let issue = (tabNav.viewControllers.valueAt(1) as? TazPdfPagesViewController)?.issue,
-                feederContext.needsUpdate(issue: issue, toShowPdf: true) == false,
+                feederContext?.needsUpdate(issue: issue, toShowPdf: true) == false,
                 issue.isDownloading == false { /// catch race condition if download starts before this check
           continue
         }
@@ -951,9 +984,8 @@ extension UIView {
     circleLayer.add(fade, forKey: "fade")
     
     // finally remove layer
-    DispatchQueue.main.asyncAfter(deadline: .now() + 4 * stepDuration + 0.8) { [weak self] in
+    DispatchQueue.main.asyncAfter(deadline: .now() + 4 * stepDuration + 0.8) {
       circleLayer.removeFromSuperlayer()
-//      self?.pulsate()
     }
   }
   

@@ -76,6 +76,9 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
     Spinner()
   }() {
     didSet {
+      if let old = oldValue as? MainTabVC {
+        old.cleanup()
+      }
       //return;//Simulate Connect Errors
       guard let window = UIApplication.shared.activeKeyWindow else { return }
       window.hideAnimated { [weak self] in
@@ -104,7 +107,10 @@ class TazAppEnvironment: NSObject, DoesLog, NotificationObserving {
   lazy var consoleLogger = Log.Logger()
   public static let fileLogger = Log.FileLogger()
   var fileLogger:Log.FileLogger  {  Self.fileLogger }
-  var feederContext: FeederContext? { didSet { oldValue?.removeObservers() }}
+  var feederContext: FeederContext? { didSet {
+    oldValue?.netAvailability.netAvailability = nil
+    oldValue?.removeObservers()
+  }}
   var service: IssueOverviewService? { didSet { oldValue?.removeObservers() }}
   let net = NetAvailability()
   
