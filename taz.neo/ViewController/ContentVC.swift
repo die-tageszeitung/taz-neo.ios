@@ -1256,7 +1256,7 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     }
     
     issueObserver = Notification.receiveOnce("issue", from: issue, observer: self) { [weak self] notif in
-      self?.reloadAllWebViews()
+      self?.reloadAllWebViews(excludeCurrent: true)
     }
   }
   
