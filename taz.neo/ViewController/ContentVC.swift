@@ -1208,7 +1208,6 @@ open class ContentVC: WebPagerVC, IssueInfo, UIStyleChangeDelegate, Notification
     super.viewDidAppear(animated)
     log("\(currentWebView?.originalUrl?.lastPathComponent ?? "-")")
     ensureToolbarInFrontOfTapButtons()
-    checkWebViewOnDisplay()
   }
   
   /// ensures that left/right tap buttons are behind tollbar and content slider
